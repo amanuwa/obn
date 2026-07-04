@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Automation Command Center</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Include Supabase JS Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .ai-bg {
+            background-color: #020617;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(79, 70, 229, 0.18) 0px, transparent 50%),
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            animation: pulseBg 12s ease-in-out infinite alternate;
+        }
+        @keyframes pulseBg {
+            0% { background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px; }
+            100% { background-size: 110% 110%, 90% 90%, 105% 105%, 40px 40px, 40px 40px; }
+        }
+        .glow-border:focus-within {
+            border-color: #6366f1;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+        input:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+    </style>
+</head>
+<body class="ai-bg text-slate-100 min-h-screen flex flex-col font-sans relative overflow-x-hidden">
+
+    <!-- SCREEN 1: MODERN AI SIGN-UP REGISTRATION -->
+    <div id="signUpScreen" class="flex-1 flex items-center justify-center p-6 relative z-10">
+        <div class="max-w-md w-full bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500"></div>
+
+            <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent tracking-tight mb-1">
+                Initialize Agent Access
+            </h2>
+            <p class="text-xs text-slate-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-950 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Section</label>
+                    <div class="glow-border flex items-center bg-slate-950 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">📰</span>
+                        <input type="text" id="regSection" required placeholder="Journalism Section" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
+                    <div class="glow-border flex items-center bg-slate-950 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                        <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                    </div>
+                </div>
+
+                <button onclick="registerJournalist()" id="signUpBtn" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-indigo-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Sign Up
+                </button>
+                
+                <p id="successMessage" class="text-sm text-emerald-400 font-mono text-center mt-2 hidden">✓ Profile compiled! Routing to Portal Terminal...</p>
+
+                <div class="text-center mt-4">
+                    <p class="text-xs text-slate-400">Already registered? <a href="#" onclick="showScreen('signInScreen')" class="text-indigo-400 hover:underline font-mono">Secure Log In</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: MODERN SIGN-IN PORTAL -->
+    <div id="signInScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
+        <div class="max-w-md w-full bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+
+            <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent tracking-tight mb-1">
+                Operator Portal
+            </h2>
+            <p class="text-xs text-slate-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-950 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono">Access Password</label>
+                        <a href="#" onclick="showScreen('forgotScreen')" class="text-[11px] text-slate-500 hover:text-indigo-400 transition font-mono">Forgot Password?</a>
+                    </div>
+                    <div class="glow-border flex items-center bg-slate-950 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                        <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                    </div>
+                </div>
+
+                <button onclick="loginJournalist()" id="signInBtn" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-indigo-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Sign In
+                </button>
+
+                <div class="text-center mt-4">
+                    <p class="text-xs text-slate-400">New Agent? <a href="#" onclick="showScreen('signUpScreen')" class="text-indigo-400 hover:underline font-mono">Initialize Access Profile</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: FORGOT ACCESS PROFILE PASSWORD -->
+    <div id="forgotScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
+        <div class="max-w-md w-full bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-purple-500 to-pink-500"></div>
+
+            <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent tracking-tight mb-1">
+                Override Key Request
+            </h2>
+            <p class="text-xs text-slate-400 text-center uppercase tracking-widest font-mono mb-6">Identify Account Profile</p>
+
+            <div class="space-y-4 text-left">
+                <p class="text-xs text-slate-400 font-mono leading-relaxed bg-slate-950/60 p-3 border border-slate-800/50 rounded-lg mb-2">
+                    Enter your registered full name to locate your credentials profile.
+                </p>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-950 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="forgotName" required placeholder="Enter Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
+                </div>
+
+                <button onclick="lookupPassword()" id="forgotBtn" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-purple-600/20 active:scale-[0.99] mt-2 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Verify Profile Key
+                </button>
+
+                <div class="text-center mt-4">
+                    <a href="#" onclick="showScreen('signInScreen')" class="text-xs text-slate-500 hover:text-indigo-400 transition font-mono">← Abort and Return to Portal</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: MAIN PERSISTENT DASHBOARD -->
+    <div id="dashboardScreen" class="hidden flex-1 flex flex-col relative z-10">
+        <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800/60 px-8 py-4 flex items-center justify-between shadow-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-black text-xs">AI</div>
+                <span class="text-sm text-slate-600 font-mono">/</span>
+                <span class="font-bold tracking-tight text-slate-200">Automation Control Hub</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                    <span class="text-xs text-slate-500 font-mono">Active Operator:</span>
+                    <span id="profileDisplay" class="text-xs text-indigo-400 font-mono font-bold">---</span>
+                </div>
+                <button onclick="logoutOperator()" class="text-xs font-mono text-slate-400 hover:text-rose-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg transition cursor-pointer">Disconnect</button>
+            </div>
+        </header>
+
+        <main class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 p-8 flex-1 items-start">
+            <div class="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-slate-800 space-y-5">
+                <h3 class="text-md font-semibold text-indigo-400 flex items-center gap-2 uppercase tracking-wider text-xs font-mono">
+                    <span>⚙️</span> Engine Variables
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium mb-1 text-slate-400">Search Keywords</label>
+                        <input type="text" id="keywords" placeholder="e.g. Tactical metrics" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1 text-slate-400">Day History Span</label>
+                        <input type="number" id="daySpan" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1 text-slate-400">Core News Source</label>
+                        <select id="newsSource" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                            <option value="all">Consolidated Live Stream</option>
+                            <option value="sky_sports">Primary Media Pipeline</option>
+                        </select>
+                    </div>
+                    <button onclick="executeWorkflow()" id="runBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-emerald-600/20 font-mono uppercase text-xs tracking-wider">
+                        Fire Automation Pipeline
+                    </button>
+                </div>
+            </div>
+
+            <div class="md:col-span-2 bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-slate-800 flex flex-col min-h-[480px]">
+                <h3 class="text-md font-semibold text-slate-300 flex items-center gap-2 uppercase tracking-wider text-xs font-mono mb-4">
+                    <span>📊</span> Live Matrix Terminal
+                </h3>
+                <div id="loadingState" class="hidden my-auto text-center py-12">
+                    <div class="animate-spin inline-block w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mb-4"></div>
+                    <p class="text-slate-400 font-mono text-xs animate-pulse">Invoking background scraping clusters... Streaming results.</p>
+                </div>
+                <div id="emptyState" class="my-auto text-center py-12">
+                    <span class="text-3xl opacity-40">📥</span>
+                    <p class="text-slate-500 mt-2 font-mono text-xs">Waiting for active engine variables...</p>
+                </div>
+                <div id="outputState" class="hidden flex-1 flex flex-col">
+                    <div class="bg-slate-950 rounded-xl p-4 border border-slate-850 font-mono text-xs overflow-auto max-h-[380px] flex-1">
+                        <pre id="jsonDisplay" class="text-slate-300 whitespace-pre-wrap"></pre>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC ENGINE -->
+    <script>
+        const SUPABASE_URL = 'https://cqkaxhyrnjmqpovxwjom.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4aHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q';
+
+const N8N_CONTENT_URL = 'https://corsproxy.io/?https://unreached-oboe-evade.ngrok-free.dev/webhook/register-journalist';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentSessionOperator = { name: "", section: "" };
+
+        function showScreen(screenId) {
+            const screens = ['signUpScreen', 'signInScreen', 'forgotScreen', 'dashboardScreen'];
+            screens.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // 1. REGISTER NEW USER
+        async function registerJournalist() {
+            const fullName = document.getElementById('regName').value.trim();
+            const section = document.getElementById('regSection').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const signUpBtn = document.getElementById('signUpBtn');
+            const successMsg = document.getElementById('successMessage');
+
+            if (!fullName || !section || !password) {
+                return alert("All fields are required.");
+            }
+
+            signUpBtn.disabled = true;
+            signUpBtn.innerText = "Processing Profile...";
+
+            try {
+                const { data: existingUsers, error: checkError } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', fullName);
+
+                if (checkError) throw checkError;
+
+                if (existingUsers && existingUsers.length > 0) {
+                    alert(`Registration failed: The name "${fullName}" is already taken.`);
+                    signUpBtn.disabled = false;
+                    signUpBtn.innerText = "Sign Up";
+                    return; 
+                }
+
+                const { error: insertError } = await supabaseClient
+                    .from('journalists')
+                    .insert([{ 
+                        "Journalist name": fullName, 
+                        "journalism Section": section, 
+                        "Password": password 
+                    }]);
+
+                if (insertError) throw insertError;
+
+                successMsg.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    successMsg.classList.add('hidden');
+                    document.getElementById('loginName').value = fullName;
+                    signUpBtn.disabled = false;
+                    signUpBtn.innerText = "Sign Up";
+                    showScreen('signInScreen');
+                }, 1500);
+
+            } catch (error) {
+                alert("Registration Error: " + error.message);
+                signUpBtn.disabled = false;
+                signUpBtn.innerText = "Sign Up";
+            }
+        }
+
+        // 2. SIGN IN ACCOUNT PORTAL
+        async function loginJournalist() {
+            const nameInput = document.getElementById('loginName').value.trim();
+            const passwordInput = document.getElementById('loginPassword').value;
+            const signInBtn = document.getElementById('signInBtn');
+
+            if (!nameInput || !passwordInput) {
+                return alert("Please enter both your name and password.");
+            }
+
+            signInBtn.disabled = true;
+            signInBtn.innerText = "Authenticating...";
+
+            try {
+                const { data: records, error } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', nameInput);
+
+                if (error) throw error;
+
+                if (!records || records.length === 0) {
+                    alert(`Authentication Error: Account profile for "${nameInput}" not found.`);
+                    signInBtn.disabled = false;
+                    signInBtn.innerText = "Sign In";
+                    return;
+                }
+
+                const accountProfile = records[0];
+
+                if (accountProfile.Password !== passwordInput) {
+                    alert("Authentication Error: Invalid password.");
+                    signInBtn.disabled = false;
+                    signInBtn.innerText = "Sign In";
+                    return;
+                }
+
+                currentSessionOperator.name = accountProfile["Journalist name"];
+                currentSessionOperator.section = accountProfile["journalism Section"];
+
+                document.getElementById('profileDisplay').textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section}`;
+                
+                signInBtn.disabled = false;
+                signInBtn.innerText = "Sign In";
+                document.getElementById('loginPassword').value = ""; 
+                showScreen('dashboardScreen');
+
+            } catch (error) {
+                alert("Login Error: " + error.message);
+                signInBtn.disabled = false;
+                signInBtn.innerText = "Sign In";
+            }
+        }
+
+        // 3. SECURE FORGOT PASSWORD PROFILE CHECK
+        async function lookupPassword() {
+            const nameInput = document.getElementById('forgotName').value.trim();
+            const forgotBtn = document.getElementById('forgotBtn');
+
+            if (!nameInput) {
+                return alert("Please enter your name.");
+            }
+
+            forgotBtn.disabled = true;
+            forgotBtn.innerText = "Searching...";
+
+            try {
+                const { data: records, error } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', nameInput);
+
+                if (error) throw error;
+
+                if (!records || records.length === 0) {
+                    alert(`No profile found matching "${nameInput}".`);
+                } else {
+                    // Safe response message without exposing raw data
+                    alert(`Profile Found!\n\nPlease speak to an Authority to reset your key.`);
+                    showScreen('signInScreen');
+                }
+            } catch (error) {
+                alert("Database Error: " + error.message);
+            } finally {
+                forgotBtn.disabled = false;
+                forgotBtn.innerText = "Verify Profile Key";
+            }
+        }
+
+        function logoutOperator() {
+            currentSessionOperator = { name: "", section: "" };
+            document.getElementById('profileDisplay').textContent = "---";
+            showScreen('signInScreen');
+        }
+
+        async function executeWorkflow() {
+            const keywords = document.getElementById('keywords').value;
+            const daySpan = document.getElementById('daySpan').value;
+            const newsSource = document.getElementById('newsSource').value;
+            
+            const runBtn = document.getElementById('runBtn');
+            const emptyState = document.getElementById('emptyState');
+            const loadingState = document.getElementById('loadingState');
+            const outputState = document.getElementById('outputState');
+
+            runBtn.disabled = true;
+            runBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            emptyState.classList.add('hidden');
+            outputState.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            try {
+                const response = await fetch(N8N_CONTENT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        keywords, 
+                        daySpan, 
+                        newsSource, 
+                        journalist: currentSessionOperator.name, 
+                        section: currentSessionOperator.section 
+                    })
+                });
+
+                const resultData = await response.json();
+                document.getElementById('jsonDisplay').textContent = JSON.stringify(resultData, null, 2);
+                loadingState.className = 'hidden';
+                outputState.classList.remove('hidden');
+
+            } catch (error) {
+                alert('Automation error: ' + error.message);
+                emptyState.classList.remove('hidden');
+                loadingState.classList.add('hidden');
+            } finally {
+                runBtn.disabled = false;
+                runBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+    </script>
+</body>
+</html>
