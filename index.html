@@ -228,8 +228,8 @@
         const SUPABASE_URL = 'https://cqkaxhyrnjmqpovxwjom.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4aHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q';
 
-        // Routed through AllOrigins RAW proxy targeting your n8n ngrok node directly
-        const N8N_CONTENT_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://unreached-oboe-evade.ngrok-free.dev/webhook/register-journalist');
+        // Targets your direct ngrok URL node explicitly
+        const N8N_CONTENT_URL = 'https://unreached-oboe-evade.ngrok-free.dev/webhook/register-journalist';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let currentSessionOperator = { name: "", section: "" };
@@ -393,7 +393,7 @@
             showScreen('signInScreen');
         }
 
-        // EXECUTING AUTOMATION CLUSTER VIA ALLORIGINS TUNNEL Bypassing CORS Preflights
+        // EXECUTING AUTOMATION VIA text/plain TO SKIP BROWSER CORS PREFLIGHT
         async function executeWorkflow() {
             const keywords = document.getElementById('keywords').value;
             const daySpan = document.getElementById('daySpan').value;
@@ -414,8 +414,8 @@
                 const response = await fetch(N8N_CONTENT_URL, {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        // text/plain maps as a Simple Request and bypasses OPTIONS preflight entirely
+                        'Content-Type': 'text/plain'
                     },
                     body: JSON.stringify({ 
                         keywords, 
@@ -426,9 +426,15 @@
                     })
                 });
 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const textResult = await response.text();
+                let resultData;
                 
-                const resultData = await response.json();
+                try {
+                    resultData = JSON.parse(textResult);
+                } catch(e) {
+                    resultData = { response: textResult };
+                }
+
                 document.getElementById('jsonDisplay').textContent = JSON.stringify(resultData, null, 2);
                 loadingState.className = 'hidden';
                 outputState.classList.remove('hidden');
