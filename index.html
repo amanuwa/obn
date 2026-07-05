@@ -8,20 +8,30 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
-            background-color: #02040a;
-            background-image: url('Screenshot 2026-07-05 050457_2.jpg');
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
-            background-attachment: fixed;
+            background-color: #020617;
             margin: 0;
             overflow-x: hidden;
+        }
+        /* Full-screen background configuration using the provided image */
+        #bg-image-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background-image: url('Screenshot 2026-07-05 050457.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            opacity: 0.6; /* Slight dimming so forms remain readable */
         }
         .glow-border:focus-within {
             border-color: #38bdf8;
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
         }
-        input:focus, select:focus {
+        input:focus {
             outline: none !important;
             box-shadow: none !important;
         }
@@ -29,9 +39,12 @@
 </head>
 <body class="text-slate-100 min-h-screen flex flex-col font-sans relative">
 
+    <!-- STATIC CYBER-GLOBE BACKGROUND IMAGE -->
+    <div id="bg-image-container"></div>
+
     <!-- SCREEN 1: MODERN AI SIGN-UP REGISTRATION -->
     <div id="signUpScreen" class="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/60 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -49,16 +62,10 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assigned Sector</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Section</label>
                     <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">🗂️</span>
-                        <select id="regSection" required class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer text-slate-300">
-                            <option value="" disabled selected class="bg-slate-950 text-slate-500">Select Sector...</option>
-                            <option value="World Politics and Governance" class="bg-slate-950 text-white">1) World Politics and Governance</option>
-                            <option value="Sports & Analytics" class="bg-slate-950 text-white">2) Sports & Analytics</option>
-                            <option value="Business and Finance" class="bg-slate-950 text-white">3) Business and Finance</option>
-                            <option value="General Hot News" class="bg-slate-950 text-white">4) General Hot News</option>
-                        </select>
+                        <span class="text-slate-500 mr-2.5 select-none">📰</span>
+                        <input type="text" id="regSection" required placeholder="Journalism Section" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
                     </div>
                 </div>
 
@@ -85,7 +92,7 @@
 
     <!-- SCREEN 2: MODERN SIGN-IN PORTAL -->
     <div id="signInScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/60 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -126,7 +133,7 @@
 
     <!-- SCREEN 3: FORGOT ACCESS PROFILE PASSWORD -->
     <div id="forgotScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/60 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 to-indigo-500"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -160,11 +167,11 @@
 
     <!-- SCREEN 4: MAIN PERSISTENT DASHBOARD -->
     <div id="dashboardScreen" class="hidden flex-1 flex flex-col relative z-10">
-        <header id="dashboardHeader" class="bg-slate-950/40 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between shadow-lg">
+        <header class="bg-slate-950/60 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between shadow-lg">
             <div class="flex items-center gap-3">
-                <div id="headerLogo" class="w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs text-white">AI</div>
+                <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center font-black text-xs">AI</div>
                 <span class="text-sm text-slate-600 font-mono">/</span>
-                <span id="dashboardTitle" class="font-bold tracking-tight text-slate-200">Terminal Control Hub</span>
+                <span class="font-bold tracking-tight text-slate-200">Automation Control Hub</span>
             </div>
             <div class="flex items-center gap-4">
                 <div class="flex items-center gap-3 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
@@ -175,57 +182,46 @@
             </div>
         </header>
 
-        <!-- SECTOR SPECIFIC HERO / METRIC STRIPS (The 4 Distinct Page Layout Elements) -->
         <div class="max-w-7xl w-full mx-auto px-8 pt-6">
-            
-            <!-- Page 1 Extra Component: Politics Alert Center -->
-            <div id="extra-politics" class="hidden bg-slate-950/30 backdrop-blur-xl border border-blue-500/30 rounded-xl p-4 mb-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-xs font-mono font-bold text-blue-400 uppercase tracking-widest">🏛️ Global Policy Intelligence Stream</span>
-                </div>
-                <p class="text-xs text-slate-400 font-mono">Monitoring legislative frameworks, polling matrices, and cross-border diplomatic updates.</p>
-            </div>
-
-            <!-- Page 2 Extra Component: Sports Analytics Strips -->
-            <div id="extra-sports" class="hidden bg-slate-950/30 backdrop-blur-xl border border-emerald-500/30 rounded-xl p-4 mb-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest">⚽ Live Metric Fixture Watch</span>
-                </div>
-                <p class="text-xs text-slate-400 font-mono">Tracking real-time league standings, tactical metrics, and player data tracking.</p>
-            </div>
-
-            <!-- Page 3 Extra Component: Financial Market Ticker -->
-            <div id="extra-finance" class="hidden bg-slate-950/30 backdrop-blur-xl border border-amber-500/30 rounded-xl p-4 mb-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-xs font-mono font-bold text-amber-400 uppercase tracking-widest">📈 Central Liquidity Ticker Feed</span>
-                </div>
-                <p class="text-xs text-slate-400 font-mono">Analyzing forex exchange shifts, market index assets, and corporate compliance logs.</p>
-            </div>
-
-            <!-- Page 4 Extra Component: Hot Breaking Wire -->
-            <div id="extra-hotnews" class="hidden bg-slate-950/30 backdrop-blur-xl border border-rose-500/30 rounded-xl p-4 mb-4">
-                <div class="flex items-center gap-2 mb-2">
+            <div class="bg-slate-950/60 backdrop-blur-xl border border-slate-850 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-3">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                     </span>
-                    <h4 class="text-xs font-mono uppercase tracking-widest font-bold text-rose-400">🚨 High-Velocity Global News Flash</h4>
+                    <h4 class="text-xs font-mono uppercase tracking-widest font-bold text-rose-400">Cross-Desk Global Alert Wire</h4>
                 </div>
-                <p class="text-xs text-slate-400 font-mono">Immediate structural indexing on real-time public interest wires and trending social matrices.</p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
+                        <div class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider mb-1">⚽ Sports Desk</div>
+                        <p id="breaking-sports" class="text-xs text-slate-300 font-medium truncate">Awaiting next analytic match fixture update...</p>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
+                        <div class="text-[10px] font-mono text-amber-400 uppercase tracking-wider mb-1">📈 Finance Desk</div>
+                        <p id="breaking-finance" class="text-xs text-slate-300 font-medium truncate">Monitoring live forex & asset market tickers...</p>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
+                        <div class="text-[10px] font-mono text-sky-400 uppercase tracking-wider mb-1">🏛️ Politics Desk</div>
+                        <p id="breaking-politics" class="text-xs text-slate-300 font-medium truncate">Tracking policy shifts and legislative drafts...</p>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
+                        <div class="text-[10px] font-mono text-purple-400 uppercase tracking-wider mb-1">💻 Tech Desk</div>
+                        <p id="breaking-tech" class="text-xs text-slate-300 font-medium truncate">Scanning pipeline for critical system anomalies...</p>
+                    </div>
+                </div>
             </div>
-
         </div>
 
-        <!-- MAIN INTERACTIVE SPACE -->
         <main class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 p-8 flex-1 items-start">
-            <div class="bg-slate-950/30 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 space-y-5">
-                <h3 id="engineSectionTitle" class="text-md font-semibold text-sky-400 flex items-center gap-2 uppercase tracking-wider text-xs font-mono">
-                    <span>⚙️</span> Control variables
+            <div class="bg-slate-950/60 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 space-y-5">
+                <h3 class="text-md font-semibold text-sky-400 flex items-center gap-2 uppercase tracking-wider text-xs font-mono">
+                    <span>⚙️</span> Engine Variables
                 </h3>
                 <div class="space-y-4">
                     <div>
                         <label class="block text-xs font-medium mb-1 text-slate-400">Search Keywords</label>
-                        <input type="text" id="keywords" placeholder="Enter sector metrics..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                        <input type="text" id="keywords" placeholder="e.g. Tactical metrics" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
                     </div>
                     <div>
                         <label class="block text-xs font-medium mb-1 text-slate-400">Day History Span</label>
@@ -235,7 +231,7 @@
                         <label class="block text-xs font-medium mb-1 text-slate-400">Core News Source</label>
                         <select id="newsSource" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
                             <option value="all">Consolidated Live Stream</option>
-                            <option value="primary_pipeline">Primary Media Pipeline</option>
+                            <option value="sky_sports">Primary Media Pipeline</option>
                         </select>
                     </div>
                     <button onclick="executeWorkflow()" id="runBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-emerald-600/20 font-mono uppercase text-xs tracking-wider cursor-pointer">
@@ -244,7 +240,7 @@
                 </div>
             </div>
 
-            <div class="md:col-span-2 bg-slate-950/30 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 flex flex-col min-h-[480px]">
+            <div class="md:col-span-2 bg-slate-950/60 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 flex flex-col min-h-[480px]">
                 <h3 class="text-md font-semibold text-slate-300 flex items-center gap-2 uppercase tracking-wider text-xs font-mono mb-4">
                     <span>📊</span> Live Matrix Terminal
                 </h3>
@@ -268,75 +264,47 @@
     <!-- JAVASCRIPT LOGIC ENGINE -->
     <script>
         const SUPABASE_URL = 'https://cqkaxhyrnjmqpovxwjom.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4aHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4hHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q';
         const N8N_CONTENT_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://unreached-oboe-evade.ngrok-free.dev/webhook/register-journalist');
         
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentSessionOperator = { name: "", section: "" };
 
-        // CONFIGURATION FOR THE 4 DISTINCT PAGES
-        const SECTOR_PAGES = {
-            "World Politics and Governance": {
-                title: "Politics & Governance Dashboard",
-                themeColor: "bg-blue-600",
-                accentText: "text-blue-400",
-                placeholder: "e.g., Legislative bills, policy analysis...",
-                defaultKeywords: "Global trade agreements 2026",
-                extraElementId: "extra-politics"
+        const DESK_CONFIGS = {
+            "sport": {
+                title: "Sports Analytics Terminal",
+                placeholder: "e.g., Premier League transfer news...",
+                defaultKeywords: "Manchester United transfer news"
             },
-            "Sports & Analytics": {
-                title: "Sports & Metrics Terminal",
-                themeColor: "bg-emerald-600",
-                accentText: "text-emerald-400",
-                placeholder: "e.g., Premier League fixtures, analytical transfers...",
-                defaultKeywords: "Manchester United tracking statistics",
-                extraElementId: "extra-sports"
+            "finance": {
+                title: "Market Matrix Engine",
+                placeholder: "e.g., Forex metrics...",
+                defaultKeywords: "Exness transactions"
             },
-            "Business and Finance": {
-                title: "Business & Financial Matrix",
-                themeColor: "bg-amber-600",
-                accentText: "text-amber-400",
-                placeholder: "e.g., Forex pairs, trading volume, inflation index...",
-                defaultKeywords: "Exness transaction volumes",
-                extraElementId: "extra-finance"
+            "politics": {
+                title: "Political Wire Desk",
+                placeholder: "e.g., Public policy drafts...",
+                defaultKeywords: "policy data"
             },
-            "General Hot News": {
-                title: "General Hot News Pulse",
-                themeColor: "bg-rose-600",
-                accentText: "text-rose-400",
-                placeholder: "e.g., Trending alerts, high-velocity topics...",
-                defaultKeywords: "Breaking global developments today",
-                extraElementId: "extra-hotnews"
+            "default": {
+                title: "Automation Control Hub",
+                placeholder: "Enter engine search parameters...",
+                defaultKeywords: ""
             }
         };
 
-        // Construct distinct structural templates depending on logged-in sector
-        function switchDashboardLayout(sector) {
-            const pageConfig = SECTOR_PAGES[sector];
-            if (!pageConfig) return;
+        function morphDashboardUI(section) {
+            const key = section ? section.toLowerCase().trim() : "default";
+            const config = DESK_CONFIGS[key] || DESK_CONFIGS["default"];
 
-            // 1. Mutate App Header and Styling 
-            document.getElementById('dashboardTitle').textContent = pageConfig.title;
-            const logo = document.getElementById('headerLogo');
-            logo.className = `w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs text-white ${pageConfig.themeColor}`;
+            document.querySelector(".tracking-tight.text-slate-200").textContent = config.title;
             
-            // 2. Adjust Sidebar Fields and Control Inputs
-            const engineTitle = document.getElementById('engineSectionTitle');
-            engineTitle.className = `text-md font-semibold ${pageConfig.accentText} flex items-center gap-2 uppercase tracking-wider text-xs font-mono`;
-            
-            const keywordsInput = document.getElementById('keywords');
-            keywordsInput.placeholder = pageConfig.placeholder;
-            keywordsInput.value = pageConfig.defaultKeywords;
+            const keywordInput = document.getElementById('keywords');
+            keywordInput.placeholder = config.placeholder;
+            keywordInput.value = config.defaultKeywords;
 
-            // 3. Toggle Visibility of Unique Structural Page Modules
-            ['extra-politics', 'extra-sports', 'extra-finance', 'extra-hotnews'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById(pageConfig.extraElementId).classList.remove('hidden');
-
-            // 4. Print Status Badge
             const operatorBadge = document.getElementById('profileDisplay');
-            operatorBadge.textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section}`;
+            operatorBadge.textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section.toUpperCase()}`;
         }
 
         function showScreen(screenId) {
@@ -349,12 +317,12 @@
 
         async function registerJournalist() {
             const fullName = document.getElementById('regName').value.trim();
-            const section = document.getElementById('regSection').value;
+            const section = document.getElementById('regSection').value.trim();
             const password = document.getElementById('regPassword').value;
             const signUpBtn = document.getElementById('signUpBtn');
             const successMsg = document.getElementById('successMessage');
 
-            if (!fullName || !section || !password) return alert("All profile registration parameters are required.");
+            if (!fullName || !section || !password) return alert("All fields are required.");
 
             signUpBtn.disabled = true;
             signUpBtn.innerText = "Processing Profile...";
@@ -367,7 +335,7 @@
 
                 if (checkError) throw checkError;
                 if (existingUsers && existingUsers.length > 0) {
-                    alert(`Registration failed: The operator name "${fullName}" is already taken.`);
+                    alert(`Registration failed: The name "${fullName}" is already taken.`);
                     signUpBtn.disabled = false;
                     signUpBtn.innerText = "Sign Up";
                     return; 
@@ -389,7 +357,7 @@
                 }, 1500);
 
             } catch (error) {
-                alert("Database Insertion Error: " + error.message);
+                alert("Registration Error: " + error.message);
                 signUpBtn.disabled = false;
                 signUpBtn.innerText = "Sign Up";
             }
@@ -422,9 +390,7 @@
                 currentSessionOperator.name = records[0]["Journalist name"];
                 currentSessionOperator.section = records[0]["journalism Section"];
 
-                // Transform layout structurally depending on sector
-                switchDashboardLayout(currentSessionOperator.section);
-                
+                morphDashboardUI(currentSessionOperator.section);
                 signInBtn.disabled = false;
                 signInBtn.innerText = "Sign In";
                 document.getElementById('loginPassword').value = ""; 
