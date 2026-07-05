@@ -6,26 +6,23 @@
     <title>Command Center</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Three.js Engine for rendering the 3D Cyber Globe matching Screenshot 2026-07-05 050457.jpg -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body {
-            background-color: #020617;
+            background-color: #02071a;
             margin: 0;
             overflow-x: hidden;
         }
-        /* Full-screen background configuration using the provided image */
-        #bg-image-container {
+        /* Fixed full-screen canvas background container */
+        #canvas-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1;
-            background-image: url('Screenshot 2026-07-05 050457.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            z-index: 0;
             pointer-events: none;
-            opacity: 0.6; /* Slight dimming so forms remain readable */
         }
         .glow-border:focus-within {
             border-color: #38bdf8;
@@ -39,12 +36,12 @@
 </head>
 <body class="text-slate-100 min-h-screen flex flex-col font-sans relative">
 
-    <!-- STATIC CYBER-GLOBE BACKGROUND IMAGE -->
-    <div id="bg-image-container"></div>
+    <!-- 3D CYBER-GLOBE CANVAS BACKGROUND -->
+    <div id="canvas-container"></div>
 
     <!-- SCREEN 1: MODERN AI SIGN-UP REGISTRATION -->
     <div id="signUpScreen" class="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/60 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/50 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -92,7 +89,7 @@
 
     <!-- SCREEN 2: MODERN SIGN-IN PORTAL -->
     <div id="signInScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/60 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/50 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -133,7 +130,7 @@
 
     <!-- SCREEN 3: FORGOT ACCESS PROFILE PASSWORD -->
     <div id="forgotScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/60 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/50 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 to-indigo-500"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -183,7 +180,7 @@
         </header>
 
         <div class="max-w-7xl w-full mx-auto px-8 pt-6">
-            <div class="bg-slate-950/60 backdrop-blur-xl border border-slate-850 rounded-xl p-4">
+            <div class="bg-slate-950/50 backdrop-blur-xl border border-slate-850 rounded-xl p-4">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
@@ -214,7 +211,7 @@
         </div>
 
         <main class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 p-8 flex-1 items-start">
-            <div class="bg-slate-950/60 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 space-y-5">
+            <div class="bg-slate-950/50 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 space-y-5">
                 <h3 class="text-md font-semibold text-sky-400 flex items-center gap-2 uppercase tracking-wider text-xs font-mono">
                     <span>⚙️</span> Engine Variables
                 </h3>
@@ -240,7 +237,7 @@
                 </div>
             </div>
 
-            <div class="md:col-span-2 bg-slate-950/60 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 flex flex-col min-h-[480px]">
+            <div class="md:col-span-2 bg-slate-950/50 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 flex flex-col min-h-[480px]">
                 <h3 class="text-md font-semibold text-slate-300 flex items-center gap-2 uppercase tracking-wider text-xs font-mono mb-4">
                     <span>📊</span> Live Matrix Terminal
                 </h3>
@@ -270,26 +267,151 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentSessionOperator = { name: "", section: "" };
 
+        // --- THREE.JS CYBER GLOBE GENERATOR MATCHING SCREENSHOT 2026-07-05 050457.JPG ---
+        let scene, camera, renderer, globeGroup, pointCloud;
+
+        function initCyberGlobe() {
+            const container = document.getElementById('canvas-container');
+            
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 180;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            globeGroup = new THREE.Group();
+            scene.add(globeGroup);
+
+            // Generate procedural world landmass distribution matrix
+            const particleCount = 7000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const radius = 85;
+
+            // Simplified procedural continent presence checker to block dots in open ocean spaces
+            function checkLandmass(lat, lon) {
+                // Americas
+                if (lon > -140 && lon < -40 && lat > -55 && lat < 70) return true;
+                // Africa
+                if (lon > -20 && lon < 50 && lat > -35 && lat < 35) return true;
+                // Europe & Asia
+                if (lon > -10 && lon < 150 && lat > 10 && lat < 75) return true;
+                // Australia
+                if (lon > 110 && lon < 155 && lat > -40 && lat < -10) return true;
+                return Math.random() < 0.08; // Scattered background noise mapping
+            }
+
+            let validPoints = 0;
+            while(validPoints < particleCount) {
+                const phi = Math.acos((Math.random() * 2) - 1);
+                const theta = Math.random() * Math.PI * 2;
+
+                const lat = 90 - (phi * 180 / Math.PI);
+                const lon = (theta * 180 / Math.PI) - 180;
+
+                if (checkLandmass(lat, lon)) {
+                    positions[validPoints * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                    positions[validPoints * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                    positions[validPoints * 3 + 2] = radius * Math.cos(phi);
+                    validPoints++;
+                }
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            // Bright neon cyan particle properties
+            const pointMaterial = new THREE.PointsMaterial({
+                color: 0x38bdf8,
+                size: 1.1,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending
+            });
+
+            pointCloud = new THREE.Points(geometry, pointMaterial);
+            globeGroup.add(pointCloud);
+
+            // Add orbital network paths curving over the core matrix sphere
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: 0x0284c7,
+                transparent: true,
+                opacity: 0.4,
+                blending: THREE.AdditiveBlending
+            });
+
+            for (let j = 0; j < 35; j++) {
+                const lineGeometry = new THREE.BufferGeometry();
+                const linePoints = [];
+                const pointsCount = 50;
+
+                const v1 = new THREE.Vector3(
+                    Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1
+                ).normalize().multiplyScalar(radius);
+                const v2 = new THREE.Vector3(
+                    Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1
+                ).normalize().multiplyScalar(radius);
+
+                for (let k = 0; k <= pointsCount; k++) {
+                    const t = k / pointsCount;
+                    const p = new THREE.Vector3().lerpVectors(v1, v2, t).normalize().multiplyScalar(radius + Math.sin(t * Math.PI) * 10);
+                    linePoints.push(p);
+                }
+                lineGeometry.setFromPoints(linePoints);
+                const line = new THREE.Line(lineGeometry, lineMaterial);
+                globeGroup.add(line);
+            }
+
+            // Tilt globe slightly toward observer camera matrix
+            globeGroup.rotation.x = 0.3;
+            globeGroup.rotation.z = -0.1;
+
+            animateGlobe();
+        }
+
+        function animateGlobe() {
+            requestAnimationFrame(animateGlobe);
+            globeGroup.rotation.y += 0.0015;
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Initialize Cyber Globe upon layout assembly
+        initCyberGlobe();
+
+        // --- END HOLOGRAPHIC PIPELINE GENERATION ---
+
         const DESK_CONFIGS = {
             "sport": {
                 title: "Sports Analytics Terminal",
                 placeholder: "e.g., Premier League transfer news...",
-                defaultKeywords: "Manchester United transfer news"
+                defaultKeywords: "Manchester United transfer news",
+                glowColor: 0x10b981
             },
             "finance": {
                 title: "Market Matrix Engine",
                 placeholder: "e.g., Forex metrics...",
-                defaultKeywords: "Exness transactions"
+                defaultKeywords: "Exness transactions",
+                glowColor: 0xf59e0b
             },
             "politics": {
                 title: "Political Wire Desk",
                 placeholder: "e.g., Public policy drafts...",
-                defaultKeywords: "policy data"
+                defaultKeywords: "policy data",
+                glowColor: 0x6366f1
             },
             "default": {
                 title: "Automation Control Hub",
                 placeholder: "Enter engine search parameters...",
-                defaultKeywords: ""
+                defaultKeywords: "",
+                glowColor: 0x38bdf8
             }
         };
 
@@ -305,6 +427,11 @@
 
             const operatorBadge = document.getElementById('profileDisplay');
             operatorBadge.textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section.toUpperCase()}`;
+
+            // Adapt the 3D globe coloration to the user's operational section desk context
+            if (pointCloud && pointCloud.material) {
+                pointCloud.material.color.setHex(config.glowColor);
+            }
         }
 
         function showScreen(screenId) {
@@ -428,6 +555,7 @@
 
         function logoutOperator() {
             currentSessionOperator = { name: "", section: "" };
+            if (pointCloud && pointCloud.material) pointCloud.material.color.setHex(0x38bdf8);
             showScreen('signInScreen');
         }
 
