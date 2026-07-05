@@ -9,101 +9,447 @@
     <style>
         body {
             background-color: #02040a;
-            margin: 0;
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        /* REVOLVING BACKGROUND LAYER */
-        .rotating-bg {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 150vmax;
-            height: 150vmax;
-            background-image: url('Screenshot 2026-07-05 050457_4.jpg');
+            /* Using the exact image asset as a fixed background */
+            background-image: url('Screenshot 2026-07-05 050457_2.jpg');
             background-position: center;
             background-repeat: no-repeat;
-            background-size: cover;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.4;
-            animation: spinBg 120s linear infinite;
+            background-size: contain;
+            background-attachment: fixed;
+            margin: 0;
+            overflow-x: hidden;
         }
-
-        @keyframes spinBg {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        /* Overlay for contrast */
-        .bg-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, rgba(2, 4, 10, 0.3) 0%, rgba(2, 4, 10, 0.8) 100%);
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .content-layer {
-            position: relative;
-            z-index: 2;
-        }
-
         .glow-border:focus-within {
             border-color: #38bdf8;
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
         }
+        input:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
-<body class="text-slate-100 font-sans">
+<body class="text-slate-100 min-h-screen flex flex-col font-sans relative">
 
-    <!-- Background Components -->
-    <div class="rotating-bg"></div>
-    <div class="bg-overlay"></div>
+    <!-- SCREEN 1: MODERN AI SIGN-UP REGISTRATION -->
+    <div id="signUpScreen" class="flex-1 flex items-center justify-center p-6 relative z-10">
+        <div class="max-w-md w-full bg-slate-950/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
 
-    <!-- Main Content Container -->
-    <div class="content-layer min-h-screen flex items-center justify-center p-6">
-        <div class="max-w-md w-full bg-slate-950/85 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20">
-            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
+            <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
                 Initialize Agent Access
             </h2>
             <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
 
-            <div class="space-y-4">
+            <div class="space-y-4 text-left">
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Journalist Full Name</label>
-                    <div class="glow-border bg-slate-950 border border-slate-800 rounded-lg p-3">
-                        <input type="text" placeholder="Full Name" class="w-full bg-transparent focus:outline-none text-sm">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Journalism Assigned Sector</label>
-                    <div class="glow-border bg-slate-950 border border-slate-800 rounded-lg p-3">
-                        <select class="w-full bg-transparent focus:outline-none text-sm text-slate-300">
-                            <option>Select Sector...</option>
-                        </select>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Section</label>
+                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">📰</span>
+                        <input type="text" id="regSection" required placeholder="Journalism Section" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Secure Access Password</label>
-                    <div class="glow-border bg-slate-950 border border-slate-800 rounded-lg p-3">
-                        <input type="password" placeholder="Password" class="w-full bg-transparent focus:outline-none text-sm">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
+                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                        <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
                     </div>
                 </div>
 
-                <button class="w-full bg-gradient-to-r from-sky-600 to-blue-700 py-3.5 rounded-lg font-bold text-sm uppercase tracking-wider mt-4">
+                <button onclick="registerJournalist()" id="signUpBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
                     Sign Up
                 </button>
                 
-                <p class="text-center text-xs text-slate-400 mt-4">Already registered? <a href="#" class="text-sky-400">Secure Log In</a></p>
+                <p id="successMessage" class="text-sm text-emerald-400 font-mono text-center mt-2 hidden">✓ Profile compiled! Routing to Portal Terminal...</p>
+
+                <div class="text-center mt-4">
+                    <p class="text-xs text-slate-400">Already registered? <a href="#" onclick="showScreen('signInScreen')" class="text-sky-400 hover:underline font-mono">Secure Log In</a></p>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- SCREEN 2: MODERN SIGN-IN PORTAL -->
+    <div id="signInScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
+        <div class="max-w-md w-full bg-slate-950/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
+
+            <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
+                Operator Portal
+            </h2>
+            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono">Access Password</label>
+                        <a href="#" onclick="showScreen('forgotScreen')" class="text-[11px] text-slate-500 hover:text-sky-400 transition font-mono">Forgot Password?</a>
+                    </div>
+                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                        <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                    </div>
+                </div>
+
+                <button onclick="loginJournalist()" id="signInBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Sign In
+                </button>
+
+                <div class="text-center mt-4">
+                    <p class="text-xs text-slate-400">New Agent? <a href="#" onclick="showScreen('signUpScreen')" class="text-sky-400 hover:underline font-mono">Initialize Access Profile</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: FORGOT ACCESS PROFILE PASSWORD -->
+    <div id="forgotScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
+        <div class="max-w-md w-full bg-slate-950/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+
+            <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
+                Override Key Request
+            </h2>
+            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Identify Account Profile</p>
+
+            <div class="space-y-4 text-left">
+                <p class="text-xs text-slate-400 font-mono leading-relaxed bg-slate-950/80 p-3 border border-slate-800/50 rounded-lg mb-2">
+                    Enter your registered full name to locate your credentials profile.
+                </p>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="forgotName" required placeholder="Enter Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
+                </div>
+
+                <button onclick="lookupPassword()" id="forgotBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-blue-600/20 active:scale-[0.99] mt-2 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Verify Profile Key
+                </button>
+
+                <div class="text-center mt-4">
+                    <a href="#" onclick="showScreen('signInScreen')" class="text-xs text-slate-500 hover:text-sky-400 transition font-mono">← Abort and Return to Portal</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: MAIN PERSISTENT DASHBOARD -->
+    <div id="dashboardScreen" class="hidden flex-1 flex flex-col relative z-10">
+        <header class="bg-slate-950/40 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between shadow-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center font-black text-xs">AI</div>
+                <span class="text-sm text-slate-600 font-mono">/</span>
+                <span class="font-bold tracking-tight text-slate-200">Automation Control Hub</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                    <span class="text-xs text-slate-500 font-mono">Active Operator:</span>
+                    <span id="profileDisplay" class="text-xs text-sky-400 font-mono font-bold">---</span>
+                </div>
+                <button onclick="logoutOperator()" class="text-xs font-mono text-slate-400 hover:text-rose-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg transition cursor-pointer">Logout</button>
+            </div>
+        </header>
+
+        <div class="max-w-7xl w-full mx-auto px-8 pt-6">
+            <div class="bg-slate-950/30 backdrop-blur-xl border border-slate-850 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                    </span>
+                    <h4 class="text-xs font-mono uppercase tracking-widest font-bold text-rose-400">Cross-Desk Global Alert Wire</h4>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
+                        <div class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider mb-1">⚽ Sports Desk</div>
+                        <p id="breaking-sports" class="text-xs text-slate-300 font-medium truncate">Awaiting next analytic match fixture update...</p>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
+                        <div class="text-[10px] font-mono text-amber-400 uppercase tracking-wider mb-1">📈 Finance Desk</div>
+                        <p id="breaking-finance" class="text-xs text-slate-300 font-medium truncate">Monitoring live forex & asset market tickers...</p>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
+                        <div class="text-[10px] font-mono text-sky-400 uppercase tracking-wider mb-1">🏛️ Politics Desk</div>
+                        <p id="breaking-politics" class="text-xs text-slate-300 font-medium truncate">Tracking policy shifts and legislative drafts...</p>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
+                        <div class="text-[10px] font-mono text-purple-400 uppercase tracking-wider mb-1">💻 Tech Desk</div>
+                        <p id="breaking-tech" class="text-xs text-slate-300 font-medium truncate">Scanning pipeline for critical system anomalies...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <main class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 p-8 flex-1 items-start">
+            <div class="bg-slate-950/30 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 space-y-5">
+                <h3 class="text-md font-semibold text-sky-400 flex items-center gap-2 uppercase tracking-wider text-xs font-mono">
+                    <span>⚙️</span> Engine Variables
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium mb-1 text-slate-400">Search Keywords</label>
+                        <input type="text" id="keywords" placeholder="e.g. Tactical metrics" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1 text-slate-400">Day History Span</label>
+                        <input type="number" id="daySpan" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1 text-slate-400">Core News Source</label>
+                        <select id="newsSource" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                            <option value="all">Consolidated Live Stream</option>
+                            <option value="sky_sports">Primary Media Pipeline</option>
+                        </select>
+                    </div>
+                    <button onclick="executeWorkflow()" id="runBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-emerald-600/20 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                        Fire Automation Pipeline
+                    </button>
+                </div>
+            </div>
+
+            <div class="md:col-span-2 bg-slate-950/30 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 flex flex-col min-h-[480px]">
+                <h3 class="text-md font-semibold text-slate-300 flex items-center gap-2 uppercase tracking-wider text-xs font-mono mb-4">
+                    <span>📊</span> Live Matrix Terminal
+                </h3>
+                <div id="loadingState" class="hidden my-auto text-center py-12">
+                    <div class="animate-spin inline-block w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full mb-4"></div>
+                    <p class="text-slate-400 font-mono text-xs animate-pulse">Invoking background scraping clusters... Streaming results.</p>
+                </div>
+                <div id="emptyState" class="my-auto text-center py-12">
+                    <span class="text-3xl opacity-40">📥</span>
+                    <p class="text-slate-500 mt-2 font-mono text-xs">Waiting for active engine variables...</p>
+                </div>
+                <div id="outputState" class="hidden flex-1 flex flex-col">
+                    <div class="bg-slate-950 rounded-xl p-4 border border-slate-850 font-mono text-xs overflow-auto max-h-[380px] flex-1">
+                        <pre id="jsonDisplay" class="text-slate-300 whitespace-pre-wrap"></pre>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC ENGINE -->
+    <script>
+        const SUPABASE_URL = 'https://cqkaxhyrnjmqpovxwjom.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4hHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q';
+        const N8N_CONTENT_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://unreached-oboe-evade.ngrok-free.dev/webhook/register-journalist');
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentSessionOperator = { name: "", section: "" };
+
+        const DESK_CONFIGS = {
+            "sport": {
+                title: "Sports Analytics Terminal",
+                placeholder: "e.g., Premier League transfer news...",
+                defaultKeywords: "Manchester United transfer news"
+            },
+            "finance": {
+                title: "Market Matrix Engine",
+                placeholder: "e.g., Forex metrics...",
+                defaultKeywords: "Exness transactions"
+            },
+            "politics": {
+                title: "Political Wire Desk",
+                placeholder: "e.g., Public policy drafts...",
+                defaultKeywords: "policy data"
+            },
+            "default": {
+                title: "Automation Control Hub",
+                placeholder: "Enter engine search parameters...",
+                defaultKeywords: ""
+            }
+        };
+
+        function morphDashboardUI(section) {
+            const key = section ? section.toLowerCase().trim() : "default";
+            const config = DESK_CONFIGS[key] || DESK_CONFIGS["default"];
+
+            document.querySelector(".tracking-tight.text-slate-200").textContent = config.title;
+            
+            const keywordInput = document.getElementById('keywords');
+            keywordInput.placeholder = config.placeholder;
+            keywordInput.value = config.defaultKeywords;
+
+            const operatorBadge = document.getElementById('profileDisplay');
+            operatorBadge.textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section.toUpperCase()}`;
+        }
+
+        function showScreen(screenId) {
+            const screens = ['signUpScreen', 'signInScreen', 'forgotScreen', 'dashboardScreen'];
+            screens.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        async function registerJournalist() {
+            const fullName = document.getElementById('regName').value.trim();
+            const section = document.getElementById('regSection').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const signUpBtn = document.getElementById('signUpBtn');
+            const successMsg = document.getElementById('successMessage');
+
+            if (!fullName || !section || !password) return alert("All fields are required.");
+
+            signUpBtn.disabled = true;
+            signUpBtn.innerText = "Processing Profile...";
+
+            try {
+                const { data: existingUsers, error: checkError } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', fullName);
+
+                if (checkError) throw checkError;
+                if (existingUsers && existingUsers.length > 0) {
+                    alert(`Registration failed: The name "${fullName}" is already taken.`);
+                    signUpBtn.disabled = false;
+                    signUpBtn.innerText = "Sign Up";
+                    return; 
+                }
+
+                const { error: insertError } = await supabaseClient
+                    .from('journalists')
+                    .insert([{"Journalist name": fullName, "journalism Section": section, "Password": password}]);
+
+                if (insertError) throw insertError;
+
+                successMsg.classList.remove('hidden');
+                setTimeout(() => {
+                    successMsg.classList.add('hidden');
+                    document.getElementById('loginName').value = fullName;
+                    signUpBtn.disabled = false;
+                    signUpBtn.innerText = "Sign Up";
+                    showScreen('signInScreen');
+                }, 1500);
+
+            } catch (error) {
+                alert("Registration Error: " + error.message);
+                signUpBtn.disabled = false;
+                signUpBtn.innerText = "Sign Up";
+            }
+        }
+
+        async function loginJournalist() {
+            const nameInput = document.getElementById('loginName').value.trim();
+            const passwordInput = document.getElementById('loginPassword').value;
+            const signInBtn = document.getElementById('signInBtn');
+
+            if (!nameInput || !passwordInput) return alert("Please enter both your name and password.");
+
+            signInBtn.disabled = true;
+            signInBtn.innerText = "Authenticating...";
+
+            try {
+                const { data: records, error } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', nameInput);
+
+                if (error) throw error;
+                if (!records || records.length === 0 || records[0].Password !== passwordInput) {
+                    alert("Authentication Error: Invalid profile credentials.");
+                    signInBtn.disabled = false;
+                    signInBtn.innerText = "Sign In";
+                    return;
+                }
+
+                currentSessionOperator.name = records[0]["Journalist name"];
+                currentSessionOperator.section = records[0]["journalism Section"];
+
+                morphDashboardUI(currentSessionOperator.section);
+                signInBtn.disabled = false;
+                signInBtn.innerText = "Sign In";
+                document.getElementById('loginPassword').value = ""; 
+                showScreen('dashboardScreen');
+
+            } catch (error) {
+                alert("Login Error: " + error.message);
+                signInBtn.disabled = false;
+                signInBtn.innerText = "Sign In";
+            }
+        }
+
+        async function lookupPassword() {
+            const nameInput = document.getElementById('forgotName').value.trim();
+            const forgotBtn = document.getElementById('forgotBtn');
+
+            if (!nameInput) return alert("Please enter your name.");
+            forgotBtn.disabled = true;
+
+            try {
+                const { data: records, error } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', nameInput);
+
+                if (error) throw error;
+                alert(records && records.length > 0 ? "Profile Found!\n\nPlease contact administration to reset access keys." : "Profile sequence mismatch.");
+                showScreen('signInScreen');
+            } catch (error) {
+                alert("Database Error: " + error.message);
+            } finally {
+                forgotBtn.disabled = false;
+            }
+        }
+
+        function logoutOperator() {
+            currentSessionOperator = { name: "", section: "" };
+            showScreen('signInScreen');
+        }
+
+        async function executeWorkflow() {
+            const keywords = document.getElementById('keywords').value;
+            const daySpan = document.getElementById('daySpan').value;
+            const newsSource = document.getElementById('newsSource').value;
+            const runBtn = document.getElementById('runBtn');
+
+            runBtn.disabled = true;
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('outputState').classList.add('hidden');
+            document.getElementById('loadingState').classList.remove('hidden');
+
+            try {
+                const response = await fetch(N8N_CONTENT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ keywords, daySpan, newsSource, journalist: currentSessionOperator.name, section: currentSessionOperator.section })
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const resultData = await response.json();
+                document.getElementById('jsonDisplay').textContent = JSON.stringify(resultData, null, 2);
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('outputState').classList.remove('hidden');
+            } catch (error) {
+                alert('Automation error: ' + error.message);
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('loadingState').classList.add('hidden');
+            } finally {
+                runBtn.disabled = false;
+            }
+        }
+    </script>
 </body>
 </html>
