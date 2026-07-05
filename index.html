@@ -11,18 +11,32 @@
         .ai-bg {
             background-color: #020617;
             background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(79, 70, 229, 0.18) 0px, transparent 50%),
-                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-            animation: pulseBg 12s ease-in-out infinite alternate;
+                radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.05) 0px, transparent 70%),
+                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            position: relative;
         }
-        @keyframes pulseBg {
-            0% { background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px; }
-            100% { background-size: 110% 110%, 90% 90%, 105% 105%, 40px 40px, 40px 40px; }
+        
+        /* Cyber World Map Background Overlay */
+        .cyber-map-overlay {
+            position: absolute;
+            top: 10%;
+            left: 5%;
+            width: 90%;
+            height: 80%;
+            opacity: 0.25;
+            pointer-events: none;
+            z-index: 1;
+            stroke-dasharray: 8;
+            animation: mapPulse 8s ease-in-out infinite alternate;
         }
+
+        @keyframes mapPulse {
+            0% { opacity: 0.2; filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.3)); }
+            100% { opacity: 0.35; filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6)); }
+        }
+
         .glow-border:focus-within {
             border-color: #6366f1;
             box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
@@ -34,6 +48,40 @@
     </style>
 </head>
 <body class="ai-bg text-slate-100 min-h-screen flex flex-col font-sans relative overflow-x-hidden">
+
+    <!-- CYBER PATHS WORLD MAP BACKGROUND LAYER -->
+    <svg class="cyber-map-overlay" viewBox="0 0 1000 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- North America Tech Nodes -->
+        <path d="M100 120 L180 120 L220 160 L250 140 L280 180 L210 240 L160 220 L140 250 L110 210 Z" stroke="#3b82f6" stroke-width="1.5" />
+        <path d="M150 100 L240 100 L260 130 L200 140 Z" stroke="#1d4ed8" stroke-width="1" />
+        
+        <!-- South America Tech Nodes -->
+        <path d="M220 260 L260 270 L310 320 L330 380 L300 440 L270 450 L250 380 L230 330 Z" stroke="#3b82f6" stroke-width="1.5" />
+        
+        <!-- Greenland / Iceland -->
+        <path d="M350 60 L420 70 L390 100 L340 90 Z" stroke="#1d4ed8" stroke-width="1" />
+
+        <!-- Africa Tech Nodes -->
+        <path d="M430 220 L480 200 L540 210 L580 250 L600 320 L570 390 L540 430 L520 430 L510 350 L470 310 L440 270 Z" stroke="#3b82f6" stroke-width="1.5" />
+        
+        <!-- Europe Tech Nodes -->
+        <path d="M440 130 L490 110 L530 130 L550 170 L500 190 L450 190 L420 160 Z" stroke="#3b82f6" stroke-width="1.5" />
+        
+        <!-- Asia Tech Nodes -->
+        <path d="M530 110 L650 90 L780 110 L850 150 L880 210 L820 280 L740 310 L670 270 L620 280 L560 220 L540 160 Z" stroke="#3b82f6" stroke-width="1.5" />
+        <path d="M640 140 L720 150 L750 200 L680 220 Z" stroke="#1d4ed8" stroke-width="1" />
+        <path d="M600 240 L650 230 L660 260 L610 260 Z" stroke="#1d4ed8" stroke-width="1" />
+
+        <!-- Australia Tech Nodes -->
+        <path d="M780 340 L840 330 L870 370 L850 410 L800 410 L760 380 Z" stroke="#3b82f6" stroke-width="1.5" />
+        
+        <!-- Global Cyber Data Connectivity Paths -->
+        <line x1="220" y1="160" x2="440" y2="130" stroke="#2563eb" stroke-width="0.75" stroke-dasharray="4" />
+        <line x1="260" y1="270" x2="440" y2="270" stroke="#2563eb" stroke-width="0.75" stroke-dasharray="4" />
+        <line x1="540" y1="210" x2="670" y2="270" stroke="#2563eb" stroke-width="0.75" stroke-dasharray="4" />
+        <line x1="500" y1="190" x2="540" y2="430" stroke="#1d4ed8" stroke-width="0.5" />
+        <line x1="740" y1="310" x2="780" y2="340" stroke="#2563eb" stroke-width="0.75" stroke-dasharray="4" />
+    </svg>
 
     <!-- SCREEN 1: MODERN AI SIGN-UP REGISTRATION -->
     <div id="signUpScreen" class="flex-1 flex items-center justify-center p-6 relative z-10">
@@ -175,6 +223,38 @@
             </div>
         </header>
 
+        <!-- GLOBAL CROSS-DESK TICKER MESH -->
+        <div class="max-w-7xl w-full mx-auto px-8 pt-6">
+            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                    </span>
+                    <h4 class="text-xs font-mono uppercase tracking-widest font-bold text-rose-400">Cross-Desk Global Alert Wire</h4>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+                        <div class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider mb-1">⚽ Sports Desk</div>
+                        <p id="breaking-sports" class="text-xs text-slate-300 font-medium truncate">Awaiting next analytic match fixture update...</p>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+                        <div class="text-[10px] font-mono text-amber-400 uppercase tracking-wider mb-1">📈 Finance Desk</div>
+                        <p id="breaking-finance" class="text-xs text-slate-300 font-medium truncate">Monitoring live forex & asset market tickers...</p>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+                        <div class="text-[10px] font-mono text-indigo-400 uppercase tracking-wider mb-1">🏛️ Politics Desk</div>
+                        <p id="breaking-politics" class="text-xs text-slate-300 font-medium truncate">Tracking policy shifts and legislative drafts...</p>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+                        <div class="text-[10px] font-mono text-purple-400 uppercase tracking-wider mb-1">💻 Tech Desk</div>
+                        <p id="breaking-tech" class="text-xs text-slate-300 font-medium truncate">Scanning pipeline for critical system anomalies...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <main class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 p-8 flex-1 items-start">
             <div class="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-slate-800 space-y-5">
                 <h3 class="text-md font-semibold text-indigo-400 flex items-center gap-2 uppercase tracking-wider text-xs font-mono">
@@ -234,12 +314,93 @@
         
         let currentSessionOperator = { name: "", section: "" };
 
+        // THEME SECTOR CONFIGURATIONS
+        const DESK_CONFIGS = {
+            "sport": {
+                title: "Sports Analytics Terminal",
+                placeholder: "e.g., Premier League transfer news, match fixtures...",
+                defaultKeywords: "Manchester United transfer news, player statistics",
+                accentClass: "border-emerald-500/30",
+                badgeClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+                glow: "radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.2) 0px, transparent 50%)"
+            },
+            "finance": {
+                title: "Market Matrix Engine",
+                placeholder: "e.g., Forex metrics, asset liquidity indexes...",
+                defaultKeywords: "Exness transactions, market research",
+                accentClass: "border-amber-500/30",
+                badgeClass: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+                glow: "radial-gradient(at 0% 0%, rgba(245, 158, 110, 0.2) 0px, transparent 50%)"
+            },
+            "politics": {
+                title: "Political Wire Desk",
+                placeholder: "e.g., Public policy drafts, election metrics...",
+                defaultKeywords: "election polls, policy data",
+                accentClass: "border-indigo-500/30",
+                badgeClass: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+                glow: "radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.2) 0px, transparent 50%)"
+            },
+            "breaking news": {
+                title: "🚨 Live Breaking News Hub",
+                placeholder: "Enter active crisis keywords or flash locations...",
+                defaultKeywords: "BREAKING, urgent data",
+                accentClass: "border-rose-500/40",
+                badgeClass: "bg-rose-500/20 text-rose-400 border-rose-500/30 animate-pulse",
+                glow: "radial-gradient(at 0% 0%, rgba(244, 63, 94, 0.25) 0px, transparent 50%)"
+            },
+            "default": {
+                title: "Automation Control Hub",
+                placeholder: "Enter engine search parameters...",
+                defaultKeywords: "",
+                accentClass: "border-slate-800",
+                badgeClass: "bg-slate-950 text-indigo-400 border-slate-800",
+                glow: "radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%)"
+            }
+        };
+
+        // DYNAMIC UI THEME MORPHING SYSTEM
+        function morphDashboardUI(section) {
+            const key = section ? section.toLowerCase().trim() : "default";
+            const config = DESK_CONFIGS[key] || DESK_CONFIGS["default"];
+
+            // 1. Morph Headings & Search Target Text elements
+            document.querySelector(".tracking-tight.text-slate-200").textContent = config.title;
+            
+            const keywordInput = document.getElementById('keywords');
+            keywordInput.placeholder = config.placeholder;
+            keywordInput.value = config.defaultKeywords;
+
+            // 2. Adjust Profile Operator Badge Aesthetics
+            const operatorBadge = document.getElementById('profileDisplay');
+            operatorBadge.className = `text-xs font-mono font-bold px-2 py-0.5 rounded border ${config.badgeClass}`;
+            operatorBadge.textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section.toUpperCase()}`;
+
+            // 3. Dynamic Glow Shift (Removes the map vector visibility smoothly when entering dashboard layout)
+            const baseBg = `radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                            radial-gradient(at 50% 100%, rgba(79, 70, 229, 0.18) 0px, transparent 50%),
+                            linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                            linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px)`;
+            
+            document.body.style.backgroundImage = `${config.glow}, ${baseBg}`;
+            
+            // Fade out the background map layer when the dashboard workspace mounts
+            const mapOverlay = document.querySelector('.cyber-map-overlay');
+            if (mapOverlay) mapOverlay.style.display = 'none';
+        }
+
         function showScreen(screenId) {
             const screens = ['signUpScreen', 'signInScreen', 'forgotScreen', 'dashboardScreen'];
             screens.forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
             document.getElementById(screenId).classList.remove('hidden');
+            
+            // Bring map background display context back if moving back onto verification portals
+            const mapOverlay = document.querySelector('.cyber-map-overlay');
+            if (mapOverlay && screenId !== 'dashboardScreen') {
+                mapOverlay.style.display = 'block';
+                document.body.style.backgroundImage = ''; // Reset back to default style rule class settings
+            }
         }
 
         // 1. REGISTER NEW USER
@@ -299,7 +460,7 @@
             }
         }
 
-        // 2. SIGN IN ACCOUNT PORTAL
+        // 2. SIGN IN ACCOUNT PORTAL WITH DYNAMIC THEME MORPHING
         async function loginJournalist() {
             const nameInput = document.getElementById('loginName').value.trim();
             const passwordInput = document.getElementById('loginPassword').value;
@@ -336,11 +497,14 @@
                     return;
                 }
 
+                // A. Capture user data context instantly
                 currentSessionOperator.name = accountProfile["Journalist name"];
                 currentSessionOperator.section = accountProfile["journalism Section"];
 
-                document.getElementById('profileDisplay').textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section}`;
+                // B. Invoke system theme design morph algorithm
+                morphDashboardUI(currentSessionOperator.section);
                 
+                // C. Clean layout displays and toggle operational panels
                 signInBtn.disabled = false;
                 signInBtn.innerText = "Sign In";
                 document.getElementById('loginPassword').value = ""; 
@@ -393,7 +557,7 @@
             showScreen('signInScreen');
         }
 
-        // EXECUTING AUTOMATION CLUSTER VIA ALLORIGINS TUNNEL Bypassing CORS Preflights
+        // EXECUTING AUTOMATION CLUSTER VIA ALLORIGINS TUNNEL
         async function executeWorkflow() {
             const keywords = document.getElementById('keywords').value;
             const daySpan = document.getElementById('daySpan').value;
