@@ -41,7 +41,7 @@
 
     <!-- SCREEN 1: MODERN AI SIGN-UP REGISTRATION -->
     <div id="signUpScreen" class="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/40 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -89,7 +89,7 @@
 
     <!-- SCREEN 2: MODERN SIGN-IN PORTAL -->
     <div id="signInScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/40 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -130,7 +130,7 @@
 
     <!-- SCREEN 3: FORGOT ACCESS PROFILE PASSWORD -->
     <div id="forgotScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/40 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 to-indigo-500"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -164,7 +164,7 @@
 
     <!-- SCREEN 4: MAIN PERSISTENT DASHBOARD -->
     <div id="dashboardScreen" class="hidden flex-1 flex flex-col relative z-10">
-        <header class="bg-slate-950/60 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between shadow-lg">
+        <header class="bg-slate-950/50 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between shadow-lg">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center font-black text-xs">AI</div>
                 <span class="text-sm text-slate-600 font-mono">/</span>
@@ -180,7 +180,7 @@
         </header>
 
         <div class="max-w-7xl w-full mx-auto px-8 pt-6">
-            <div class="bg-slate-950/40 backdrop-blur-xl border border-slate-850 rounded-xl p-4">
+            <div class="bg-slate-950/30 backdrop-blur-xl border border-slate-850 rounded-xl p-4">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
@@ -211,7 +211,7 @@
         </div>
 
         <main class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 p-8 flex-1 items-start">
-            <div class="bg-slate-950/40 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 space-y-5">
+            <div class="bg-slate-950/30 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 space-y-5">
                 <h3 class="text-md font-semibold text-sky-400 flex items-center gap-2 uppercase tracking-wider text-xs font-mono">
                     <span>⚙️</span> Engine Variables
                 </h3>
@@ -237,7 +237,7 @@
                 </div>
             </div>
 
-            <div class="md:col-span-2 bg-slate-950/40 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 flex flex-col min-h-[480px]">
+            <div class="md:col-span-2 bg-slate-950/30 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 flex flex-col min-h-[480px]">
                 <h3 class="text-md font-semibold text-slate-300 flex items-center gap-2 uppercase tracking-wider text-xs font-mono mb-4">
                     <span>📊</span> Live Matrix Terminal
                 </h3>
@@ -267,15 +267,21 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentSessionOperator = { name: "", section: "" };
 
-        // --- THREE.JS CYBER GLOBE GENERATOR MATCHING SCREENSHOT EMBED ---
-        let scene, camera, renderer, globeGroup;
+        // --- THREE.JS HIGH-VISIBILITY CONTINENT CYBER GLOBE GENERATOR ---
+        let scene, camera, renderer, globeGroup, pointsMesh;
 
         function initCyberGlobe() {
             const container = document.getElementById('canvas-container');
             
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 220;
+            
+            // Adjust camera position & field of view based on screen profile width
+            if (window.innerWidth < 768) {
+                camera.position.z = 240;
+            } else {
+                camera.position.z = 185;
+            }
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -283,60 +289,95 @@
             container.appendChild(renderer.domElement);
 
             globeGroup = new THREE.Group();
+            // Tilt slightly forward matching the visual perspective in Screenshot 2026-07-05 050457.jpg
+            globeGroup.rotation.x = 0.35; 
             scene.add(globeGroup);
 
-            // Create glowing planetary point data cloud
-            const particleCount = 4500;
-            const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
             const radius = 90;
 
-            for (let i = 0; i < particleCount; i++) {
+            // Mathematical projection framework of world maps to form clear continent densities
+            const continentMapData = [
+                { lat: 40, lon: -100, scaleX: 35, scaleY: 20 }, // North America
+                { lat: -15, lon: -60, scaleX: 18, scaleY: 25 }, // South America
+                { lat: 50, lon: 15, scaleX: 20, scaleY: 15 },   // Europe
+                { lat: 5, lon: 20, scaleX: 22, scaleY: 25 },    // Africa
+                { lat: 45, lon: 90, scaleX: 45, scaleY: 25 },   // Asia
+                { lat: -25, lon: 135, scaleX: 22, scaleY: 15 }  // Australia
+            ];
+
+            const positions = [];
+            
+            // 1. Plot localized structural points to cluster dense, identifiable continents
+            continentMapData.forEach(region => {
+                const pointsInRegion = 900;
+                for (let i = 0; i < pointsInRegion; i++) {
+                    const latOffset = (Math.random() - 0.5) * region.scaleY;
+                    const lonOffset = (Math.random() - 0.5) * region.scaleX;
+                    
+                    const lat = region.lat + latOffset;
+                    const lon = region.lon + lonOffset;
+
+                    const phi = (90 - lat) * (Math.PI / 180);
+                    const theta = (lon + 180) * (Math.PI / 180);
+
+                    positions.push(
+                        radius * Math.sin(phi) * Math.cos(theta),
+                        radius * Math.cos(phi),
+                        radius * Math.sin(phi) * Math.sin(theta)
+                    );
+                }
+            });
+
+            // 2. Add an ambient global lattice points mesh layer for visual context 
+            const ambientCount = 2000;
+            for (let i = 0; i < ambientCount; i++) {
                 const phi = Math.acos(Math.random() * 2 - 1);
                 const theta = Math.random() * Math.PI * 2;
-
-                positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-                positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-                positions[i * 3 + 2] = radius * Math.cos(phi);
+                positions.push(
+                    radius * Math.sin(phi) * Math.cos(theta),
+                    radius * Math.sin(phi) * Math.sin(theta),
+                    radius * Math.cos(phi)
+                );
             }
 
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
             
-            // Neon cyan point materials matching image illumination profile
+            // Ultra-visible cyan glowing digital particle material layout
             const material = new THREE.PointsMaterial({
-                color: 0x38bdf8,
-                size: 1.2,
+                color: 0x0ea5e9,
+                size: 1.4,
                 transparent: true,
-                opacity: 0.85,
+                opacity: 0.9,
                 blending: THREE.AdditiveBlending
             });
 
-            const pointCloud = new THREE.Points(geometry, material);
-            globeGroup.add(pointCloud);
+            pointsMesh = new THREE.Points(geometry, material);
+            globeGroup.add(pointsMesh);
 
-            // Add orbital network paths curving over core matrix sphere
+            // 3. Generate interconnected arc tracks over points layout
             const lineMaterial = new THREE.LineBasicMaterial({
                 color: 0x0284c7,
                 transparent: true,
-                opacity: 0.35,
+                opacity: 0.4,
                 blending: THREE.AdditiveBlending
             });
 
-            for (let j = 0; j < 40; j++) {
+            for (let j = 0; j < 45; j++) {
                 const lineGeometry = new THREE.BufferGeometry();
                 const linePoints = [];
-                const pointsCount = 40;
+                const pointsCount = 50;
 
                 const v1 = new THREE.Vector3(
-                    Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1
+                    (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2
                 ).normalize().multiplyScalar(radius);
                 const v2 = new THREE.Vector3(
-                    Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1
+                    (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2
                 ).normalize().multiplyScalar(radius);
 
                 for (let k = 0; k <= pointsCount; k++) {
                     const t = k / pointsCount;
-                    const p = new THREE.Vector3().lerpVectors(v1, v2, t).normalize().multiplyScalar(radius + Math.sin(t * Math.PI) * 12);
+                    const p = new THREE.Vector3().lerpVectors(v1, v2, t).normalize().multiplyScalar(radius + Math.sin(t * Math.PI) * 14);
                     linePoints.push(p);
                 }
                 lineGeometry.setFromPoints(linePoints);
@@ -349,8 +390,8 @@
 
         function animateGlobe() {
             requestAnimationFrame(animateGlobe);
-            globeGroup.rotation.y += 0.0012;
-            globeGroup.rotation.x += 0.0004;
+            // Steady continuous planetary spin tracking
+            globeGroup.rotation.y += 0.0018; 
             renderer.render(scene, camera);
         }
 
@@ -358,9 +399,14 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            if (window.innerWidth < 768) {
+                camera.position.z = 240;
+            } else {
+                camera.position.z = 185;
+            }
         });
 
-        // Instantiate background upon mount hook
+        // Instantiate background map setup
         initCyberGlobe();
 
         // --- END HOLOGRAPHIC PIPELINE GENERATION ---
@@ -388,7 +434,7 @@
                 title: "Automation Control Hub",
                 placeholder: "Enter engine search parameters...",
                 defaultKeywords: "",
-                glowColor: 0x38bdf8
+                glowColor: 0x0ea5e9
             }
         };
 
@@ -405,9 +451,9 @@
             const operatorBadge = document.getElementById('profileDisplay');
             operatorBadge.textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section.toUpperCase()}`;
 
-            // Shifting 3D Globe light values dynamically alongside user roles
-            if (globeGroup && globeGroup.children[0]) {
-                globeGroup.children[0].material.color.setHex(config.glowColor);
+            // Shift 3D map highlights matching the selected operator division matrix profile
+            if (pointsMesh) {
+                pointsMesh.material.color.setHex(config.glowColor);
             }
         }
 
@@ -532,7 +578,7 @@
 
         function logoutOperator() {
             currentSessionOperator = { name: "", section: "" };
-            if (globeGroup && globeGroup.children[0]) globeGroup.children[0].material.color.setHex(0x38bdf8);
+            if (pointsMesh) pointsMesh.material.color.setHex(0x0ea5e9);
             showScreen('signInScreen');
         }
 
