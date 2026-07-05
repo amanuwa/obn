@@ -196,7 +196,7 @@
                             <option value="sky_sports">Primary Media Pipeline</option>
                         </select>
                     </div>
-                    <button onclick="executeWorkflow()" id="runBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-emerald-600/20 font-mono uppercase text-xs tracking-wider">
+                    <button onclick="executeWorkflow()" id="runBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-emerald-600/20 font-mono uppercase text-xs tracking-wider cursor-pointer">
                         Fire Automation Pipeline
                     </button>
                 </div>
@@ -228,7 +228,7 @@
         const SUPABASE_URL = 'https://cqkaxhyrnjmqpovxwjom.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4aHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q';
 
-        // Dynamic CORS Reverse Proxy Routing to allow production cross-origin fetches safely
+        // Secure Production Proxy Integration Endpoint
         const N8N_CONTENT_URL = 'https://corsproxy.io/?https://unreached-oboe-evade.ngrok-free.dev/webhook/register-journalist';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
@@ -236,7 +236,7 @@
 
         function showScreen(screenId) {
             const screens = ['signUpScreen', 'signInScreen', 'forgotScreen', 'dashboardScreen'];
-            box = screens.forEach(id => {
+            screens.forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
             document.getElementById(screenId).classList.remove('hidden');
@@ -410,7 +410,6 @@
             loadingState.classList.remove('hidden');
 
             try {
-                // Fetch utilizing custom skip-browser-warning headers to cleanly drop raw data past ngrok barriers
                 const response = await fetch(N8N_CONTENT_URL, {
                     method: 'POST',
                     headers: { 
@@ -435,7 +434,7 @@
                 alert('Automation error: ' + error.message);
                 emptyState.classList.remove('hidden');
                 loadingState.classList.add('hidden');
-            } finaly {
+            } finally {
                 runBtn.disabled = false;
                 runBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
