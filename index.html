@@ -6,7 +6,7 @@
     <title>Command Center</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Three.js Engine for rendering the 3D Cyber Globe matching Screenshot 2026-07-05 050457.jpg -->
+    <!-- Three.js Engine for rendering the 3D Cyber Globe -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body {
@@ -28,9 +28,14 @@
             border-color: #38bdf8;
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
         }
-        input:focus {
+        input:focus, select:focus {
             outline: none !important;
             box-shadow: none !important;
+        }
+        /* Styling dropdown options for darker cyber theme */
+        select option {
+            background-color: #020617;
+            color: #f8fafc;
         }
     </style>
 </head>
@@ -59,10 +64,16 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Section</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assignment Sector</label>
                     <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">📰</span>
-                        <input type="text" id="regSection" required placeholder="Journalism Section" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                        <select id="regSection" required class="w-full bg-transparent text-slate-300 text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer">
+                            <option value="" disabled selected>Select assigned sector...</option>
+                            <option value="World Politics and Governance">World Politics and Governance</option>
+                            <option value="Sports & Analytics">Sports & Analytics</option>
+                            <option value="Business and Finance">Business and Finance</option>
+                            <option value="General Hot News">General Hot News</option>
+                        </select>
                     </div>
                 </div>
 
@@ -162,13 +173,13 @@
         </div>
     </div>
 
-    <!-- SCREEN 4: MAIN PERSISTENT DASHBOARD -->
+    <!-- SCREEN 4: MAIN PERSISTENT SECTOR-DRIVEN DASHBOARD -->
     <div id="dashboardScreen" class="hidden flex-1 flex flex-col relative z-10">
         <header class="bg-slate-950/60 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between shadow-lg">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center font-black text-xs">AI</div>
+                <div id="portalIcon" class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center font-black text-xs">AI</div>
                 <span class="text-sm text-slate-600 font-mono">/</span>
-                <span class="font-bold tracking-tight text-slate-200">Automation Control Hub</span>
+                <span id="portalTitle" class="font-bold tracking-tight text-slate-200">Automation Control Hub</span>
             </div>
             <div class="flex items-center gap-4">
                 <div class="flex items-center gap-3 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
@@ -191,20 +202,20 @@
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
+                        <div class="text-[10px] font-mono text-sky-400 uppercase tracking-wider mb-1">🏛️ Politics Desk</div>
+                        <p id="breaking-politics" class="text-xs text-slate-300 font-medium truncate">Monitoring international policy alignments...</p>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
                         <div class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider mb-1">⚽ Sports Desk</div>
-                        <p id="breaking-sports" class="text-xs text-slate-300 font-medium truncate">Awaiting next analytic match fixture update...</p>
+                        <p id="breaking-sports" class="text-xs text-slate-300 font-medium truncate">Awaiting statistical soccer matrix updates...</p>
                     </div>
                     <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
                         <div class="text-[10px] font-mono text-amber-400 uppercase tracking-wider mb-1">📈 Finance Desk</div>
-                        <p id="breaking-finance" class="text-xs text-slate-300 font-medium truncate">Monitoring live forex & asset market tickers...</p>
+                        <p id="breaking-finance" class="text-xs text-slate-300 font-medium truncate">Tracking live corporate assets & analytics...</p>
                     </div>
                     <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
-                        <div class="text-[10px] font-mono text-sky-400 uppercase tracking-wider mb-1">🏛️ Politics Desk</div>
-                        <p id="breaking-politics" class="text-xs text-slate-300 font-medium truncate">Tracking policy shifts and legislative drafts...</p>
-                    </div>
-                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
-                        <div class="text-[10px] font-mono text-purple-400 uppercase tracking-wider mb-1">💻 Tech Desk</div>
-                        <p id="breaking-tech" class="text-xs text-slate-300 font-medium truncate">Scanning pipeline for critical system anomalies...</p>
+                        <div class="text-[10px] font-mono text-purple-400 uppercase tracking-wider mb-1">🔥 Hot News Desk</div>
+                        <p id="breaking-tech" class="text-xs text-slate-300 font-medium truncate">Streaming breaking international dispatches...</p>
                     </div>
                 </div>
             </div>
@@ -218,7 +229,7 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-xs font-medium mb-1 text-slate-400">Search Keywords</label>
-                        <input type="text" id="keywords" placeholder="e.g. Tactical metrics" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                        <input type="text" id="keywords" placeholder="Enter engine metrics..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
                     </div>
                     <div>
                         <label class="block text-xs font-medium mb-1 text-slate-400">Day History Span</label>
@@ -267,7 +278,7 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentSessionOperator = { name: "", section: "" };
 
-        // --- THREE.JS CYBER GLOBE GENERATOR MATCHING SCREENSHOT 2026-07-05 050457.JPG ---
+        // --- THREE.JS CYBER GLOBE GENERATOR ---
         let scene, camera, renderer, globeGroup, pointCloud;
 
         function initCyberGlobe() {
@@ -285,23 +296,17 @@
             globeGroup = new THREE.Group();
             scene.add(globeGroup);
 
-            // Generate procedural world landmass distribution matrix
             const particleCount = 7000;
             const geometry = new THREE.BufferGeometry();
             const positions = new Float32Array(particleCount * 3);
             const radius = 85;
 
-            // Simplified procedural continent presence checker to block dots in open ocean spaces
             function checkLandmass(lat, lon) {
-                // Americas
                 if (lon > -140 && lon < -40 && lat > -55 && lat < 70) return true;
-                // Africa
                 if (lon > -20 && lon < 50 && lat > -35 && lat < 35) return true;
-                // Europe & Asia
                 if (lon > -10 && lon < 150 && lat > 10 && lat < 75) return true;
-                // Australia
                 if (lon > 110 && lon < 155 && lat > -40 && lat < -10) return true;
-                return Math.random() < 0.08; // Scattered background noise mapping
+                return Math.random() < 0.08;
             }
 
             let validPoints = 0;
@@ -322,7 +327,6 @@
 
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             
-            // Bright neon cyan particle properties
             const pointMaterial = new THREE.PointsMaterial({
                 color: 0x38bdf8,
                 size: 1.1,
@@ -334,7 +338,6 @@
             pointCloud = new THREE.Points(geometry, pointMaterial);
             globeGroup.add(pointCloud);
 
-            // Add orbital network paths curving over the core matrix sphere
             const lineMaterial = new THREE.LineBasicMaterial({
                 color: 0x0284c7,
                 transparent: true,
@@ -347,12 +350,8 @@
                 const linePoints = [];
                 const pointsCount = 50;
 
-                const v1 = new THREE.Vector3(
-                    Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1
-                ).normalize().multiplyScalar(radius);
-                const v2 = new THREE.Vector3(
-                    Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1
-                ).normalize().multiplyScalar(radius);
+                const v1 = new THREE.Vector3(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1).normalize().multiplyScalar(radius);
+                const v2 = new THREE.Vector3(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1).normalize().multiplyScalar(radius);
 
                 for (let k = 0; k <= pointsCount; k++) {
                     const t = k / pointsCount;
@@ -364,7 +363,6 @@
                 globeGroup.add(line);
             }
 
-            // Tilt globe slightly toward observer camera matrix
             globeGroup.rotation.x = 0.3;
             globeGroup.rotation.z = -0.1;
 
@@ -383,34 +381,44 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Initialize Cyber Globe upon layout assembly
+        // Initialize Globe
         initCyberGlobe();
 
-        // --- END HOLOGRAPHIC PIPELINE GENERATION ---
-
+        // --- SCREEN RECONSTRUCTION AND MANIPULATION MATRIX ---
         const DESK_CONFIGS = {
-            "sport": {
+            "world politics and governance": {
+                title: "World Politics & Governance Terminal",
+                placeholder: "e.g. Policy data, election parameters...",
+                defaultKeywords: "global governance policy",
+                bgHeader: "bg-indigo-600",
+                glowColor: 0x6366f1
+            },
+            "sports & analytics": {
                 title: "Sports Analytics Terminal",
-                placeholder: "e.g., Premier League transfer news...",
+                placeholder: "e.g. Premier League statistics...",
                 defaultKeywords: "Manchester United transfer news",
+                bgHeader: "bg-emerald-600",
                 glowColor: 0x10b981
             },
-            "finance": {
-                title: "Market Matrix Engine",
-                placeholder: "e.g., Forex metrics...",
-                defaultKeywords: "Exness transactions",
+            "business and finance": {
+                title: "Business & Finance Matrix",
+                placeholder: "e.g. Forex assets, market tickers...",
+                defaultKeywords: "Exness transaction metrics",
+                bgHeader: "bg-amber-600",
                 glowColor: 0xf59e0b
             },
-            "politics": {
-                title: "Political Wire Desk",
-                placeholder: "e.g., Public policy drafts...",
-                defaultKeywords: "policy data",
-                glowColor: 0x6366f1
+            "general hot news": {
+                title: "General Hot News Pulse",
+                placeholder: "e.g. Breaking alerts, regional updates...",
+                defaultKeywords: "breaking international news",
+                bgHeader: "bg-purple-600",
+                glowColor: 0xa855f7
             },
             "default": {
                 title: "Automation Control Hub",
                 placeholder: "Enter engine search parameters...",
                 defaultKeywords: "",
+                bgHeader: "bg-sky-600",
                 glowColor: 0x38bdf8
             }
         };
@@ -419,16 +427,20 @@
             const key = section ? section.toLowerCase().trim() : "default";
             const config = DESK_CONFIGS[key] || DESK_CONFIGS["default"];
 
-            document.querySelector(".tracking-tight.text-slate-200").textContent = config.title;
+            // Reconstruct titles & placeholder layout structure dynamically
+            document.getElementById("portalTitle").textContent = config.title;
             
             const keywordInput = document.getElementById('keywords');
             keywordInput.placeholder = config.placeholder;
             keywordInput.value = config.defaultKeywords;
 
+            const iconContainer = document.getElementById('portalIcon');
+            iconContainer.className = `w-8 h-8 rounded-lg ${config.bgHeader} flex items-center justify-center font-black text-xs`;
+
             const operatorBadge = document.getElementById('profileDisplay');
             operatorBadge.textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section.toUpperCase()}`;
 
-            // Adapt the 3D globe coloration to the user's operational section desk context
+            // Adapt the 3D globe coloration vector to match the assigned page layout context
             if (pointCloud && pointCloud.material) {
                 pointCloud.material.color.setHex(config.glowColor);
             }
@@ -444,12 +456,12 @@
 
         async function registerJournalist() {
             const fullName = document.getElementById('regName').value.trim();
-            const section = document.getElementById('regSection').value.trim();
+            const section = document.getElementById('regSection').value;
             const password = document.getElementById('regPassword').value;
             const signUpBtn = document.getElementById('signUpBtn');
             const successMsg = document.getElementById('successMessage');
 
-            if (!fullName || !section || !password) return alert("All fields are required.");
+            if (!fullName || !section || !password) return alert("All profile allocation variables are required.");
 
             signUpBtn.disabled = true;
             signUpBtn.innerText = "Processing Profile...";
@@ -462,7 +474,7 @@
 
                 if (checkError) throw checkError;
                 if (existingUsers && existingUsers.length > 0) {
-                    alert(`Registration failed: The name "${fullName}" is already taken.`);
+                    alert(`Registration failed: Operator identity "${fullName}" already has a secured record.`);
                     signUpBtn.disabled = false;
                     signUpBtn.innerText = "Sign Up";
                     return; 
@@ -495,7 +507,7 @@
             const passwordInput = document.getElementById('loginPassword').value;
             const signInBtn = document.getElementById('signInBtn');
 
-            if (!nameInput || !passwordInput) return alert("Please enter both your name and password.");
+            if (!nameInput || !passwordInput) return alert("Please present verification name and security lock keys.");
 
             signInBtn.disabled = true;
             signInBtn.innerText = "Authenticating...";
@@ -508,7 +520,7 @@
 
                 if (error) throw error;
                 if (!records || records.length === 0 || records[0].Password !== passwordInput) {
-                    alert("Authentication Error: Invalid profile credentials.");
+                    alert("Authentication Error: Clear credentials profile mismatch.");
                     signInBtn.disabled = false;
                     signInBtn.innerText = "Sign In";
                     return;
@@ -517,7 +529,9 @@
                 currentSessionOperator.name = records[0]["Journalist name"];
                 currentSessionOperator.section = records[0]["journalism Section"];
 
+                // Pass variables to rebuild layout according to the profile section records
                 morphDashboardUI(currentSessionOperator.section);
+                
                 signInBtn.disabled = false;
                 signInBtn.innerText = "Sign In";
                 document.getElementById('loginPassword').value = ""; 
@@ -534,7 +548,7 @@
             const nameInput = document.getElementById('forgotName').value.trim();
             const forgotBtn = document.getElementById('forgotBtn');
 
-            if (!nameInput) return alert("Please enter your name.");
+            if (!nameInput) return alert("Identify configuration operator name.");
             forgotBtn.disabled = true;
 
             try {
@@ -544,7 +558,7 @@
                     .eq('Journalist name', nameInput);
 
                 if (error) throw error;
-                alert(records && records.length > 0 ? "Profile Found!\n\nPlease contact administration to reset access keys." : "Profile sequence mismatch.");
+                alert(records && records.length > 0 ? "Profile Found!\n\nPlease reach structural command nodes to coordinate credential resets." : "Identity matrix mismatch.");
                 showScreen('signInScreen');
             } catch (error) {
                 alert("Database Error: " + error.message);
