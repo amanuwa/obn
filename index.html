@@ -228,15 +228,15 @@
         const SUPABASE_URL = 'https://cqkaxhyrnjmqpovxwjom.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4aHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q';
 
-//const N8N_CONTENT_URL = 'https://corsproxy.io/?https://unreached-oboe-evade.ngrok-free.dev/webhook/register-journalist';
-const N8N_CONTENT_URL = 'https://awesome-secretariat-educational-chronic.trycloudflare.com/webhook/register-journalist';
+        // Dynamic CORS Reverse Proxy Routing to allow production cross-origin fetches safely
+        const N8N_CONTENT_URL = 'https://corsproxy.io/?https://unreached-oboe-evade.ngrok-free.dev/webhook/register-journalist';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let currentSessionOperator = { name: "", section: "" };
 
         function showScreen(screenId) {
             const screens = ['signUpScreen', 'signInScreen', 'forgotScreen', 'dashboardScreen'];
-            screens.forEach(id => {
+            box = screens.forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
             document.getElementById(screenId).classList.remove('hidden');
@@ -376,7 +376,6 @@ const N8N_CONTENT_URL = 'https://awesome-secretariat-educational-chronic.tryclou
                 if (!records || records.length === 0) {
                     alert(`No profile found matching "${nameInput}".`);
                 } else {
-                    // Safe response message without exposing raw data
                     alert(`Profile Found!\n\nPlease speak to an Authority to reset your key.`);
                     showScreen('signInScreen');
                 }
@@ -411,9 +410,13 @@ const N8N_CONTENT_URL = 'https://awesome-secretariat-educational-chronic.tryclou
             loadingState.classList.remove('hidden');
 
             try {
+                // Fetch utilizing custom skip-browser-warning headers to cleanly drop raw data past ngrok barriers
                 const response = await fetch(N8N_CONTENT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify({ 
                         keywords, 
                         daySpan, 
@@ -432,7 +435,7 @@ const N8N_CONTENT_URL = 'https://awesome-secretariat-educational-chronic.tryclou
                 alert('Automation error: ' + error.message);
                 emptyState.classList.remove('hidden');
                 loadingState.classList.add('hidden');
-            } finally {
+            } finaly {
                 runBtn.disabled = false;
                 runBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
