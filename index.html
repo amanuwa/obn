@@ -13,8 +13,8 @@
             overflow-x: hidden;
         }
 
-        /* Continuous rotating background layer */
-        .rotating-bg {
+        /* TRUE BACKGROUND ROTATING LAYER */
+        .rotating-bg-layer {
             position: fixed;
             top: -50%;
             left: -50%;
@@ -24,19 +24,27 @@
             background-position: center;
             background-repeat: no-repeat;
             background-size: contain;
-            animation: spinBg 120s linear infinite;
-            z-index: 0;
+            animation: spinBg 140s linear infinite;
+            z-index: 1; /* Stayed at the base floor level */
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        /* Subtle dark overlay matrix so text elements stay highly readable */
+        .bg-overlay-tint {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(2, 4, 10, 0.4) 0%, rgba(2, 4, 10, 0.85) 100%);
+            z-index: 2;
             pointer-events: none;
         }
 
-        /* Smooth rotation sequence */
         @keyframes spinBg {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .glow-border:focus-within {
@@ -51,12 +59,13 @@
 </head>
 <body class="text-slate-100 min-h-screen flex flex-col font-sans relative">
 
-    <!-- Isolated rotating globe element -->
-    <div class="rotating-bg"></div>
+    <!-- Active Rotating Backdrop Components -->
+    <div class="rotating-bg-layer"></div>
+    <div class="bg-overlay-tint"></div>
 
     <!-- SCREEN 1: MODERN AI SIGN-UP REGISTRATION -->
     <div id="signUpScreen" class="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/75 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -110,7 +119,7 @@
 
     <!-- SCREEN 2: MODERN SIGN-IN PORTAL -->
     <div id="signInScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/75 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -151,7 +160,7 @@
 
     <!-- SCREEN 3: FORGOT ACCESS PROFILE PASSWORD -->
     <div id="forgotScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/75 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 to-indigo-500"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -185,7 +194,7 @@
 
     <!-- SCREEN 4: MAIN PERSISTENT DASHBOARD -->
     <div id="dashboardScreen" class="hidden flex-1 flex flex-col relative z-10">
-        <header id="dashboardHeader" class="bg-slate-950/75 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between shadow-lg">
+        <header id="dashboardHeader" class="bg-slate-950/80 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between shadow-lg">
             <div class="flex items-center gap-3">
                 <div id="headerLogo" class="w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs text-white">AI</div>
                 <span class="text-sm text-slate-600 font-mono">/</span>
@@ -203,28 +212,28 @@
         <!-- SECTOR SPECIFIC HERO MODULES -->
         <div class="max-w-7xl w-full mx-auto px-8 pt-6">
             
-            <div id="extra-politics" class="hidden bg-slate-950/75 backdrop-blur-xl border border-blue-500/30 rounded-xl p-4 mb-4">
+            <div id="extra-politics" class="hidden bg-slate-950/80 backdrop-blur-xl border border-blue-500/30 rounded-xl p-4 mb-4">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="text-xs font-mono font-bold text-blue-400 uppercase tracking-widest">🏛️ Global Policy Intelligence Stream</span>
                 </div>
                 <p class="text-xs text-slate-400 font-mono">Monitoring legislative frameworks, polling matrices, and cross-border diplomatic updates.</p>
             </div>
 
-            <div id="extra-sports" class="hidden bg-slate-950/75 backdrop-blur-xl border border-emerald-500/30 rounded-xl p-4 mb-4">
+            <div id="extra-sports" class="hidden bg-slate-950/80 backdrop-blur-xl border border-emerald-500/30 rounded-xl p-4 mb-4">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest">⚽ Live Metric Fixture Watch</span>
                 </div>
                 <p class="text-xs text-slate-400 font-mono">Tracking real-time league standings, tactical metrics, and player data tracking.</p>
             </div>
 
-            <div id="extra-finance" class="hidden bg-slate-950/75 backdrop-blur-xl border border-amber-500/30 rounded-xl p-4 mb-4">
+            <div id="extra-finance" class="hidden bg-slate-950/80 backdrop-blur-xl border border-amber-500/30 rounded-xl p-4 mb-4">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="text-xs font-mono font-bold text-amber-400 uppercase tracking-widest">📈 Central Liquidity Ticker Feed</span>
                 </div>
                 <p class="text-xs text-slate-400 font-mono">Analyzing forex exchange shifts, market index assets, and corporate compliance logs.</p>
             </div>
 
-            <div id="extra-hotnews" class="hidden bg-slate-950/75 backdrop-blur-xl border border-rose-500/30 rounded-xl p-4 mb-4">
+            <div id="extra-hotnews" class="hidden bg-slate-950/80 backdrop-blur-xl border border-rose-500/30 rounded-xl p-4 mb-4">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
@@ -239,7 +248,7 @@
 
         <!-- MAIN INTERACTIVE SPACE -->
         <main class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 p-8 flex-1 items-start">
-            <div class="bg-slate-950/75 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 space-y-5">
+            <div class="bg-slate-950/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 space-y-5">
                 <h3 id="engineSectionTitle" class="text-md font-semibold text-sky-400 flex items-center gap-2 uppercase tracking-wider text-xs font-mono">
                     <span>⚙️</span> Control variables
                 </h3>
@@ -265,7 +274,7 @@
                 </div>
             </div>
 
-            <div class="md:col-span-2 bg-slate-950/75 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 flex flex-col min-h-[480px]">
+            <div class="md:col-span-2 bg-slate-950/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 flex flex-col min-h-[480px]">
                 <h3 class="text-md font-semibold text-slate-300 flex items-center gap-2 uppercase tracking-wider text-xs font-mono mb-4">
                     <span>📊</span> Live Matrix Terminal
                 </h3>
@@ -354,7 +363,6 @@
             operatorBadge.textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section}`;
         }
 
-        /* Adjust animation speed or parameters dynamically if needed */
         function showScreen(screenId) {
             const screens = ['signUpScreen', 'signInScreen', 'forgotScreen', 'dashboardScreen'];
             screens.forEach(id => {
