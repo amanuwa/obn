@@ -7,17 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body {
-            background-color: #02040a;
-            /* Restored and fixed background image rendering layout */
-            background-image: url('Screenshot 2026-07-05 050457_2.jpg');
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-attachment: fixed;
-            margin: 0;
-            overflow-x: hidden;
-        }
         .glow-border:focus-within {
             border-color: #38bdf8;
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
@@ -28,7 +17,9 @@
         }
     </style>
 </head>
-<body class="text-slate-100 min-h-screen flex flex-col font-sans relative">
+<!-- Background forced via inline style to prevent Tailwind v4 default resets from hiding it -->
+<body class="text-slate-100 min-h-screen flex flex-col font-sans relative" 
+      style="background-color: #02040a; background-image: url('Screenshot 2026-07-05 050457_2.jpg'); background-position: center; background-repeat: no-repeat; background-size: cover; background-attachment: fixed; margin: 0;">
 
     <!-- SCREEN 1: MODERN AI SIGN-UP REGISTRATION -->
     <div id="signUpScreen" class="flex-1 flex items-center justify-center p-6 relative z-10">
@@ -53,7 +44,6 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assigned Sector</label>
                     <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">🗂️</span>
-                        <!-- Numbers removed from dropdown menu items -->
                         <select id="regSection" required class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer text-slate-300">
                             <option value="" disabled selected class="bg-slate-950 text-slate-500">Select Sector...</option>
                             <option value="World Politics and Governance" class="bg-slate-950 text-white">World Politics and Governance</option>
