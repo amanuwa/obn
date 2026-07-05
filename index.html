@@ -5,41 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Command Center</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Include Supabase JS Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Three.js for rendering the 3D Cyber Globe matching Screenshot 2026-07-05 050457.jpg -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        .ai-bg {
+        body {
             background-color: #020617;
-            background-image: 
-                radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.05) 0px, transparent 70%),
-                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
-            position: relative;
+            margin: 0;
+            overflow-x: hidden;
         }
-        
-        /* Cyber World Map Background Overlay */
-        .cyber-map-overlay {
-            position: absolute;
-            top: 10%;
-            left: 5%;
-            width: 90%;
-            height: 80%;
-            opacity: 0.25;
-            pointer-events: none;
+        /* Canvas positioning for full screen background visual */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 1;
-            stroke-dasharray: 8;
-            animation: mapPulse 8s ease-in-out infinite alternate;
+            pointer-events: none;
         }
-
-        @keyframes mapPulse {
-            0% { opacity: 0.2; filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.3)); }
-            100% { opacity: 0.35; filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6)); }
-        }
-
         .glow-border:focus-within {
-            border-color: #6366f1;
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+            border-color: #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
         }
         input:focus {
             outline: none !important;
@@ -47,56 +34,25 @@
         }
     </style>
 </head>
-<body class="ai-bg text-slate-100 min-h-screen flex flex-col font-sans relative overflow-x-hidden">
+<body class="text-slate-100 min-h-screen flex flex-col font-sans relative">
 
-    <!-- CYBER PATHS WORLD MAP BACKGROUND LAYER -->
-    <svg class="cyber-map-overlay" viewBox="0 0 1000 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- North America Tech Nodes -->
-        <path d="M100 120 L180 120 L220 160 L250 140 L280 180 L210 240 L160 220 L140 250 L110 210 Z" stroke="#3b82f6" stroke-width="1.5" />
-        <path d="M150 100 L240 100 L260 130 L200 140 Z" stroke="#1d4ed8" stroke-width="1" />
-        
-        <!-- South America Tech Nodes -->
-        <path d="M220 260 L260 270 L310 320 L330 380 L300 440 L270 450 L250 380 L230 330 Z" stroke="#3b82f6" stroke-width="1.5" />
-        
-        <!-- Greenland / Iceland -->
-        <path d="M350 60 L420 70 L390 100 L340 90 Z" stroke="#1d4ed8" stroke-width="1" />
-
-        <!-- Africa Tech Nodes -->
-        <path d="M430 220 L480 200 L540 210 L580 250 L600 320 L570 390 L540 430 L520 430 L510 350 L470 310 L440 270 Z" stroke="#3b82f6" stroke-width="1.5" />
-        
-        <!-- Europe Tech Nodes -->
-        <path d="M440 130 L490 110 L530 130 L550 170 L500 190 L450 190 L420 160 Z" stroke="#3b82f6" stroke-width="1.5" />
-        
-        <!-- Asia Tech Nodes -->
-        <path d="M530 110 L650 90 L780 110 L850 150 L880 210 L820 280 L740 310 L670 270 L620 280 L560 220 L540 160 Z" stroke="#3b82f6" stroke-width="1.5" />
-        <path d="M640 140 L720 150 L750 200 L680 220 Z" stroke="#1d4ed8" stroke-width="1" />
-        <path d="M600 240 L650 230 L660 260 L610 260 Z" stroke="#1d4ed8" stroke-width="1" />
-
-        <!-- Australia Tech Nodes -->
-        <path d="M780 340 L840 330 L870 370 L850 410 L800 410 L760 380 Z" stroke="#3b82f6" stroke-width="1.5" />
-        
-        <!-- Global Cyber Data Connectivity Paths -->
-        <line x1="220" y1="160" x2="440" y2="130" stroke="#2563eb" stroke-width="0.75" stroke-dasharray="4" />
-        <line x1="260" y1="270" x2="440" y2="270" stroke="#2563eb" stroke-width="0.75" stroke-dasharray="4" />
-        <line x1="540" y1="210" x2="670" y2="270" stroke="#2563eb" stroke-width="0.75" stroke-dasharray="4" />
-        <line x1="500" y1="190" x2="540" y2="430" stroke="#1d4ed8" stroke-width="0.5" />
-        <line x1="740" y1="310" x2="780" y2="340" stroke="#2563eb" stroke-width="0.75" stroke-dasharray="4" />
-    </svg>
+    <!-- 3D CYBER-GLOBE CANVAS CONTAINER -->
+    <div id="canvas-container"></div>
 
     <!-- SCREEN 1: MODERN AI SIGN-UP REGISTRATION -->
     <div id="signUpScreen" class="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500"></div>
+        <div class="max-w-md w-full bg-slate-950/40 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
 
-            <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent tracking-tight mb-1">
+            <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
                 Initialize Agent Access
             </h2>
-            <p class="text-xs text-slate-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
+            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
 
             <div class="space-y-4 text-left">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-950 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">👤</span>
                         <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
                     </div>
@@ -104,7 +60,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Section</label>
-                    <div class="glow-border flex items-center bg-slate-950 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">📰</span>
                         <input type="text" id="regSection" required placeholder="Journalism Section" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
                     </div>
@@ -112,20 +68,20 @@
 
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
-                    <div class="glow-border flex items-center bg-slate-950 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">🔑</span>
                         <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
                     </div>
                 </div>
 
-                <button onclick="registerJournalist()" id="signUpBtn" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-indigo-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                <button onclick="registerJournalist()" id="signUpBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
                     Sign Up
                 </button>
                 
                 <p id="successMessage" class="text-sm text-emerald-400 font-mono text-center mt-2 hidden">✓ Profile compiled! Routing to Portal Terminal...</p>
 
                 <div class="text-center mt-4">
-                    <p class="text-xs text-slate-400">Already registered? <a href="#" onclick="showScreen('signInScreen')" class="text-indigo-400 hover:underline font-mono">Secure Log In</a></p>
+                    <p class="text-xs text-slate-400">Already registered? <a href="#" onclick="showScreen('signInScreen')" class="text-sky-400 hover:underline font-mono">Secure Log In</a></p>
                 </div>
             </div>
         </div>
@@ -133,18 +89,18 @@
 
     <!-- SCREEN 2: MODERN SIGN-IN PORTAL -->
     <div id="signInScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+        <div class="max-w-md w-full bg-slate-950/40 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
 
-            <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent tracking-tight mb-1">
+            <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
                 Operator Portal
             </h2>
-            <p class="text-xs text-slate-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
+            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
 
             <div class="space-y-4 text-left">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-950 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">👤</span>
                         <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
                     </div>
@@ -153,20 +109,20 @@
                 <div>
                     <div class="flex justify-between items-center mb-1.5">
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono">Access Password</label>
-                        <a href="#" onclick="showScreen('forgotScreen')" class="text-[11px] text-slate-500 hover:text-indigo-400 transition font-mono">Forgot Password?</a>
+                        <a href="#" onclick="showScreen('forgotScreen')" class="text-[11px] text-slate-500 hover:text-sky-400 transition font-mono">Forgot Password?</a>
                     </div>
-                    <div class="glow-border flex items-center bg-slate-950 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">🔑</span>
                         <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
                     </div>
                 </div>
 
-                <button onclick="loginJournalist()" id="signInBtn" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-indigo-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                <button onclick="loginJournalist()" id="signInBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
                     Sign In
                 </button>
 
                 <div class="text-center mt-4">
-                    <p class="text-xs text-slate-400">New Agent? <a href="#" onclick="showScreen('signUpScreen')" class="text-indigo-400 hover:underline font-mono">Initialize Access Profile</a></p>
+                    <p class="text-xs text-slate-400">New Agent? <a href="#" onclick="showScreen('signUpScreen')" class="text-sky-400 hover:underline font-mono">Initialize Access Profile</a></p>
                 </div>
             </div>
         </div>
@@ -174,33 +130,33 @@
 
     <!-- SCREEN 3: FORGOT ACCESS PROFILE PASSWORD -->
     <div id="forgotScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-purple-500 to-pink-500"></div>
+        <div class="max-w-md w-full bg-slate-950/40 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 to-indigo-500"></div>
 
-            <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent tracking-tight mb-1">
+            <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
                 Override Key Request
             </h2>
-            <p class="text-xs text-slate-400 text-center uppercase tracking-widest font-mono mb-6">Identify Account Profile</p>
+            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Identify Account Profile</p>
 
             <div class="space-y-4 text-left">
-                <p class="text-xs text-slate-400 font-mono leading-relaxed bg-slate-950/60 p-3 border border-slate-800/50 rounded-lg mb-2">
+                <p class="text-xs text-slate-400 font-mono leading-relaxed bg-slate-950/80 p-3 border border-slate-800/50 rounded-lg mb-2">
                     Enter your registered full name to locate your credentials profile.
                 </p>
 
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-950 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">👤</span>
                         <input type="text" id="forgotName" required placeholder="Enter Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
                     </div>
                 </div>
 
-                <button onclick="lookupPassword()" id="forgotBtn" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-purple-600/20 active:scale-[0.99] mt-2 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                <button onclick="lookupPassword()" id="forgotBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-blue-600/20 active:scale-[0.99] mt-2 font-mono uppercase text-xs tracking-wider cursor-pointer">
                     Verify Profile Key
                 </button>
 
                 <div class="text-center mt-4">
-                    <a href="#" onclick="showScreen('signInScreen')" class="text-xs text-slate-500 hover:text-indigo-400 transition font-mono">← Abort and Return to Portal</a>
+                    <a href="#" onclick="showScreen('signInScreen')" class="text-xs text-slate-500 hover:text-sky-400 transition font-mono">← Abort and Return to Portal</a>
                 </div>
             </div>
         </div>
@@ -208,24 +164,23 @@
 
     <!-- SCREEN 4: MAIN PERSISTENT DASHBOARD -->
     <div id="dashboardScreen" class="hidden flex-1 flex flex-col relative z-10">
-        <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800/60 px-8 py-4 flex items-center justify-between shadow-lg">
+        <header class="bg-slate-950/60 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between shadow-lg">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-black text-xs">AI</div>
+                <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center font-black text-xs">AI</div>
                 <span class="text-sm text-slate-600 font-mono">/</span>
                 <span class="font-bold tracking-tight text-slate-200">Automation Control Hub</span>
             </div>
             <div class="flex items-center gap-4">
                 <div class="flex items-center gap-3 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
                     <span class="text-xs text-slate-500 font-mono">Active Operator:</span>
-                    <span id="profileDisplay" class="text-xs text-indigo-400 font-mono font-bold">---</span>
+                    <span id="profileDisplay" class="text-xs text-sky-400 font-mono font-bold">---</span>
                 </div>
                 <button onclick="logoutOperator()" class="text-xs font-mono text-slate-400 hover:text-rose-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg transition cursor-pointer">Logout</button>
             </div>
         </header>
 
-        <!-- GLOBAL CROSS-DESK TICKER MESH -->
         <div class="max-w-7xl w-full mx-auto px-8 pt-6">
-            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-xl p-4">
+            <div class="bg-slate-950/40 backdrop-blur-xl border border-slate-850 rounded-xl p-4">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
@@ -235,19 +190,19 @@
                 </div>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
                         <div class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider mb-1">⚽ Sports Desk</div>
                         <p id="breaking-sports" class="text-xs text-slate-300 font-medium truncate">Awaiting next analytic match fixture update...</p>
                     </div>
-                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
                         <div class="text-[10px] font-mono text-amber-400 uppercase tracking-wider mb-1">📈 Finance Desk</div>
                         <p id="breaking-finance" class="text-xs text-slate-300 font-medium truncate">Monitoring live forex & asset market tickers...</p>
                     </div>
-                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
-                        <div class="text-[10px] font-mono text-indigo-400 uppercase tracking-wider mb-1">🏛️ Politics Desk</div>
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
+                        <div class="text-[10px] font-mono text-sky-400 uppercase tracking-wider mb-1">🏛️ Politics Desk</div>
                         <p id="breaking-politics" class="text-xs text-slate-300 font-medium truncate">Tracking policy shifts and legislative drafts...</p>
                     </div>
-                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-850">
                         <div class="text-[10px] font-mono text-purple-400 uppercase tracking-wider mb-1">💻 Tech Desk</div>
                         <p id="breaking-tech" class="text-xs text-slate-300 font-medium truncate">Scanning pipeline for critical system anomalies...</p>
                     </div>
@@ -256,22 +211,22 @@
         </div>
 
         <main class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 p-8 flex-1 items-start">
-            <div class="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-slate-800 space-y-5">
-                <h3 class="text-md font-semibold text-indigo-400 flex items-center gap-2 uppercase tracking-wider text-xs font-mono">
+            <div class="bg-slate-950/40 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 space-y-5">
+                <h3 class="text-md font-semibold text-sky-400 flex items-center gap-2 uppercase tracking-wider text-xs font-mono">
                     <span>⚙️</span> Engine Variables
                 </h3>
                 <div class="space-y-4">
                     <div>
                         <label class="block text-xs font-medium mb-1 text-slate-400">Search Keywords</label>
-                        <input type="text" id="keywords" placeholder="e.g. Tactical metrics" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        <input type="text" id="keywords" placeholder="e.g. Tactical metrics" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
                     </div>
                     <div>
                         <label class="block text-xs font-medium mb-1 text-slate-400">Day History Span</label>
-                        <input type="number" id="daySpan" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        <input type="number" id="daySpan" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
                     </div>
                     <div>
                         <label class="block text-xs font-medium mb-1 text-slate-400">Core News Source</label>
-                        <select id="newsSource" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        <select id="newsSource" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
                             <option value="all">Consolidated Live Stream</option>
                             <option value="sky_sports">Primary Media Pipeline</option>
                         </select>
@@ -282,12 +237,12 @@
                 </div>
             </div>
 
-            <div class="md:col-span-2 bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-slate-800 flex flex-col min-h-[480px]">
+            <div class="md:col-span-2 bg-slate-950/40 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 flex flex-col min-h-[480px]">
                 <h3 class="text-md font-semibold text-slate-300 flex items-center gap-2 uppercase tracking-wider text-xs font-mono mb-4">
                     <span>📊</span> Live Matrix Terminal
                 </h3>
                 <div id="loadingState" class="hidden my-auto text-center py-12">
-                    <div class="animate-spin inline-block w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mb-4"></div>
+                    <div class="animate-spin inline-block w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full mb-4"></div>
                     <p class="text-slate-400 font-mono text-xs animate-pulse">Invoking background scraping clusters... Streaming results.</p>
                 </div>
                 <div id="emptyState" class="my-auto text-center py-12">
@@ -306,86 +261,154 @@
     <!-- JAVASCRIPT LOGIC ENGINE -->
     <script>
         const SUPABASE_URL = 'https://cqkaxhyrnjmqpovxwjom.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4aHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q';
-
-        // Routed through AllOrigins RAW proxy targeting your n8n ngrok node directly
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4hHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q';
         const N8N_CONTENT_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://unreached-oboe-evade.ngrok-free.dev/webhook/register-journalist');
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentSessionOperator = { name: "", section: "" };
 
-        // THEME SECTOR CONFIGURATIONS
+        // --- THREE.JS CYBER GLOBE GENERATOR MATCHING SCREENSHOT EMBED ---
+        let scene, camera, renderer, globeGroup;
+
+        function initCyberGlobe() {
+            const container = document.getElementById('canvas-container');
+            
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 220;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            globeGroup = new THREE.Group();
+            scene.add(globeGroup);
+
+            // Create glowing planetary point data cloud
+            const particleCount = 4500;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const radius = 90;
+
+            for (let i = 0; i < particleCount; i++) {
+                const phi = Math.acos(Math.random() * 2 - 1);
+                const theta = Math.random() * Math.PI * 2;
+
+                positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = radius * Math.cos(phi);
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            // Neon cyan point materials matching image illumination profile
+            const material = new THREE.PointsMaterial({
+                color: 0x38bdf8,
+                size: 1.2,
+                transparent: true,
+                opacity: 0.85,
+                blending: THREE.AdditiveBlending
+            });
+
+            const pointCloud = new THREE.Points(geometry, material);
+            globeGroup.add(pointCloud);
+
+            // Add orbital network paths curving over core matrix sphere
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: 0x0284c7,
+                transparent: true,
+                opacity: 0.35,
+                blending: THREE.AdditiveBlending
+            });
+
+            for (let j = 0; j < 40; j++) {
+                const lineGeometry = new THREE.BufferGeometry();
+                const linePoints = [];
+                const pointsCount = 40;
+
+                const v1 = new THREE.Vector3(
+                    Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1
+                ).normalize().multiplyScalar(radius);
+                const v2 = new THREE.Vector3(
+                    Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1
+                ).normalize().multiplyScalar(radius);
+
+                for (let k = 0; k <= pointsCount; k++) {
+                    const t = k / pointsCount;
+                    const p = new THREE.Vector3().lerpVectors(v1, v2, t).normalize().multiplyScalar(radius + Math.sin(t * Math.PI) * 12);
+                    linePoints.push(p);
+                }
+                lineGeometry.setFromPoints(linePoints);
+                const line = new THREE.Line(lineGeometry, lineMaterial);
+                globeGroup.add(line);
+            }
+
+            animateGlobe();
+        }
+
+        function animateGlobe() {
+            requestAnimationFrame(animateGlobe);
+            globeGroup.rotation.y += 0.0012;
+            globeGroup.rotation.x += 0.0004;
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Instantiate background upon mount hook
+        initCyberGlobe();
+
+        // --- END HOLOGRAPHIC PIPELINE GENERATION ---
+
         const DESK_CONFIGS = {
             "sport": {
                 title: "Sports Analytics Terminal",
-                placeholder: "e.g., Premier League transfer news, match fixtures...",
-                defaultKeywords: "Manchester United transfer news, player statistics",
-                accentClass: "border-emerald-500/30",
-                badgeClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-                glow: "radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.2) 0px, transparent 50%)"
+                placeholder: "e.g., Premier League transfer news...",
+                defaultKeywords: "Manchester United transfer news",
+                glowColor: 0x10b981
             },
             "finance": {
                 title: "Market Matrix Engine",
-                placeholder: "e.g., Forex metrics, asset liquidity indexes...",
-                defaultKeywords: "Exness transactions, market research",
-                accentClass: "border-amber-500/30",
-                badgeClass: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-                glow: "radial-gradient(at 0% 0%, rgba(245, 158, 110, 0.2) 0px, transparent 50%)"
+                placeholder: "e.g., Forex metrics...",
+                defaultKeywords: "Exness transactions",
+                glowColor: 0xf59e0b
             },
             "politics": {
                 title: "Political Wire Desk",
-                placeholder: "e.g., Public policy drafts, election metrics...",
-                defaultKeywords: "election polls, policy data",
-                accentClass: "border-indigo-500/30",
-                badgeClass: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-                glow: "radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.2) 0px, transparent 50%)"
-            },
-            "breaking news": {
-                title: "🚨 Live Breaking News Hub",
-                placeholder: "Enter active crisis keywords or flash locations...",
-                defaultKeywords: "BREAKING, urgent data",
-                accentClass: "border-rose-500/40",
-                badgeClass: "bg-rose-500/20 text-rose-400 border-rose-500/30 animate-pulse",
-                glow: "radial-gradient(at 0% 0%, rgba(244, 63, 94, 0.25) 0px, transparent 50%)"
+                placeholder: "e.g., Public policy drafts...",
+                defaultKeywords: "policy data",
+                glowColor: 0x6366f1
             },
             "default": {
                 title: "Automation Control Hub",
                 placeholder: "Enter engine search parameters...",
                 defaultKeywords: "",
-                accentClass: "border-slate-800",
-                badgeClass: "bg-slate-950 text-indigo-400 border-slate-800",
-                glow: "radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%)"
+                glowColor: 0x38bdf8
             }
         };
 
-        // DYNAMIC UI THEME MORPHING SYSTEM
         function morphDashboardUI(section) {
             const key = section ? section.toLowerCase().trim() : "default";
             const config = DESK_CONFIGS[key] || DESK_CONFIGS["default"];
 
-            // 1. Morph Headings & Search Target Text elements
             document.querySelector(".tracking-tight.text-slate-200").textContent = config.title;
             
             const keywordInput = document.getElementById('keywords');
             keywordInput.placeholder = config.placeholder;
             keywordInput.value = config.defaultKeywords;
 
-            // 2. Adjust Profile Operator Badge Aesthetics
             const operatorBadge = document.getElementById('profileDisplay');
-            operatorBadge.className = `text-xs font-mono font-bold px-2 py-0.5 rounded border ${config.badgeClass}`;
             operatorBadge.textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section.toUpperCase()}`;
 
-            // 3. Dynamic Glow Shift (Removes the map vector visibility smoothly when entering dashboard layout)
-            const baseBg = `radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
-                            radial-gradient(at 50% 100%, rgba(79, 70, 229, 0.18) 0px, transparent 50%),
-                            linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                            linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px)`;
-            
-            document.body.style.backgroundImage = `${config.glow}, ${baseBg}`;
-            
-            // Fade out the background map layer when the dashboard workspace mounts
-            const mapOverlay = document.querySelector('.cyber-map-overlay');
-            if (mapOverlay) mapOverlay.style.display = 'none';
+            // Shifting 3D Globe light values dynamically alongside user roles
+            if (globeGroup && globeGroup.children[0]) {
+                globeGroup.children[0].material.color.setHex(config.glowColor);
+            }
         }
 
         function showScreen(screenId) {
@@ -394,16 +417,8 @@
                 document.getElementById(id).classList.add('hidden');
             });
             document.getElementById(screenId).classList.remove('hidden');
-            
-            // Bring map background display context back if moving back onto verification portals
-            const mapOverlay = document.querySelector('.cyber-map-overlay');
-            if (mapOverlay && screenId !== 'dashboardScreen') {
-                mapOverlay.style.display = 'block';
-                document.body.style.backgroundImage = ''; // Reset back to default style rule class settings
-            }
         }
 
-        // 1. REGISTER NEW USER
         async function registerJournalist() {
             const fullName = document.getElementById('regName').value.trim();
             const section = document.getElementById('regSection').value.trim();
@@ -411,9 +426,7 @@
             const signUpBtn = document.getElementById('signUpBtn');
             const successMsg = document.getElementById('successMessage');
 
-            if (!fullName || !section || !password) {
-                return alert("All fields are required.");
-            }
+            if (!fullName || !section || !password) return alert("All fields are required.");
 
             signUpBtn.disabled = true;
             signUpBtn.innerText = "Processing Profile...";
@@ -425,7 +438,6 @@
                     .eq('Journalist name', fullName);
 
                 if (checkError) throw checkError;
-
                 if (existingUsers && existingUsers.length > 0) {
                     alert(`Registration failed: The name "${fullName}" is already taken.`);
                     signUpBtn.disabled = false;
@@ -435,16 +447,11 @@
 
                 const { error: insertError } = await supabaseClient
                     .from('journalists')
-                    .insert([{ 
-                        "Journalist name": fullName, 
-                        "journalism Section": section, 
-                        "Password": password 
-                    }]);
+                    .insert([{"Journalist name": fullName, "journalism Section": section, "Password": password}]);
 
                 if (insertError) throw insertError;
 
                 successMsg.classList.remove('hidden');
-                
                 setTimeout(() => {
                     successMsg.classList.add('hidden');
                     document.getElementById('loginName').value = fullName;
@@ -460,15 +467,12 @@
             }
         }
 
-        // 2. SIGN IN ACCOUNT PORTAL WITH DYNAMIC THEME MORPHING
         async function loginJournalist() {
             const nameInput = document.getElementById('loginName').value.trim();
             const passwordInput = document.getElementById('loginPassword').value;
             const signInBtn = document.getElementById('signInBtn');
 
-            if (!nameInput || !passwordInput) {
-                return alert("Please enter both your name and password.");
-            }
+            if (!nameInput || !passwordInput) return alert("Please enter both your name and password.");
 
             signInBtn.disabled = true;
             signInBtn.innerText = "Authenticating...";
@@ -480,31 +484,17 @@
                     .eq('Journalist name', nameInput);
 
                 if (error) throw error;
-
-                if (!records || records.length === 0) {
-                    alert(`Authentication Error: Account profile for "${nameInput}" not found.`);
+                if (!records || records.length === 0 || records[0].Password !== passwordInput) {
+                    alert("Authentication Error: Invalid profile credentials.");
                     signInBtn.disabled = false;
                     signInBtn.innerText = "Sign In";
                     return;
                 }
 
-                const accountProfile = records[0];
+                currentSessionOperator.name = records[0]["Journalist name"];
+                currentSessionOperator.section = records[0]["journalism Section"];
 
-                if (accountProfile.Password !== passwordInput) {
-                    alert("Authentication Error: Invalid password.");
-                    signInBtn.disabled = false;
-                    signInBtn.innerText = "Sign In";
-                    return;
-                }
-
-                // A. Capture user data context instantly
-                currentSessionOperator.name = accountProfile["Journalist name"];
-                currentSessionOperator.section = accountProfile["journalism Section"];
-
-                // B. Invoke system theme design morph algorithm
                 morphDashboardUI(currentSessionOperator.section);
-                
-                // C. Clean layout displays and toggle operational panels
                 signInBtn.disabled = false;
                 signInBtn.innerText = "Sign In";
                 document.getElementById('loginPassword').value = ""; 
@@ -517,17 +507,12 @@
             }
         }
 
-        // 3. SECURE FORGOT PASSWORD PROFILE CHECK
         async function lookupPassword() {
             const nameInput = document.getElementById('forgotName').value.trim();
             const forgotBtn = document.getElementById('forgotBtn');
 
-            if (!nameInput) {
-                return alert("Please enter your name.");
-            }
-
+            if (!nameInput) return alert("Please enter your name.");
             forgotBtn.disabled = true;
-            forgotBtn.innerText = "Searching...";
 
             try {
                 const { data: records, error } = await supabaseClient
@@ -536,74 +521,50 @@
                     .eq('Journalist name', nameInput);
 
                 if (error) throw error;
-
-                if (!records || records.length === 0) {
-                    alert(`No profile found matching "${nameInput}".`);
-                } else {
-                    alert(`Profile Found!\n\nPlease speak to an Authority to reset your key.`);
-                    showScreen('signInScreen');
-                }
+                alert(records && records.length > 0 ? "Profile Found!\n\nPlease contact administration to reset access keys." : "Profile sequence mismatch.");
+                showScreen('signInScreen');
             } catch (error) {
                 alert("Database Error: " + error.message);
             } finally {
                 forgotBtn.disabled = false;
-                forgotBtn.innerText = "Verify Profile Key";
             }
         }
 
         function logoutOperator() {
             currentSessionOperator = { name: "", section: "" };
-            document.getElementById('profileDisplay').textContent = "---";
+            if (globeGroup && globeGroup.children[0]) globeGroup.children[0].material.color.setHex(0x38bdf8);
             showScreen('signInScreen');
         }
 
-        // EXECUTING AUTOMATION CLUSTER VIA ALLORIGINS TUNNEL
         async function executeWorkflow() {
             const keywords = document.getElementById('keywords').value;
             const daySpan = document.getElementById('daySpan').value;
             const newsSource = document.getElementById('newsSource').value;
-            
             const runBtn = document.getElementById('runBtn');
-            const emptyState = document.getElementById('emptyState');
-            const loadingState = document.getElementById('loadingState');
-            const outputState = document.getElementById('outputState');
 
             runBtn.disabled = true;
-            runBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            emptyState.classList.add('hidden');
-            outputState.classList.add('hidden');
-            loadingState.classList.remove('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('outputState').classList.add('hidden');
+            document.getElementById('loadingState').classList.remove('hidden');
 
             try {
                 const response = await fetch(N8N_CONTENT_URL, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ 
-                        keywords, 
-                        daySpan, 
-                        newsSource, 
-                        journalist: currentSessionOperator.name, 
-                        section: currentSessionOperator.section 
-                    })
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ keywords, daySpan, newsSource, journalist: currentSessionOperator.name, section: currentSessionOperator.section })
                 });
 
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
                 const resultData = await response.json();
                 document.getElementById('jsonDisplay').textContent = JSON.stringify(resultData, null, 2);
-                loadingState.className = 'hidden';
-                outputState.classList.remove('hidden');
-
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('outputState').classList.remove('hidden');
             } catch (error) {
                 alert('Automation error: ' + error.message);
-                emptyState.classList.remove('hidden');
-                loadingState.classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('loadingState').classList.add('hidden');
             } finally {
                 runBtn.disabled = false;
-                runBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
     </script>
