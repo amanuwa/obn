@@ -6,17 +6,23 @@
     <title>Command Center</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Three.js for rendering the 3D Cyber Globe matching Screenshot 2026-07-05 050457.jpg -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body {
-            background-color: #02040a;
-            /* Using the exact image asset as a fixed background */
-            background-image: url('Screenshot 2026-07-05 050457_2.jpg');
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
-            background-attachment: fixed;
+            background-color: #020617;
             margin: 0;
             overflow-x: hidden;
+        }
+        /* Canvas positioning for full screen background visual */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
         }
         .glow-border:focus-within {
             border-color: #38bdf8;
@@ -30,9 +36,12 @@
 </head>
 <body class="text-slate-100 min-h-screen flex flex-col font-sans relative">
 
+    <!-- 3D CYBER-GLOBE CANVAS CONTAINER -->
+    <div id="canvas-container"></div>
+
     <!-- SCREEN 1: MODERN AI SIGN-UP REGISTRATION -->
     <div id="signUpScreen" class="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/40 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -80,7 +89,7 @@
 
     <!-- SCREEN 2: MODERN SIGN-IN PORTAL -->
     <div id="signInScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/40 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -121,7 +130,7 @@
 
     <!-- SCREEN 3: FORGOT ACCESS PROFILE PASSWORD -->
     <div id="forgotScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
+        <div class="max-w-md w-full bg-slate-950/40 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-sky-500/20 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 to-indigo-500"></div>
 
             <h2 class="text-2xl font-black text-center bg-gradient-to-r from-white via-slate-200 to-sky-200 bg-clip-text text-transparent tracking-tight mb-1">
@@ -155,7 +164,7 @@
 
     <!-- SCREEN 4: MAIN PERSISTENT DASHBOARD -->
     <div id="dashboardScreen" class="hidden flex-1 flex flex-col relative z-10">
-        <header class="bg-slate-950/40 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between shadow-lg">
+        <header class="bg-slate-950/60 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between shadow-lg">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center font-black text-xs">AI</div>
                 <span class="text-sm text-slate-600 font-mono">/</span>
@@ -171,7 +180,7 @@
         </header>
 
         <div class="max-w-7xl w-full mx-auto px-8 pt-6">
-            <div class="bg-slate-950/30 backdrop-blur-xl border border-slate-850 rounded-xl p-4">
+            <div class="bg-slate-950/40 backdrop-blur-xl border border-slate-850 rounded-xl p-4">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
@@ -202,7 +211,7 @@
         </div>
 
         <main class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 p-8 flex-1 items-start">
-            <div class="bg-slate-950/30 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 space-y-5">
+            <div class="bg-slate-950/40 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 space-y-5">
                 <h3 class="text-md font-semibold text-sky-400 flex items-center gap-2 uppercase tracking-wider text-xs font-mono">
                     <span>⚙️</span> Engine Variables
                 </h3>
@@ -228,7 +237,7 @@
                 </div>
             </div>
 
-            <div class="md:col-span-2 bg-slate-950/30 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 flex flex-col min-h-[480px]">
+            <div class="md:col-span-2 bg-slate-950/40 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-slate-850 flex flex-col min-h-[480px]">
                 <h3 class="text-md font-semibold text-slate-300 flex items-center gap-2 uppercase tracking-wider text-xs font-mono mb-4">
                     <span>📊</span> Live Matrix Terminal
                 </h3>
@@ -258,26 +267,128 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentSessionOperator = { name: "", section: "" };
 
+        // --- THREE.JS CYBER GLOBE GENERATOR MATCHING SCREENSHOT EMBED ---
+        let scene, camera, renderer, globeGroup;
+
+        function initCyberGlobe() {
+            const container = document.getElementById('canvas-container');
+            
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 220;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            globeGroup = new THREE.Group();
+            scene.add(globeGroup);
+
+            // Create glowing planetary point data cloud
+            const particleCount = 4500;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const radius = 90;
+
+            for (let i = 0; i < particleCount; i++) {
+                const phi = Math.acos(Math.random() * 2 - 1);
+                const theta = Math.random() * Math.PI * 2;
+
+                positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = radius * Math.cos(phi);
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            // Neon cyan point materials matching image illumination profile
+            const material = new THREE.PointsMaterial({
+                color: 0x38bdf8,
+                size: 1.2,
+                transparent: true,
+                opacity: 0.85,
+                blending: THREE.AdditiveBlending
+            });
+
+            const pointCloud = new THREE.Points(geometry, material);
+            globeGroup.add(pointCloud);
+
+            // Add orbital network paths curving over core matrix sphere
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: 0x0284c7,
+                transparent: true,
+                opacity: 0.35,
+                blending: THREE.AdditiveBlending
+            });
+
+            for (let j = 0; j < 40; j++) {
+                const lineGeometry = new THREE.BufferGeometry();
+                const linePoints = [];
+                const pointsCount = 40;
+
+                const v1 = new THREE.Vector3(
+                    Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1
+                ).normalize().multiplyScalar(radius);
+                const v2 = new THREE.Vector3(
+                    Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1
+                ).normalize().multiplyScalar(radius);
+
+                for (let k = 0; k <= pointsCount; k++) {
+                    const t = k / pointsCount;
+                    const p = new THREE.Vector3().lerpVectors(v1, v2, t).normalize().multiplyScalar(radius + Math.sin(t * Math.PI) * 12);
+                    linePoints.push(p);
+                }
+                lineGeometry.setFromPoints(linePoints);
+                const line = new THREE.Line(lineGeometry, lineMaterial);
+                globeGroup.add(line);
+            }
+
+            animateGlobe();
+        }
+
+        function animateGlobe() {
+            requestAnimationFrame(animateGlobe);
+            globeGroup.rotation.y += 0.0012;
+            globeGroup.rotation.x += 0.0004;
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Instantiate background upon mount hook
+        initCyberGlobe();
+
+        // --- END HOLOGRAPHIC PIPELINE GENERATION ---
+
         const DESK_CONFIGS = {
             "sport": {
                 title: "Sports Analytics Terminal",
                 placeholder: "e.g., Premier League transfer news...",
-                defaultKeywords: "Manchester United transfer news"
+                defaultKeywords: "Manchester United transfer news",
+                glowColor: 0x10b981
             },
             "finance": {
                 title: "Market Matrix Engine",
                 placeholder: "e.g., Forex metrics...",
-                defaultKeywords: "Exness transactions"
+                defaultKeywords: "Exness transactions",
+                glowColor: 0xf59e0b
             },
             "politics": {
                 title: "Political Wire Desk",
                 placeholder: "e.g., Public policy drafts...",
-                defaultKeywords: "policy data"
+                defaultKeywords: "policy data",
+                glowColor: 0x6366f1
             },
             "default": {
                 title: "Automation Control Hub",
                 placeholder: "Enter engine search parameters...",
-                defaultKeywords: ""
+                defaultKeywords: "",
+                glowColor: 0x38bdf8
             }
         };
 
@@ -293,6 +404,11 @@
 
             const operatorBadge = document.getElementById('profileDisplay');
             operatorBadge.textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section.toUpperCase()}`;
+
+            // Shifting 3D Globe light values dynamically alongside user roles
+            if (globeGroup && globeGroup.children[0]) {
+                globeGroup.children[0].material.color.setHex(config.glowColor);
+            }
         }
 
         function showScreen(screenId) {
@@ -416,6 +532,7 @@
 
         function logoutOperator() {
             currentSessionOperator = { name: "", section: "" };
+            if (globeGroup && globeGroup.children[0]) globeGroup.children[0].material.color.setHex(0x38bdf8);
             showScreen('signInScreen');
         }
 
