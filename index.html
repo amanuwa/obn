@@ -19,7 +19,6 @@
             <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center font-black text-xs">AI</div>
             <span class="font-bold text-slate-100 tracking-tight">Sports Analytics Terminal</span>
         </div>
-        <button class="text-xs font-mono text-slate-400 hover:text-rose-400">Logout</button>
     </header>
 
     <main class="max-w-[95%] w-full mx-auto grid grid-cols-4 gap-6 p-8 flex-1">
@@ -42,7 +41,8 @@
         <div class="col-span-3 bg-slate-950/50 p-6 rounded-2xl border border-slate-800 flex flex-col h-[650px] shadow-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-bold text-sm text-slate-300">Scrapped Intelligence Matrix</h3>
-                <select id="langSelector" class="bg-slate-900 border border-slate-700 p-2 text-xs rounded text-white outline-none focus:border-emerald-500">
+                
+                <select id="langSelector" class="bg-slate-900 border border-slate-700 p-2 text-xs rounded text-white cursor-pointer hover:border-emerald-500">
                     <option value="oromifa">Oromifa</option>
                     <option value="amharic">Amharic</option>
                     <option value="english">English</option>
@@ -62,7 +62,7 @@
 
         document.getElementById('runBtn').onclick = () => {
             const cats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
-            const lang = document.getElementById('langSelector').value;
+            const lang = document.getElementById('langSelector').value; // Get current language selection
             const output = document.getElementById('outputContainer');
             
             if (cats.length === 0) {
