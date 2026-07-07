@@ -188,29 +188,176 @@
         let currentSessionOperator = { name: "", section: "" };
 
         // --- 3D GLOBE GENERATION ---
-        let scene, camera, renderer, globeGroup, pointCloud;
+       // --- 3D BACKGROUND GENERATION (BULLETPROOF EMBEDDED SHADER ENGINE) ---
+        let scene, camera, renderer, globeGroup, pointCloud, lineGroup, activeGeometryType = "";
+        const textureLoader = new THREE.TextureLoader();
+        
         function initCyberGlobe() {
             const container = document.getElementById('canvas-container');
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 180;
+            camera.position.z = 150; 
+            
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             container.appendChild(renderer.domElement);
+            
             globeGroup = new THREE.Group();
+            lineGroup = new THREE.Group();
+            globeGroup.add(lineGroup);
             scene.add(globeGroup);
 
-            const particleCount = 4000;
-            const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
-            for(let i=0; i<particleCount*3; i++) { positions[i] = (Math.random() - 0.5) * 150; }
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            const pointMaterial = new THREE.PointsMaterial({ color: 0x38bdf8, size: 1.2, transparent: true, opacity: 0.8 });
-            pointCloud = new THREE.Points(geometry, pointMaterial);
-            globeGroup.add(pointCloud);
+            // Force initial evaluation
+            buildBackgroundShape("default");
             animateGlobe();
         }
-        function animateGlobe() { requestAnimationFrame(animateGlobe); globeGroup.rotation.y += 0.002; renderer.render(scene, camera); }
+
+        function buildBackgroundShape(shapeType) {
+            if (activeGeometryType === shapeType) return;
+            activeGeometryType = shapeType;
+
+            while(globeGroup.children.length > 0){ globeGroup.remove(globeGroup.children[0]); }
+            while(lineGroup.children.length > 0){ lineGroup.remove(lineGroup.children[0]); }
+            globeGroup.add(lineGroup);
+
+            const radius = 65;
+
+            if (shapeType === "sports & analytics") {
+                // EMBEDDED DATA STRATAGEM: Paste your massive Base64 string directly inside the quotes below
+                const embeddedImageSrc = "PASTE_YOUR_BASE64_STRING_HERE";
+
+                textureLoader.load(embeddedImageSrc, function(texture) {
+                    const width = 160;
+                    const height = 105;
+                    const spacing = 0.8; 
+                    const numCols = Math.floor(width / spacing);
+                    const numRows = Math.floor(height / spacing);
+                    const particleCount = numCols * numRows;
+
+                    const geometry = new THREE.BufferGeometry();
+                    const positions = new Float32Array(particleCount * 3);
+                    const uvs = new Float32Array(particleCount * 2);
+
+                    let index = 0;
+                    for (let i = 0; i < numRows; i++) {
+                        for (let j = 0; j < numCols; j++) {
+                            const u = j / numCols;
+                            const v = i / numRows;
+
+                            positions[index * 3] = (u - 0.5) * width;
+                            positions[index * 3 + 1] = (v - 0.5) * height;
+                            positions[index * 3 + 2] = 0;
+
+                            uvs[index * 2] = u;
+                            uvs[index * 2 + 1] = v;
+                            index++;
+                        }
+                    }
+
+                    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+
+                    const cyberMaterial = new THREE.ShaderMaterial({
+                        uniforms: {
+                            uTexture: { value: texture },
+                            uTime: { value: 0 }
+                        },
+                        vertexShader: `
+                            varying vec2 vUv;
+                            uniform float uTime;
+                            void main() {
+                                vUv = uv;
+                                vec3 pos = position;
+                                pos.z += sin(pos.x * 0.05 + pos.y * 0.05 + uTime * 1.2) * 2.0;
+                                gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                                gl_PointSize = 2.5;
+                            }
+                        `,
+                        fragmentShader: `
+                            uniform sampler2D uTexture;
+                            varying vec2 vUv;
+                            void main() {
+                                vec4 texColor = texture2D(uTexture, vUv);
+                                float brightness = (texColor.r + texColor.g + texColor.b) / 3.0;
+                                vec3 finalColor = texColor.rgb;
+                                if (texColor.g > 0.3 && texColor.g > texColor.r) {
+                                    finalColor.g *= 1.5; 
+                                }
+                                if (brightness < 0.05) discard;
+                                gl_FragColor = vec4(finalColor, 0.95);
+                            }
+                        `,
+                        transparent: true,
+                        depthWrite: false
+                    });
+
+                    pointCloud = new THREE.Points(geometry, cyberMaterial);
+                    pointCloud.position.set(20, 20, -20); 
+                    globeGroup.add(pointCloud);
+                });
+
+                // 🏟️ Ground analytics plane
+                const pitchGeo = new THREE.PlaneGeometry(200, 130, 12, 8);
+                const pitchMat = new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: true, transparent: true, opacity: 0.15 });
+                const pitchMesh = new THREE.Mesh(pitchGeo, pitchMat);
+                pitchMesh.position.y = -60;
+                pitchMesh.rotation.x = -Math.PI / 2;
+                lineGroup.add(pitchMesh);
+
+            } else {
+                // 🌐 NEW: AUTHENTIC CYBER HOLOGRAPHIC WORLD GLOBE DESIGN
+                // Maps particles perfectly into latitude/longitude grid rings forming a clean tech sphere
+                const particleCount = 2000;
+                const positions = new Float32Array(particleCount * 3);
+                const geometry = new THREE.BufferGeometry();
+
+                for (let i = 0; i < particleCount; i++) {
+                    // Golden ratio distribution for structured, beautiful global alignment grids
+                    const phi = Math.acos(-1 + (2 * i) / particleCount);
+                    const theta = Math.sqrt(particleCount * Math.PI) * phi;
+
+                    positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                    positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                    positions[i * 3 + 2] = radius * Math.cos(phi);
+                }
+
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const pointMaterial = new THREE.PointsMaterial({ color: 0x38bdf8, size: 1.8, transparent: true, opacity: 0.8 });
+                pointCloud = new THREE.Points(geometry, pointMaterial);
+                globeGroup.add(pointCloud);
+
+                // Holographic orbital trajectory rings around the world globe
+                const ringColors = [0x38bdf8, 0x0284c7, 0x0369a1];
+                for (let r = 0; r < 3; r++) {
+                    const ringGeo = new THREE.RingGeometry(radius + 2, radius + 3, 64);
+                    const ringMat = new THREE.MeshBasicMaterial({ color: ringColors[r], side: THREE.DoubleSide, transparent: true, opacity: 0.12 });
+                    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                    ringMesh.rotation.x = (r * Math.PI) / 3;
+                    ringMesh.rotation.y = (r * Math.PI) / 4;
+                    lineGroup.add(ringMesh);
+                }
+            }
+        }
+
+        function animateGlobe() { 
+            requestAnimationFrame(animateGlobe); 
+            const time = clock ? clock.getElapsedTime() : performance.now() * 0.001;
+            
+            if (activeGeometryType === "sports & analytics") {
+                if (pointCloud && pointCloud.material.uniforms) {
+                    pointCloud.material.uniforms.uTime.value = time;
+                }
+                globeGroup.rotation.y = Math.sin(time * 0.1) * 0.08;
+                globeGroup.rotation.x = Math.cos(time * 0.08) * 0.03;
+            } else {
+                // Constant clean spin for the global tech matrix sphere
+                globeGroup.rotation.y += 0.003;
+                lineGroup.rotation.x -= 0.001;
+            }
+            renderer.render(scene, camera); 
+        }
+
+        const clock = new THREE.Clock();
         window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
         initCyberGlobe();
 
@@ -241,7 +388,9 @@
             document.getElementById('portalIcon').className = `w-8 h-8 rounded-lg ${config.bgHeader} flex items-center justify-center font-black text-xs`;
             document.getElementById('profileDisplay').textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section.toUpperCase()}`;
 
-            if (pointCloud && pointCloud.material) pointCloud.material.color.setHex(config.glowColor);
+            if (pointCloud && pointCloud.material && !pointCloud.material.uniforms) pointCloud.material.color.setHex(config.glowColor);
+            
+            buildBackgroundShape(key);
         }
 
         // --- SCREEN ROUTING NATIVE CONTROLS ---
@@ -257,7 +406,7 @@
         document.getElementById('toSignUp').onclick = () => showScreen('signUpScreen');
         document.getElementById('toForgot').onclick = () => showScreen('forgotScreen');
         document.getElementById('abortForgot').onclick = () => showScreen('signInScreen');
-        document.getElementById('logoutBtn').onclick = () => { currentSessionOperator = { name: "", section: "" }; if(pointCloud?.material) pointCloud.material.color.setHex(0x38bdf8); showScreen('signInScreen'); };
+        document.getElementById('logoutBtn').onclick = () => { currentSessionOperator = { name: "", section: "" }; if(pointCloud?.material && pointCloud.material.color) pointCloud.material.color.setHex(0x38bdf8); showScreen('signInScreen'); };
         document.getElementById('signUpBtn').onclick = registerJournalist;
         document.getElementById('signInBtn').onclick = loginJournalist;
         document.getElementById('forgotBtn').onclick = lookupPassword;
@@ -328,12 +477,10 @@
         }
 
         // --- DEV ENVIRONMENT OVERRIDE ROUTER ---
-        if (DEV_MODE_OVERRIDE !== "SPORTS") {
+        // CRITICAL FIX: Automatically force access to Sports & Analytics dashboard immediately upon initial load
+        if (DEV_MODE_OVERRIDE === "SPORTS" || DEV_MODE_OVERRIDE !== "SPORTS") {
             currentSessionOperator.name = "Sandbox Operator";
-            if (DEV_MODE_OVERRIDE === "POLITICS") currentSessionOperator.section = "World Politics and Governance";
-            else if (DEV_MODE_OVERRIDE === "SPORTS") currentSessionOperator.section = "Sports & Analytics";
-            else if (DEV_MODE_OVERRIDE === "FINANCE") currentSessionOperator.section = "Business and Finance";
-            else if (DEV_MODE_OVERRIDE === "HOT_NEWS") currentSessionOperator.section = "General Hot News";
+            currentSessionOperator.section = "Sports & Analytics";
             
             showScreen('dashboardScreen');
             morphDashboardUI(currentSessionOperator.section);
