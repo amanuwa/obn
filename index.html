@@ -41,43 +41,34 @@
 
         <!-- RIGHT: MATRIX -->
         <div class="col-span-3 bg-slate-950/50 p-6 rounded-2xl border border-slate-800 flex flex-col h-[650px] shadow-2xl">
-            <div class="flex justify-between items-start mb-4">
-                <h3 class="font-bold text-sm text-slate-300">Scrapped Intelligence Matrix</h3>
+            <!-- HEADER AREA -->
+            <div class="mb-6">
+                <h3 class="font-bold text-sm text-slate-300 mb-4">Scrapped Intelligence Matrix</h3>
                 
-                <!-- RIGHT SIDE CONTROLS -->
-                <div class="flex flex-col gap-4">
-                    
-                    <!-- FAST HOT NEWS (Positioned before language selection) -->
-                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 min-w-[220px]">
-                        <h3 class="text-[9px] font-bold text-rose-500 uppercase mb-2">Fast Hot News</h3>
-                        <div class="flex gap-2">
-                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border border-slate-800 rounded p-2 text-[10px] text-white focus:border-rose-500 outline-none">
-                            <button onclick="getHotNews()" class="bg-rose-600 px-3 py-1 rounded font-bold text-[10px] uppercase hover:bg-rose-500">Go</button>
-                        </div>
+                <!-- FAST HOT NEWS: Placed immediately under the title -->
+                <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 w-full mb-4">
+                    <h3 class="text-[9px] font-bold text-rose-500 uppercase mb-2">Fast Hot News</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border border-slate-800 rounded p-2 text-[10px] text-white focus:border-rose-500 outline-none">
+                        <button onclick="getHotNews()" class="bg-rose-600 px-4 py-1 rounded font-bold text-[10px] uppercase hover:bg-rose-500">Go</button>
                     </div>
+                </div>
 
-                    <!-- THICK LANGUAGE SELECTION PANEL -->
-                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 min-w-[220px]">
-                        <button onclick="toggleAll('.lang-check', true)" class="w-full mb-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold uppercase p-2 rounded border border-emerald-500/50 text-emerald-400">Select All Languages</button>
-                        <div id="langList" class="space-y-1">
-                            <label class="flex items-center gap-3 p-2 hover:bg-slate-800 rounded cursor-pointer border-l-2 border-transparent hover:border-emerald-500">
-                                <input type="checkbox" class="lang-check" value="oromifa"> <span class="text-xs font-medium">Oromifa</span>
-                            </label>
-                            <label class="flex items-center gap-3 p-2 hover:bg-slate-800 rounded cursor-pointer border-l-2 border-transparent hover:border-emerald-500">
-                                <input type="checkbox" class="lang-check" value="amharic"> <span class="text-xs font-medium">Amharic</span>
-                            </label>
-                            <label class="flex items-center gap-3 p-2 hover:bg-slate-800 rounded cursor-pointer border-l-2 border-transparent hover:border-emerald-500">
-                                <input type="checkbox" class="lang-check" value="english"> <span class="text-xs font-medium">English</span>
-                            </label>
-                            <label class="flex items-center gap-3 p-2 hover:bg-slate-800 rounded cursor-pointer border-l-2 border-transparent hover:border-emerald-500">
-                                <input type="checkbox" class="lang-check" value="arabic"> <span class="text-xs font-medium">Arabic</span>
-                            </label>
-                        </div>
+                <!-- LANGUAGE SELECTION: Stacked under news -->
+                <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 w-full">
+                    <button onclick="toggleAll('.lang-check', true)" class="w-full mb-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold uppercase p-2 rounded border border-emerald-500/50 text-emerald-400">Select All Languages</button>
+                    <div id="langList" class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="lang-check" value="oromifa"> <span class="text-xs">Oromifa</span></label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="lang-check" value="amharic"> <span class="text-xs">Amharic</span></label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="lang-check" value="english"> <span class="text-xs">English</span></label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="lang-check" value="arabic"> <span class="text-xs">Arabic</span></label>
                     </div>
                 </div>
             </div>
+
+            <!-- OUTPUT -->
             <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded-lg p-6 border border-slate-900 font-mono text-xs text-slate-400 shadow-inner">
-                <p class="text-slate-600 italic">Configure categories on left, search news or select languages on right, and initiate sequence...</p>
+                <p class="text-slate-600 italic">Configure categories on left, search news or select languages above, and initiate sequence...</p>
             </div>
         </div>
     </main>
