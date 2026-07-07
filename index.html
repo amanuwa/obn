@@ -29,41 +29,35 @@
         
         <div class="col-span-1 bg-slate-950/50 p-6 border-r border-slate-800 flex flex-col h-full shadow-2xl">
             <h3 class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4">Select Categories</h3>
-            <div id="categoryContainer" class="space-y-4 mb-4">
-                <div class="group">
-                    <label class="flex items-center gap-2 cursor-pointer hover:text-emerald-400 font-bold">
-                        <input type="checkbox" class="cat-check" value="epl" onclick="toggleSubData('epl-data', this.checked)"> 
-                        <span class="text-sm">Ethiopian Premier League</span>
-                    </label>
-                    <div id="epl-data" class="hidden pl-6 mt-2 space-y-1 text-[10px] text-slate-400">
-                        <label class="flex items-center gap-2"><input type="checkbox" class="sub-check" value="st-george"> Saint George FC</label>
-                        <label class="flex items-center gap-2"><input type="checkbox" class="sub-check" value="bahir-dar"> Bahir Dar City</label>
-                    </div>
-                </div>
-                
-                <div class="group">
-                    <label class="flex items-center gap-2 cursor-pointer hover:text-emerald-400 font-bold">
-                        <input type="checkbox" class="cat-check" value="international" onclick="toggleSubData('int-data', this.checked)"> 
-                        <span class="text-sm">International</span>
-                    </label>
-                    <div id="int-data" class="hidden pl-6 mt-2 space-y-1 text-[10px] text-slate-400">
-                        <label class="flex items-center gap-2"><input type="checkbox" class="sub-check" value="epl-eng"> English PL</label>
-                        <label class="flex items-center gap-2"><input type="checkbox" class="sub-check" value="laliga"> La Liga</label>
-                    </div>
-                </div>
+            
+            <div id="categoryContainer" class="space-y-2 mb-6">
+                <button onclick="toggleAll('.cat-check', true)" class="w-full bg-emerald-900/30 hover:bg-emerald-600 border border-emerald-500/50 text-emerald-400 hover:text-white px-4 py-3 rounded font-black text-[10px] uppercase transition-all mb-2">
+                    Select All Categories
+                </button>
+
+                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
+                    <input type="checkbox" class="cat-check" value="epl"> <span class="text-xs font-bold uppercase ml-2">Ethiopian Premier League</span>
+                </label>
+                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
+                    <input type="checkbox" class="cat-check" value="international"> <span class="text-xs font-bold uppercase ml-2">International</span>
+                </label>
+                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
+                    <input type="checkbox" class="cat-check" value="athletics"> <span class="text-xs font-bold uppercase ml-2">Athletics</span>
+                </label>
+                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
+                    <input type="checkbox" class="cat-check" value="others"> <span class="text-xs font-bold uppercase ml-2">Others</span>
+                </label>
             </div>
 
             <div class="flex-1 bg-slate-900/50 rounded-xl border border-slate-800 p-4 mb-4 overflow-y-auto">
                 <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-3">Active Sources</h3>
-                <div id="activeSourceList" class="space-y-2 font-mono text-[10px]">
-                    <p class="italic text-slate-600">// Waiting for pipeline...</p>
-                </div>
+                <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-400 italic">// Waiting for pipeline...</div>
             </div>
 
             <button id="runBtn" class="w-full bg-emerald-600 p-4 rounded-xl font-black text-xs uppercase hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/40">Fire Pipeline</button>
         </div>
 
-        <div class="col-span-3 bg-slate-950/50 p-6 flex flex-col h-full">
+        <div class="col-span-3 bg-slate-950/50 p-6 flex flex-col h-full shadow-2xl">
             <div class="mb-6">
                 <h3 class="font-bold text-sm text-slate-300 mb-4">Scrapped Intelligence Matrix</h3>
                 <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 w-full mb-4">
@@ -92,24 +86,20 @@
 
     <script>
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
-        function toggleSubData(id, show) { document.getElementById(id).classList.toggle('hidden', !show); }
         function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500">// Fetching news...</div>`; }
         
         document.getElementById('runBtn').onclick = () => {
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
-            const subData = Array.from(document.querySelectorAll('.sub-check:checked')).map(c => c.value);
             const sourceList = document.getElementById('activeSourceList');
             const output = document.getElementById('outputContainer');
 
-            if (mainCats.length === 0) return alert("Select at least one main category.");
+            if (mainCats.length === 0) return alert("Select at least one category.");
 
-            // Update Left Sidebar
-            sourceList.innerHTML = [...mainCats, ...subData].map(item => 
+            sourceList.innerHTML = mainCats.map(item => 
                 `<div class="p-2 bg-slate-800 rounded border-l-2 border-emerald-500 text-emerald-300">» ${item.toUpperCase()}</div>`
             ).join('');
 
-            // Update Right Terminal
-            output.innerHTML = `<div class="text-emerald-400 font-mono">// PIPELINE ACTIVE<br>// DATA: ${mainCats.join(', ')}<br>// KEYWORDS: ${subData.join(', ')}</div>`;
+            output.innerHTML = `<div class="text-emerald-400 font-mono">// PIPELINE ACTIVE<br>// DATA: ${mainCats.join(', ')}</div>`;
         };
 
         function downloadData() {
