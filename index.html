@@ -223,28 +223,22 @@
         initCyberGlobe();
 
         // --- DYNAMIC UI MORPH MATRIX ---
-   function morphDashboardUI(section) {
+ // --- DYNAMIC UI MORPH MATRIX ---
+function morphDashboardUI(section) {
     const key = section ? section.toLowerCase().trim() : "default";
     const config = DESK_CONFIGS[key] || DESK_CONFIGS["default"];
-
-    // 1. Existing UI Logic (Text/Title updates)
+    
+    // Update Text
     document.getElementById("portalTitle").textContent = config.title;
+    
+    // Reset any background classes from previous sessions
+    document.body.className = "text-slate-100 min-h-screen flex flex-col font-sans relative";
 
-    // 2. Dynamic Globe Control
+    // Dynamic Globe Control
     if (pointCloud && pointCloud.material) {
-        if (key.includes("sports")) {
-            // "Soccer Mode": Green glow, faster rotation, soccer-like scale
-            pointCloud.material.color.setHex(0x22c55e); // Green
-            globeGroup.rotation.y += 0.05; // Faster spin for soccer feel
-        } else {
-            // "Standard Mode"
-            pointCloud.material.color.setHex(config.glowColor || 0x38bdf8);
-            globeGroup.rotation.y += 0.002; // Default slow drift
-        }
+        // Toggle color: Green for Sports, Default Blue for others
+        pointCloud.material.color.setHex(key.includes("sports") ? 0x22c55e : 0x38bdf8);
     }
-
-    // 3. Ensure Globe is always visible
-    document.getElementById('canvas-container').style.display = 'block';
 }
 
         // --- SCREEN ROUTING NATIVE CONTROLS ---
