@@ -3,91 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Command Center</title>
+    <title>Command Center | Analytics Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body { background-color: #02071a; margin: 0; }
+        body { background-color: #02071a; margin: 0; color: #f1f5f9; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
-<body class="text-slate-100 min-h-screen flex flex-col font-sans">
+<body class="min-h-screen flex flex-col font-sans">
 
     <header class="bg-slate-950/60 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center font-black text-xs">AI</div>
-            <span class="font-bold text-slate-200">Sports Analytics Terminal</span>
+            <span class="font-bold text-slate-100 tracking-tight">Sports Analytics Terminal</span>
         </div>
         <button class="text-xs font-mono text-slate-400 hover:text-rose-400">Logout</button>
     </header>
 
     <main class="max-w-[95%] w-full mx-auto grid grid-cols-4 gap-6 p-8 flex-1">
         
-        <div class="col-span-1 bg-slate-950/50 p-6 rounded-2xl border border-slate-800 h-[600px] flex flex-col">
-            <label class="text-[10px] uppercase text-slate-500 font-mono mb-1">Category</label>
-            <select id="leagueSelector" class="w-full bg-slate-950 p-3 border border-slate-800 rounded mb-4 text-sm text-white focus:border-emerald-500 outline-none">
-                <option value="">Select Category...</option>
-                <option value="epl">Ethiopian Premier League</option>
-                <option value="international">International</option>
-                <option value="athletics">Athletics</option>
-                <option value="others">Others</option>
-            </select>
+        <div class="col-span-1 bg-slate-950/50 p-6 rounded-2xl border border-slate-800 h-[650px] flex flex-col shadow-2xl">
             
-            <div id="gameSelectionContainer" class="flex-1 overflow-y-auto space-y-2 pr-2">
-                <p class="text-slate-500 italic text-xs">Select a category to view options...</p>
+            <h3 class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4">Select Categories</h3>
+            <div class="space-y-3 mb-8">
+                <label class="flex items-center gap-2 cursor-pointer hover:text-emerald-400 transition-colors">
+                    <input type="checkbox" id="selectAllCats" onclick="toggleAll('.cat-check', this.checked)" class="accent-emerald-600"> 
+                    <span class="text-sm font-bold">Select All Categories</span>
+                </label>
+                <div class="flex items-center gap-2"><input type="checkbox" class="cat-check" value="epl"> <span class="text-sm">Ethiopian Premier League</span></div>
+                <div class="flex items-center gap-2"><input type="checkbox" class="cat-check" value="international"> <span class="text-sm">International</span></div>
+                <div class="flex items-center gap-2"><input type="checkbox" class="cat-check" value="athletics"> <span class="text-sm">Athletics</span></div>
+                <div class="flex items-center gap-2"><input type="checkbox" class="cat-check" value="others"> <span class="text-sm">Others</span></div>
+            </div>
+
+            <h3 class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4">Select Languages</h3>
+            <div class="space-y-3 mb-8">
+                <label class="flex items-center gap-2 cursor-pointer hover:text-emerald-400 transition-colors">
+                    <input type="checkbox" id="selectAllLangs" onclick="toggleAll('.lang-check', this.checked)" class="accent-emerald-600"> 
+                    <span class="text-sm font-bold">Select All Languages</span>
+                </label>
+                <div class="flex items-center gap-2"><input type="checkbox" class="lang-check" value="oromifa"> <span class="text-sm">Oromifa</span></div>
+                <div class="flex items-center gap-2"><input type="checkbox" class="lang-check" value="amharic"> <span class="text-sm">Amharic</span></div>
+                <div class="flex items-center gap-2"><input type="checkbox" class="lang-check" value="english"> <span class="text-sm">English</span></div>
+                <div class="flex items-center gap-2"><input type="checkbox" class="lang-check" value="arabic"> <span class="text-sm">Arabic</span></div>
             </div>
             
-            <button id="runBtn" class="w-full mt-4 bg-emerald-600 p-3 rounded font-bold text-xs uppercase hover:bg-emerald-500 transition-colors">Get Data</button>
+            <button id="runBtn" class="w-full mt-auto bg-emerald-600 p-3 rounded font-bold text-xs uppercase hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/20">Fire Pipeline</button>
         </div>
 
-        <div class="col-span-3 bg-slate-950/50 p-6 rounded-2xl border border-slate-800 flex flex-col h-[600px]">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-sm">Scrapped Intelligence</h3>
-                <div class="flex items-center gap-2">
-                    <label class="text-[10px] uppercase text-slate-500 font-mono">Language:</label>
-                    <select id="langSelector" class="bg-slate-900 border border-slate-700 p-2 text-xs rounded text-white outline-none focus:border-emerald-500">
-                        <option value="oromifa">Oromifa</option>
-                        <option value="amharic">Amharic</option>
-                        <option value="english">English</option>
-                        <option value="arabic">Arabic</option>
-                    </select>
-                </div>
-            </div>
-            <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded-lg p-4 border border-slate-900 font-mono text-xs text-slate-300">
-                <p class="text-slate-600">Awaiting data stream...</p>
+        <div class="col-span-3 bg-slate-950/50 p-6 rounded-2xl border border-slate-800 flex flex-col h-[650px] shadow-2xl">
+            <h3 class="font-bold text-sm mb-4 text-slate-300">Scrapped Intelligence Matrix</h3>
+            <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded-lg p-6 border border-slate-900 font-mono text-xs text-slate-400 shadow-inner">
+                <p class="text-slate-600 italic">Configure operational parameters on the left and initiate the sequence...</p>
             </div>
         </div>
     </main>
 
-    <script type="module">
-        import { DESK_CONFIGS } from './deskConfigs.js';
+    <script>
+        // Toggle checkboxes
+        function toggleAll(selector, isChecked) {
+            document.querySelectorAll(selector).forEach(c => c.checked = isChecked);
+        }
 
-        // Update list based on category
-        window.updateGameList = (mode) => {
-            const container = document.getElementById("gameSelectionContainer");
-            if (!mode) return container.innerHTML = '<p class="text-slate-500 italic text-xs">Select a category...</p>';
-            
-            const config = DESK_CONFIGS["sports & analytics"].leagues[mode];
-            let html = `<div class="mb-2 border-b border-slate-800 pb-2"><input type="checkbox" id="selectAll" onclick="document.querySelectorAll('.game-check').forEach(c=>c.checked=this.checked)"> <label class="ml-2 text-xs cursor-pointer">Select All</label></div>`;
-            
-            config.items.forEach(item => {
-                html += `<div class="flex items-center gap-2"><input type="checkbox" class="game-check" value="${item}"> <span class="text-sm cursor-pointer">${item}</span></div>`;
-            });
-            container.innerHTML = html;
-        };
-
-        // Event Listeners
-        document.getElementById("leagueSelector").onchange = (e) => updateGameList(e.target.value);
-        
         document.getElementById('runBtn').onclick = () => {
-            const selected = Array.from(document.querySelectorAll('.game-check:checked')).map(c => c.value);
-            const language = document.getElementById('langSelector').value;
+            const cats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
+            const langs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
             const output = document.getElementById('outputContainer');
             
-            output.innerHTML = `<div class="text-emerald-500 animate-pulse">Fetching intelligence for: ${selected.join(', ')}...</div>`;
+            if (cats.length === 0 || langs.length === 0) {
+                alert("Critical Error: Select at least one category and one language.");
+                return;
+            }
+
+            output.innerHTML = `<div class="text-emerald-500 animate-pulse font-mono tracking-widest uppercase text-[10px]">Initializing stream...</div>`;
             
-            // Logic to send 'selected' array and 'language' string to your API
             setTimeout(() => {
-                output.innerHTML = `<pre class="text-emerald-400">// Data retrieved in ${language.toUpperCase()}\n\n// Selected items: ${JSON.stringify(selected, null, 2)}\n\n[Content will stream here...]</pre>`;
-            }, 1000);
+                output.innerHTML = `<pre class="text-emerald-400">// STREAM ACTIVE\n// Categories: ${cats.join(', ')}\n// Languages: ${langs.join(', ')}\n\n[Data stream initialized and flowing...]</pre>`;
+            }, 800);
         };
     </script>
 </body>
