@@ -210,6 +210,91 @@
             animateGlobe();
         }
 
+        function buildBackgroundShape(shapeType) {
+    if (activeGeometryType === shapeType) return;
+    activeGeometryType = shapeType;
+
+    // Clean reset of existing elements to clear out loose particles
+    while(globeGroup.children.length > 0){ globeGroup.remove(globeGroup.children[0]); }
+    while(lineGroup.children.length > 0){ lineGroup.remove(lineGroup.children[0]); }
+    globeGroup.add(lineGroup);
+
+    // Keep the canvas style background clean
+    const container = document.getElementById('canvas-container');
+    container.style.backgroundImage = "none";
+
+    const radius = 60; // Size of your soccer ball sphere
+
+    if (shapeType === "sports & analytics") {
+        // ⚽ SOCCER BALL SPHERE GEOMETRY MATRIX
+        const particleCount = 3000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            // Distribute particles evenly over a perfect spherical surface shell
+            const phi = Math.acos(-1 + (2 * i) / particleCount);
+            const theta = Math.sqrt(particleCount * Math.PI) * phi;
+
+            positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+            positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+            positions[i * 3 + 2] = radius * Math.cos(phi);
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        
+        // Crisp, glowing cyan-blue data points for the spherical mesh
+        const pointMaterial = new THREE.PointsMaterial({ 
+            color: 0x00d2ff, 
+            size: 1.4, 
+            transparent: true, 
+            opacity: 0.85 
+        });
+        pointCloud = new THREE.Points(geometry, pointMaterial);
+        globeGroup.add(pointCloud);
+
+        // 🕸️ SOCCER SEAM CONTOURS: Intersecting rings to simulate ball panel segments
+        const ringMat = new THREE.MeshBasicMaterial({ 
+            color: 0x0066cc, 
+            side: THREE.DoubleSide, 
+            transparent: true, 
+            opacity: 0.25,
+            wireframe: true
+        });
+
+        // Generate 5 distinct angled cross-sections mimicking ball coordinates
+        for (let r = 0; r < 5; r++) {
+            const ringGeo = new THREE.RingGeometry(radius - 0.5, radius + 0.5, 32);
+            const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+            ringMesh.rotation.x = (r * Math.PI) / 5;
+            ringMesh.rotation.y = (r * Math.PI) / 3;
+            lineGroup.add(ringMesh);
+        }
+
+        // Stadium wireframe base grid at the bottom
+        const pitchGeo = new THREE.PlaneGeometry(240, 160, 12, 8);
+        const pitchMat = new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: true, transparent: true, opacity: 0.12 });
+        const pitchMesh = new THREE.Mesh(pitchGeo, pitchMat);
+        pitchMesh.position.y = -65;
+        pitchMesh.rotation.x = -Math.PI / 2;
+        lineGroup.add(pitchMesh);
+
+    } else {
+        // Default scattered fallback network for login/other views
+        const particleCount = 2000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount * 3; i++) {
+            positions[i] = (Math.random() - 0.5) * 150;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const pointMaterial = new THREE.PointsMaterial({ color: 0x38bdf8, size: 1.2, transparent: true, opacity: 0.7 });
+        pointCloud = new THREE.Points(geometry, pointMaterial);
+        globeGroup.add(pointCloud);
+    }
+}
 
         function animateGlobe() { 
             requestAnimationFrame(animateGlobe); 
