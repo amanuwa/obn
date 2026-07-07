@@ -6,13 +6,13 @@
     <title>Command Center | Analytics Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body { background-color: #02071a; margin: 0; color: #f1f5f9; }
+        body { background-color: #02071a; margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; }
         ::-webkit-scrollbar { width: 12px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #059669; border: 2px solid #0f172a; border-radius: 6px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans">
+<body class="font-sans">
 
     <header class="bg-slate-950/60 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -21,10 +21,9 @@
         </div>
     </header>
 
-    <main class="max-w-[95%] w-full mx-auto grid grid-cols-4 gap-6 p-8 flex-1">
+    <main class="flex-1 grid grid-cols-4 gap-0 p-4 h-full">
         
-        <!-- LEFT: CATEGORIES -->
-        <div class="col-span-1 bg-slate-950/50 p-6 rounded-2xl border border-slate-800 h-[650px] flex flex-col shadow-2xl">
+        <div class="col-span-1 bg-slate-950/50 p-6 border-r border-slate-800 flex flex-col shadow-2xl">
             <h3 class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4">Select Categories</h3>
             <div id="categoryContainer" class="space-y-3 mb-8">
                 <label class="flex items-center gap-2 cursor-pointer hover:text-emerald-400">
@@ -39,12 +38,10 @@
             <button id="runBtn" class="w-full mt-auto bg-emerald-600 p-4 rounded-xl font-black text-xs uppercase hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/40">Fire Pipeline</button>
         </div>
 
-        <!-- RIGHT: MATRIX -->
-        <div class="col-span-3 bg-slate-950/50 p-6 rounded-2xl border border-slate-800 flex flex-col h-[650px] shadow-2xl">
+        <div class="col-span-3 bg-slate-950/50 p-6 flex flex-col shadow-2xl">
             <div class="mb-6">
                 <h3 class="font-bold text-sm text-slate-300 mb-4">Scrapped Intelligence Matrix</h3>
                 
-                <!-- FAST HOT NEWS -->
                 <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 w-full mb-4">
                     <h3 class="text-[9px] font-bold text-rose-500 uppercase mb-2">Fast Hot News</h3>
                     <div class="flex gap-2">
@@ -53,61 +50,35 @@
                     </div>
                 </div>
 
-                <!-- LANGUAGE SELECTION: Consistent Thick Buttons -->
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 w-full">
+                <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 w-full flex justify-between items-center">
                     <div class="flex gap-2 flex-wrap">
-                        <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-900/30 hover:bg-emerald-600 border border-emerald-500/50 text-emerald-400 hover:text-white px-4 py-2 rounded font-black text-[10px] uppercase transition-all">
-                            Select All
-                        </button>
-                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2">
-                            <input type="checkbox" class="lang-check" value="oromifa"> <span class="text-xs font-bold uppercase">Oromifa</span>
-                        </label>
-                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2">
-                            <input type="checkbox" class="lang-check" value="amharic"> <span class="text-xs font-bold uppercase">Amharic</span>
-                        </label>
-                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2">
-                            <input type="checkbox" class="lang-check" value="english"> <span class="text-xs font-bold uppercase">English</span>
-                        </label>
-                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2">
-                            <input type="checkbox" class="lang-check" value="arabic"> <span class="text-xs font-bold uppercase">Arabic</span>
-                        </label>
+                        <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-900/30 hover:bg-emerald-600 border border-emerald-500/50 text-emerald-400 hover:text-white px-4 py-2 rounded font-black text-[10px] uppercase transition-all">Select All</button>
+                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2"><input type="checkbox" class="lang-check" value="oromifa"> <span class="text-xs font-bold uppercase">Oromifa</span></label>
+                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2"><input type="checkbox" class="lang-check" value="amharic"> <span class="text-xs font-bold uppercase">Amharic</span></label>
+                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2"><input type="checkbox" class="lang-check" value="english"> <span class="text-xs font-bold uppercase">English</span></label>
+                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2"><input type="checkbox" class="lang-check" value="arabic"> <span class="text-xs font-bold uppercase">Arabic</span></label>
                     </div>
+
+                    <button onclick="downloadData()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-black text-[10px] uppercase shadow-lg shadow-blue-900/40 transition-all">Download</button>
                 </div>
             </div>
 
-            <!-- OUTPUT -->
             <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded-lg p-6 border border-slate-900 font-mono text-xs text-slate-400 shadow-inner">
-                <p class="text-slate-600 italic">Configure categories on left, search news or select languages above, and initiate sequence...</p>
+                <p class="text-slate-600 italic">Matrix ready...</p>
             </div>
         </div>
     </main>
 
     <script>
-        function toggleAll(selector, isChecked) {
-            document.querySelectorAll(selector).forEach(c => c.checked = isChecked);
+        function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
+        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500">// Fetching news...</div>`; }
+        function downloadData() {
+            const data = document.getElementById('outputContainer').innerText;
+            const blob = new Blob([data], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'data.txt'; a.click();
         }
-
-        function getHotNews() {
-            const keyword = document.getElementById('hotNewsInput').value;
-            if (!keyword) return alert("Please enter a keyword.");
-            document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500 animate-pulse font-mono">// Fetching breaking news for: ${keyword}...</div>`;
-        }
-
-        document.getElementById('runBtn').onclick = () => {
-            const cats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
-            const langs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
-            const output = document.getElementById('outputContainer');
-            
-            if (cats.length === 0 || langs.length === 0) {
-                alert("Please select at least one Category and one Language.");
-                return;
-            }
-
-            output.innerHTML = `<div class="text-emerald-500 animate-pulse font-mono tracking-widest uppercase text-[10px]">Initializing stream...</div>`;
-            setTimeout(() => {
-                output.innerHTML = `<pre class="text-emerald-400">// STREAM ACTIVE\n// Categories: ${cats.join(', ')}\n// Languages: ${langs.join(', ')}\n\n[Data stream initialized...]</pre>`;
-            }, 800);
-        };
     </script>
 </body>
 </html>
