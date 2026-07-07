@@ -7,9 +7,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         body { background-color: #02071a; margin: 0; color: #f1f5f9; }
-        ::-webkit-scrollbar { width: 8px; }
+        /* Thick Scrollbar */
+        ::-webkit-scrollbar { width: 12px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #059669; border: 2px solid #0f172a; border-radius: 6px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans">
@@ -27,7 +28,7 @@
             <h3 class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4">Select Categories</h3>
             <div id="categoryContainer" class="space-y-3 mb-8">
                 <label class="flex items-center gap-2 cursor-pointer hover:text-emerald-400">
-                    <input type="checkbox" id="selectAllCats" onclick="toggleAll('.cat-check', this.checked)" class="accent-emerald-600"> 
+                    <input type="checkbox" id="selectAllCats" onclick="toggleAll('.cat-check', this.checked)" class="accent-emerald-600 w-4 h-4"> 
                     <span class="text-sm font-bold">Select All Categories</span>
                 </label>
                 <div class="flex items-center gap-2"><input type="checkbox" class="cat-check" value="epl"> <span class="text-sm">Ethiopian Premier League</span></div>
@@ -35,21 +36,29 @@
                 <div class="flex items-center gap-2"><input type="checkbox" class="cat-check" value="athletics"> <span class="text-sm">Athletics</span></div>
                 <div class="flex items-center gap-2"><input type="checkbox" class="cat-check" value="others"> <span class="text-sm">Others</span></div>
             </div>
-            <button id="runBtn" class="w-full mt-auto bg-emerald-600 p-3 rounded font-bold text-xs uppercase hover:bg-emerald-500 transition-all">Fire Pipeline</button>
+            <button id="runBtn" class="w-full mt-auto bg-emerald-600 p-4 rounded-xl font-black text-xs uppercase hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/40">Fire Pipeline</button>
         </div>
 
         <div class="col-span-3 bg-slate-950/50 p-6 rounded-2xl border border-slate-800 flex flex-col h-[650px] shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-start mb-4">
                 <h3 class="font-bold text-sm text-slate-300">Scrapped Intelligence Matrix</h3>
                 
-                <div class="relative">
-                    <select id="langSelector" multiple class="bg-slate-900 border border-slate-700 p-2 text-xs rounded text-white cursor-pointer hover:border-emerald-500 min-w-[120px]">
-                        <option value="oromifa">Oromifa</option>
-                        <option value="amharic">Amharic</option>
-                        <option value="english">English</option>
-                        <option value="arabic">Arabic</option>
-                    </select>
-                    <p class="text-[8px] text-slate-500 mt-1 uppercase">Hold Ctrl/Cmd to select multiple</p>
+                <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 min-w-[180px]">
+                    <button onclick="toggleAll('.lang-check', true)" class="w-full mb-2 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold uppercase p-2 rounded border border-emerald-500/50 text-emerald-400">Select All Languages</button>
+                    <div id="langList" class="space-y-1">
+                        <label class="flex items-center gap-3 p-2 hover:bg-slate-800 rounded cursor-pointer border-l-2 border-transparent hover:border-emerald-500">
+                            <input type="checkbox" class="lang-check" value="oromifa"> <span class="text-xs font-medium">Oromifa</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-2 hover:bg-slate-800 rounded cursor-pointer border-l-2 border-transparent hover:border-emerald-500">
+                            <input type="checkbox" class="lang-check" value="amharic"> <span class="text-xs font-medium">Amharic</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-2 hover:bg-slate-800 rounded cursor-pointer border-l-2 border-transparent hover:border-emerald-500">
+                            <input type="checkbox" class="lang-check" value="english"> <span class="text-xs font-medium">English</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-2 hover:bg-slate-800 rounded cursor-pointer border-l-2 border-transparent hover:border-emerald-500">
+                            <input type="checkbox" class="lang-check" value="arabic"> <span class="text-xs font-medium">Arabic</span>
+                        </label>
+                    </div>
                 </div>
             </div>
             <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded-lg p-6 border border-slate-900 font-mono text-xs text-slate-400">
@@ -65,10 +74,10 @@
 
         document.getElementById('runBtn').onclick = () => {
             const cats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
-            const selectedLangs = Array.from(document.getElementById('langSelector').selectedOptions).map(o => o.value);
+            const langs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
             const output = document.getElementById('outputContainer');
             
-            if (cats.length === 0 || selectedLangs.length === 0) {
+            if (cats.length === 0 || langs.length === 0) {
                 alert("Please select at least one Category and one Language.");
                 return;
             }
@@ -76,7 +85,7 @@
             output.innerHTML = `<div class="text-emerald-500 animate-pulse font-mono tracking-widest uppercase text-[10px]">Initializing stream...</div>`;
             
             setTimeout(() => {
-                output.innerHTML = `<pre class="text-emerald-400">// STREAM ACTIVE\n// Categories: ${cats.join(', ')}\n// Languages: ${selectedLangs.join(', ')}\n\n[Data stream initialized...]</pre>`;
+                output.innerHTML = `<pre class="text-emerald-400">// STREAM ACTIVE\n// Categories: ${cats.join(', ')}\n// Languages: ${langs.join(', ')}\n\n[Data stream initialized...]</pre>`;
             }, 800);
         };
     </script>
