@@ -19,20 +19,28 @@ export const DESK_CONFIGS = {
         ],
         bgHeader: "bg-indigo-600",
         glowColor: 0x6366f1
+
+
+        
     },
-    "sports & analytics": {
+  "sports & analytics": {
         title: "Sports Analytics Terminal",
         engineTitle: "Statistical Extraction Engine",
         terminalTitle: "Live Soccer Analytics Matrix",
         keywordLabel: "Target Team / Player / Metric",
         placeholder: "e.g., Manchester United transfers...",
         defaultKeywords: "Manchester United transfer news",
-        dynamicLabel: "Target League Matrix",
-        dynamicRender: () => `
-            <select id="daySpan" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
-                <option value="Premier League">English Premier League</option>
-                <option value="La Liga">Spanish La Liga</option>
-            </select>`,
+        // We will remove dynamicRender and use our new leagues system instead
+        leagues: {
+            "ethiopian": {
+                name: "Ethiopian Premier League",
+                games: ["St. George vs Bahir Dar", "Fasil Kenema vs Wolkite", "Ethiopian Coffee vs Hawassa"]
+            },
+            "international": {
+                name: "International Soccer",
+                games: ["Real Madrid vs Barcelona", "Man City vs Liverpool", "Bayern vs Dortmund"]
+            }
+        },
         sources: [
             { value: "all", text: "Consolidated Live Stream" },
             { value: "sky_sports", text: "Sky Sports Live Wire" }
