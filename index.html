@@ -223,34 +223,29 @@
         initCyberGlobe();
 
         // --- DYNAMIC UI MORPH MATRIX ---
-        function morphDashboardUI(section) {
-            const key = section ? section.toLowerCase().trim() : "default";
-            const config = DESK_CONFIGS[key] || DESK_CONFIGS["default"];
+   function morphDashboardUI(section) {
+    const key = section ? section.toLowerCase().trim() : "default";
+    const config = DESK_CONFIGS[key] || DESK_CONFIGS["default"];
 
-            document.getElementById("portalTitle").textContent = config.title;
-            document.getElementById("enginePanelTitle").textContent = config.engineTitle;
-            document.getElementById("terminalPanelTitle").textContent = config.terminalTitle;
-            document.getElementById("keywordLabel").textContent = config.keywordLabel;
-            
-            const keywordInput = document.getElementById('keywords');
-            keywordInput.placeholder = config.placeholder;
-            keywordInput.value = config.defaultKeywords;
+    // 1. Existing UI Logic (Text/Title updates)
+    document.getElementById("portalTitle").textContent = config.title;
 
-            document.getElementById("dynamicLabel").textContent = config.dynamicLabel;
-            document.getElementById("dynamicInputContainer").innerHTML = config.dynamicRender();
-
-            const sourceSelect = document.getElementById("newsSource");
-            sourceSelect.innerHTML = "";
-            config.sources.forEach(src => {
-                const opt = document.createElement("option");
-                opt.value = src.value; opt.text = src.text; sourceSelect.appendChild(opt);
-            });
-
-            document.getElementById('portalIcon').className = `w-8 h-8 rounded-lg ${config.bgHeader} flex items-center justify-center font-black text-xs`;
-            document.getElementById('profileDisplay').textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section.toUpperCase()}`;
-
-            if (pointCloud && pointCloud.material) pointCloud.material.color.setHex(config.glowColor);
+    // 2. Dynamic Globe Control
+    if (pointCloud && pointCloud.material) {
+        if (key.includes("sports")) {
+            // "Soccer Mode": Green glow, faster rotation, soccer-like scale
+            pointCloud.material.color.setHex(0x22c55e); // Green
+            globeGroup.rotation.y += 0.05; // Faster spin for soccer feel
+        } else {
+            // "Standard Mode"
+            pointCloud.material.color.setHex(config.glowColor || 0x38bdf8);
+            globeGroup.rotation.y += 0.002; // Default slow drift
         }
+    }
+
+    // 3. Ensure Globe is always visible
+    document.getElementById('canvas-container').style.display = 'block';
+}
 
         // --- SCREEN ROUTING NATIVE CONTROLS ---
         function showScreen(screenId) {
