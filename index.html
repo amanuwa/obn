@@ -210,55 +210,45 @@
             animateGlobe();
         }
 
-        function buildBackgroundShape(shapeType) {
-            if (activeGeometryType === shapeType) return;
-            activeGeometryType = shapeType;
+       function buildBackgroundShape(shapeType) {
+    if (activeGeometryType === shapeType) return;
+    activeGeometryType = shapeType;
 
-            // Clean reset to protect your environment
-            while(globeGroup.children.length > 0){ globeGroup.remove(globeGroup.children[0]); }
-            while(lineGroup.children.length > 0){ lineGroup.remove(lineGroup.children[0]); }
-            globeGroup.add(lineGroup);
+    // Clean reset to protect your environment
+    while(globeGroup.children.length > 0){ globeGroup.remove(globeGroup.children[0]); }
+    while(lineGroup.children.length > 0){ lineGroup.remove(lineGroup.children[0]); }
+    globeGroup.add(lineGroup);
 
-            const radius = 65;
+    const radius = 65;
 
-            // Handle background styling for the sports view via clean CSS
-            const container = document.getElementById('canvas-container');
-            if (shapeType === "sports & analytics") {
-                // Instantly injects your cyber portrait cleanly behind the dashboard panels without using heavy, broken shaders
-                container.style.backgroundImage = "url('Gemini_Generated_Image_u6wjgou6wjgou6wj.jpg')";
-                container.style.backgroundPosition = "right center";
-                container.style.backgroundRepeat = "no-repeat";
-                container.style.backgroundSize = "contain";
-                container.style.opacity = "0.25"; // Blends smoothly into the dark dashboard matrix
-            } else {
-                container.style.backgroundImage = "none";
-            }
+    // Handle background styling - Completely cleared out for a clean interface
+    const container = document.getElementById('canvas-container');
+    container.style.backgroundImage = "none";
 
-            // RESTORED: Your original, flawless global digital matrix network
-            const particleCount = 4000;
-            const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
+    // RESTORED: Your original, flawless global digital matrix network
+    const particleCount = 4000;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
 
-            for (let i = 0; i < particleCount * 3; i++) {
-                positions[i] = (Math.random() - 0.5) * 150;
-            }
+    for (let i = 0; i < particleCount * 3; i++) {
+        positions[i] = (Math.random() - 0.5) * 150;
+    }
 
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            const pointMaterial = new THREE.PointsMaterial({ color: 0x38bdf8, size: 1.2, transparent: true, opacity: 0.8 });
-            pointCloud = new THREE.Points(geometry, pointMaterial);
-            globeGroup.add(pointCloud);
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const pointMaterial = new THREE.PointsMaterial({ color: 0x38bdf8, size: 1.2, transparent: true, opacity: 0.8 });
+    pointCloud = new THREE.Points(geometry, pointMaterial);
+    globeGroup.add(pointCloud);
 
-            // Restored original stadium matrix ground grid overlay
-            if (shapeType === "sports & analytics") {
-                const pitchGeo = new THREE.PlaneGeometry(240, 160, 12, 8);
-                const pitchMat = new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: true, transparent: true, opacity: 0.15 });
-                const pitchMesh = new THREE.Mesh(pitchGeo, pitchMat);
-                pitchMesh.position.y = -65;
-                pitchMesh.rotation.x = -Math.PI / 2;
-                lineGroup.add(pitchMesh);
-            }
-        }
-
+    // Restored original stadium matrix ground grid overlay
+    if (shapeType === "sports & analytics") {
+        const pitchGeo = new THREE.PlaneGeometry(240, 160, 12, 8);
+        const pitchMat = new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: true, transparent: true, opacity: 0.15 });
+        const pitchMesh = new THREE.Mesh(pitchGeo, pitchMat);
+        pitchMesh.position.y = -65;
+        pitchMesh.rotation.x = -Math.PI / 2;
+        lineGroup.add(pitchMesh);
+    }
+}
         function animateGlobe() { 
             requestAnimationFrame(animateGlobe); 
             globeGroup.rotation.y += 0.002;
