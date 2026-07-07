@@ -25,10 +25,9 @@
     <main class="max-w-[95%] w-full mx-auto grid grid-cols-4 gap-6 p-8 flex-1">
         
         <div class="col-span-1 bg-slate-950/50 p-6 rounded-2xl border border-slate-800 h-[650px] flex flex-col shadow-2xl">
-            
             <h3 class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4">Select Categories</h3>
-            <div class="space-y-3 mb-8">
-                <label class="flex items-center gap-2 cursor-pointer hover:text-emerald-400 transition-colors">
+            <div id="categoryContainer" class="space-y-3 mb-8">
+                <label class="flex items-center gap-2 cursor-pointer hover:text-emerald-400">
                     <input type="checkbox" id="selectAllCats" onclick="toggleAll('.cat-check', this.checked)" class="accent-emerald-600"> 
                     <span class="text-sm font-bold">Select All Categories</span>
                 </label>
@@ -37,50 +36,44 @@
                 <div class="flex items-center gap-2"><input type="checkbox" class="cat-check" value="athletics"> <span class="text-sm">Athletics</span></div>
                 <div class="flex items-center gap-2"><input type="checkbox" class="cat-check" value="others"> <span class="text-sm">Others</span></div>
             </div>
-
-            <h3 class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4">Select Languages</h3>
-            <div class="space-y-3 mb-8">
-                <label class="flex items-center gap-2 cursor-pointer hover:text-emerald-400 transition-colors">
-                    <input type="checkbox" id="selectAllLangs" onclick="toggleAll('.lang-check', this.checked)" class="accent-emerald-600"> 
-                    <span class="text-sm font-bold">Select All Languages</span>
-                </label>
-                <div class="flex items-center gap-2"><input type="checkbox" class="lang-check" value="oromifa"> <span class="text-sm">Oromifa</span></div>
-                <div class="flex items-center gap-2"><input type="checkbox" class="lang-check" value="amharic"> <span class="text-sm">Amharic</span></div>
-                <div class="flex items-center gap-2"><input type="checkbox" class="lang-check" value="english"> <span class="text-sm">English</span></div>
-                <div class="flex items-center gap-2"><input type="checkbox" class="lang-check" value="arabic"> <span class="text-sm">Arabic</span></div>
-            </div>
-            
-            <button id="runBtn" class="w-full mt-auto bg-emerald-600 p-3 rounded font-bold text-xs uppercase hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/20">Fire Pipeline</button>
+            <button id="runBtn" class="w-full mt-auto bg-emerald-600 p-3 rounded font-bold text-xs uppercase hover:bg-emerald-500 transition-all">Fire Pipeline</button>
         </div>
 
         <div class="col-span-3 bg-slate-950/50 p-6 rounded-2xl border border-slate-800 flex flex-col h-[650px] shadow-2xl">
-            <h3 class="font-bold text-sm mb-4 text-slate-300">Scrapped Intelligence Matrix</h3>
-            <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded-lg p-6 border border-slate-900 font-mono text-xs text-slate-400 shadow-inner">
-                <p class="text-slate-600 italic">Configure operational parameters on the left and initiate the sequence...</p>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-sm text-slate-300">Scrapped Intelligence Matrix</h3>
+                <select id="langSelector" class="bg-slate-900 border border-slate-700 p-2 text-xs rounded text-white outline-none focus:border-emerald-500">
+                    <option value="oromifa">Oromifa</option>
+                    <option value="amharic">Amharic</option>
+                    <option value="english">English</option>
+                    <option value="arabic">Arabic</option>
+                </select>
+            </div>
+            <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded-lg p-6 border border-slate-900 font-mono text-xs text-slate-400">
+                <p class="text-slate-600 italic">Configure categories on the left, choose language above, and initiate sequence...</p>
             </div>
         </div>
     </main>
 
     <script>
-        // Toggle checkboxes
         function toggleAll(selector, isChecked) {
             document.querySelectorAll(selector).forEach(c => c.checked = isChecked);
         }
 
         document.getElementById('runBtn').onclick = () => {
             const cats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
-            const langs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+            const lang = document.getElementById('langSelector').value;
             const output = document.getElementById('outputContainer');
             
-            if (cats.length === 0 || langs.length === 0) {
-                alert("Critical Error: Select at least one category and one language.");
+            if (cats.length === 0) {
+                alert("Please select at least one category.");
                 return;
             }
 
             output.innerHTML = `<div class="text-emerald-500 animate-pulse font-mono tracking-widest uppercase text-[10px]">Initializing stream...</div>`;
             
             setTimeout(() => {
-                output.innerHTML = `<pre class="text-emerald-400">// STREAM ACTIVE\n// Categories: ${cats.join(', ')}\n// Languages: ${langs.join(', ')}\n\n[Data stream initialized and flowing...]</pre>`;
+                output.innerHTML = `<pre class="text-emerald-400">// STREAM ACTIVE\n// Categories: ${cats.join(', ')}\n// Language: ${lang.toUpperCase()}\n\n[Data stream initialized...]</pre>`;
             }, 800);
         };
     </script>
