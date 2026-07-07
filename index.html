@@ -179,6 +179,7 @@
         </main>
     </div>
 
+    <!-- CORE EXECUTION ENGINE LINKED MODULE -->
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_CONTENT_URL, DEV_MODE_OVERRIDE } from './config.js';
         import { DESK_CONFIGS } from './deskConfigs.js';
@@ -315,9 +316,8 @@
                         section: currentSessionOperator.section
                     })
                 });
-                // Updated to handle newline-separated text strings for readability
-                const result = await response.text();
-                document.getElementById('jsonDisplay').textContent = result;
+                const result = await response.json();
+                document.getElementById('jsonDisplay').textContent = JSON.stringify(result, null, 2);
                 document.getElementById('outputState').classList.remove('hidden');
             } catch (e) {
                 alert('Pipeline Failure: ' + e.message);
