@@ -3,280 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent Access Terminal</title>
+    <title>Finance Intel | Business Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body {
-            background-color: #02040a;
-            margin: 0;
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        /* REVOLVING CYBER GLOBE BACKGROUND */
-        .rotating-globe {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 140vmax;
-            height: 140vmax;
-            background-image: url('Screenshot 2026-07-05 050457.jpg');
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.45;
-            animation: spin 120s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: translate(-50%, -50%) rotate(0deg); }
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        /* UI Contrast Veil */
-        .overlay-veil {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, rgba(2, 4, 10, 0.1) 0%, rgba(2, 4, 10, 0.9) 100%);
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .ui-container {
-            position: relative;
-            z-index: 2;
-        }
-
-        .glow-border:focus-within {
-            border-color: #38bdf8;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
-        }
-        
-        input:focus, select:focus {
-            outline: none !important;
-            box-shadow: none !important;
-        }
+        body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #02071a; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 4px; }
     </style>
 </head>
-<body class="text-slate-100 font-sans flex items-center justify-center p-6">
+<body class="font-sans">
 
-    <div class="rotating-globe"></div>
-    <div class="overlay-veil"></div>
+    <header class="bg-slate-950/60 border-b border-slate-800 px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-black text-xs">FI</div>
+            <span class="font-bold text-slate-100 tracking-tight">Financial Intelligence Terminal</span>
+        </div>
+        <a href="index.html" class="text-xs text-slate-400 hover:text-white">← Back to Login</a>
+    </header>
 
-    <div class="ui-container w-full max-w-md">
-
-        <div id="signUpScreen" class="w-full bg-slate-950/85 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800 relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
-
-            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
-                Initialize Agent Access
-            </h2>
-            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
-
-            <div class="space-y-4 text-left">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
-                        <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assigned Sector</label>
-                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">🗂️</span>
-                        <select id="regSection" required class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer text-slate-300">
-                            <option value="" disabled selected class="bg-slate-950 text-slate-500">Select Sector...</option>
-                            <option value="world politics and governance" class="bg-slate-950 text-white">World Politics and Governance</option>
-                            <option value="sports & analytics" class="bg-slate-950 text-white">Sports & Analytics</option>
-                            <option value="business and finance" class="bg-slate-950 text-white">Business and Finance</option>
-                            <option value="general hot news" class="bg-slate-950 text-white">General Hot News</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
-                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
-                        <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
-                    </div>
-                </div>
-
-                <button id="signUpBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
-                    Sign Up
-                </button>
+    <main class="flex-1 grid grid-cols-4 gap-0 p-4 h-full">
+        <div class="col-span-1 bg-slate-950/50 p-6 border-r border-slate-800 flex flex-col">
+            <h3 class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-4">Financial Sectors</h3>
+            <div id="categoryContainer" class="space-y-2 mb-6">
+                <button onclick="toggleAll('.cat-check', true)" class="w-full bg-blue-900/30 hover:bg-blue-600 border border-blue-500/50 text-blue-400 hover:text-white px-4 py-3 rounded font-black text-[10px] uppercase transition-all mb-2">Select All Sectors</button>
                 
-                <p id="successMessage" class="text-sm text-emerald-400 font-mono text-center mt-2 hidden">✓ Profile compiled! Routing to Portal Terminal...</p>
-
-                <div class="text-center mt-4">
-                    <p class="text-xs text-slate-400">Already registered? <button id="toSignInBtn" class="text-sky-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Secure Log In</button></p>
-                </div>
+                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
+                    <input type="checkbox" class="cat-check" value="market-trends"> <span class="text-xs font-bold uppercase ml-2">Market Trends</span>
+                </label>
+                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
+                    <input type="checkbox" class="cat-check" value="forex-crypto"> <span class="text-xs font-bold uppercase ml-2">Forex & Crypto</span>
+                </label>
+                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
+                    <input type="checkbox" class="cat-check" value="corporate-earnings"> <span class="text-xs font-bold uppercase ml-2">Corporate Earnings</span>
+                </label>
+                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
+                    <input type="checkbox" class="cat-check" value="macro-economy"> <span class="text-xs font-bold uppercase ml-2">Macro Economy</span>
+                </label>
             </div>
+            
+            <div class="flex-1 bg-slate-900/50 rounded-xl border border-slate-800 p-4 mb-4 overflow-y-auto">
+                <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-3">Active Data Streams</h3>
+                <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-400 italic">// Awaiting stream...</div>
+            </div>
+
+            <button id="runBtn" class="w-full bg-blue-600 p-4 rounded-xl font-black text-xs uppercase hover:bg-blue-500 transition-all">Initialize Pipeline</button>
         </div>
 
-        <div id="signInScreen" class="hidden w-full bg-slate-950/85 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800 relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
-
-            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
-                Operator Portal
-            </h2>
-            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
-
-            <div class="space-y-4 text-left">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
-                        <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Access Password</label>
-                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
-                        <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
-                    </div>
-                </div>
-
-                <button id="signInBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
-                    Sign In
-                </button>
-
-                <div class="text-center mt-4">
-                    <button id="toSignUpBtn" class="text-xs text-sky-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Initialize Access Profile</button>
-                </div>
+        <div class="col-span-3 bg-slate-950/50 p-6 flex flex-col h-full">
+            <h3 class="font-bold text-sm text-slate-300 mb-4">Financial Intelligence Matrix</h3>
+            <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded-lg p-6 border border-slate-900 font-mono text-xs text-blue-400">
+                <p class="text-slate-600 italic">// System ready for financial data...</p>
             </div>
         </div>
+    </main>
 
-    </div>
+    <script>
+        function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
+        document.getElementById('runBtn').onclick = () => {
+            const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
+            const sourceList = document.getElementById('activeSourceList');
+            const output = document.getElementById('outputContainer');
 
-    <script type="module">
-        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-        import { DESK_CONFIGS } from './deskConfigs.js';
-
-        // FIXING THE API KEY AUTHENTICATION ERROR: Explicitly enforcing global apiKey headers
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            auth: { persistSession: true },
-            global: {
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                }
-            }
-        });
-
-        function showScreen(screenId) {
-            document.getElementById('signUpScreen').classList.add('hidden');
-            document.getElementById('signInScreen').classList.add('hidden');
-            document.getElementById(screenId).classList.remove('hidden');
-        }
-
-        // Action Initializations
-        document.getElementById('toSignInBtn').addEventListener('click', () => showScreen('signInScreen'));
-        document.getElementById('toSignUpBtn').addEventListener('click', () => showScreen('signUpScreen'));
-        document.getElementById('signUpBtn').addEventListener('click', registerJournalist);
-        document.getElementById('signInBtn').addEventListener('click', loginJournalist);
-
-        async function registerJournalist() {
-            const fullName = document.getElementById('regName').value.trim();
-            const section = document.getElementById('regSection').value;
-            const password = document.getElementById('regPassword').value;
-            const signUpBtn = document.getElementById('signUpBtn');
-            const successMsg = document.getElementById('successMessage');
-
-            if (!fullName || !section || !password) return alert("All profile registration parameters are required.");
-
-            signUpBtn.disabled = true;
-            signUpBtn.innerText = "Processing Profile...";
-
-            try {
-                const { data: existingUsers, error: checkError } = await supabaseClient
-                    .from('journalists')
-                    .select('*')
-                    .eq('Journalist name', fullName);
-
-                if (checkError) throw checkError;
-                if (existingUsers && existingUsers.length > 0) {
-                    alert(`Registration failed: The operator name "${fullName}" is already taken.`);
-                    signUpBtn.disabled = false;
-                    signUpBtn.innerText = "Sign Up";
-                    return; 
-                }
-
-                const { error: insertError } = await supabaseClient
-                    .from('journalists')
-                    .insert([{"Journalist name": fullName, "journalism Section": section, "Password": password}]);
-
-                if (insertError) throw insertError;
-
-                successMsg.classList.remove('hidden');
-                setTimeout(() => {
-                    successMsg.classList.add('hidden');
-                    document.getElementById('loginName').value = fullName;
-                    signUpBtn.disabled = false;
-                    signUpBtn.innerText = "Sign Up";
-                    showScreen('signInScreen');
-                }, 1500);
-
-            } catch (error) {
-                alert("Database Insertion Error: " + error.message);
-                signUpBtn.disabled = false;
-                signUpBtn.innerText = "Sign Up";
-            }
-        }
-
-        async function loginJournalist() {
-            const nameInput = document.getElementById('loginName').value.trim();
-            const passwordInput = document.getElementById('loginPassword').value;
-            const signInBtn = document.getElementById('signInBtn');
-
-            if (!nameInput || !passwordInput) return alert("Please enter both your name and password.");
-
-            signInBtn.disabled = true;
-            signInBtn.innerText = "Authenticating...";
-
-            try {
-                const { data: records, error } = await supabaseClient
-                    .from('journalists')
-                    .select('*')
-                    .eq('Journalist name', nameInput);
-
-                if (error) throw error;
-                if (!records || records.length === 0 || records[0].Password !== passwordInput) {
-                    alert("Authentication Error: Invalid profile credentials.");
-                    signInBtn.disabled = false;
-                    signInBtn.innerText = "Sign In";
-                    return;
-                }
-
-                const assignedSection = records[0]["journalism Section"];
-                const configMatch = DESK_CONFIGS[assignedSection];
-
-                if (configMatch) {
-                    alert(`Access Authenticated! Welcome Operator ${records[0]["Journalist name"]}.\nRouting to: ${configMatch.title}`);
-                } else {
-                    alert(`Access Authenticated! Welcome Operator ${records[0]["Journalist name"]}.`);
-                }
-
-                signInBtn.disabled = false;
-                signInBtn.innerText = "Sign In";
-                document.getElementById('loginPassword').value = ""; 
-
-            } catch (error) {
-                alert("Login Error: " + error.message);
-                signInBtn.disabled = false;
-                signInBtn.innerText = "Sign In";
-            }
-        }
+            if (mainCats.length === 0) return alert("Select at least one sector.");
+            
+            sourceList.innerHTML = mainCats.map(item => `<div class="p-2 bg-slate-800 rounded border-l-2 border-blue-500 text-blue-300">» ${item.toUpperCase()}</div>`).join('');
+            output.innerHTML = `<div class="text-blue-400 font-mono">// PIPELINE ACTIVE<br>// SECTORS: ${mainCats.join(', ')}</div>`;
+        };
     </script>
 </body>
 </html>
