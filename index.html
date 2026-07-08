@@ -160,9 +160,11 @@
     </div>
 
     <script type="module">
+        // Importing the variables cleanly from config.js
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
         import { DESK_CONFIGS } from './deskConfigs.js';
 
+        // EXPLICIT INITIALIZATION: Passing imported config keys directly to the library client instance
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         function showScreen(screenId) {
