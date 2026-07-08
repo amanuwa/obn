@@ -13,4 +13,4 @@ export const N8N_CONTENT_URL = 'https://unreached-oboe-evade.ngrok-free.dev/webh
 // ========================================================
 // Set this to "DISABLED" for normal login flow.
 // Options: "DISABLED", "POLITICS", "SPORTS", "FINANCE", "HOT_NEWS"
-export const DEV_MODE_OVERRIDE = "SPORTS";
+export const DEV_MODE_OVERRIDE = "DISABLED";
