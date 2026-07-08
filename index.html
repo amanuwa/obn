@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance Intel | Business Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #02071a; }
         ::-webkit-scrollbar { width: 8px; }
@@ -32,15 +33,7 @@
                     <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
                         <input type="checkbox" id="ethToggle" class="cat-check" value="ethiopian"> <span class="text-xs font-bold uppercase ml-2">Ethiopian news</span>
                     </label>
-                    <div id="ethSources" class="hidden mt-2 ml-4 space-y-1 border-l border-slate-700 pl-3">
-                        <label class="block text-[10px]"><input type="checkbox" class="eth-src" value="capital"> Capital News Paper</label>
-                        <label class="block text-[10px]"><input type="checkbox" class="eth-src" value="reporter"> The Reporter</label>
-                        <label class="block text-[10px]"><input type="checkbox" class="eth-src" value="addisfortune"> Addisfortune</label>
-                        <label class="block text-[10px]"><input type="checkbox" class="eth-src" value="nbe"> National Bank</label>
-                        <label class="block text-[10px]"><input type="checkbox" class="eth-src" value="eih"> Ethiopian Investment Holdings</label>
-                        <label class="block text-[10px]"><input type="checkbox" class="eth-src" value="ebc"> EBC Business</label>
-                        <button onclick="toggleAll('.eth-src', true)" class="text-[9px] text-blue-400 font-bold hover:underline">Select All</button>
-                    </div>
+                    <div id="ethSources" class="hidden mt-2 ml-4 space-y-1 border-l border-slate-700 pl-3"></div>
                 </div>
 
                 <!-- International Section -->
@@ -48,14 +41,7 @@
                     <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
                         <input type="checkbox" id="intToggle" class="cat-check" value="international"> <span class="text-xs font-bold uppercase ml-2">International</span>
                     </label>
-                    <div id="intSources" class="hidden mt-2 ml-4 space-y-1 border-l border-slate-700 pl-3">
-                        <label class="block text-[10px]"><input type="checkbox" class="int-src" value="bloomberg"> Bloomberg Finance</label>
-                        <label class="block text-[10px]"><input type="checkbox" class="int-src" value="ft"> Financial Times</label>
-                        <label class="block text-[10px]"><input type="checkbox" class="int-src" value="cgtn"> CGTN Business</label>
-                        <label class="block text-[10px]"><input type="checkbox" class="int-src" value="reuters"> Reuters Business</label>
-                        <label class="block text-[10px]"><input type="checkbox" class="int-src" value="cnbc"> CNBC Finance</label>
-                        <button onclick="toggleAll('.int-src', true)" class="text-[9px] text-blue-400 font-bold hover:underline">Select All</button>
-                    </div>
+                    <div id="intSources" class="hidden mt-2 ml-4 space-y-1 border-l border-slate-700 pl-3"></div>
                 </div>
             </div>
             
@@ -96,30 +82,47 @@
     </main>
 
     <script>
+        // Supabase Initialization
+        const supabase = supabase.createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_ANON_KEY');
+
+        // Dynamic Loading from Database
+        async function loadSourcesFromDB() {
+            const { data: ethData } = await supabase.from('Ethiopian -Business and finance websites').select('website_source, websites');
+            const { data: intData } = await supabase.from('business and finance -websites').select('website_source, websites');
+
+            const buildList = (data, containerId, className) => {
+                const container = document.getElementById(containerId);
+                data.forEach(item => {
+                    const label = document.createElement('label');
+                    label.className = "block text-[10px]";
+                    label.innerHTML = `<input type="checkbox" class="${className}" value="${item.websites}"> ${item.website_source}`;
+                    container.appendChild(label);
+                });
+            };
+
+            if (ethData) buildList(ethData, 'ethSources', 'eth-src');
+            if (intData) buildList(intData, 'intSources', 'int-src');
+        }
+
+        loadSourcesFromDB();
+
+        // UI Functions
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
         
-        // Toggle Source Lists
-        document.getElementById('ethToggle').addEventListener('change', (e) => {
-            document.getElementById('ethSources').classList.toggle('hidden', !e.target.checked);
-        });
-        document.getElementById('intToggle').addEventListener('change', (e) => {
-            document.getElementById('intSources').classList.toggle('hidden', !e.target.checked);
-        });
+        document.getElementById('ethToggle').addEventListener('change', (e) => document.getElementById('ethSources').classList.toggle('hidden', !e.target.checked));
+        document.getElementById('intToggle').addEventListener('change', (e) => document.getElementById('intSources').classList.toggle('hidden', !e.target.checked));
 
         function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-blue-500">// Fetching financial news...</div>`; }
         
         document.getElementById('runBtn').onclick = () => {
-            const ethSources = Array.from(document.querySelectorAll('.eth-src:checked')).map(c => c.parentElement.textContent.trim());
-            const intSources = Array.from(document.querySelectorAll('.int-src:checked')).map(c => c.parentElement.textContent.trim());
-            const allSelected = [...ethSources, ...intSources];
-            
+            const selected = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).filter(c => c.className.includes('-src')).map(c => c.parentElement.textContent.trim());
             const sourceList = document.getElementById('activeSourceList');
             const output = document.getElementById('outputContainer');
 
-            if (allSelected.length === 0) return alert("Select at least one source.");
+            if (selected.length === 0) return alert("Select at least one source.");
             
-            sourceList.innerHTML = allSelected.map(item => `<div class="p-2 bg-slate-800 rounded border-l-2 border-blue-500 text-blue-300">» ${item}</div>`).join('');
-            output.innerHTML = `<div class="text-blue-400 font-mono">// PIPELINE ACTIVE<br>// SOURCES: ${allSelected.join(', ')}</div>`;
+            sourceList.innerHTML = selected.map(item => `<div class="p-2 bg-slate-800 rounded border-l-2 border-blue-500 text-blue-300">» ${item}</div>`).join('');
+            output.innerHTML = `<div class="text-blue-400 font-mono">// PIPELINE ACTIVE<br>// SOURCES: ${selected.join(', ')}</div>`;
         };
     </script>
 </body>
