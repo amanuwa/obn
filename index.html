@@ -3,111 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Command Center | Analytics Terminal</title>
+    <title>Agent Access Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { 
-            margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column;
-            background-color: #02071a;
-            background-image: radial-gradient(at 0% 0%, #064e3b 0px, transparent 50%), radial-gradient(at 100% 100%, #1e1b4b 0px, transparent 50%), linear-gradient(to right, #0f172a 1px, transparent 1px), linear-gradient(to bottom, #0f172a 1px, transparent 1px);
-            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+        body {
+            background-color: #02040a;
+            margin: 0;
+            min-height: 100vh;
         }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
+        .glow-border:focus-within {
+            border-color: #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+        input:focus, select:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
-<body class="font-sans">
+<body class="text-slate-100 font-sans flex items-center justify-center p-6">
 
-    <header class="bg-slate-950/60 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center font-black text-xs">AI</div>
-            <span class="font-bold text-slate-100 tracking-tight">Sports Analytics Terminal</span>
-        </div>
-    </header>
+    <!-- SCREEN 1: SIGN-UP REGISTRATION -->
+    <div id="signUpScreen" class="max-w-md w-full bg-slate-950 p-8 rounded-2xl shadow-2xl border border-slate-800 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
 
-    <main class="flex-1 grid grid-cols-4 gap-0 p-4 h-full overflow-hidden">
-        
-        <div class="col-span-1 bg-slate-950/50 p-6 border-r border-slate-800 flex flex-col h-full shadow-2xl">
-            <h3 class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4">Select Categories</h3>
+        <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
+            Initialize Agent Access
+        </h2>
+        <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
+
+        <div class="space-y-4 text-left">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                    <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assigned Sector</label>
+                <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <span class="text-slate-500 mr-2.5 select-none">🗂️</span>
+                    <select id="regSection" required class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer text-slate-300">
+                        <option value="" disabled selected class="bg-slate-950 text-slate-500">Select Sector...</option>
+                        <option value="World Politics and Governance" class="bg-slate-950 text-white">World Politics and Governance</option>
+                        <option value="Sports & Analytics" class="bg-slate-950 text-white">Sports & Analytics</option>
+                        <option value="Business and Finance" class="bg-slate-950 text-white">Business and Finance</option>
+                        <option value="General Hot News" class="bg-slate-950 text-white">General Hot News</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
+                <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                    <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                </div>
+            </div>
+
+            <button onclick="registerJournalist()" id="signUpBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                Sign Up
+            </button>
             
-            <div id="categoryContainer" class="space-y-2 mb-6">
-                <button onclick="toggleAll('.cat-check', true)" class="w-full bg-emerald-900/30 hover:bg-emerald-600 border border-emerald-500/50 text-emerald-400 hover:text-white px-4 py-3 rounded font-black text-[10px] uppercase transition-all mb-2">
-                    Select All Categories
-                </button>
+            <p id="successMessage" class="text-sm text-emerald-400 font-mono text-center mt-2 hidden">✓ Profile compiled! Routing to Portal Terminal...</p>
 
-                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
-                    <input type="checkbox" class="cat-check" value="epl"> <span class="text-xs font-bold uppercase ml-2">Ethiopian Premier League</span>
-                </label>
-                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
-                    <input type="checkbox" class="cat-check" value="international"> <span class="text-xs font-bold uppercase ml-2">International</span>
-                </label>
-                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
-                    <input type="checkbox" class="cat-check" value="athletics"> <span class="text-xs font-bold uppercase ml-2">Athletics</span>
-                </label>
-                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
-                    <input type="checkbox" class="cat-check" value="others"> <span class="text-xs font-bold uppercase ml-2">Others</span>
-                </label>
-            </div>
-
-            <div class="flex-1 bg-slate-900/50 rounded-xl border border-slate-800 p-4 mb-4 overflow-y-auto">
-                <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-3">Active Sources</h3>
-                <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-400 italic">// Waiting for pipeline...</div>
-            </div>
-
-            <button id="runBtn" class="w-full bg-emerald-600 p-4 rounded-xl font-black text-xs uppercase hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/40">Fire Pipeline</button>
-        </div>
-
-        <div class="col-span-3 bg-slate-950/50 p-6 flex flex-col h-full shadow-2xl">
-            <div class="mb-6">
-                <h3 class="font-bold text-sm text-slate-300 mb-4">Scrapped Intelligence Matrix</h3>
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 w-full mb-4">
-                    <h3 class="text-[9px] font-bold text-rose-500 uppercase mb-2">Fast Hot News</h3>
-                    <div class="flex gap-2">
-                        <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border border-slate-800 rounded p-2 text-[10px] text-white focus:border-rose-500 outline-none">
-                        <button onclick="getHotNews()" class="bg-rose-600 px-4 py-1 rounded font-bold text-[10px] uppercase hover:bg-rose-500">Go</button>
-                    </div>
-                </div>
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 w-full flex justify-between items-center">
-                    <div class="flex gap-2 flex-wrap">
-                        <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-900/30 hover:bg-emerald-600 border border-emerald-500/50 text-emerald-400 hover:text-white px-4 py-2 rounded font-black text-[10px] uppercase transition-all">Select All</button>
-                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2"><input type="checkbox" class="lang-check" value="oromifa"> <span class="text-xs font-bold uppercase">Oromifa</span></label>
-                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2"><input type="checkbox" class="lang-check" value="amharic"> <span class="text-xs font-bold uppercase">Amharic</span></label>
-                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2"><input type="checkbox" class="lang-check" value="english"> <span class="text-xs font-bold uppercase">English</span></label>
-                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2"><input type="checkbox" class="lang-check" value="arabic"> <span class="text-xs font-bold uppercase">Arabic</span></label>
-                    </div>
-                    <button onclick="downloadData()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-black text-[10px] uppercase shadow-lg shadow-blue-900/40 transition-all">Download</button>
-                </div>
-            </div>
-            <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded-lg p-6 border border-slate-900 font-mono text-xs text-slate-400 shadow-inner">
-                <p class="text-slate-600 italic">Matrix ready...</p>
+            <div class="text-center mt-4">
+                <p class="text-xs text-slate-400">Already registered? <a href="#" onclick="showScreen('signInScreen')" class="text-sky-400 hover:underline font-mono">Secure Log In</a></p>
             </div>
         </div>
-    </main>
+    </div>
 
+    <!-- SCREEN 2: SIGN-IN PORTAL -->
+    <div id="signInScreen" class="hidden max-w-md w-full bg-slate-950 p-8 rounded-2xl shadow-2xl border border-slate-800 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
+
+        <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
+            Operator Portal
+        </h2>
+        <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
+
+        <div class="space-y-4 text-left">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                    <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono">Access Password</label>
+                </div>
+                <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                    <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                </div>
+            </div>
+
+            <button onclick="loginJournalist()" id="signInBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                Sign In
+            </button>
+
+            <div class="text-center mt-4">
+                <p class="text-xs text-slate-400">New Agent? <a href="#" onclick="showScreen('signUpScreen')" class="text-sky-400 hover:underline font-mono">Initialize Access Profile</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIC CONFIGURATION -->
     <script>
-        function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
-        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500">// Fetching news...</div>`; }
+        const SUPABASE_URL = 'https://cqkaxhyrnjmqpovxwjom.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4hHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q';
         
-        document.getElementById('runBtn').onclick = () => {
-            const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
-            const sourceList = document.getElementById('activeSourceList');
-            const output = document.getElementById('outputContainer');
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            if (mainCats.length === 0) return alert("Select at least one category.");
+        function showScreen(screenId) {
+            const screens = ['signUpScreen', 'signInScreen'];
+            screens.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
 
-            sourceList.innerHTML = mainCats.map(item => 
-                `<div class="p-2 bg-slate-800 rounded border-l-2 border-emerald-500 text-emerald-300">» ${item.toUpperCase()}</div>`
-            ).join('');
+        async function registerJournalist() {
+            const fullName = document.getElementById('regName').value.trim();
+            const section = document.getElementById('regSection').value;
+            const password = document.getElementById('regPassword').value;
+            const signUpBtn = document.getElementById('signUpBtn');
+            const successMsg = document.getElementById('successMessage');
 
-            output.innerHTML = `<div class="text-emerald-400 font-mono">// PIPELINE ACTIVE<br>// DATA: ${mainCats.join(', ')}</div>`;
-        };
+            if (!fullName || !section || !password) return alert("All profile registration parameters are required.");
 
-        function downloadData() {
-            const data = document.getElementById('outputContainer').innerText;
-            const blob = new Blob([data], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'scrapped-data.txt'; a.click();
+            signUpBtn.disabled = true;
+            signUpBtn.innerText = "Processing Profile...";
+
+            try {
+                const { data: existingUsers, error: checkError } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', fullName);
+
+                if (checkError) throw checkError;
+                if (existingUsers && existingUsers.length > 0) {
+                    alert(`Registration failed: The operator name "${fullName}" is already taken.`);
+                    signUpBtn.disabled = false;
+                    signUpBtn.innerText = "Sign Up";
+                    return; 
+                }
+
+                const { error: insertError } = await supabaseClient
+                    .from('journalists')
+                    .insert([{"Journalist name": fullName, "journalism Section": section, "Password": password}]);
+
+                if (insertError) throw insertError;
+
+                successMsg.classList.remove('hidden');
+                setTimeout(() => {
+                    successMsg.classList.add('hidden');
+                    document.getElementById('loginName').value = fullName;
+                    signUpBtn.disabled = false;
+                    signUpBtn.innerText = "Sign Up";
+                    showScreen('signInScreen');
+                }, 1500);
+
+            } catch (error) {
+                alert("Database Insertion Error: " + error.message);
+                signUpBtn.disabled = false;
+                signUpBtn.innerText = "Sign Up";
+            }
+        }
+
+        async function loginJournalist() {
+            const nameInput = document.getElementById('loginName').value.trim();
+            const passwordInput = document.getElementById('loginPassword').value;
+            const signInBtn = document.getElementById('signInBtn');
+
+            if (!nameInput || !passwordInput) return alert("Please enter both your name and password.");
+
+            signInBtn.disabled = true;
+            signInBtn.innerText = "Authenticating...";
+
+            try {
+                const { data: records, error } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', nameInput);
+
+                if (error) throw error;
+                if (!records || records.length === 0 || records[0].Password !== passwordInput) {
+                    alert("Authentication Error: Invalid profile credentials.");
+                    signInBtn.disabled = false;
+                    signInBtn.innerText = "Sign In";
+                    return;
+                }
+
+                alert(`Access Authenticated! Welcome Operator ${records[0]["Journalist name"]}.`);
+                signInBtn.disabled = false;
+                signInBtn.innerText = "Sign In";
+                document.getElementById('loginPassword').value = ""; 
+
+            } catch (error) {
+                alert("Login Error: " + error.message);
+                signInBtn.disabled = false;
+                signInBtn.innerText = "Sign In";
+            }
         }
     </script>
 </body>
