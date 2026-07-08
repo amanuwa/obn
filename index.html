@@ -78,25 +78,28 @@
     </main>
 
     <script>
-        const supabase = supabase.createClient('https://supabase.com/dashboard/project/cqkaxhyrnjmqpovxwjom/editor/17801?schema=public', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4aHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q');
+        const supabase = supabase.createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_ANON_KEY');
 
         async function loadSourcesFromDB() {
-            // Fetching using exact column names from your screenshots
-            const { data: ethData } = await supabase
+            // Note the double quotes inside the single quotes for columns with spaces
+            const { data: ethData, error: ethErr } = await supabase
                 .from('Ethiopian -Business and finance websites')
                 .select('"Website -source", websites');
                 
-            const { data: intData } = await supabase
+            const { data: intData, error: intErr } = await supabase
                 .from('business and finance -websites')
                 .select('"website Source", websites');
 
-            const buildList = (data, containerId, className, sourceColName) => {
+            if(ethErr) console.error("Ethiopian Load Error:", ethErr);
+            if(intErr) console.error("International Load Error:", intErr);
+
+            const buildList = (data, containerId, className, colName) => {
                 const container = document.getElementById(containerId);
                 if (!data) return;
                 data.forEach(item => {
                     const label = document.createElement('label');
-                    label.className = "block text-[10px]";
-                    label.innerHTML = `<input type="checkbox" class="${className}" value="${item.websites}"> ${item[sourceColName]}`;
+                    label.className = "block text-[10px] py-1";
+                    label.innerHTML = `<input type="checkbox" class="${className}" value="${item.websites}"> ${item[colName]}`;
                     container.appendChild(label);
                 });
             };
@@ -115,14 +118,14 @@
         function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-blue-500">// Fetching financial news...</div>`; }
         
         document.getElementById('runBtn').onclick = () => {
-            const selected = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).filter(c => c.className.includes('-src')).map(c => c.parentElement.textContent.trim());
-            const sourceList = document.getElementById('activeSourceList');
-            const output = document.getElementById('outputContainer');
-
+            const selected = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                .filter(c => c.className.includes('-src'))
+                .map(c => c.parentElement.textContent.trim());
+            
             if (selected.length === 0) return alert("Select at least one source.");
             
-            sourceList.innerHTML = selected.map(item => `<div class="p-2 bg-slate-800 rounded border-l-2 border-blue-500 text-blue-300">» ${item}</div>`).join('');
-            output.innerHTML = `<div class="text-blue-400 font-mono">// PIPELINE ACTIVE<br>// SOURCES: ${selected.join(', ')}</div>`;
+            document.getElementById('activeSourceList').innerHTML = selected.map(item => `<div class="p-2 bg-slate-800 rounded border-l-2 border-blue-500 text-blue-300">» ${item}</div>`).join('');
+            document.getElementById('outputContainer').innerHTML = `<div class="text-blue-400 font-mono">// PIPELINE ACTIVE<br>// SOURCES: ${selected.join(', ')}</div>`;
         };
     </script>
 </body>
