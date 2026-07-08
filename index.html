@@ -7,62 +7,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #02071a; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 4px; }
     </style>
 </head>
-<body class="font-sans">
-
-    <header class="bg-slate-950/60 border-b border-slate-800 px-8 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-black text-xs">FI</div>
-            <span class="font-bold text-slate-100 tracking-tight">Financial Intelligence Terminal</span>
-        </div>
-        <a href="index.html" class="text-xs text-slate-400 hover:text-white">← Back to Login</a>
-    </header>
-
-    <main class="flex-1 grid grid-cols-4 gap-0 p-4 h-full">
-        <div class="col-span-1 bg-slate-950/50 p-6 border-r border-slate-800 flex flex-col">
-            <h3 class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-4">Financial Sectors</h3>
-            
-            <div id="categoryContainer" class="space-y-4 mb-6">
-                <div>
-                    <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer">
-                        <input type="checkbox" id="ethToggle" class="cat-check" value="ethiopian"> 
-                        <span class="text-xs font-bold uppercase ml-2">Ethiopian news</span>
-                    </label>
-                    <div id="ethSources" class="hidden mt-2 ml-4 space-y-1 border-l border-slate-700 pl-3"></div>
-                </div>
-
-                <div>
-                    <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer">
-                        <input type="checkbox" id="intToggle" class="cat-check" value="international"> 
-                        <span class="text-xs font-bold uppercase ml-2">International</span>
-                    </label>
-                    <div id="intSources" class="hidden mt-2 ml-4 space-y-1 border-l border-slate-700 pl-3"></div>
-                </div>
-            </div>
-            
-            <div class="flex-1 bg-slate-900/50 rounded-xl border border-slate-800 p-4 mb-4 overflow-y-auto">
-                <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-3">Active Data Streams</h3>
-                <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-400 italic">// Awaiting stream...</div>
-            </div>
-
-            <button id="runBtn" class="w-full bg-blue-600 p-4 rounded-xl font-black text-xs uppercase hover:bg-blue-500 transition-all">Initialize Pipeline</button>
-        </div>
-
-        <div class="col-span-3 bg-slate-950/50 p-6 flex flex-col h-full">
-            <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded-lg p-6 border border-slate-900 font-mono text-xs text-blue-400">
-                <p class="text-slate-600 italic">// System ready for financial data...</p>
-            </div>
-        </div>
-    </main>
-
+<body>
     <script type="module">
-        // Import libraries and config
+        // 1. Import from ESM (this replaces the need for the <script> tag in head)
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
+        // 2. Initialize using a clean variable name
         const sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         async function loadSourcesFromDB() {
@@ -81,18 +34,20 @@
                 const intContainer = document.getElementById('intSources');
 
                 if (ethData) {
+                    ethContainer.innerHTML = ''; 
                     ethData.forEach(item => {
                         ethContainer.innerHTML += `<label class="block text-[10px] py-1"><input type="checkbox" class="eth-src" value="${item.websites}"> ${item['Website -source']}</label>`;
                     });
                 }
 
                 if (intData) {
+                    intContainer.innerHTML = '';
                     intData.forEach(item => {
                         intContainer.innerHTML += `<label class="block text-[10px] py-1"><input type="checkbox" class="int-src" value="${item.websites}"> ${item['website Source']}</label>`;
                     });
                 }
             } catch (err) {
-                console.error("Database connection error:", err);
+                console.error("Fetch failed:", err);
             }
         }
 
@@ -101,15 +56,6 @@
         // UI Toggles
         document.getElementById('ethToggle').addEventListener('change', (e) => document.getElementById('ethSources').classList.toggle('hidden', !e.target.checked));
         document.getElementById('intToggle').addEventListener('change', (e) => document.getElementById('intSources').classList.toggle('hidden', !e.target.checked));
-        
-        document.getElementById('runBtn').onclick = () => {
-            const selected = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
-                .filter(c => c.className.includes('-src'))
-                .map(c => c.parentElement.textContent.trim());
-            
-            if (selected.length === 0) return alert("Select at least one source.");
-            document.getElementById('activeSourceList').innerHTML = selected.map(item => `<div class="p-2 bg-slate-800 rounded border-l-2 border-blue-500 text-blue-300">» ${item}</div>`).join('');
-        };
     </script>
 </body>
 </html>
