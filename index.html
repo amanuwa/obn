@@ -10,12 +10,54 @@
         body {
             background-color: #02040a;
             margin: 0;
-            min-height: 100vh;
+            overflow: hidden;
+            height: 100vh;
         }
+
+        /* REVOLVING CYBER GLOBE BACKGROUND */
+        .rotating-globe {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 140vmax;
+            height: 140vmax;
+            background-image: url('Screenshot 2026-07-05 050457.jpg');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.45;
+            animation: spin 120s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* UI Contrast Veil */
+        .overlay-veil {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(2, 4, 10, 0.1) 0%, rgba(2, 4, 10, 0.9) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .ui-container {
+            position: relative;
+            z-index: 2;
+        }
+
         .glow-border:focus-within {
             border-color: #38bdf8;
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
         }
+        
         input:focus, select:focus {
             outline: none !important;
             box-shadow: none !important;
@@ -24,110 +66,116 @@
 </head>
 <body class="text-slate-100 font-sans flex items-center justify-center p-6">
 
-    <!-- SCREEN 1: SIGN-UP REGISTRATION -->
-    <div id="signUpScreen" class="max-w-md w-full bg-slate-950 p-8 rounded-2xl shadow-2xl border border-slate-800 relative overflow-hidden">
-        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
+    <div class="rotating-globe"></div>
+    <div class="overlay-veil"></div>
 
-        <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
-            Initialize Agent Access
-        </h2>
-        <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
+    <div class="ui-container w-full max-w-md">
 
-        <div class="space-y-4 text-left">
-            <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                    <span class="text-slate-500 mr-2.5 select-none">👤</span>
-                    <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+        <div id="signUpScreen" class="w-full bg-slate-950/85 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
+
+            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
+                Initialize Agent Access
+            </h2>
+            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
                 </div>
-            </div>
 
-            <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assigned Sector</label>
-                <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                    <span class="text-slate-500 mr-2.5 select-none">🗂️</span>
-                    <select id="regSection" required class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer text-slate-300">
-                        <option value="" disabled selected class="bg-slate-950 text-slate-500">Select Sector...</option>
-                        <option value="World Politics and Governance" class="bg-slate-950 text-white">World Politics and Governance</option>
-                        <option value="Sports & Analytics" class="bg-slate-950 text-white">Sports & Analytics</option>
-                        <option value="Business and Finance" class="bg-slate-950 text-white">Business and Finance</option>
-                        <option value="General Hot News" class="bg-slate-950 text-white">General Hot News</option>
-                    </select>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assigned Sector</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🗂️</span>
+                        <select id="regSection" required class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer text-slate-300">
+                            <option value="" disabled selected class="bg-slate-950 text-slate-500">Select Sector...</option>
+                            <option value="world politics and governance" class="bg-slate-950 text-white">World Politics and Governance</option>
+                            <option value="sports & analytics" class="bg-slate-950 text-white">Sports & Analytics</option>
+                            <option value="business and finance" class="bg-slate-950 text-white">Business and Finance</option>
+                            <option value="general hot news" class="bg-slate-950 text-white">General Hot News</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
 
-            <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
-                <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                    <span class="text-slate-500 mr-2.5 select-none">🔑</span>
-                    <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                        <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                    </div>
                 </div>
-            </div>
 
-            <button onclick="registerJournalist()" id="signUpBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
-                Sign Up
-            </button>
-            
-            <p id="successMessage" class="text-sm text-emerald-400 font-mono text-center mt-2 hidden">✓ Profile compiled! Routing to Portal Terminal...</p>
+                <button id="signUpBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Sign Up
+                </button>
+                
+                <p id="successMessage" class="text-sm text-emerald-400 font-mono text-center mt-2 hidden">✓ Profile compiled! Routing to Portal Terminal...</p>
 
-            <div class="text-center mt-4">
-                <p class="text-xs text-slate-400">Already registered? <a href="#" onclick="showScreen('signInScreen')" class="text-sky-400 hover:underline font-mono">Secure Log In</a></p>
+                <div class="text-center mt-4">
+                    <p class="text-xs text-slate-400">Already registered? <button id="toSignInBtn" class="text-sky-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Secure Log In</button></p>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- SCREEN 2: SIGN-IN PORTAL -->
-    <div id="signInScreen" class="hidden max-w-md w-full bg-slate-950 p-8 rounded-2xl shadow-2xl border border-slate-800 relative overflow-hidden">
-        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
+        <div id="signInScreen" class="hidden w-full bg-slate-950/85 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
 
-        <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
-            Operator Portal
-        </h2>
-        <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
+            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
+                Operator Portal
+            </h2>
+            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
 
-        <div class="space-y-4 text-left">
-            <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                    <span class="text-slate-500 mr-2.5 select-none">👤</span>
-                    <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
                 </div>
-            </div>
 
-            <div>
-                <div class="flex justify-between items-center mb-1.5">
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono">Access Password</label>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Access Password</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                        <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                    </div>
                 </div>
-                <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                    <span class="text-slate-500 mr-2.5 select-none">🔑</span>
-                    <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+
+                <button id="signInBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Sign In
+                </button>
+
+                <div class="text-center mt-4">
+                    <button id="toSignUpBtn" class="text-xs text-sky-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Initialize Access Profile</button>
                 </div>
-            </div>
-
-            <button onclick="loginJournalist()" id="signInBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
-                Sign In
-            </button>
-
-            <div class="text-center mt-4">
-                <p class="text-xs text-slate-400">New Agent? <a href="#" onclick="showScreen('signUpScreen')" class="text-sky-400 hover:underline font-mono">Initialize Access Profile</a></p>
             </div>
         </div>
+
     </div>
 
-    <!-- LOGIC CONFIGURATION -->
-    <script>
-        const SUPABASE_URL = 'https://cqkaxhyrnjmqpovxwjom.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4hHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q';
-        
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+        import { DESK_CONFIGS } from './deskConfigs.js';
+
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         function showScreen(screenId) {
-            const screens = ['signUpScreen', 'signInScreen'];
-            screens.forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
+            document.getElementById('signUpScreen').classList.add('hidden');
+            document.getElementById('signInScreen').classList.add('hidden');
             document.getElementById(screenId).classList.remove('hidden');
         }
+
+        // Action Initializations
+        document.getElementById('toSignInBtn').addEventListener('click', () => showScreen('signInScreen'));
+        document.getElementById('toSignUpBtn').addEventListener('click', () => showScreen('signUpScreen'));
+        document.getElementById('signUpBtn').addEventListener('click', registerJournalist);
+        document.getElementById('signInBtn').addEventListener('click', loginJournalist);
 
         async function registerJournalist() {
             const fullName = document.getElementById('regName').value.trim();
@@ -201,7 +249,15 @@
                     return;
                 }
 
-                alert(`Access Authenticated! Welcome Operator ${records[0]["Journalist name"]}.`);
+                const assignedSection = records[0]["journalism Section"];
+                const configMatch = DESK_CONFIGS[assignedSection];
+
+                if (configMatch) {
+                    alert(`Access Authenticated! Welcome Operator ${records[0]["Journalist name"]}.\nRouting to: ${configMatch.title}`);
+                } else {
+                    alert(`Access Authenticated! Welcome Operator ${records[0]["Journalist name"]}.`);
+                }
+
                 signInBtn.disabled = false;
                 signInBtn.innerText = "Sign In";
                 document.getElementById('loginPassword').value = ""; 
