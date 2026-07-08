@@ -23,12 +23,10 @@
     </header>
 
     <main class="flex-1 grid grid-cols-4 gap-0 p-4 h-full">
-        <!-- SIDEBAR -->
         <div class="col-span-1 bg-slate-950/50 p-6 border-r border-slate-800 flex flex-col">
             <h3 class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-4">Financial Sectors</h3>
             
             <div id="categoryContainer" class="space-y-4 mb-6">
-                <!-- Ethiopian News Section -->
                 <div>
                     <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
                         <input type="checkbox" id="ethToggle" class="cat-check" value="ethiopian"> <span class="text-xs font-bold uppercase ml-2">Ethiopian news</span>
@@ -36,7 +34,6 @@
                     <div id="ethSources" class="hidden mt-2 ml-4 space-y-1 border-l border-slate-700 pl-3"></div>
                 </div>
 
-                <!-- International Section -->
                 <div>
                     <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
                         <input type="checkbox" id="intToggle" class="cat-check" value="international"> <span class="text-xs font-bold uppercase ml-2">International</span>
@@ -53,7 +50,6 @@
             <button id="runBtn" class="w-full bg-blue-600 p-4 rounded-xl font-black text-xs uppercase hover:bg-blue-500 transition-all">Initialize Pipeline</button>
         </div>
 
-        <!-- RIGHT PANEL -->
         <div class="col-span-3 bg-slate-950/50 p-6 flex flex-col h-full">
             <h3 class="font-bold text-sm text-slate-300 mb-4">Financial Intelligence Matrix</h3>
             
@@ -82,31 +78,35 @@
     </main>
 
     <script>
-        // Supabase Initialization
-        const supabase = supabase.createClient('https://supabase.com/dashboard/project/cqkaxhyrnjmqpovxwjom/editor', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxa2F4aHlybmptcXBvdnh3am9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTkwMTcsImV4cCI6MjA5ODY5NTAxN30.eT1lDRDoV3SK_d9yEAYzN6X-lC6EKkNNoavQxgLU6-Q');
+        const supabase = supabase.createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_ANON_KEY');
 
-        // Dynamic Loading from Database
         async function loadSourcesFromDB() {
-            const { data: ethData } = await supabase.from('Ethiopian -Business and finance websites').select('website_source, websites');
-            const { data: intData } = await supabase.from('business and finance -websites').select('website_source, websites');
+            // Fetching using exact column names from your screenshots
+            const { data: ethData } = await supabase
+                .from('Ethiopian -Business and finance websites')
+                .select('"Website -source", websites');
+                
+            const { data: intData } = await supabase
+                .from('business and finance -websites')
+                .select('"website Source", websites');
 
-            const buildList = (data, containerId, className) => {
+            const buildList = (data, containerId, className, sourceColName) => {
                 const container = document.getElementById(containerId);
+                if (!data) return;
                 data.forEach(item => {
                     const label = document.createElement('label');
                     label.className = "block text-[10px]";
-                    label.innerHTML = `<input type="checkbox" class="${className}" value="${item.websites}"> ${item.website_source}`;
+                    label.innerHTML = `<input type="checkbox" class="${className}" value="${item.websites}"> ${item[sourceColName]}`;
                     container.appendChild(label);
                 });
             };
 
-            if (ethData) buildList(ethData, 'ethSources', 'eth-src');
-            if (intData) buildList(intData, 'intSources', 'int-src');
+            buildList(ethData, 'ethSources', 'eth-src', 'Website -source');
+            buildList(intData, 'intSources', 'int-src', 'website Source');
         }
 
         loadSourcesFromDB();
 
-        // UI Functions
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
         
         document.getElementById('ethToggle').addEventListener('change', (e) => document.getElementById('ethSources').classList.toggle('hidden', !e.target.checked));
