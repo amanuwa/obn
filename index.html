@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GovIntel Terminal | News Vector Matrix</title>
+    <title>FinIntel Terminal | Market Wire Matrix</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -11,23 +11,15 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            bg: '#02040e',
-                            grid: 'rgba(16, 185, 129, 0.1)',
-                            accent: '#10b981', // emerald
-                            secondary: '#00f2fe', // cyan
-                            warning: '#f59e0b', // amber
-                            danger: '#ef4444', // red
-                            panel: 'rgba(2, 6, 23, 0.45)', // slate-950/45
-                            subpanel: 'rgba(2, 6, 23, 0.7)', // slate-950/70
+                        terminal: {
+                            bg: '#040814',
+                            grid: 'rgba(56, 189, 248, 0.05)',
+                            accent: '#38bdf8', /* Bloomberg Sky Blue */
+                            success: '#10b981', /* Market Green */
+                            ticker: '#f59e0b', /* Market Amber/Gold */
+                            panel: 'rgba(15, 23, 42, 0.45)',
+                            subpanel: 'rgba(7, 11, 23, 0.8)',
                         }
-                    },
-                    borderWidth: {
-                        '4': '4px',
-                    },
-                    borderRadius: {
-                        'xl': '1rem',
-                        '2xl': '1.5rem',
                     }
                 }
             }
@@ -35,52 +27,53 @@
     </script>
     <style>
         body { 
-            margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column;
-            background-color: #02040e; position: relative; overflow: hidden;
+            margin: 0; color: #cbd5e1; height: 100vh; display: flex; flex-direction: column;
+            background-color: #040814; position: relative; overflow: hidden;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         }
 
-        /* CYBER MATRIX CANVAS STAGE */
+        /* FINANCIAL CANVAS STAGE */
         .cyber-backdrop-container {
             position: absolute; inset: 0; z-index: 0; pointer-events: none;
-            background: radial-gradient(circle at center, #071235 0%, #02040e 100%);
+            background: radial-gradient(circle at center, #0a1432 0%, #040814 100%);
             transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
-        /* HUD Grid */
+        /* HUD Financial Grid Overlay */
         .hud-overlay {
             position: absolute; inset: 0;
             background-image: 
-                linear-gradient(to right, rgba(16, 185, 129, 0.1) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(16, 185, 129, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px; z-index: 1;
+                linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px; z-index: 1;
         }
 
-        /* Falling Cyber Sports Items Container */
+        /* Matrix Elements Falling Cascade */
         .falling-matrix-stage {
             position: absolute; inset: 0; z-index: 2; overflow: hidden;
         }
 
-        .sport-item {
+        .market-item {
             position: absolute; top: -160px;
-            font-size: 10rem;
-            filter: drop-shadow(0 0 20px currentColor);
-            animation: fallDownBig 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-            opacity: 0.85;
+            font-size: 8rem;
+            filter: drop-shadow(0 0 15px currentColor);
+            animation: fallDownMarket 3.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            opacity: 0.15;
         }
 
-        @keyframes fallDownBig {
-            0% { transform: translateY(0) rotate(0deg) scale(0.4); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 0.85; }
-            100% { transform: translateY(110vh) rotate(540deg) scale(1); opacity: 0.1; }
+        @keyframes fallDownMarket {
+            0% { transform: translateY(0) scale(0.6); opacity: 0; }
+            10% { opacity: 0.25; }
+            90% { opacity: 0.15; }
+            100% { transform: translateY(110vh) scale(1.1); opacity: 0.02; }
         }
 
-        /* Laser Sweep Line */
+        /* Laser Scan Sweep */
         .scanline {
-            position: absolute; width: 100%; height: 4px;
-            background: linear-gradient(90deg, transparent, #10b981, #00f2fe, #10b981, transparent);
-            box-shadow: 0 0 20px #10b981; top: 0; z-index: 4;
-            animation: scanning 3s linear infinite;
+            position: absolute; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #38bdf8, #10b981, #38bdf8, transparent);
+            box-shadow: 0 0 15px #38bdf8; top: 0; z-index: 4;
+            animation: scanning 4s linear infinite;
         }
 
         @keyframes scanning {
@@ -89,183 +82,188 @@
             100% { top: 0%; }
         }
 
-        /* 3-SECOND DASHBOARD STATE RULES */
+        /* ACTIVE DASHBOARD TRANSITIONS */
         .cyber-backdrop-container.dashboard-active {
-            opacity: 0.4;
+            opacity: 0.5;
         }
         .cyber-backdrop-container.dashboard-active .scanline {
             display: none;
         }
 
-        /* PANELS LAYER TRANSITION SYSTEM */
         .app-interface {
-            opacity: 0; transform: translateY(30px);
-            transition: opacity 1.2s cubic-bezier(0.1, 1, 0.1, 1), transform 1.2s cubic-bezier(0.1, 1, 0.1, 1);
+            opacity: 0; transform: scale(0.99);
+            transition: opacity 1s cubic-bezier(0.1, 1, 0.1, 1), transform 1s cubic-bezier(0.1, 1, 0.1, 1);
         }
         .app-interface.visible {
-            opacity: 1; transform: translateY(0);
+            opacity: 1; transform: scale(1);
         }
 
-        /* Button Active/Selected States */
-        .news-btn.active {
-            background-color: #10b981 !important; /* emerald-600 */
-            border-color: #6ee7b7 !important; /* emerald-300 */
+        /* Interactive Select Button States */
+        .finance-btn.active {
+            background-color: #0284c7 !important; /* sky-600 */
+            border-color: #38bdf8 !important; /* sky-400 */
             color: #ffffff !important;
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
         }
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
     </style>
 </head>
-<body class="font-sans text-sm">
+<body class="text-xs">
 
-    <!-- STEP 1: INITIAL FALLING SPORTS ITEMS HERO PREVIEW -->
+    <!-- CANVAS GRAPHICS STAGE -->
     <div id="backdropStage" class="cyber-backdrop-container">
         <div class="hud-overlay"></div>
         <div id="laserLine" class="scanline"></div>
         <div id="matrixFallingStage" class="falling-matrix-stage"></div>
     </div>
 
-    <!-- STEP 2: METRICS TELEMETRY PANELS DISPLAY -->
+    <!-- MAIN DATA INTERFACE PANEL FRAME -->
     <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full">
         
-        <!-- HEADER -->
-        <header class="bg-slate-950/60 border-b-2 border-slate-800 px-6 py-4 flex items-center justify-between backdrop-blur-lg">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-400">AI</div>
-                <span class="font-semibold text-slate-100 tracking-tight text-base">GovIntel Terminal</span>
+        <!-- FINANCIAL APP HEADER BAR -->
+        <header class="bg-slate-950/80 border-b border-slate-800 px-6 py-3 flex items-center justify-between backdrop-blur-md">
+            <div class="flex items-center gap-4">
+                <div class="bg-sky-950 text-terminal-accent px-2 py-1 rounded border border-sky-800 font-bold tracking-tight text-[11px]">FIN-INTEL</div>
+                <span class="font-bold text-slate-200 tracking-wider text-sm uppercase">Global Market Registry Terminal</span>
             </div>
-            <div class="font-mono text-xs text-emerald-400 tracking-wider animate-pulse">// MULTI-VECTOR NEWS INGESTION ACTIVE</div>
+            <div class="flex items-center gap-6 text-[11px]">
+                <div class="text-terminal-success font-bold animate-pulse">// EXCHANGE STATUS: OPEN</div>
+                <div class="text-slate-500">// ETHIOPIAN BIRR SPOT DATA ACTIVE</div>
+            </div>
         </header>
 
-        <!-- DASHBOARD BODY PANEL MATRIX -->
+        <!-- MAIN TERMINAL MATRIX DISPLAY -->
         <main class="flex-1 grid grid-cols-4 gap-4 p-4 h-full overflow-hidden">
             
-            <!-- LEFT PANEL: PRIMARY NEWS VECTORS -->
-            <div class="col-span-1 bg-brand-panel p-5 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-xl shadow-2xl backdrop-blur-lg">
-                <h3 class="text-[11px] font-bold text-brand-accent uppercase tracking-widest mb-6 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-brand-accent animate-pulse"></span> Select News Vector
+            <!-- LEFT COLUMN: VECTOR INDEX ASSIGNMENT -->
+            <div class="col-span-1 bg-terminal-panel p-5 border border-slate-800 flex flex-col h-full overflow-y-auto rounded shadow-2xl backdrop-blur-xl">
+                <h3 class="text-[10px] font-bold text-terminal-accent uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-terminal-accent rounded-full animate-ping"></span> Data Stream Input Vector
                 </h3>
                 
-                <div class="space-y-4 mb-6">
-                    <!-- 2 Main Selectable Buttons -->
-                    <button onclick="selectVector(this, 'ethiopian')" class="news-btn w-full bg-emerald-950/40 hover:bg-emerald-800 border-4 border-emerald-500 text-emerald-400 p-6 rounded-xl font-bold text-xs uppercase transition-all cursor-pointer tracking-widest flex items-center justify-center gap-3">
-                        <span class="text-2xl">🇪🇹</span> Ethiopian News
+                <div class="space-y-3 mb-6">
+                    <!-- 2 Selectable Corporate Financial Buttons -->
+                    <button onclick="selectVector(this, 'ethiopian')" class="finance-btn w-full bg-slate-900/60 hover:bg-slate-800/80 border border-slate-700 text-slate-300 p-5 rounded font-bold uppercase transition-all cursor-pointer tracking-wider flex items-center justify-between">
+                        <span>🇪🇹 Ethio Macro & Finance</span>
+                        <span class="text-terminal-accent text-base">→</span>
                     </button>
-                    <button onclick="selectVector(this, 'international')" class="news-btn w-full bg-cyan-950/40 hover:bg-cyan-800 border-4 border-cyan-500 text-cyan-300 p-6 rounded-xl font-bold text-xs uppercase transition-all cursor-pointer tracking-widest flex items-center justify-center gap-3">
-                        <span class="text-2xl">🌐</span> International News
+                    <button onclick="selectVector(this, 'international')" class="finance-btn w-full bg-slate-900/60 hover:bg-slate-800/80 border border-slate-700 text-slate-300 p-5 rounded font-bold uppercase transition-all cursor-pointer tracking-wider flex items-center justify-between">
+                        <span>🌐 International Markets</span>
+                        <span class="text-terminal-accent text-base">→</span>
                     </button>
                 </div>
 
-                <div class="flex-1 bg-brand-subpanel rounded-lg border border-slate-850 p-4 mb-4 overflow-y-auto">
-                    <h3 class="text-[10px] font-medium text-slate-400 uppercase mb-2">Active Source Pool</h3>
-                    <div id="activeSourceList" class="space-y-2 font-mono text-[11px] text-slate-500 italic">// Awaiting vector selection...</div>
+                <div class="flex-1 bg-terminal-subpanel rounded border border-slate-900 p-4 mb-4 overflow-y-auto">
+                    <h3 class="text-[9px] font-bold text-slate-500 uppercase mb-2 tracking-wider">Sub-Market Datasets</h3>
+                    <div id="activeSourceList" class="space-y-1 text-slate-500 italic text-[11px]">// Awaiting pipeline vector map...</div>
                 </div>
 
-                <button id="runBtn" class="w-full bg-emerald-600 border border-emerald-400 py-3 rounded-lg font-semibold text-xs uppercase hover:bg-emerald-500 transition-all cursor-pointer shadow-md tracking-wider">Fire Pipeline</button>
+                <button id="runBtn" class="w-full bg-slate-900 hover:bg-sky-950 text-terminal-accent border border-sky-800 py-3 rounded font-bold uppercase transition-all cursor-pointer shadow-md tracking-widest text-[11px]">Compile Matrix</button>
             </div>
 
-            <!-- RIGHT PANEL: LANGUAGE MATRICES & OUTPUT -->
-            <div class="col-span-3 bg-brand-panel p-5 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-xl shadow-2xl backdrop-blur-lg">
+            <!-- RIGHT COLUMN: MULTI-LANGUAGE ARRAYS & TICKER FEED -->
+            <div class="col-span-3 bg-terminal-panel p-5 border border-slate-800 flex flex-col h-full overflow-y-auto rounded shadow-2xl backdrop-blur-xl">
                 <div class="mb-4">
-                    <h3 class="font-semibold text-xs uppercase text-slate-400 tracking-wider mb-3">Scraped Intelligence Matrix</h3>
+                    <h3 class="font-bold text-[11px] uppercase text-slate-400 tracking-wider mb-3">Scraped Financial Intelligence</h3>
                     
-                    <!-- HIGH SEVERITY FLASH BULLETIN -->
-                    <div class="bg-brand-panel/50 border border-slate-800 p-4 rounded-xl w-full mb-4">
-                        <h3 class="text-[10px] font-bold text-brand-warning uppercase mb-2 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-brand-warning animate-ping"></span> Critical Policy Watch
+                    <!-- HIGH SEVERITY MARKET BREAKING NEWS BULLETIN -->
+                    <div class="bg-terminal-subpanel border border-slate-900 p-4 rounded w-full mb-4">
+                        <h3 class="text-[9px] font-bold text-terminal-ticker uppercase mb-2 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-terminal-ticker animate-pulse"></span> Instant Commodity / Forex Intercept
                         </h3>
                         <div class="flex gap-2">
-                            <input type="text" id="hotNewsInput" placeholder="Enter metric handles, organizations, or topic handles..." class="flex-1 bg-brand-subpanel/80 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:border-brand-warning outline-none">
-                            <button onclick="getHotNews()" class="bg-amber-600 border border-amber-400 px-5 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-amber-500 cursor-pointer transition-colors tracking-wider">Intercept</button>
+                            <input type="text" id="hotNewsInput" placeholder="Enter asset class, stock ticker, central bank registry code..." class="flex-1 bg-slate-950 border border-slate-800 rounded p-2 text-slate-200 focus:border-terminal-accent outline-none font-mono">
+                            <button onclick="getHotNews()" class="bg-sky-950 border border-sky-700 text-terminal-accent px-5 py-2 rounded font-bold uppercase hover:bg-sky-900 cursor-pointer transition-colors tracking-wider">Intercept</button>
                         </div>
                     </div>
                     
-                    <!-- LANGUAGE FILTERS (Right Side Language List) -->
-                    <div class="bg-brand-panel/50 border border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-3">
-                        <div class="flex gap-2 flex-wrap">
-                            <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white px-4 py-2 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All Languages</button>
+                    <!-- LANGUAGE FILTERS CONFIGURATION -->
+                    <div class="bg-terminal-subpanel border border-slate-900 p-4 rounded w-full flex justify-between items-center flex-wrap gap-3">
+                        <div class="flex gap-2 flex-wrap items-center">
+                            <button onclick="toggleAll('.lang-check', true)" class="bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 px-3 py-2 rounded font-bold uppercase transition-all cursor-pointer text-[10px]">Select All Ensembles</button>
                             
-                            <!-- 4 Targeted Language Nodes -->
-                            <label class="flex items-center gap-2 cursor-pointer bg-brand-subpanel/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600">
-                                <input type="checkbox" class="lang-check scale-110 accent-brand-accent" value="oromifa"> 
-                                <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span>
+                            <!-- 4 Corporate Target Languages -->
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-1.5 px-3 border border-slate-800 rounded hover:border-slate-700">
+                                <input type="checkbox" class="lang-check accent-terminal-accent" value="oromifa"> 
+                                <span class="font-bold text-slate-400 uppercase text-[10px]">Oromifa</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-brand-subpanel/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600">
-                                <input type="checkbox" class="lang-check scale-110 accent-brand-accent" value="amharic"> 
-                                <span class="text-xs font-normal uppercase text-slate-300">Amharic</span>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-1.5 px-3 border border-slate-800 rounded hover:border-slate-700">
+                                <input type="checkbox" class="lang-check accent-terminal-accent" value="amharic"> 
+                                <span class="font-bold text-slate-400 uppercase text-[10px]">Amharic</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-brand-subpanel/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600">
-                                <input type="checkbox" class="lang-check scale-110 accent-brand-accent" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-1.5 px-3 border border-slate-800 rounded hover:border-slate-700">
+                                <input type="checkbox" class="lang-check accent-terminal-accent" value="english"> 
+                                <span class="font-bold text-slate-400 uppercase text-[10px]">English</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-brand-subpanel/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600">
-                                <input type="checkbox" class="lang-check scale-110 accent-brand-accent" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-1.5 px-3 border border-slate-800 rounded hover:border-slate-700">
+                                <input type="checkbox" class="lang-check accent-terminal-accent" value="arabic"> 
+                                <span class="font-bold text-slate-400 uppercase text-[10px]">Arabic</span>
                             </label>
                         </div>
-                        <button onclick="downloadData()" class="bg-blue-600 border border-blue-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Export Briefing</button>
+                        <button onclick="downloadData()" class="bg-emerald-950 border border-emerald-700 text-terminal-success px-4 py-2 rounded font-bold uppercase shadow-sm hover:bg-emerald-900 transition-all cursor-pointer tracking-wider text-[10px]">Export Data Sheet</button>
                     </div>
                 </div>
 
-                <!-- MAIN RAW DATA OUTPUT -->
-                <div id="outputContainer" class="flex-1 overflow-y-auto bg-brand-subpanel/80 rounded-lg p-4 border border-slate-900 font-mono text-xs text-brand-accent shadow-inner">
-                    <p class="text-slate-500 italic font-normal">// Matrix ready for multi-vector intelligence ingestion...</p>
+                <!-- RUNTIME TERMINAL DATASTREAM OUTPUT -->
+                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded p-4 border border-slate-900 text-terminal-success shadow-inner leading-relaxed">
+                    <p class="text-slate-600 italic">// Terminal engine initialized. Standby for target cross-border indices...</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- LIFECYCLE CONTROLLER SCRIPTS -->
+    <!-- RUNTIME DATA ARCHITECTURE CONTROL SCRIPTS -->
     <script>
-        const sportsPool = [
-            { icon: '🏛️', color: '#10b981' }, // capitol/emerald
-            { icon: '⚖️', color: '#f59e0b' }, // scales/amber
-            { icon: '🗳️', color: '#00f2fe' }, // ballot/cyan
-            { icon: '📜', color: '#f1f5f9' }, // document/slate
-            { icon: '🌍', color: '#38bdf8' }, // globe/sky
-            { icon: '🛡️', color: '#ef4444' }  // shield/red
+        const financialMatrixPool = [
+            { icon: '📈', color: '#10b981' }, /* Upward Trend */
+            { icon: '📉', color: '#ef4444' }, /* Downward Trend */
+            { icon: '💵', color: '#10b981' }, /* Currency Cash */
+            { icon: '📊', color: '#38bdf8' }, /* Market Analytics */
+            { icon: '🏦', color: '#38bdf8' }, /* Central Bank Vault */
+            { icon: '🪙', color: '#f59e0b' }  /* Bullion Commodity */
         ];
 
-        function spawnBigSportsRain() {
+        function spawnFinancialRain() {
             const stage = document.getElementById('matrixFallingStage');
-            const totalItems = 18;
+            const totalItems = 16;
 
             for (let i = 0; i < totalItems; i++) {
                 const item = document.createElement('div');
-                const template = sportsPool[Math.floor(Math.random() * sportsPool.length)];
+                const template = financialMatrixPool[Math.floor(Math.random() * financialMatrixPool.length)];
                 
-                item.className = 'sport-item';
+                item.className = 'market-item';
                 item.innerText = template.icon;
                 item.style.color = template.color;
                 
-                item.style.left = `${Math.random() * 90}%`;
-                item.style.animationDelay = `${Math.random() * 1.2}s`;
+                item.style.left = `${Math.random() * 92}%`;
+                item.style.animationDelay = `${Math.random() * 1.5}s`;
                 
                 stage.appendChild(item);
             }
         }
 
-        let selectedVectorType = null;
+        let selectedMarketVector = null;
 
         function selectVector(btn, vectorType) {
-            // Remove 'active' class from all buttons in the category container
-            document.querySelectorAll('.news-btn').forEach(b => b.classList.remove('active'));
-            // Add 'active' class to the clicked button
+            document.querySelectorAll('.finance-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            selectedVectorType = vectorType;
+            selectedMarketVector = vectorType;
 
             const sourceList = document.getElementById('activeSourceList');
             if (vectorType === 'ethiopian') {
-                sourceList.innerHTML = `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» NODE_ETH_FEDERAL_GAZETTE</div>
-                                      <div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» NODE_ETH_REGIONAL_CouncilS</div>`;
+                sourceList.innerHTML = `<div class="p-2 bg-slate-950 border border-slate-900 rounded text-sky-400 font-mono text-[10px] uppercase">» FX_REFORM_BIRR_LIQUIDITY</div>
+                                      <div class="p-2 bg-slate-950 border border-slate-900 rounded text-sky-400 font-mono text-[10px] uppercase">» ETH_NBE_REGULATORY_WIRES</div>`;
             } else if (vectorType === 'international') {
-                sourceList.innerHTML = `<div class="p-2 bg-slate-900 rounded border border-cyan-500 text-cyan-300 font-mono text-xs">» NODE_GLOBAL_WIRE_FEEDS</div>
-                                      <div class="p-2 bg-slate-900 rounded border border-cyan-500 text-cyan-300 font-mono text-xs">» NODE_UN_MULTILATERAL_DATA</div>`;
+                sourceList.innerHTML = `<div class="p-2 bg-slate-950 border border-slate-900 rounded text-cyan-400 font-mono text-[10px] uppercase">» BOOMBERG_TICKER_FEED</div>
+                                      <div class="p-2 bg-slate-950 border border-slate-900 rounded text-cyan-400 font-mono text-[10px] uppercase">» LSE_REUTERS_MACRO_GLOBAL</div>`;
             }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            spawnBigSportsRain();
+            spawnFinancialRain();
             
             const stage = document.getElementById('backdropStage');
             const appFrame = document.getElementById('mainAppFrame');
@@ -273,20 +271,25 @@
             setTimeout(() => {
                 stage.classList.add('dashboard-active');
                 appFrame.classList.add('visible');
-            }, 3000);
+            }, 2500);
         });
 
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
-        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-brand-warning font-mono">// Intercepting active localized and international political wire feeds...</div>`; }
+        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-terminal-ticker font-mono">// SCANNING BLOCKCHAIN REGISTRIES, FX TELEMETRY BOARDS, AND GLOBAL TRADING DESKS...</div>`; }
         
         document.getElementById('runBtn').onclick = () => {
-            if (!selectedVectorType) return alert("Select at least one active news vector.");
+            if (!selectedMarketVector) return alert("CRITICAL ERROR: Select a market data stream input vector.");
             const activeLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
             const output = document.getElementById('outputContainer');
 
-            if (activeLangs.length === 0) return alert("Select at least one active language matrix matrix.");
+            if (activeLangs.length === 0) return alert("CRITICAL ERROR: Select at least one target extraction language node.");
 
-            output.innerHTML = `<div class="text-brand-accent font-mono">// REGISTRY AGGREGATION PIPELINE RESOLVED<br>// VECTOR: ${selectedVectorType.toUpperCase()} // LANGUAGES: ${activeLangs.join(' | ').toUpperCase()} // SAFE TO PROCESS</div>`;
+            output.innerHTML = `<div class="text-terminal-success font-mono">
+                [SYSTEM LOG] PIPELINE EXECUTION COMPLETELY RESOLVED<br>
+                [METRIC VECTOR] » ${selectedMarketVector.toUpperCase()}<br>
+                [LANGUAGE STRATIFICATION] » ${activeLangs.join(' | ').toUpperCase()}<br>
+                [INGESTION STATUS] » READY TO STREAM PACKETS SECURELY
+            </div>`;
         };
 
         function downloadData() {
@@ -294,7 +297,7 @@
             const blob = new Blob([data], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = 'govintel-news-brief.txt'; a.click();
+            a.href = url; a.download = 'market-intelligence-brief.csv'; a.click();
         }
     </script>
 </body>
