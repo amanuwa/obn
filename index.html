@@ -13,128 +13,141 @@
             height: 100vh; 
             display: flex; 
             flex-direction: column;
-            background-color: #020514;
+            background-color: #02040e;
             position: relative;
             overflow: hidden;
         }
 
-        /* CYBER PLATFORM BACKGROUND/INTRO ARENA */
+        /* CYBER EPIC BACKDROP STAGE */
         .cyber-arena {
             position: absolute;
             inset: 0;
             z-index: 0;
             pointer-events: none;
-            background: radial-gradient(circle at center, #06133a 0%, #020514 100%);
+            background: radial-gradient(circle at center, #071235 0%, #02040e 100%);
         }
 
-        /* Perspective Grid Ground */
+        /* Deep 3D Digital Track Grid */
         .cyber-grid {
             position: absolute;
             width: 100%;
             height: 100%;
-            bottom: -10%;
+            bottom: -20%;
             background-image: 
-                linear-gradient(to right, rgba(16, 185, 129, 0.18) 2px, transparent 2px),
-                linear-gradient(to bottom, rgba(16, 185, 129, 0.18) 2px, transparent 2px);
-            background-size: 60px 60px;
-            transform: perspective(400px) rotateX(60deg);
+                linear-gradient(to right, rgba(16, 185, 129, 0.12) 2px, transparent 2px),
+                linear-gradient(to bottom, rgba(16, 185, 129, 0.12) 2px, transparent 2px);
+            background-size: 80px 80px;
+            transform: perspective(350px) rotateX(65deg);
             transform-origin: bottom center;
         }
 
-        /* DYNAMIC FINISH LINE TAPE */
+        /* REALISTIC NEON FINISH TAPE */
         .finish-line {
             position: absolute;
-            bottom: 35%;
+            bottom: 28%;
             left: 0;
             width: 100%;
-            height: 6px;
-            background: linear-gradient(90deg, transparent, #00f2fe, #10b981, #00f2fe, transparent);
-            box-shadow: 0 0 20px #10b981, 0 0 40px #00f2fe;
+            height: 8px;
+            background: linear-gradient(90deg, transparent 10%, #00f2fe 40%, #10b981 50%, #00f2fe 60%, transparent 90%);
+            box-shadow: 0 0 25px #10b981, 0 0 50px #00f2fe;
             opacity: 1;
-            transition: all 0.5s ease-out;
-            z-index: 2;
+            z-index: 3;
+            transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
         }
         .finish-line.broken {
             opacity: 0;
-            transform: scaleY(3) translateY(-20px);
-            filter: blur(10px);
+            transform: scaleY(4) translateY(-40px);
+            filter: blur(15px);
         }
 
-        /* RUNNER GROUP TIMELINE CONTROLS */
+        /* DYNAMIC REAL ATHLETE CONTAINER */
         .runner-group {
             position: absolute;
-            bottom: 15%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            height: 400px;
+            inset: 0;
             display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 1;
-            transition: opacity 1.5s ease-in-out;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 12vh;
+            z-index: 2;
         }
 
-        .cyber-runner {
-            width: 180px;
-            height: 240px;
+        /* High-fidelity anatomical cyber athlete profiles sprinting forward */
+        .cyber-athlete {
+            width: 240px;
+            height: 340px;
+            position: absolute;
             opacity: 0;
-            filter: drop-shadow(0 0 20px currentColor);
-            /* Step 1: Runners approach from the distance */
-            animation: introApproach 3.5s forwards cubic-bezier(0.1, 0.7, 0.1, 1), sprintCycle 0.6s infinite alternate ease-in-out;
+            filter: drop-shadow(0 0 25px currentColor);
         }
 
-        .runner-1 { color: #10b981; animation-delay: 0s, 0.1s; }
-        .runner-2 { color: #34d399; animation-delay: 0s, 0.35s; }
-        /* Runner 3 is configured to pull ahead and win */
-        .runner-3 { 
-            color: #00f2fe; 
-            animation: winnerApproach 3.2s forwards cubic-bezier(0.1, 0.7, 0.1, 1), sprintCycle 0.5s infinite alternate ease-in-out;
+        /* Tracking paths and staggered lanes */
+        .runner-left {
+            color: #059669;
+            margin-right: 480px;
+            animation: packSprint 4.2s forwards cubic-bezier(0.1, 0.8, 0.1, 1), bodyVibrate 0.15s infinite alternate;
         }
-        .runner-4 { color: #059669; animation-delay: 0s, 0.5s; }
-
-        /* General sprinting limb micro-motion */
-        @keyframes sprintCycle {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-15px); }
+        .runner-mid-left {
+            color: #34d399;
+            margin-right: 180px;
+            animation: packSprint 4.0s forwards cubic-bezier(0.1, 0.8, 0.1, 1), bodyVibrate 0.12s infinite alternate;
+            animation-delay: 0s, 0.1s;
         }
-
-        /* 3 Standard athletes pacing framework */
-        @keyframes introApproach {
-            0% { transform: scale(0.1) translateY(200px); opacity: 0; }
-            15% { opacity: 0.85; }
-            80% { transform: scale(1) translateY(0); opacity: 0.85; }
-            100% { transform: scale(0.9) translateY(40px); opacity: 0.35; } /* Settles back as layout opens */
+        /* The Alpha Winner - running straight out towards camera */
+        .runner-winner {
+            color: #00f2fe;
+            margin-left: 120px;
+            z-index: 4;
+            animation: winnerBreakout 3.5s forwards cubic-bezier(0.15, 0.85, 0.2, 1), bodyVibrate 0.08s infinite alternate;
         }
-
-        /* Winner break-away framework running past the camera */
-        @keyframes winnerApproach {
-            0% { transform: scale(0.1) translateY(200px); opacity: 0; }
-            15% { opacity: 0.95; }
-            85% { transform: scale(1.1) translateY(-20px); opacity: 0.95; }
-            100% { transform: scale(2.5) translateY(-300px); opacity: 0; filter: blur(4px); } /* Sprints through finish line past view */
+        .runner-right {
+            color: #10b981;
+            margin-left: 460px;
+            animation: packSprint 4.4s forwards cubic-bezier(0.1, 0.8, 0.1, 1), bodyVibrate 0.14s infinite alternate;
         }
 
-        /* INTRO FLASH BURST EFFECT */
+        /* Micro muscle vibration under elite stress loads */
+        @keyframes bodyVibrate {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            100% { transform: translate(-1px, -1px) rotate(0.2deg); }
+        }
+
+        /* Pack pacing: charge forward, settle into backdrop loop */
+        @keyframes packSprint {
+            0% { transform: scale(0.05) translateY(400px); opacity: 0; }
+            10% { opacity: 0.9; }
+            75% { transform: scale(0.9) translateY(-20px); opacity: 0.9; }
+            100% { transform: scale(0.75) translateY(60px); opacity: 0.25; }
+        }
+
+        /* Winner breakout: storms through track, passes finish line and blasts past screen view */
+        @keyframes winnerBreakout {
+            0% { transform: scale(0.05) translateY(400px); opacity: 0; }
+            10% { opacity: 1; }
+            70% { transform: scale(1.1) translateY(-40px); opacity: 1; }
+            82% { opacity: 1; filter: blur(0px); }
+            100% { transform: scale(3.2) translateY(-480px); opacity: 0; filter: blur(12px); }
+        }
+
+        /* OVERLAY TIMING GLASS BURST */
         .flash-overlay {
             position: absolute;
             inset: 0;
-            background: #fff;
+            background: #ffffff;
             opacity: 0;
-            z-index: 50;
+            z-index: 100;
             pointer-events: none;
-            transition: opacity 0.4s ease-out;
+            transition: opacity 0.35s ease-out;
         }
 
-        /* MAIN APP STAGE TRANSITION PANELS */
+        /* INTERFACE PACK TRANSITIONS */
         .app-interface {
             opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 1s ease-out, transform 1s cubic-bezier(0.1, 1, 0.1, 1);
+            transform: scale(0.98) translateY(20px);
+            transition: opacity 1.2s cubic-bezier(0.1, 1, 0.1, 1), transform 1.2s cubic-bezier(0.1, 1, 0.1, 1);
         }
         .app-interface.visible {
             opacity: 1;
-            transform: translateY(0);
+            transform: scale(1) translateY(0);
         }
 
         ::-webkit-scrollbar { width: 10px; }
@@ -143,50 +156,42 @@
 </head>
 <body class="font-sans">
 
-    <!-- FLASH EFFECT DOM NODE -->
+    <!-- CAMERA MATRIX FLASH LAYER -->
     <div id="flash" class="flash-overlay"></div>
 
-    <!-- CYBER PLATFORM BACKGROUND MATRIX WITH ANIMATED RUNNERS -->
+    <!-- BACKGROUND ENGINE -->
     <div class="cyber-arena">
         <div class="cyber-grid"></div>
         <div id="finishTape" class="finish-line"></div>
         
-        <div id="runnerGroup" class="runner-group">
-            <!-- Runner 1 -->
-            <svg class="cyber-runner runner-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="4" r="2"/>
-                <path d="M4 14h6v6"/>
-                <path d="m14 14 3-3-3-3h-4l-2 3"/>
-                <path d="M11 20v-6l-3-3"/>
+        <div class="runner-group">
+            <!-- Athlete 1: Left Wing Sprint -->
+            <svg class="cyber-athlete runner-left" viewBox="0 0 100 100" fill="currentColor">
+                <path d="M48,12 C51,12 53,10 53,7 C53,4 51,2 48,2 C45,2 43,4 43,7 C43,10 45,12 48,12 Z M35,32 L22,24 L16,42 L22,44 L26,30 L34,35 L28,68 L14,66 L12,74 L32,76 L38,46 L46,52 L42,88 L52,90 L56,56 L46,40 L48,26 L62,38 L72,34 L70,26 L62,28 L46,16 L36,22 Z"/>
             </svg>
-            <!-- Runner 2 -->
-            <svg class="cyber-runner runner-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="4" r="2"/>
-                <path d="M4 14h6v6"/>
-                <path d="m14 14 3-3-3-3h-4l-2 3"/>
-                <path d="M11 20v-6l-3-3"/>
+
+            <!-- Athlete 2: Mid Left Power Drive -->
+            <svg class="cyber-athlete runner-mid-left" viewBox="0 0 100 100" fill="currentColor">
+                <path d="M52,14 C55,14 57,11 57,8 C57,5 55,3 52,3 C49,3 47,5 47,8 C47,11 49,14 52,14 Z M38,36 L26,26 L18,44 L25,46 L29,34 L37,40 L32,72 L16,70 L14,78 L35,80 L42,48 L50,54 L44,92 L54,94 L60,58 L49,42 L52,28 L66,42 L78,36 L74,28 L65,32 L49,18 L39,24 Z"/>
             </svg>
-            <!-- Winner Athlete (Runner 3) -->
-            <svg class="cyber-runner runner-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="4" r="2"/>
-                <path d="M4 14h6v6"/>
-                <path d="m14 14 3-3-3-3h-4l-2 3"/>
-                <path d="M11 20v-6l-3-3"/>
+
+            <!-- Athlete 3: The Alpha Winner (High Silhouette Finish Mechanics) -->
+            <svg class="cyber-athlete runner-winner" viewBox="0 0 100 100" fill="currentColor">
+                <!-- Detailed Front Profile Runner Chest, Pumping Triceps and Striding Quads -->
+                <path d="M50,15 C53.3,15 56,12.3 56,9 C56,5.7 53.3,3 50,3 C46.7,3 44,5.7 44,9 C44,12.3 46.7,15 50,15 Z M32,22 L20,40 L28,44 L36,30 L42,34 L36,75 L18,85 L22,93 L44,80 L52,44 L60,44 L66,82 L86,91 L90,83 L74,74 L66,34 L72,28 L82,38 L88,30 L74,18 L58,24 L48,18 L32,22 Z"/>
             </svg>
-            <!-- Runner 4 -->
-            <svg class="cyber-runner runner-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="4" r="2"/>
-                <path d="M4 14h6v6"/>
-                <path d="m14 14 3-3-3-3h-4l-2 3"/>
-                <path d="M11 20v-6l-3-3"/>
+
+            <!-- Athlete 4: Right Wing Tracker -->
+            <svg class="cyber-athlete runner-right" viewBox="0 0 100 100" fill="currentColor">
+                <path d="M46,13 C49,13 51,11 51,8 C51,5 49,3 46,3 C43,3 41,5 41,8 C41,11 43,13 46,13 Z M32,34 L20,24 L12,42 L19,44 L23,32 L32,37 L26,70 L12,68 L10,76 L30,78 L36,46 L44,52 L40,88 L50,90 L54,54 L44,38 L46,24 L60,36 L70,32 L68,24 L60,26 L44,15 L34,20 Z"/>
             </svg>
         </div>
     </div>
 
-    <!-- MAIN TERMINAL APP FRAME (Wrapped with visibility automation classes) -->
+    <!-- MAIN TERMINAL APP FRAME -->
     <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full">
         
-        <!-- HEADER TOOLBAR -->
+        <!-- HEADER -->
         <header class="bg-slate-950/60 border-b-4 border-slate-800 px-8 py-4 flex items-center justify-between backdrop-blur-lg">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-md bg-emerald-600 flex items-center justify-center font-bold text-xs border-2 border-emerald-400">AI</div>
@@ -194,10 +199,10 @@
             </div>
         </header>
 
-        <!-- MAIN INTERFACE MATRIX -->
+        <!-- MAIN INTERFACE GRID -->
         <main class="flex-1 grid grid-cols-4 gap-5 p-5 h-full overflow-hidden">
             
-            <!-- LEFT CONTROL DRAWER -->
+            <!-- LEFT MODULE -->
             <div class="col-span-1 bg-slate-950/45 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-lg">
                 <h3 class="text-[11px] font-medium text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Select Categories
@@ -222,7 +227,6 @@
                     </label>
                 </div>
 
-                <!-- ACTIVE LIVE MONITOR LIST -->
                 <div class="flex-1 bg-slate-950/70 rounded-xl border-4 border-slate-800/80 p-4 mb-4 overflow-y-auto">
                     <h3 class="text-[9px] font-medium text-slate-400 uppercase mb-3">Active Sources</h3>
                     <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-500 italic">// Waiting for pipeline...</div>
@@ -231,12 +235,11 @@
                 <button id="runBtn" class="w-full bg-emerald-600 border-4 border-emerald-400 p-4 rounded-xl font-medium text-xs uppercase hover:bg-emerald-500 transition-all cursor-pointer shadow-md tracking-wider">Fire Pipeline</button>
             </div>
 
-            <!-- RIGHT MONITOR SCREEN DISPLAY -->
+            <!-- RIGHT MODULE -->
             <div class="col-span-3 bg-slate-950/40 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-lg">
                 <div class="mb-6">
                     <h3 class="font-medium text-sm text-slate-300 mb-4">Scrapped Intelligence Matrix</h3>
                     
-                    <!-- FAST HOT NEWS ENGINE -->
                     <div class="bg-slate-950/50 border-4 border-slate-800 p-4 rounded-xl w-full mb-4">
                         <h3 class="text-[10px] font-medium text-rose-500 uppercase mb-2 flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Fast Hot News
@@ -247,7 +250,6 @@
                         </div>
                     </div>
                     
-                    <!-- UTILITY LANGUAGE SELECTION TOOLBAR -->
                     <div class="bg-slate-950/50 border-4 border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-4">
                         <div class="flex gap-4 flex-wrap">
                             <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-950 hover:bg-emerald-600 border-4 border-emerald-500 text-emerald-400 hover:text-white px-5 py-2.5 rounded-xl font-medium text-xs uppercase transition-all cursor-pointer">Select All</button>
@@ -260,7 +262,6 @@
                     </div>
                 </div>
 
-                <!-- MAIN LOGGER CONSOLE HOUSING -->
                 <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/80 rounded-xl p-6 border-4 border-slate-900 font-mono text-xs text-emerald-400 shadow-inner">
                     <p class="text-slate-500 italic font-normal">// Matrix ready for sports intelligence ingestion...</p>
                 </div>
@@ -270,31 +271,28 @@
 
     <!-- TIMELINE ENGINE SCRIPTS -->
     <script>
-        // CRITICAL CINEMATIC TIMELINE SCHEDULER
         window.addEventListener('DOMContentLoaded', () => {
             const flash = document.getElementById('flash');
             const tape = document.getElementById('finishTape');
             const appFrame = document.getElementById('mainAppFrame');
-            const runners = document.getElementById('runnerGroup');
 
-            // 1. Trigger camera flash burst right as the winning runner breaks the tape (at 2.6s mark)
+            // 1. Trigger high-speed camera shutter flash at winner crossing point (2.8s)
             setTimeout(() => {
                 flash.style.opacity = '1';
                 tape.classList.add('broken');
-            }, 2600);
+            }, 2800);
 
-            // 2. Clear out the bright flash frame shortly after to simulate camera shutter speed
+            // 2. Clear out lens burst
             setTimeout(() => {
                 flash.style.opacity = '0';
-            }, 2950);
+            }, 3100);
 
-            // 3. Smoothly render interface layouts into physical view space
+            // 3. Bring up the thick-edged telemetry grid panels
             setTimeout(() => {
                 appFrame.classList.add('visible');
-            }, 3200);
+            }, 3350);
         });
 
-        // STANDARD INTERACTIVE UI LOGIC TERMINALS
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
         function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500 font-mono">// Querying global sports wire feeds...</div>`; }
         
