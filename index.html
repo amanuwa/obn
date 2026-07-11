@@ -4,102 +4,134 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Command Center | Analytics Terminal</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         body { 
-            margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column;
-            background-color: #02071a;
-            background-image: radial-gradient(at 0% 0%, #064e3b 0px, transparent 50%), radial-gradient(at 100% 100%, #1e1b4b 0px, transparent 50%), linear-gradient(to right, #0f172a 1px, transparent 1px), linear-gradient(to bottom, #0f172a 1px, transparent 1px);
-            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            margin: 0; 
+            color: #f1f5f9; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column;
+            background-color: #01040f;
+            /* Balanced backdrop tint layer to make the running athlete fully visible but readable */
+            background-image: 
+                linear-gradient(to bottom, rgba(2, 5, 18, 0.78), rgba(9, 13, 31, 0.82)), 
+                url('https://images.unsplash.com/photo-1502224562085-639556652f33?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            overflow: hidden;
         }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-thumb { background: #059669; border-radius: 5px; }
     </style>
 </head>
 <body class="font-sans">
 
-    <header class="bg-slate-950/60 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center font-black text-xs">AI</div>
-            <span class="font-bold text-slate-100 tracking-tight">Sports Analytics Terminal</span>
-        </div>
-    </header>
-
-    <main class="flex-1 grid grid-cols-4 gap-0 p-4 h-full overflow-hidden">
+    <!-- MAIN TERMINAL APP FRAME -->
+    <div class="relative z-10 flex flex-col h-full w-full">
         
-        <div class="col-span-1 bg-slate-950/50 p-6 border-r border-slate-800 flex flex-col h-full shadow-2xl">
-            <h3 class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4">Select Categories</h3>
+        <!-- HEADER TOOLBAR (Heavy 4px Framing Edge) -->
+        <header class="bg-slate-950/90 border-b-4 border-slate-800 px-8 py-4 flex items-center justify-between backdrop-blur-md">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-md bg-emerald-600 flex items-center justify-center font-bold text-xs border-2 border-emerald-400">AI</div>
+                <span class="font-medium text-slate-100 tracking-tight text-base">Sports Analytics Terminal</span>
+            </div>
+        </header>
+
+        <!-- MAIN INTERFACE MATRIX -->
+        <main class="flex-1 grid grid-cols-4 gap-5 p-5 h-full overflow-hidden">
             
-            <div id="categoryContainer" class="space-y-2 mb-6">
-                <button onclick="toggleAll('.cat-check', true)" class="w-full bg-emerald-900/30 hover:bg-emerald-600 border border-emerald-500/50 text-emerald-400 hover:text-white px-4 py-3 rounded font-black text-[10px] uppercase transition-all mb-2">
-                    Select All Categories
-                </button>
+            <!-- LEFT CONTROL DRAWER (Heavy 4px framing edge, regular interior text) -->
+            <div class="col-span-1 bg-slate-950/90 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-sm">
+                <h3 class="text-[11px] font-medium text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Select Categories
+                </h3>
+                
+                <div id="categoryContainer" class="space-y-4 mb-6">
+                    <button onclick="toggleAll('.cat-check', true)" class="w-full bg-emerald-950/50 hover:bg-emerald-600 border-4 border-emerald-500 text-emerald-400 hover:text-white px-4 py-3 rounded-xl font-medium text-xs uppercase transition-all mb-2 cursor-pointer">
+                        Select All Categories
+                    </button>
 
-                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
-                    <input type="checkbox" class="cat-check" value="epl"> <span class="text-xs font-bold uppercase ml-2">Ethiopian Premier League</span>
-                </label>
-                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
-                    <input type="checkbox" class="cat-check" value="international"> <span class="text-xs font-bold uppercase ml-2">International</span>
-                </label>
-                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
-                    <input type="checkbox" class="cat-check" value="athletics"> <span class="text-xs font-bold uppercase ml-2">Athletics</span>
-                </label>
-                <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
-                    <input type="checkbox" class="cat-check" value="others"> <span class="text-xs font-bold uppercase ml-2">Others</span>
-                </label>
+                    <label class="block bg-slate-900/90 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-125 accent-emerald-600" value="epl"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">Ethiopian Premier League</span>
+                    </label>
+                    <label class="block bg-slate-900/90 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-125 accent-emerald-600" value="international"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">International</span>
+                    </label>
+                    <label class="block bg-slate-900/90 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-125 accent-emerald-600" value="athletics"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">Athletics</span>
+                    </label>
+                    <label class="block bg-slate-900/90 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-125 accent-emerald-600" value="others"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">Others</span>
+                    </label>
+                </div>
+
+                <!-- ACTIVE LIVE MONITOR LIST -->
+                <div class="flex-1 bg-slate-950 rounded-xl border-4 border-slate-800/80 p-4 mb-4 overflow-y-auto">
+                    <h3 class="text-[9px] font-medium text-slate-400 uppercase mb-3">Active Sources</h3>
+                    <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-500 italic">// Waiting for pipeline...</div>
+                </div>
+
+                <button id="runBtn" class="w-full bg-emerald-600 border-4 border-emerald-400 p-4 rounded-xl font-medium text-xs uppercase hover:bg-emerald-500 transition-all cursor-pointer shadow-md tracking-wider">Fire Pipeline</button>
             </div>
 
-            <div class="flex-1 bg-slate-900/50 rounded-xl border border-slate-800 p-4 mb-4 overflow-y-auto">
-                <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-3">Active Sources</h3>
-                <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-400 italic">// Waiting for pipeline...</div>
-            </div>
-
-            <button id="runBtn" class="w-full bg-emerald-600 p-4 rounded-xl font-black text-xs uppercase hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/40">Fire Pipeline</button>
-        </div>
-
-        <div class="col-span-3 bg-slate-950/50 p-6 flex flex-col h-full shadow-2xl">
-            <div class="mb-6">
-                <h3 class="font-bold text-sm text-slate-300 mb-4">Scrapped Intelligence Matrix</h3>
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 w-full mb-4">
-                    <h3 class="text-[9px] font-bold text-rose-500 uppercase mb-2">Fast Hot News</h3>
-                    <div class="flex gap-2">
-                        <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border border-slate-800 rounded p-2 text-[10px] text-white focus:border-rose-500 outline-none">
-                        <button onclick="getHotNews()" class="bg-rose-600 px-4 py-1 rounded font-bold text-[10px] uppercase hover:bg-rose-500">Go</button>
+            <!-- RIGHT MONITOR SCREEN DISPLAY (Heavy 4px framing edge, regular interior text) -->
+            <div class="col-span-3 bg-slate-950/85 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-sm">
+                <div class="mb-6">
+                    <h3 class="font-medium text-sm text-slate-300 mb-4">Scrapped Intelligence Matrix</h3>
+                    
+                    <!-- FAST HOT NEWS ENGINE -->
+                    <div class="bg-slate-900 border-4 border-slate-800 p-4 rounded-xl w-full mb-4">
+                        <h3 class="text-[10px] font-medium text-rose-500 uppercase mb-2 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Fast Hot News
+                        </h3>
+                        <div class="flex gap-3">
+                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border-4 border-slate-800 rounded-xl p-3 text-xs text-white focus:border-rose-500 outline-none">
+                            <button onclick="getHotNews()" class="bg-rose-600 border-4 border-rose-400 px-6 py-2 rounded-xl font-medium text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors">Go</button>
+                        </div>
+                    </div>
+                    
+                    <!-- UTILITY LANGUAGE SELECTION TOOLBAR -->
+                    <div class="bg-slate-900 border-4 border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-4">
+                        <div class="flex gap-4 flex-wrap">
+                            <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-950 hover:bg-emerald-600 border-4 border-emerald-500 text-emerald-400 hover:text-white px-5 py-2.5 rounded-xl font-medium text-xs uppercase transition-all cursor-pointer">Select All</button>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
+                        </div>
+                        <button onclick="downloadData()" class="bg-blue-600 border-4 border-blue-400 px-6 py-2.5 rounded-xl font-medium text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer">Download</button>
                     </div>
                 </div>
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 w-full flex justify-between items-center">
-                    <div class="flex gap-2 flex-wrap">
-                        <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-900/30 hover:bg-emerald-600 border border-emerald-500/50 text-emerald-400 hover:text-white px-4 py-2 rounded font-black text-[10px] uppercase transition-all">Select All</button>
-                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2"><input type="checkbox" class="lang-check" value="oromifa"> <span class="text-xs font-bold uppercase">Oromifa</span></label>
-                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2"><input type="checkbox" class="lang-check" value="amharic"> <span class="text-xs font-bold uppercase">Amharic</span></label>
-                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2"><input type="checkbox" class="lang-check" value="english"> <span class="text-xs font-bold uppercase">English</span></label>
-                        <label class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded cursor-pointer transition-all flex items-center gap-2"><input type="checkbox" class="lang-check" value="arabic"> <span class="text-xs font-bold uppercase">Arabic</span></label>
-                    </div>
-                    <button onclick="downloadData()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-black text-[10px] uppercase shadow-lg shadow-blue-900/40 transition-all">Download</button>
+
+                <!-- MAIN LOGGER CONSOLE HOUSING -->
+                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/95 rounded-xl p-6 border-4 border-slate-900 font-mono text-xs text-emerald-400 shadow-inner">
+                    <p class="text-slate-500 italic font-normal">// Matrix ready for sports intelligence ingestion...</p>
                 </div>
             </div>
-            <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded-lg p-6 border border-slate-900 font-mono text-xs text-slate-400 shadow-inner">
-                <p class="text-slate-600 italic">Matrix ready...</p>
-            </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
+    <!-- PIPELINE SCRIPT CONNECTIONS -->
     <script>
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
-        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500">// Fetching news...</div>`; }
+        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500 font-mono">// Querying global sports wire feeds...</div>`; }
         
         document.getElementById('runBtn').onclick = () => {
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
             const sourceList = document.getElementById('activeSourceList');
             const output = document.getElementById('outputContainer');
 
-            if (mainCats.length === 0) return alert("Select at least one category.");
+            if (mainCats.length === 0) return alert("Select at least one active intelligence sector category.");
 
             sourceList.innerHTML = mainCats.map(item => 
-                `<div class="p-2 bg-slate-800 rounded border-l-2 border-emerald-500 text-emerald-300">» ${item.toUpperCase()}</div>`
+                `<div class="p-2 bg-slate-900 rounded-lg border-2 border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
             ).join('');
 
-            output.innerHTML = `<div class="text-emerald-400 font-mono">// PIPELINE ACTIVE<br>// DATA: ${mainCats.join(', ')}</div>`;
+            output.innerHTML = `<div class="text-emerald-400 font-mono">// SYSTEM INTELLIGENCE STREAM COUPLING COMPLETED<br>// CAPTURING ACTIVE NODES: ${mainCats.join(', ').toUpperCase()}</div>`;
         };
 
         function downloadData() {
@@ -107,7 +139,7 @@
             const blob = new Blob([data], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = 'scrapped-data.txt'; a.click();
+            a.href = url; a.download = 'sports-scrapped-intel.txt'; a.click();
         }
     </script>
 </body>
