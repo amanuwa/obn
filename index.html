@@ -13,22 +13,126 @@
             height: 100vh; 
             display: flex; 
             flex-direction: column;
-            background-color: #01040f;
-            /* Balanced backdrop tint layer to make the running athlete fully visible but readable */
-            background-image: 
-                linear-gradient(to bottom, rgba(2, 5, 18, 0.78), rgba(9, 13, 31, 0.82)), 
-                url('https://images.unsplash.com/photo-1502224562085-639556652f33?q=80&w=1920&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background-color: #010412;
             position: relative;
             overflow: hidden;
         }
+
+        /* CYBER PLATFORM RUNNING TRACK CONTAINER */
+        .cyber-arena {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: linear-gradient(to bottom, #010412 40%, #03102d 100%);
+        }
+
+        /* Perspective Grid Ground for the running platform */
+        .cyber-grid {
+            position: absolute;
+            width: 100%;
+            height: 60%;
+            bottom: 0;
+            background-image: 
+                linear-gradient(to right, rgba(5, 150, 105, 0.15) 2px, transparent 2px),
+                linear-gradient(to bottom, rgba(5, 150, 105, 0.15) 2px, transparent 2px);
+            background-size: 50px 50px;
+            transform: perspective(300px) rotateX(65deg);
+            transform-origin: top center;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 80%);
+        }
+
+        /* Glowing finish line or track limits */
+        .track-lanes {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) perspective(300px) rotateX(65deg);
+            transform-origin: top center;
+            width: 600px;
+            height: 100%;
+            border-left: 4px solid rgba(16, 185, 129, 0.4);
+            border-right: 4px solid rgba(16, 185, 129, 0.4);
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+        }
+
+        /* 4 CYBER RUNNER WIREFRAME AVATARS */
+        .runner-group {
+            position: absolute;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 250px;
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            padding: 0 50px;
+        }
+
+        .cyber-runner {
+            width: 90px;
+            height: 160px;
+            opacity: 0.35;
+            filter: drop-shadow(0 0 12px currentColor);
+            animation: sprint 0.6s infinite alternate ease-in-out;
+        }
+
+        /* Staggering the sprinting animations so they look realistic */
+        .runner-1 { color: #10b981; animation-delay: 0.1s; }
+        .runner-2 { color: #34d399; animation-delay: 0.3s; }
+        .runner-3 { color: #059669; animation-delay: 0.0s; }
+        .runner-4 { color: #00f2fe; animation-delay: 0.4s; }
+
+        /* Dynamic sprinting motion simulating running towards the front */
+        @keyframes sprint {
+            0% { transform: translateY(0) scale(1); opacity: 0.3; }
+            100% { transform: translateY(-12px) scale(1.05); opacity: 0.55; }
+        }
+
         ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-thumb { background: #059669; border-radius: 5px; }
     </style>
 </head>
 <body class="font-sans">
+
+    <!-- CYBER PLATFORM BACKGROUND MATRIX WITH 4 ANIMATED RUNNERS -->
+    <div class="cyber-arena">
+        <div class="cyber-grid"></div>
+        <div class="track-lanes"></div>
+        
+        <!-- Vector-based dynamic runner shapes racing forward -->
+        <div class="runner-group">
+            <!-- Runner 1 -->
+            <svg class="cyber-runner runner-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="4" r="2"/>
+                <path d="M4 14h6v6"/>
+                <path d="m14 14 3-3-3-3h-4l-2 3"/>
+                <path d="M11 20v-6l-3-3"/>
+            </svg>
+            <!-- Runner 2 -->
+            <svg class="cyber-runner runner-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="4" r="2"/>
+                <path d="M4 14h6v6"/>
+                <path d="m14 14 3-3-3-3h-4l-2 3"/>
+                <path d="M11 20v-6l-3-3"/>
+            </svg>
+            <!-- Runner 3 -->
+            <svg class="cyber-runner runner-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="4" r="2"/>
+                <path d="M4 14h6v6"/>
+                <path d="m14 14 3-3-3-3h-4l-2 3"/>
+                <path d="M11 20v-6l-3-3"/>
+            </svg>
+            <!-- Runner 4 -->
+            <svg class="cyber-runner runner-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="4" r="2"/>
+                <path d="M4 14h6v6"/>
+                <path d="m14 14 3-3-3-3h-4l-2 3"/>
+                <path d="M11 20v-6l-3-3"/>
+            </svg>
+        </div>
+    </div>
 
     <!-- MAIN TERMINAL APP FRAME -->
     <div class="relative z-10 flex flex-col h-full w-full">
