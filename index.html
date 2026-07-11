@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GovIntel Terminal | Governance & Policy Analytics</title>
+    <title>GovIntel Terminal | Local & International Registry</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
@@ -107,7 +107,7 @@
                 <div class="w-8 h-8 rounded bg-sky-600 flex items-center justify-center font-bold text-xs border border-sky-400">HQ</div>
                 <span class="font-semibold text-slate-100 tracking-tight text-base uppercase">GovIntel Central Registry</span>
             </div>
-            <div class="font-mono text-xs text-sky-400 tracking-wider animate-pulse">// SYSTEM SECURE // GLOBAL DATA STREAM ENGAGED</div>
+            <div class="font-mono text-xs text-sky-400 tracking-wider animate-pulse">// SECURITY MATRIX // LOCAL & INTERNATIONAL FEEDS ACTIVE</div>
         </header>
 
         <!-- DASHBOARD BODY PANEL MATRIX -->
@@ -124,17 +124,20 @@
                         Map All Matrices
                     </button>
 
+                    <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider pt-2 pb-1">Local (Ethiopia)</div>
                     <label class="flex items-center bg-slate-950/70 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-sky-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-sky-600" value="legislative"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Legislative & Bills</span>
+                        <input type="checkbox" class="cat-check scale-110 accent-sky-600" value="local-legislation"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Proclamations & Bills</span>
                     </label>
                     <label class="flex items-center bg-slate-950/70 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-sky-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-sky-600" value="electoral"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Elections & Polling</span>
+                        <input type="checkbox" class="cat-check scale-110 accent-sky-600" value="local-elections"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Elections & Regional Councils</span>
+                    </label>
+
+                    <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider pt-3 pb-1">International</div>
+                    <label class="flex items-center bg-slate-950/70 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-sky-500">
+                        <input type="checkbox" class="cat-check scale-110 accent-sky-600" value="intl-geopolitics"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Geopolitical Relations</span>
                     </label>
                     <label class="flex items-center bg-slate-950/70 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-sky-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-sky-600" value="macroeconomic"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Macroeconomic Policy</span>
-                    </label>
-                    <label class="flex items-center bg-slate-950/70 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-sky-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-sky-600" value="geopolitical"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Geopolitical Relations</span>
+                        <input type="checkbox" class="cat-check scale-110 accent-sky-600" value="intl-macro"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Global Markets & Policy</span>
                     </label>
                 </div>
 
@@ -157,7 +160,7 @@
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span> Critical Policy Watch
                         </h3>
                         <div class="flex gap-2">
-                            <input type="text" id="hotNewsInput" placeholder="Enter country, bill, or cabinet department..." class="flex-1 bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:border-amber-500 outline-none">
+                            <input type="text" id="hotNewsInput" placeholder="Enter country, specific bill, or institution..." class="flex-1 bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:border-amber-500 outline-none">
                             <button onclick="getHotNews()" class="bg-amber-600 border border-amber-400 px-5 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-amber-500 cursor-pointer transition-colors tracking-wider">Intercept</button>
                         </div>
                     </div>
@@ -165,11 +168,15 @@
                     <!-- REPLAY / REGIONAL METRIC BAR -->
                     <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-3">
                         <div class="flex gap-2 flex-wrap">
-                            <button onclick="toggleAll('.lang-check', true)" class="bg-sky-950 hover:bg-sky-600 border border-sky-500 text-sky-400 hover:text-white px-4 py-2 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Global Coverage</button>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-sky-500" value="domestic"> <span class="text-xs font-normal uppercase text-slate-400">Domestic Feed</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-sky-500" value="regional"> <span class="text-xs font-normal uppercase text-slate-300">Horn of Africa</span></label>
+                            <button onclick="toggleAll('.lang-check', true)" class="bg-sky-950 hover:bg-sky-600 border border-sky-500 text-sky-400 hover:text-white px-4 py-2 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All Scopes</button>
+                            
+                            <!-- Local Boundaries -->
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-sky-900 rounded-lg hover:border-sky-600"><input type="checkbox" class="lang-check scale-110 accent-sky-500" value="fed-regional"> <span class="text-xs font-normal uppercase text-sky-400">Local (Fed & Regional)</span></label>
+                            
+                            <!-- International Boundaries -->
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-sky-500" value="horn-africa"> <span class="text-xs font-normal uppercase text-slate-300">Horn of Africa</span></label>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-sky-500" value="continental"> <span class="text-xs font-normal uppercase text-slate-300">African Union</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-sky-500" value="un"> <span class="text-xs font-normal uppercase text-slate-300">International / UN</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-sky-500" value="global-un"> <span class="text-xs font-normal uppercase text-slate-300">Global (UN/Multilateral)</span></label>
                         </div>
                         <button onclick="downloadData()" class="bg-sky-700 border border-sky-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-sky-600 transition-all cursor-pointer tracking-wider">Export Briefing</button>
                     </div>
@@ -177,7 +184,7 @@
 
                 <!-- MAIN RAW DATA OUTPUT -->
                 <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/80 rounded-lg p-4 border border-slate-900 font-mono text-xs text-sky-400 shadow-inner">
-                    <p class="text-slate-500 italic font-normal">// Strategic registry online. Standby for legislative and policy node updates...</p>
+                    <p class="text-slate-500 italic font-normal">// Strategic registry online. Standby for local legislative arrays and international updates...</p>
                 </div>
             </div>
         </main>
@@ -185,7 +192,6 @@
 
     <!-- ENGINE LIFECYCLE SCRIPTS -->
     <script>
-        // High-level thematic governance iconography matrix
         const govPool = [
             { icon: '🏛️', color: '#38bdf8' }, // Capitol/Parliament
             { icon: '⚖️', color: '#f59e0b' }, // Law/Scales
@@ -197,7 +203,7 @@
 
         function spawnGovIntelRain() {
             const stage = document.getElementById('matrixFallingStage');
-            const totalItems = 18; // Clean structural allocation
+            const totalItems = 18;
 
             for (let i = 0; i < totalItems; i++) {
                 const item = document.createElement('div');
@@ -220,7 +226,6 @@
             const stage = document.getElementById('backdropStage');
             const appFrame = document.getElementById('mainAppFrame');
 
-            // Shift layout from preview state to operational interface at exactly 3000ms
             setTimeout(() => {
                 stage.classList.add('dashboard-active');
                 appFrame.classList.add('visible');
@@ -228,7 +233,7 @@
         });
 
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
-        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-amber-500 font-mono">// Intercepting active official gazettes and policy wire networks...</div>`; }
+        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-amber-500 font-mono">// Intercepting active local and international gazettes and official wire feeds...</div>`; }
         
         document.getElementById('runBtn').onclick = () => {
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
@@ -238,10 +243,10 @@
             if (mainCats.length === 0) return alert("Select at least one active strategic intelligence sector vector.");
 
             sourceList.innerHTML = mainCats.map(item => 
-                `<div class="p-2 bg-slate-900 rounded border border-sky-500 text-sky-300 font-mono text-xs">» DATA_NODE_${item.toUpperCase()}</div>`
+                `<div class="p-2 bg-slate-900 rounded border border-sky-500 text-sky-300 font-mono text-xs">» NODE_${item.toUpperCase()}</div>`
             ).join('');
 
-            output.innerHTML = `<div class="text-sky-400 font-mono">// REGISTRY AGGREGATION PIPELINE FULLY RESOLVED<br>// TRACKING CHANNELS: ${mainCats.join(' | ').toUpperCase()} // SAFE TO PROCESS</div>`;
+            output.innerHTML = `<div class="text-sky-400 font-mono">// REGISTRY AGGREGATION PIPELINE FULLY RESOLVED<br>// INTERCEPTING CHANNELS: ${mainCats.join(' | ').toUpperCase()} // SAFE TO PROCESS</div>`;
         };
 
         function downloadData() {
