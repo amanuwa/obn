@@ -33,7 +33,7 @@
             <h3 class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-4">Financial Sectors</h3>
             
             <div id="categoryContainer" class="space-y-4 mb-6">
-                <!-- ETHIOPIAN DISPATCH NO DEPT -->
+                <!-- ETHIOPIAN DISPATCH DEPT -->
                 <div>
                     <label class="block bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded cursor-pointer transition-all">
                         <input type="checkbox" id="ethToggle" class="cat-check" value="ethiopian"> <span class="text-xs font-bold uppercase ml-2">Ethiopian news</span>
@@ -94,7 +94,7 @@
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
-        // RESOLVED: Use distinct instanced name 'supabaseClient' to bypass global script namespace crash
+        // RESOLVED: Use instance name 'supabaseClient' to bypass global namespace crash
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             global: {
                 headers: {
@@ -106,11 +106,12 @@
 
         async function loadSourcesFromDB() {
             try {
-                // FIXED: Querying strict lowercase column case "websites" to match table schemas
+                // Table 1: Ethiopian Data fetch ("Website -source", websites)
                 const { data: ethData, error: ethErr } = await supabaseClient
                     .from('Ethiopian -Business and finance websites')
                     .select('"Website -source", websites');
                     
+                // Table 2: International Data fetch ("website Source", websites)
                 const { data: intData, error: intErr } = await supabaseClient
                     .from('business and finance -websites')
                     .select('"website Source", websites');
@@ -131,7 +132,7 @@
                     });
                 };
 
-                // Generate runtime elements from payload array
+                // Generate runtime checkboxes mapping text keys dynamically
                 buildList(ethData, 'ethSources', 'eth-src', 'Website -source');
                 buildList(intData, 'intSources', 'int-src', 'website Source');
                 
@@ -143,7 +144,7 @@
         // Run client transaction payload download
         loadSourcesFromDB();
 
-        // UI ACTIONS: Interactive drop drawer animations
+        // UI ACTIONS: Drop drawer animation toggles
         document.getElementById('ethToggle').addEventListener('change', (e) => {
             document.getElementById('ethSources').classList.toggle('hidden', !e.target.checked);
         });
