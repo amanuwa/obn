@@ -18,136 +18,85 @@
             overflow: hidden;
         }
 
-        /* CYBER EPIC BACKDROP STAGE */
-        .cyber-arena {
+        /* CYBER IMAGE BACKGROUND ENGINE */
+        .cyber-backdrop-container {
             position: absolute;
             inset: 0;
             z-index: 0;
             pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: radial-gradient(circle at center, #071235 0%, #02040e 100%);
+            transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
-        /* Deep 3D Digital Track Grid */
-        .cyber-grid {
-            position: absolute;
+        /* Cyberized Image Layer - Applies high-fidelity digital rendering */
+        .cyber-image-frame {
             width: 100%;
             height: 100%;
-            bottom: -20%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+            /* Cyber Matrix Filter Blend */
+            filter: hue-rotate(50deg) saturate(1.8) contrast(1.2) brightness(0.85);
+            mix-blend-mode: lighten;
+            opacity: 0.95;
+            transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        /* Digital Overlay Matrix HUD Grid */
+        .hud-overlay {
+            position: absolute;
+            inset: 0;
             background-image: 
-                linear-gradient(to right, rgba(16, 185, 129, 0.12) 2px, transparent 2px),
-                linear-gradient(to bottom, rgba(16, 185, 129, 0.12) 2px, transparent 2px);
-            background-size: 80px 80px;
-            transform: perspective(350px) rotateX(65deg);
-            transform-origin: bottom center;
+                linear-gradient(to right, rgba(16, 185, 129, 0.15) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(16, 185, 129, 0.15) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 1;
+            transition: opacity 1s ease-out;
         }
 
-        /* REALISTIC NEON FINISH TAPE */
-        .finish-line {
+        /* Animated Telemetry Scanning Line */
+        .scanline {
             position: absolute;
-            bottom: 28%;
-            left: 0;
             width: 100%;
-            height: 8px;
-            background: linear-gradient(90deg, transparent 10%, #00f2fe 40%, #10b981 50%, #00f2fe 60%, transparent 90%);
-            box-shadow: 0 0 25px #10b981, 0 0 50px #00f2fe;
-            opacity: 1;
-            z-index: 3;
-            transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-        }
-        .finish-line.broken {
-            opacity: 0;
-            transform: scaleY(4) translateY(-40px);
-            filter: blur(15px);
-        }
-
-        /* DYNAMIC REAL ATHLETE CONTAINER */
-        .runner-group {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            padding-bottom: 12vh;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #10b981, #00f2fe, #10b981, transparent);
+            box-shadow: 0 0 15px #10b981;
+            top: 0;
             z-index: 2;
+            animation: scanning 3s linear infinite;
         }
 
-        /* High-fidelity anatomical cyber athlete profiles sprinting forward */
-        .cyber-athlete {
-            width: 240px;
-            height: 340px;
-            position: absolute;
-            opacity: 0;
-            filter: drop-shadow(0 0 25px currentColor);
+        @keyframes scanning {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
         }
 
-        /* Tracking paths and staggered lanes */
-        .runner-left {
-            color: #059669;
-            margin-right: 480px;
-            animation: packSprint 4.2s forwards cubic-bezier(0.1, 0.8, 0.1, 1), bodyVibrate 0.15s infinite alternate;
+        /* 3-SECOND TRANSITION STATES */
+        .cyber-backdrop-container.dashboard-active {
+            background: #02040e;
         }
-        .runner-mid-left {
-            color: #34d399;
-            margin-right: 180px;
-            animation: packSprint 4.0s forwards cubic-bezier(0.1, 0.8, 0.1, 1), bodyVibrate 0.12s infinite alternate;
-            animation-delay: 0s, 0.1s;
+        .cyber-backdrop-container.dashboard-active .cyber-image-frame {
+            opacity: 0.25;
+            filter: hue-rotate(50deg) saturate(1.2) contrast(1.1) brightness(0.4) blur(4px);
+            transform: scale(1.02);
         }
-        /* The Alpha Winner - running straight out towards camera */
-        .runner-winner {
-            color: #00f2fe;
-            margin-left: 120px;
-            z-index: 4;
-            animation: winnerBreakout 3.5s forwards cubic-bezier(0.15, 0.85, 0.2, 1), bodyVibrate 0.08s infinite alternate;
-        }
-        .runner-right {
-            color: #10b981;
-            margin-left: 460px;
-            animation: packSprint 4.4s forwards cubic-bezier(0.1, 0.8, 0.1, 1), bodyVibrate 0.14s infinite alternate;
+        .cyber-backdrop-container.dashboard-active .hud-overlay {
+            opacity: 0.4;
         }
 
-        /* Micro muscle vibration under elite stress loads */
-        @keyframes bodyVibrate {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            100% { transform: translate(-1px, -1px) rotate(0.2deg); }
-        }
-
-        /* Pack pacing: charge forward, settle into backdrop loop */
-        @keyframes packSprint {
-            0% { transform: scale(0.05) translateY(400px); opacity: 0; }
-            10% { opacity: 0.9; }
-            75% { transform: scale(0.9) translateY(-20px); opacity: 0.9; }
-            100% { transform: scale(0.75) translateY(60px); opacity: 0.25; }
-        }
-
-        /* Winner breakout: storms through track, passes finish line and blasts past screen view */
-        @keyframes winnerBreakout {
-            0% { transform: scale(0.05) translateY(400px); opacity: 0; }
-            10% { opacity: 1; }
-            70% { transform: scale(1.1) translateY(-40px); opacity: 1; }
-            82% { opacity: 1; filter: blur(0px); }
-            100% { transform: scale(3.2) translateY(-480px); opacity: 0; filter: blur(12px); }
-        }
-
-        /* OVERLAY TIMING GLASS BURST */
-        .flash-overlay {
-            position: absolute;
-            inset: 0;
-            background: #ffffff;
-            opacity: 0;
-            z-index: 100;
-            pointer-events: none;
-            transition: opacity 0.35s ease-out;
-        }
-
-        /* INTERFACE PACK TRANSITIONS */
+        /* UI PANEL LAYER SLIDE TIMING */
         .app-interface {
             opacity: 0;
-            transform: scale(0.98) translateY(20px);
+            transform: translateY(40px);
             transition: opacity 1.2s cubic-bezier(0.1, 1, 0.1, 1), transform 1.2s cubic-bezier(0.1, 1, 0.1, 1);
         }
         .app-interface.visible {
             opacity: 1;
-            transform: scale(1) translateY(0);
+            transform: translateY(0);
         }
 
         ::-webkit-scrollbar { width: 10px; }
@@ -156,53 +105,30 @@
 </head>
 <body class="font-sans">
 
-    <!-- CAMERA MATRIX FLASH LAYER -->
-    <div id="flash" class="flash-overlay"></div>
-
-    <!-- BACKGROUND ENGINE -->
-    <div class="cyber-arena">
-        <div class="cyber-grid"></div>
-        <div id="finishTape" class="finish-line"></div>
-        
-        <div class="runner-group">
-            <!-- Athlete 1: Left Wing Sprint -->
-            <svg class="cyber-athlete runner-left" viewBox="0 0 100 100" fill="currentColor">
-                <path d="M48,12 C51,12 53,10 53,7 C53,4 51,2 48,2 C45,2 43,4 43,7 C43,10 45,12 48,12 Z M35,32 L22,24 L16,42 L22,44 L26,30 L34,35 L28,68 L14,66 L12,74 L32,76 L38,46 L46,52 L42,88 L52,90 L56,56 L46,40 L48,26 L62,38 L72,34 L70,26 L62,28 L46,16 L36,22 Z"/>
-            </svg>
-
-            <!-- Athlete 2: Mid Left Power Drive -->
-            <svg class="cyber-athlete runner-mid-left" viewBox="0 0 100 100" fill="currentColor">
-                <path d="M52,14 C55,14 57,11 57,8 C57,5 55,3 52,3 C49,3 47,5 47,8 C47,11 49,14 52,14 Z M38,36 L26,26 L18,44 L25,46 L29,34 L37,40 L32,72 L16,70 L14,78 L35,80 L42,48 L50,54 L44,92 L54,94 L60,58 L49,42 L52,28 L66,42 L78,36 L74,28 L65,32 L49,18 L39,24 Z"/>
-            </svg>
-
-            <!-- Athlete 3: The Alpha Winner (High Silhouette Finish Mechanics) -->
-            <svg class="cyber-athlete runner-winner" viewBox="0 0 100 100" fill="currentColor">
-                <!-- Detailed Front Profile Runner Chest, Pumping Triceps and Striding Quads -->
-                <path d="M50,15 C53.3,15 56,12.3 56,9 C56,5.7 53.3,3 50,3 C46.7,3 44,5.7 44,9 C44,12.3 46.7,15 50,15 Z M32,22 L20,40 L28,44 L36,30 L42,34 L36,75 L18,85 L22,93 L44,80 L52,44 L60,44 L66,82 L86,91 L90,83 L74,74 L66,34 L72,28 L82,38 L88,30 L74,18 L58,24 L48,18 L32,22 Z"/>
-            </svg>
-
-            <!-- Athlete 4: Right Wing Tracker -->
-            <svg class="cyber-athlete runner-right" viewBox="0 0 100 100" fill="currentColor">
-                <path d="M46,13 C49,13 51,11 51,8 C51,5 49,3 46,3 C43,3 41,5 41,8 C41,11 43,13 46,13 Z M32,34 L20,24 L12,42 L19,44 L23,32 L32,37 L26,70 L12,68 L10,76 L30,78 L36,46 L44,52 L40,88 L50,90 L54,54 L44,38 L46,24 L60,36 L70,32 L68,24 L60,26 L44,15 L34,20 Z"/>
-            </svg>
-        </div>
+    <!-- THE CYBER HERO VISUAL PACK -->
+    <div id="backdropStage" class="cyber-backdrop-container">
+        <div class="hud-overlay"></div>
+        <div id="laserLine" class="scanline"></div>
+        <!-- Using the iconic celebration image URL -->
+        <img class="cyber-image-frame" src="https://i.postimg.co/N0f5hVwW/Screenshot-2026-07-10-234455.jpg" alt="Ethiopian Champions Matrix Input" onerror="this.src='https://images.unsplash.com/photo-1502224562085-639556652f33?q=80&w=1200'">
     </div>
 
-    <!-- MAIN TERMINAL APP FRAME -->
+    <!-- MAIN DASHBOARD SYSTEM STAGE -->
     <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full">
         
-        <!-- HEADER -->
+        <!-- HEADER TOOLBAR -->
         <header class="bg-slate-950/60 border-b-4 border-slate-800 px-8 py-4 flex items-center justify-between backdrop-blur-lg">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-md bg-emerald-600 flex items-center justify-center font-bold text-xs border-2 border-emerald-400">AI</div>
                 <span class="font-medium text-slate-100 tracking-tight text-base">Sports Analytics Terminal</span>
             </div>
+            <div class="font-mono text-xs text-emerald-400 tracking-wider animate-pulse">// SYSTEM STATUS: ACTIVE INGESTION</div>
         </header>
 
-        <!-- MAIN INTERFACE GRID -->
+        <!-- MAIN INTERFACE MATRIX -->
         <main class="flex-1 grid grid-cols-4 gap-5 p-5 h-full overflow-hidden">
             
-            <!-- LEFT MODULE -->
+            <!-- LEFT CONTROL DRAWER -->
             <div class="col-span-1 bg-slate-950/45 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-lg">
                 <h3 class="text-[11px] font-medium text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Select Categories
@@ -235,7 +161,7 @@
                 <button id="runBtn" class="w-full bg-emerald-600 border-4 border-emerald-400 p-4 rounded-xl font-medium text-xs uppercase hover:bg-emerald-500 transition-all cursor-pointer shadow-md tracking-wider">Fire Pipeline</button>
             </div>
 
-            <!-- RIGHT MODULE -->
+            <!-- RIGHT MONITOR SCREEN DISPLAY -->
             <div class="col-span-3 bg-slate-950/40 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-lg">
                 <div class="mb-6">
                     <h3 class="font-medium text-sm text-slate-300 mb-4">Scrapped Intelligence Matrix</h3>
@@ -269,28 +195,20 @@
         </main>
     </div>
 
-    <!-- TIMELINE ENGINE SCRIPTS -->
+    <!-- PIPELINE AUTOMATION LIFECYCLE SCRIPTS -->
     <script>
+        // STRICT 3 SECOND CONSOLE SEQUENCE TIMELINE
         window.addEventListener('DOMContentLoaded', () => {
-            const flash = document.getElementById('flash');
-            const tape = document.getElementById('finishTape');
+            const stage = document.getElementById('backdropStage');
+            const laser = document.getElementById('laserLine');
             const appFrame = document.getElementById('mainAppFrame');
 
-            // 1. Trigger high-speed camera shutter flash at winner crossing point (2.8s)
+            // Exactly at the 3-second mark, trigger the background swap and interface generation
             setTimeout(() => {
-                flash.style.opacity = '1';
-                tape.classList.add('broken');
-            }, 2800);
-
-            // 2. Clear out lens burst
-            setTimeout(() => {
-                flash.style.opacity = '0';
-            }, 3100);
-
-            // 3. Bring up the thick-edged telemetry grid panels
-            setTimeout(() => {
+                stage.classList.add('dashboard-active');
+                laser.style.display = 'none'; // Lock scanner line position post ingestion
                 appFrame.classList.add('visible');
-            }, 3350);
+            }, 3000);
         });
 
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
