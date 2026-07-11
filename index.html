@@ -13,81 +13,128 @@
             height: 100vh; 
             display: flex; 
             flex-direction: column;
-            background-color: #010412;
+            background-color: #020514;
             position: relative;
             overflow: hidden;
         }
 
-        /* CYBER PLATFORM RUNNING TRACK CONTAINER */
+        /* CYBER PLATFORM BACKGROUND/INTRO ARENA */
         .cyber-arena {
             position: absolute;
             inset: 0;
             z-index: 0;
             pointer-events: none;
-            background: linear-gradient(to bottom, #010412 40%, #03102d 100%);
+            background: radial-gradient(circle at center, #06133a 0%, #020514 100%);
         }
 
-        /* Perspective Grid Ground for the running platform */
+        /* Perspective Grid Ground */
         .cyber-grid {
             position: absolute;
             width: 100%;
-            height: 60%;
-            bottom: 0;
-            background-image: 
-                linear-gradient(to right, rgba(5, 150, 105, 0.15) 2px, transparent 2px),
-                linear-gradient(to bottom, rgba(5, 150, 105, 0.15) 2px, transparent 2px);
-            background-size: 50px 50px;
-            transform: perspective(300px) rotateX(65deg);
-            transform-origin: top center;
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 80%);
-        }
-
-        /* Glowing finish line or track limits */
-        .track-lanes {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%) perspective(300px) rotateX(65deg);
-            transform-origin: top center;
-            width: 600px;
             height: 100%;
-            border-left: 4px solid rgba(16, 185, 129, 0.4);
-            border-right: 4px solid rgba(16, 185, 129, 0.4);
-            box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+            bottom: -10%;
+            background-image: 
+                linear-gradient(to right, rgba(16, 185, 129, 0.18) 2px, transparent 2px),
+                linear-gradient(to bottom, rgba(16, 185, 129, 0.18) 2px, transparent 2px);
+            background-size: 60px 60px;
+            transform: perspective(400px) rotateX(60deg);
+            transform-origin: bottom center;
         }
 
-        /* 4 CYBER RUNNER WIREFRAME AVATARS */
+        /* DYNAMIC FINISH LINE TAPE */
+        .finish-line {
+            position: absolute;
+            bottom: 35%;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, transparent, #00f2fe, #10b981, #00f2fe, transparent);
+            box-shadow: 0 0 20px #10b981, 0 0 40px #00f2fe;
+            opacity: 1;
+            transition: all 0.5s ease-out;
+            z-index: 2;
+        }
+        .finish-line.broken {
+            opacity: 0;
+            transform: scaleY(3) translateY(-20px);
+            filter: blur(10px);
+        }
+
+        /* RUNNER GROUP TIMELINE CONTROLS */
         .runner-group {
             position: absolute;
-            bottom: 5%;
+            bottom: 15%;
             left: 50%;
             transform: translateX(-50%);
-            width: 800px;
-            height: 250px;
+            width: 90%;
+            height: 400px;
             display: flex;
             justify-content: space-around;
-            align-items: flex-end;
-            padding: 0 50px;
+            align-items: center;
+            z-index: 1;
+            transition: opacity 1.5s ease-in-out;
         }
 
         .cyber-runner {
-            width: 90px;
-            height: 160px;
-            opacity: 0.35;
-            filter: drop-shadow(0 0 12px currentColor);
-            animation: sprint 0.6s infinite alternate ease-in-out;
+            width: 180px;
+            height: 240px;
+            opacity: 0;
+            filter: drop-shadow(0 0 20px currentColor);
+            /* Step 1: Runners approach from the distance */
+            animation: introApproach 3.5s forwards cubic-bezier(0.1, 0.7, 0.1, 1), sprintCycle 0.6s infinite alternate ease-in-out;
         }
 
-        /* Staggering the sprinting animations so they look realistic */
-        .runner-1 { color: #10b981; animation-delay: 0.1s; }
-        .runner-2 { color: #34d399; animation-delay: 0.3s; }
-        .runner-3 { color: #059669; animation-delay: 0.0s; }
-        .runner-4 { color: #00f2fe; animation-delay: 0.4s; }
+        .runner-1 { color: #10b981; animation-delay: 0s, 0.1s; }
+        .runner-2 { color: #34d399; animation-delay: 0s, 0.35s; }
+        /* Runner 3 is configured to pull ahead and win */
+        .runner-3 { 
+            color: #00f2fe; 
+            animation: winnerApproach 3.2s forwards cubic-bezier(0.1, 0.7, 0.1, 1), sprintCycle 0.5s infinite alternate ease-in-out;
+        }
+        .runner-4 { color: #059669; animation-delay: 0s, 0.5s; }
 
-        /* Dynamic sprinting motion simulating running towards the front */
-        @keyframes sprint {
-            0% { transform: translateY(0) scale(1); opacity: 0.3; }
-            100% { transform: translateY(-12px) scale(1.05); opacity: 0.55; }
+        /* General sprinting limb micro-motion */
+        @keyframes sprintCycle {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-15px); }
+        }
+
+        /* 3 Standard athletes pacing framework */
+        @keyframes introApproach {
+            0% { transform: scale(0.1) translateY(200px); opacity: 0; }
+            15% { opacity: 0.85; }
+            80% { transform: scale(1) translateY(0); opacity: 0.85; }
+            100% { transform: scale(0.9) translateY(40px); opacity: 0.35; } /* Settles back as layout opens */
+        }
+
+        /* Winner break-away framework running past the camera */
+        @keyframes winnerApproach {
+            0% { transform: scale(0.1) translateY(200px); opacity: 0; }
+            15% { opacity: 0.95; }
+            85% { transform: scale(1.1) translateY(-20px); opacity: 0.95; }
+            100% { transform: scale(2.5) translateY(-300px); opacity: 0; filter: blur(4px); } /* Sprints through finish line past view */
+        }
+
+        /* INTRO FLASH BURST EFFECT */
+        .flash-overlay {
+            position: absolute;
+            inset: 0;
+            background: #fff;
+            opacity: 0;
+            z-index: 50;
+            pointer-events: none;
+            transition: opacity 0.4s ease-out;
+        }
+
+        /* MAIN APP STAGE TRANSITION PANELS */
+        .app-interface {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1s ease-out, transform 1s cubic-bezier(0.1, 1, 0.1, 1);
+        }
+        .app-interface.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         ::-webkit-scrollbar { width: 10px; }
@@ -96,36 +143,38 @@
 </head>
 <body class="font-sans">
 
-    <!-- CYBER PLATFORM BACKGROUND MATRIX WITH 4 ANIMATED RUNNERS -->
+    <!-- FLASH EFFECT DOM NODE -->
+    <div id="flash" class="flash-overlay"></div>
+
+    <!-- CYBER PLATFORM BACKGROUND MATRIX WITH ANIMATED RUNNERS -->
     <div class="cyber-arena">
         <div class="cyber-grid"></div>
-        <div class="track-lanes"></div>
+        <div id="finishTape" class="finish-line"></div>
         
-        <!-- Vector-based dynamic runner shapes racing forward -->
-        <div class="runner-group">
+        <div id="runnerGroup" class="runner-group">
             <!-- Runner 1 -->
-            <svg class="cyber-runner runner-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="cyber-runner runner-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="4" r="2"/>
                 <path d="M4 14h6v6"/>
                 <path d="m14 14 3-3-3-3h-4l-2 3"/>
                 <path d="M11 20v-6l-3-3"/>
             </svg>
             <!-- Runner 2 -->
-            <svg class="cyber-runner runner-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="cyber-runner runner-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="4" r="2"/>
                 <path d="M4 14h6v6"/>
                 <path d="m14 14 3-3-3-3h-4l-2 3"/>
                 <path d="M11 20v-6l-3-3"/>
             </svg>
-            <!-- Runner 3 -->
-            <svg class="cyber-runner runner-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Winner Athlete (Runner 3) -->
+            <svg class="cyber-runner runner-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="4" r="2"/>
                 <path d="M4 14h6v6"/>
                 <path d="m14 14 3-3-3-3h-4l-2 3"/>
                 <path d="M11 20v-6l-3-3"/>
             </svg>
             <!-- Runner 4 -->
-            <svg class="cyber-runner runner-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="cyber-runner runner-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="4" r="2"/>
                 <path d="M4 14h6v6"/>
                 <path d="m14 14 3-3-3-3h-4l-2 3"/>
@@ -134,11 +183,11 @@
         </div>
     </div>
 
-    <!-- MAIN TERMINAL APP FRAME -->
-    <div class="relative z-10 flex flex-col h-full w-full">
+    <!-- MAIN TERMINAL APP FRAME (Wrapped with visibility automation classes) -->
+    <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full">
         
-        <!-- HEADER TOOLBAR (Heavy 4px Framing Edge) -->
-        <header class="bg-slate-950/90 border-b-4 border-slate-800 px-8 py-4 flex items-center justify-between backdrop-blur-md">
+        <!-- HEADER TOOLBAR -->
+        <header class="bg-slate-950/60 border-b-4 border-slate-800 px-8 py-4 flex items-center justify-between backdrop-blur-lg">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-md bg-emerald-600 flex items-center justify-center font-bold text-xs border-2 border-emerald-400">AI</div>
                 <span class="font-medium text-slate-100 tracking-tight text-base">Sports Analytics Terminal</span>
@@ -148,33 +197,33 @@
         <!-- MAIN INTERFACE MATRIX -->
         <main class="flex-1 grid grid-cols-4 gap-5 p-5 h-full overflow-hidden">
             
-            <!-- LEFT CONTROL DRAWER (Heavy 4px framing edge, regular interior text) -->
-            <div class="col-span-1 bg-slate-950/90 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-sm">
+            <!-- LEFT CONTROL DRAWER -->
+            <div class="col-span-1 bg-slate-950/45 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-lg">
                 <h3 class="text-[11px] font-medium text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Select Categories
                 </h3>
                 
                 <div id="categoryContainer" class="space-y-4 mb-6">
-                    <button onclick="toggleAll('.cat-check', true)" class="w-full bg-emerald-950/50 hover:bg-emerald-600 border-4 border-emerald-500 text-emerald-400 hover:text-white px-4 py-3 rounded-xl font-medium text-xs uppercase transition-all mb-2 cursor-pointer">
+                    <button onclick="toggleAll('.cat-check', true)" class="w-full bg-emerald-950/40 hover:bg-emerald-600 border-4 border-emerald-500 text-emerald-400 hover:text-white px-4 py-3 rounded-xl font-medium text-xs uppercase transition-all mb-2 cursor-pointer">
                         Select All Categories
                     </button>
 
-                    <label class="block bg-slate-900/90 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
+                    <label class="block bg-slate-950/60 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" class="cat-check scale-125 accent-emerald-600" value="epl"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">Ethiopian Premier League</span>
                     </label>
-                    <label class="block bg-slate-900/90 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
+                    <label class="block bg-slate-950/60 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" class="cat-check scale-125 accent-emerald-600" value="international"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">International</span>
                     </label>
-                    <label class="block bg-slate-900/90 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
+                    <label class="block bg-slate-950/60 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" class="cat-check scale-125 accent-emerald-600" value="athletics"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">Athletics</span>
                     </label>
-                    <label class="block bg-slate-900/90 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
+                    <label class="block bg-slate-950/60 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" class="cat-check scale-125 accent-emerald-600" value="others"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">Others</span>
                     </label>
                 </div>
 
                 <!-- ACTIVE LIVE MONITOR LIST -->
-                <div class="flex-1 bg-slate-950 rounded-xl border-4 border-slate-800/80 p-4 mb-4 overflow-y-auto">
+                <div class="flex-1 bg-slate-950/70 rounded-xl border-4 border-slate-800/80 p-4 mb-4 overflow-y-auto">
                     <h3 class="text-[9px] font-medium text-slate-400 uppercase mb-3">Active Sources</h3>
                     <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-500 italic">// Waiting for pipeline...</div>
                 </div>
@@ -182,45 +231,70 @@
                 <button id="runBtn" class="w-full bg-emerald-600 border-4 border-emerald-400 p-4 rounded-xl font-medium text-xs uppercase hover:bg-emerald-500 transition-all cursor-pointer shadow-md tracking-wider">Fire Pipeline</button>
             </div>
 
-            <!-- RIGHT MONITOR SCREEN DISPLAY (Heavy 4px framing edge, regular interior text) -->
-            <div class="col-span-3 bg-slate-950/85 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-sm">
+            <!-- RIGHT MONITOR SCREEN DISPLAY -->
+            <div class="col-span-3 bg-slate-950/40 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-lg">
                 <div class="mb-6">
                     <h3 class="font-medium text-sm text-slate-300 mb-4">Scrapped Intelligence Matrix</h3>
                     
                     <!-- FAST HOT NEWS ENGINE -->
-                    <div class="bg-slate-900 border-4 border-slate-800 p-4 rounded-xl w-full mb-4">
+                    <div class="bg-slate-950/50 border-4 border-slate-800 p-4 rounded-xl w-full mb-4">
                         <h3 class="text-[10px] font-medium text-rose-500 uppercase mb-2 flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Fast Hot News
                         </h3>
                         <div class="flex gap-3">
-                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border-4 border-slate-800 rounded-xl p-3 text-xs text-white focus:border-rose-500 outline-none">
+                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950/80 border-4 border-slate-800 rounded-xl p-3 text-xs text-white focus:border-rose-500 outline-none">
                             <button onclick="getHotNews()" class="bg-rose-600 border-4 border-rose-400 px-6 py-2 rounded-xl font-medium text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors">Go</button>
                         </div>
                     </div>
                     
                     <!-- UTILITY LANGUAGE SELECTION TOOLBAR -->
-                    <div class="bg-slate-900 border-4 border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-4">
+                    <div class="bg-slate-950/50 border-4 border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-4">
                         <div class="flex gap-4 flex-wrap">
                             <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-950 hover:bg-emerald-600 border-4 border-emerald-500 text-emerald-400 hover:text-white px-5 py-2.5 rounded-xl font-medium text-xs uppercase transition-all cursor-pointer">Select All</button>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
                         </div>
                         <button onclick="downloadData()" class="bg-blue-600 border-4 border-blue-400 px-6 py-2.5 rounded-xl font-medium text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer">Download</button>
                     </div>
                 </div>
 
                 <!-- MAIN LOGGER CONSOLE HOUSING -->
-                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/95 rounded-xl p-6 border-4 border-slate-900 font-mono text-xs text-emerald-400 shadow-inner">
+                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/80 rounded-xl p-6 border-4 border-slate-900 font-mono text-xs text-emerald-400 shadow-inner">
                     <p class="text-slate-500 italic font-normal">// Matrix ready for sports intelligence ingestion...</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- PIPELINE SCRIPT CONNECTIONS -->
+    <!-- TIMELINE ENGINE SCRIPTS -->
     <script>
+        // CRITICAL CINEMATIC TIMELINE SCHEDULER
+        window.addEventListener('DOMContentLoaded', () => {
+            const flash = document.getElementById('flash');
+            const tape = document.getElementById('finishTape');
+            const appFrame = document.getElementById('mainAppFrame');
+            const runners = document.getElementById('runnerGroup');
+
+            // 1. Trigger camera flash burst right as the winning runner breaks the tape (at 2.6s mark)
+            setTimeout(() => {
+                flash.style.opacity = '1';
+                tape.classList.add('broken');
+            }, 2600);
+
+            // 2. Clear out the bright flash frame shortly after to simulate camera shutter speed
+            setTimeout(() => {
+                flash.style.opacity = '0';
+            }, 2950);
+
+            // 3. Smoothly render interface layouts into physical view space
+            setTimeout(() => {
+                appFrame.classList.add('visible');
+            }, 3200);
+        });
+
+        // STANDARD INTERACTIVE UI LOGIC TERMINALS
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
         function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500 font-mono">// Querying global sports wire feeds...</div>`; }
         
