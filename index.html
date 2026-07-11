@@ -3,85 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Command Center | Analytics Terminal</title>
-    <!-- Tailwind CSS -->
+    <title>Command Center | Analytics Terminal (Large Interface)</title>
+    <!-- Tailwind CSS (Heavily scaled up for large displays) -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         body { 
-            margin: 0; 
-            color: #f1f5f9; 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column;
-            background-color: #02040e;
-            position: relative;
-            overflow: hidden;
+            margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column;
+            background-color: #02040e; position: relative; overflow: hidden;
+            /* Increase baseline font for large interface */
+            font-size: 1.125rem; /* 18px */
         }
 
         /* CYBER MATRIX CANVAS STAGE */
         .cyber-backdrop-container {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
+            position: absolute; inset: 0; z-index: 0; pointer-events: none;
             background: radial-gradient(circle at center, #071235 0%, #02040e 100%);
             transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
-        /* HUD Grid */
+        /* HUD Grid (Thicker lines) */
         .hud-overlay {
-            position: absolute;
-            inset: 0;
+            position: absolute; inset: 0;
             background-image: 
-                linear-gradient(to right, rgba(16, 185, 129, 0.1) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(16, 185, 129, 0.1) 1px, transparent 1px);
-            background-size: 40px 40px;
-            z-index: 1;
+                linear-gradient(to right, rgba(16, 185, 129, 0.2) 2px, transparent 2px),
+                linear-gradient(to bottom, rgba(16, 185, 129, 0.2) 2px, transparent 2px);
+            background-size: 80px 80px; z-index: 1;
         }
 
         /* Falling Cyber Sports Items Container */
         .falling-matrix-stage {
-            position: absolute;
-            inset: 0;
-            z-index: 2;
-            overflow: hidden;
+            position: absolute; inset: 0; z-index: 2; overflow: hidden;
         }
 
         .sport-item {
-            position: absolute;
-            top: -60px;
-            font-size: 2.5rem;
-            filter: drop-shadow(0 0 12px currentColor);
-            animation: fallDown 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-            opacity: 0.85;
+            position: absolute; top: -150px;
+            /* VERY BIG FALLING BALLS */
+            font-size: 12rem; /* scaled massively from 2.5rem */
+            filter: drop-shadow(0 0 25px currentColor);
+            animation: fallDownBig 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            opacity: 0.9;
         }
 
-        @keyframes fallDown {
+        @keyframes fallDownBig {
             0% {
-                transform: translateY(0) rotate(0deg) scale(0.5);
+                transform: translateY(0) rotate(0deg) scale(0.3);
                 opacity: 0;
             }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 0.85;
-            }
+            10% { opacity: 1; }
+            90% { opacity: 0.9; }
             100% {
-                transform: translateY(105vh) rotate(720deg) scale(1);
-                opacity: 0.1; /* Leave subtle terminal trace at bottom */
+                transform: translateY(110vh) rotate(720deg) scale(1);
+                opacity: 0.15; /* Leave subtle trace at bottom */
             }
         }
 
         /* Laser Sweep Line */
         .scanline {
-            position: absolute;
-            width: 100%;
-            height: 4px;
+            position: absolute; width: 100%; height: 6px;
             background: linear-gradient(90deg, transparent, #10b981, #00f2fe, #10b981, transparent);
-            box-shadow: 0 0 20px #10b981;
-            top: 0;
-            z-index: 4;
+            box-shadow: 0 0 30px #10b981; top: 0; z-index: 4;
             animation: scanning 3s linear infinite;
         }
 
@@ -93,7 +73,7 @@
 
         /* 3-SECOND DASHBOARD STATE RULES */
         .cyber-backdrop-container.dashboard-active {
-            opacity: 0.4;
+            opacity: 0.35;
         }
         .cyber-backdrop-container.dashboard-active .scanline {
             display: none;
@@ -101,17 +81,15 @@
 
         /* PANELS LAYER TRANSITION SYSTEM */
         .app-interface {
-            opacity: 0;
-            transform: translateY(40px);
+            opacity: 0; transform: translateY(60px);
             transition: opacity 1.2s cubic-bezier(0.1, 1, 0.1, 1), transform 1.2s cubic-bezier(0.1, 1, 0.1, 1);
         }
         .app-interface.visible {
-            opacity: 1;
-            transform: translateY(0);
+            opacity: 1; transform: translateY(0);
         }
 
-        ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-thumb { background: #059669; border-radius: 5px; }
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-thumb { background: #059669; border-radius: 6px; }
     </style>
 </head>
 <body class="font-sans">
@@ -121,87 +99,87 @@
         <div class="hud-overlay"></div>
         <div id="laserLine" class="scanline"></div>
         
-        <!-- Script-populated raining elements container -->
+        <!-- Container for VERY BIG sports balls rain -->
         <div id="matrixFallingStage" class="falling-matrix-stage"></div>
     </div>
 
-    <!-- STEP 2: METRICS TELEMETRY PANELS DISPLAY -->
+    <!-- STEP 2: METRICS TELEMETRY PANELS DISPLAY (Extra-Large Elements) -->
     <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full">
         
-        <!-- HEADER -->
-        <header class="bg-slate-950/60 border-b-4 border-slate-800 px-8 py-4 flex items-center justify-between backdrop-blur-lg">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-md bg-emerald-600 flex items-center justify-center font-bold text-xs border-2 border-emerald-400">AI</div>
-                <span class="font-medium text-slate-100 tracking-tight text-base">Sports Analytics Terminal</span>
+        <!-- HEADER (Bold, Thick) -->
+        <header class="bg-slate-950/60 border-b-4 border-slate-800 px-10 py-6 flex items-center justify-between backdrop-blur-lg">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-md bg-emerald-600 flex items-center justify-center font-bold text-sm border-2 border-emerald-400">AI</div>
+                <span class="font-bold text-slate-100 tracking-tight text-lg">Sports Analytics Terminal</span>
             </div>
-            <div class="font-mono text-xs text-emerald-400 tracking-wider animate-pulse">// MULTI-SPORT STREAM INGESTION ACTIVE</div>
+            <div class="font-mono text-sm text-emerald-400 tracking-wider animate-pulse">// MULTI-SPORT STREAM INGESTION ACTIVE</div>
         </header>
 
         <!-- DASHBOARD BODY PANEL MATRIX -->
-        <main class="flex-1 grid grid-cols-4 gap-5 p-5 h-full overflow-hidden">
+        <main class="flex-1 grid grid-cols-4 gap-6 p-6 h-full overflow-hidden">
             
-            <!-- CONTROLS SIDE PANEL -->
-            <div class="col-span-1 bg-slate-950/45 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-lg">
-                <h3 class="text-[11px] font-medium text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Select Categories
+            <!-- CONTROLS SIDE PANEL (Extra-Large components) -->
+            <div class="col-span-1 bg-slate-950/45 p-8 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-lg">
+                <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-6 flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> Select Categories
                 </h3>
                 
-                <div id="categoryContainer" class="space-y-4 mb-6">
-                    <button onclick="toggleAll('.cat-check', true)" class="w-full bg-emerald-950/40 hover:bg-emerald-600 border-4 border-emerald-500 text-emerald-400 hover:text-white px-4 py-3 rounded-xl font-medium text-xs uppercase transition-all mb-2 cursor-pointer">
+                <div id="categoryContainer" class="space-y-5 mb-8">
+                    <button onclick="toggleAll('.cat-check', true)" class="w-full bg-emerald-950/40 hover:bg-emerald-600 border-4 border-emerald-500 text-emerald-400 hover:text-white p-5 rounded-xl font-bold text-xs uppercase transition-all mb-3 cursor-pointer tracking-wider">
                         Select All Categories
                     </button>
 
-                    <label class="block bg-slate-950/60 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-125 accent-emerald-600" value="epl"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">Ethiopian Premier League</span>
+                    <label class="block bg-slate-950/60 border-4 border-slate-700 p-5 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-150 accent-emerald-600" value="epl"> <span class="text-sm font-medium uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
                     </label>
-                    <label class="block bg-slate-950/60 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-125 accent-emerald-600" value="international"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">International</span>
+                    <label class="block bg-slate-950/60 border-4 border-slate-700 p-5 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-150 accent-emerald-600" value="international"> <span class="text-sm font-medium uppercase ml-3 text-slate-300">International</span>
                     </label>
-                    <label class="block bg-slate-950/60 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-125 accent-emerald-600" value="athletics"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">Athletics</span>
+                    <label class="block bg-slate-950/60 border-4 border-slate-700 p-5 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-150 accent-emerald-600" value="athletics"> <span class="text-sm font-medium uppercase ml-3 text-slate-300">Athletics</span>
                     </label>
-                    <label class="block bg-slate-950/60 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-125 accent-emerald-600" value="others"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">Others</span>
+                    <label class="block bg-slate-950/60 border-4 border-slate-700 p-5 rounded-xl cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-150 accent-emerald-600" value="others"> <span class="text-sm font-medium uppercase ml-3 text-slate-300">Others</span>
                     </label>
                 </div>
 
-                <div class="flex-1 bg-slate-950/70 rounded-xl border-4 border-slate-800/80 p-4 mb-4 overflow-y-auto">
-                    <h3 class="text-[9px] font-medium text-slate-400 uppercase mb-3">Active Sources</h3>
-                    <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-500 italic">// Waiting for pipeline...</div>
+                <div class="flex-1 bg-slate-950/70 rounded-xl border-4 border-slate-800/80 p-6 mb-6 overflow-y-auto">
+                    <h3 class="text-[11px] font-medium text-slate-400 uppercase mb-4">Active Sources</h3>
+                    <div id="activeSourceList" class="space-y-3 font-mono text-[11px] text-slate-500 italic font-medium">// Waiting for pipeline...</div>
                 </div>
 
-                <button id="runBtn" class="w-full bg-emerald-600 border-4 border-emerald-400 p-4 rounded-xl font-medium text-xs uppercase hover:bg-emerald-500 transition-all cursor-pointer shadow-md tracking-wider">Fire Pipeline</button>
+                <button id="runBtn" class="w-full bg-emerald-600 border-4 border-emerald-400 p-6 rounded-xl font-black text-sm uppercase hover:bg-emerald-500 transition-all cursor-pointer shadow-md tracking-widest">Fire Pipeline</button>
             </div>
 
-            <!-- TERMINAL MAIN DATA MONITOR -->
-            <div class="col-span-3 bg-slate-950/40 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-lg">
-                <div class="mb-6">
-                    <h3 class="font-medium text-sm text-slate-300 mb-4">Scrapped Intelligence Matrix</h3>
+            <!-- TERMINAL MAIN DATA MONITOR (Extra-Large Monitor Window) -->
+            <div class="col-span-3 bg-slate-950/40 p-8 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl backdrop-blur-lg">
+                <div class="mb-8">
+                    <h3 class="font-medium text-sm text-slate-300 mb-6">Scrapped Intelligence Matrix</h3>
                     
-                    <div class="bg-slate-950/50 border-4 border-slate-800 p-4 rounded-xl w-full mb-4">
-                        <h3 class="text-[10px] font-medium text-rose-500 uppercase mb-2 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Fast Hot News
+                    <div class="bg-slate-950/50 border-4 border-slate-800 p-6 rounded-xl w-full mb-6">
+                        <h3 class="text-xs font-medium text-rose-500 uppercase mb-4 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span> Fast Hot News
                         </h3>
-                        <div class="flex gap-3">
-                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950/80 border-4 border-slate-800 rounded-xl p-3 text-xs text-white focus:border-rose-500 outline-none">
-                            <button onclick="getHotNews()" class="bg-rose-600 border-4 border-rose-400 px-6 py-2 rounded-xl font-medium text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors">Go</button>
+                        <div class="flex gap-4">
+                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950/80 border-4 border-slate-800 rounded-xl p-4 text-xs text-white focus:border-rose-500 outline-none font-medium">
+                            <button onclick="getHotNews()" class="bg-rose-600 border-4 border-rose-400 px-8 py-3 rounded-xl font-bold text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>
                         </div>
                     </div>
                     
-                    <div class="bg-slate-950/50 border-4 border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-4">
-                        <div class="flex gap-4 flex-wrap">
-                            <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-950 hover:bg-emerald-600 border-4 border-emerald-500 text-emerald-400 hover:text-white px-5 py-2.5 rounded-xl font-medium text-xs uppercase transition-all cursor-pointer">Select All</button>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
+                    <div class="bg-slate-950/50 border-4 border-slate-800 p-6 rounded-xl w-full flex justify-between items-center flex-wrap gap-5">
+                        <div class="flex gap-5 flex-wrap">
+                            <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-950 hover:bg-emerald-600 border-4 border-emerald-500 text-emerald-400 hover:text-white px-6 py-3 rounded-xl font-bold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All</button>
+                            <label class="flex items-center gap-3 cursor-pointer bg-slate-950/80 py-3 px-5 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-150 accent-emerald-500" value="oromifa"> <span class="text-xs font-medium uppercase text-slate-400">Oromifa</span></label>
+                            <label class="flex items-center gap-3 cursor-pointer bg-slate-950/80 py-3 px-5 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-150 accent-emerald-500" value="amharic"> <span class="text-xs font-medium uppercase text-slate-300">Amharic</span></label>
+                            <label class="flex items-center gap-3 cursor-pointer bg-slate-950/80 py-3 px-5 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-150 accent-emerald-500" value="english"> <span class="text-xs font-medium uppercase text-slate-300">English</span></label>
+                            <label class="flex items-center gap-3 cursor-pointer bg-slate-950/80 py-3 px-5 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-150 accent-emerald-500" value="arabic"> <span class="text-xs font-medium uppercase text-slate-300">Arabic</span></label>
                         </div>
-                        <button onclick="downloadData()" class="bg-blue-600 border-4 border-blue-400 px-6 py-2.5 rounded-xl font-medium text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer">Download</button>
+                        <button onclick="downloadData()" class="bg-blue-600 border-4 border-blue-400 px-8 py-3.5 rounded-xl font-bold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download</button>
                     </div>
                 </div>
 
-                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/80 rounded-xl p-6 border-4 border-slate-900 font-mono text-xs text-emerald-400 shadow-inner">
-                    <p class="text-slate-500 italic font-normal">// Matrix ready for sports intelligence ingestion...</p>
+                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/80 rounded-xl p-8 border-4 border-slate-900 font-mono text-xs text-emerald-400 shadow-inner">
+                    <p class="text-slate-500 italic font-medium">// Matrix ready for sports intelligence ingestion...</p>
                 </div>
             </div>
         </main>
@@ -209,7 +187,7 @@
 
     <!-- LIFECYCLE CONTROLLER SCRIPTS -->
     <script>
-        // High-fidelity item textures and color matrices
+        // High-fidelity VERY BIG item textures
         const sportsPool = [
             { icon: '⚽', color: '#00f2fe' }, // Soccer
             { icon: '🏀', color: '#f59e0b' }, // Basketball
@@ -220,12 +198,12 @@
             { icon: '👟', color: '#38bdf8' }  // Cleats
         ];
 
-        // Seed falling rain instantly
-        function spawnSportsRain() {
+        // Seed fallingrain instantly
+        function spawnBigSportsRain() {
             const stage = document.getElementById('matrixFallingStage');
-            const totalItems = 35;
+            const totalBigItems = 22; // Reduced count because they are so big
 
-            for (let i = 0; i < totalItems; i++) {
+            for (let i = 0; i < totalBigItems; i++) {
                 const item = document.createElement('div');
                 const template = sportsPool[Math.floor(Math.random() * sportsPool.length)];
                 
@@ -235,14 +213,14 @@
                 
                 // Randomize horizontal distribution & staggered delays for the 3-second window
                 item.style.left = `${Math.random() * 95}%`;
-                item.style.animationDelay = `${Math.random() * 1.2}s`;
+                item.style.animationDelay = `${Math.random() * 1.5}s`; // Slightly more delay gap
                 
                 stage.appendChild(item);
             }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            spawnSportsRain();
+            spawnBigSportsRain();
             
             const stage = document.getElementById('backdropStage');
             const appFrame = document.getElementById('mainAppFrame');
@@ -255,7 +233,7 @@
         });
 
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
-        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500 font-mono">// Querying global sports wire feeds...</div>`; }
+        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500 font-mono font-bold">// Querying global sports wire feeds...</div>`; }
         
         document.getElementById('runBtn').onclick = () => {
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
@@ -265,10 +243,10 @@
             if (mainCats.length === 0) return alert("Select at least one active intelligence sector category.");
 
             sourceList.innerHTML = mainCats.map(item => 
-                `<div class="p-2 bg-slate-900 rounded-lg border-2 border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
+                `<div class="p-3 bg-slate-900 rounded-lg border-2 border-emerald-500 text-emerald-300 font-mono text-xs font-bold">» ${item.toUpperCase()}</div>`
             ).join('');
 
-            output.innerHTML = `<div class="text-emerald-400 font-mono">// SYSTEM INTELLIGENCE STREAM COUPLING COMPLETED<br>// CAPTURING ACTIVE NODES: ${mainCats.join(', ').toUpperCase()}</div>`;
+            output.innerHTML = `<div class="text-emerald-400 font-mono font-bold">// SYSTEM INTELLIGENCE STREAM COUPLING COMPLETED<br>// CAPTURING ACTIVE NODES: ${mainCats.join(', ').toUpperCase()}</div>`;
         };
 
         function downloadData() {
