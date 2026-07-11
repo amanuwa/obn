@@ -9,11 +9,11 @@
     <!-- Supabase CDN Script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #020410; position: relative; overflow: hidden; }
+        body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #01030a; position: relative; overflow: hidden; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 4px; }
 
-        /* Glowing Matrix Background Wrapper */
+        /* Highly Visible Glowing Matrix Background Wrapper */
         .matrix-bg {
             position: absolute;
             top: 0;
@@ -23,27 +23,29 @@
             z-index: 0;
             overflow: hidden;
             pointer-events: none;
-            opacity: 0.45; /* Increased opacity so it is clearly visible */
+            opacity: 0.85; /* Increased drastically for clear visibility */
         }
 
-        /* Currency Stream Vertical Column Animation */
+        /* Currency Stream Vertical Column Waterfall Animation */
         .currency-stream {
             position: absolute;
-            top: -500px;
+            top: -1000px;
             font-family: monospace;
             font-weight: 900;
-            color: #38bdf8;
-            text-shadow: 0 0 8px #38bdf8, 0 0 20px #2563eb;
-            writing-mode: vertical-rl; /* Forces text to flow vertically downwards */
+            color: #00d2ff;
+            /* Ultra sharp glowing neon drop shadows */
+            text-shadow: 0 0 10px #00d2ff, 0 0 25px #2563eb, 0 0 40px rgba(37,99,235,0.8);
+            writing-mode: vertical-rl; 
             text-orientation: upright;
-            letter-spacing: 6px;
+            letter-spacing: 8px;
             line-height: 1;
-            animation: rain Fall linear infinite;
+            animation: rain linear infinite; /* Fixed naming syntax to fix stalling waterfall */
         }
 
         @keyframes rain {
-            0% { top: -600px; opacity: 0; }
-            10% { opacity: 1; }
+            0% { top: -1000px; opacity: 0; }
+            5% { opacity: 0.3; }
+            15% { opacity: 1; }
             90% { opacity: 1; }
             100% { top: 100%; opacity: 0; }
         }
@@ -54,23 +56,23 @@
     <!-- CYBERPUNK GLOWING CURRENCY BACKGROUND LAYER -->
     <div class="matrix-bg" id="matrixBg"></div>
 
-    <!-- MAIN INTERFACE CONTAINER -->
-    <div class="relative z-10 flex flex-col h-full w-full backdrop-blur-[1px]">
+    <!-- MAIN INTERFACE CONTAINER (Uses Backdrop Blurs to mesh panels beautifully with the glowing background) -->
+    <div class="relative z-10 flex flex-col h-full w-full backdrop-blur-[2px]">
         
         <!-- HEADER LOGO BAR -->
-        <header class="bg-slate-950/80 border-b border-slate-800/80 px-8 py-4 flex items-center justify-between backdrop-blur-md">
+        <header class="bg-slate-950/40 border-b border-slate-900 px-8 py-4 flex items-center justify-between backdrop-blur-md">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-black text-xs shadow-[0_0_15px_rgba(37,99,235,0.5)]">FI</div>
+                <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-black text-xs shadow-[0_0_15px_rgba(37,99,235,0.7)]">FI</div>
                 <span class="font-bold text-slate-100 tracking-tight">Financial Intelligence Terminal</span>
             </div>
             <a href="index.html" class="text-xs text-slate-400 hover:text-white transition-colors">← Back to Login</a>
         </header>
 
         <!-- MAIN INTERFACE MATRIX -->
-        <main class="flex-1 grid grid-cols-4 gap-0 p-4 h-full overflow-hidden">
+        <main class="flex-1 grid grid-cols-4 gap-4 p-4 h-full overflow-hidden">
             
-            <!-- LEFT CONTROL DRAWER: SECTORS & SOURCES -->
-            <div class="col-span-1 bg-slate-950/85 p-6 border-r border-slate-800/60 flex flex-col h-full overflow-y-auto backdrop-blur-md rounded-l-xl">
+            <!-- LEFT CONTROL DRAWER (Translucent background overlay) -->
+            <div class="col-span-1 bg-slate-950/20 p-6 border border-slate-900/60 flex flex-col h-full overflow-y-auto backdrop-blur-md rounded-xl shadow-2xl">
                 <h3 class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Financial Sectors
                 </h3>
@@ -78,47 +80,47 @@
                 <div id="categoryContainer" class="space-y-4 mb-6">
                     <!-- ETHIOPIAN DISPATCH DEPT -->
                     <div>
-                        <label class="block bg-slate-900/90 hover:bg-slate-800 border border-slate-800 p-3 rounded cursor-pointer transition-all">
+                        <label class="block bg-slate-950/60 hover:bg-slate-900 border border-slate-800 p-3 rounded cursor-pointer transition-all">
                             <input type="checkbox" id="ethToggle" class="cat-check" value="ethiopian"> <span class="text-xs font-bold uppercase ml-2">Ethiopian news</span>
                         </label>
-                        <div id="ethSources" class="hidden mt-2 ml-4 space-y-1 border-l border-blue-600/40 pl-3"></div>
+                        <div id="ethSources" class="hidden mt-2 ml-4 space-y-1 border-l border-blue-500/40 pl-3"></div>
                     </div>
 
                     <!-- INTERNATIONAL DISPATCH DEPT -->
                     <div>
-                        <label class="block bg-slate-900/90 hover:bg-slate-800 border border-slate-800 p-3 rounded cursor-pointer transition-all">
+                        <label class="block bg-slate-950/60 hover:bg-slate-900 border border-slate-800 p-3 rounded cursor-pointer transition-all">
                             <input type="checkbox" id="intToggle" class="cat-check" value="international"> <span class="text-xs font-bold uppercase ml-2">International</span>
                         </label>
-                        <div id="intSources" class="hidden mt-2 ml-4 space-y-1 border-l border-blue-600/40 pl-3"></div>
+                        <div id="intSources" class="hidden mt-2 ml-4 space-y-1 border-l border-blue-500/40 pl-3"></div>
                     </div>
                 </div>
                 
                 <!-- STREAM MONITOR FEED -->
-                <div class="flex-1 bg-slate-950/80 rounded-xl border border-slate-800 p-4 mb-4 overflow-y-auto">
+                <div class="flex-1 bg-slate-950/40 rounded-xl border border-slate-900 p-4 mb-4 overflow-y-auto">
                     <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-3">Active Data Streams</h3>
                     <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-500 italic">// Awaiting stream...</div>
                 </div>
 
-                <button id="runBtn" class="w-full bg-blue-600 p-4 rounded-xl font-black text-xs uppercase hover:bg-blue-500 transition-all cursor-pointer shadow-[0_0_15px_rgba(37,99,235,0.3)]">Initialize Pipeline</button>
+                <button id="runBtn" class="w-full bg-blue-600 p-4 rounded-xl font-black text-xs uppercase hover:bg-blue-500 transition-all cursor-pointer shadow-[0_0_15px_rgba(37,99,235,0.4)]">Initialize Pipeline</button>
             </div>
 
-            <!-- RIGHT RUN TIME VIEWER: FEED MATRIX -->
-            <div class="col-span-3 bg-slate-950/60 p-6 flex flex-col h-full overflow-y-auto backdrop-blur-sm rounded-r-xl">
+            <!-- RIGHT RUN TIME VIEWER (Translucent background overlay) -->
+            <div class="col-span-3 bg-slate-950/20 p-6 border border-slate-900/60 flex flex-col h-full overflow-y-auto backdrop-blur-md rounded-xl shadow-2xl">
                 <h3 class="font-bold text-sm text-slate-300 mb-4 flex items-center gap-2">Financial Intelligence Matrix</h3>
                 
                 <!-- FAST INTEL BAR -->
-                <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 w-full mb-4 backdrop-blur-md">
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-900 w-full mb-4 backdrop-blur-md">
                     <h3 class="text-[9px] font-bold text-red-500 uppercase mb-2 flex items-center gap-1.5">
                         <span class="w-1 h-1 rounded-full bg-red-500 animate-ping"></span> Fast Hot News
                     </h3>
                     <div class="flex gap-2">
-                        <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border border-slate-800 rounded p-2 text-[10px] text-white focus:border-red-500 outline-none">
+                        <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border border-slate-900 rounded p-2 text-[10px] text-white focus:border-red-500 outline-none">
                         <button id="hotNewsBtn" class="bg-red-600 px-4 py-1 rounded font-bold text-[10px] uppercase hover:bg-red-500 cursor-pointer transition-colors">Go</button>
                     </div>
                 </div>
 
                 <!-- REGIONAL LANGUAGE FILTER TOOL -->
-                <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 w-full flex items-center gap-4 mb-4 backdrop-blur-md">
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-900 w-full flex items-center gap-4 mb-4 backdrop-blur-md">
                     <button id="selectAllBtn" class="bg-blue-900/20 hover:bg-blue-600 border border-blue-500/30 text-blue-400 hover:text-white px-4 py-2 rounded font-black text-[10px] uppercase transition-all cursor-pointer">Select All</button>
                     <div class="flex gap-4 flex-wrap">
                         <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="lang-check" value="oromiffa"> <span class="text-xs font-bold uppercase text-slate-300 hover:text-white">Oromiffa</span></label>
@@ -129,8 +131,8 @@
                 </div>
 
                 <!-- CONSOLE OUTPUT MONITOR -->
-                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/95 rounded-lg p-6 border border-slate-900 font-mono text-xs text-blue-400 shadow-inner backdrop-blur-md">
-                    <p class="text-slate-600 italic">// System ready for financial data...</p>
+                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/70 rounded-lg p-6 border border-slate-900 font-mono text-xs text-blue-400 shadow-inner backdrop-blur-md">
+                    <p class="text-slate-500 italic">// System ready for financial data... </p>
                 </div>
             </div>
         </main>
@@ -140,33 +142,33 @@
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
-        // 1. GENERATE VERTICAL FALLING CURRENCY RAIN
+        // 1. GENERATE VERTICAL FALLING CURRENCY WATERFALL
         const currencies = ['$', '€', 'Br', '¥', '元', '﷼', '£', 'د.إ', 'रू'];
         const bgContainer = document.getElementById('matrixBg');
-        const columnCount = 24; // More columns across the screen width
+        const columnCount = 28; // Spreads streams dense across background width
 
         for (let i = 0; i < columnCount; i++) {
             const stream = document.createElement('div');
             stream.className = 'currency-stream';
             
-            // Build a vertical sequence block of currency symbols
+            // Build random vertical drops filled with currencies
             let streamContent = '';
-            const streamLength = Math.floor(Math.random() * 15) + 15;
+            const streamLength = Math.floor(Math.random() * 20) + 20; // Long vertical strings
             for (let j = 0; j < streamLength; j++) {
                 streamContent += currencies[Math.floor(Math.random() * currencies.length)];
             }
             stream.textContent = streamContent;
             
-            // Layout arrangement spreads columns cleanly across view width
+            // Layout distribution parameters
             stream.style.left = `${i * (100 / columnCount)}%`;
             stream.style.fontSize = `${Math.floor(Math.random() * 6) + 14}px`;
-            stream.style.animationDuration = `${Math.floor(Math.random() * 8) + 6}s`; // Faster drop speeds
-            stream.style.animationDelay = `${Math.random() * -10}s`;
+            stream.style.animationDuration = `${Math.floor(Math.random() * 6) + 5}s`; // Rapid water flow pace
+            stream.style.animationDelay = `${Math.random() * -12}s`;
             
             bgContainer.appendChild(stream);
         }
 
-        // 2. SUPABASE INITIALIZATION
+        // 2. SUPABASE API DATA LAYER CONNECT
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             global: {
                 headers: {
@@ -212,7 +214,7 @@
 
         loadSourcesFromDB();
 
-        // 3. EVENT LISTENERS
+        // 3. UI TERMINAL TOGGLES
         document.getElementById('ethToggle').addEventListener('change', (e) => {
             document.getElementById('ethSources').classList.toggle('hidden', !e.target.checked);
         });
