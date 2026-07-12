@@ -1,1 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Gateway | Terminal Hub</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Supabase CDN Script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #010206; position: relative; overflow: hidden; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
 
+        /* Crisp Network Backdrop Grid */
+        .governance-bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.08; 
+        }
+
+        /* Routing Domain Buttons */
+        .domain-btn {
+            display: inline-block;
+            text-align: center;
+            background-color: #050b18;
+            border: 1px solid #06b6d4;
+            color: #22d3ee;
+            border-radius: 0.5rem;
+            padding: 0.4rem 1rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .domain-btn:hover {
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+        }
+
+        /* Expanded Left Control Tiles */
+        .compact-tile {
+            background: linear-gradient(180deg, #060b18 0%, #02040a 100%);
+            border: 1px solid #1e293b;
+            transition: border-color 0.2s ease;
+        }
+        .compact-tile:hover {
+            border-color: #334155;
+        }
+
+        /* Custom Input Styling */
+        .terminal-input {
+            background-color: #02050c;
+            border: 1px solid #334155;
+            color: #f1f5f9;
+            font-family: monospace;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        .terminal-input:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+        }
+
+        /* Screenshot Accurate Language Filter Controls */
+        .ensemble-btn {
+            background-color: #16224f;
+            border: 2.5px solid #2563eb;
+            color: #3b82f6;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+        }
+        .ensemble-btn:hover {
+            border-color: #60a5fa;
+            color: #60a5fa;
+        }
+
+        .lang-checkbox-btn {
+            background-color: #030712;
+            border: 1.5px solid #1e293b;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            letter-spacing: 0.05em;
+        }
+        .lang-checkbox-btn:hover {
+            border-color: #334155;
+            color: #cbd5e1;
+        }
+        .lang-checkbox-btn.active {
+            border-color: #1d4ed8;
+            color: #3b82f6;
+            background-color: #070f2e;
+        }
+        .custom-box {
+            width: 11px;
+            height: 11px;
+            border-radius: 2px;
+            background-color: #0f172a;
+            border: 1px solid #475569;
+            transition: all 0.15s ease;
+            display: inline-block;
+        }
+        .lang-checkbox-btn.active .custom-box {
+            background-color: #ffffff;
+            border-color: #ffffff;
+        }
+    </style>
+</head>
+<body class="font-sans bg-[#010206]">
+
+    <!-- LIVE VECTOR BACKGROUND LAYER -->
+    <canvas class="governance-bg-canvas" id="governanceCanvas"></canvas>
+
+    <!-- MAIN HUB DASHBOARD CONTAINER -->
+    <div class="relative z-10 flex flex-col h-full w-full">
+        
+        <!-- TOP TERMINAL HEADER INTERFACE -->
+        <header class="bg-slate-950 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none">
+            
+            <!-- Left Brand Identity -->
+            <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded bg-cyan-600 flex items-center justify-center font-bold text-[10px] border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]">TG</div>
+                <div>
+                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Custom Terminal Gateway</span>
+                </div>
+            </div>
+
+            <!-- Center Domain Routing Links -->
+            <div class="flex items-center gap-2" id="topDomainNav">
+                <a href="business and finance.html" class="domain-btn">Business & Finance</a>
+                <a href="sport.html" class="domain-btn">Sport</a>
+                <a href="World Politics and Governance.html" class="domain-btn">Politics & Governance</a>
+            </div>
+
+            <!-- Far Right Operator Profile Space -->
+            <div class="flex items-center gap-4 border-l border-slate-800 pl-4">
+                <div class="text-right">
+                    <span class="block text-[11px] font-mono font-semibold text-slate-300">Amanuel Bekele Woldesenbet</span>
+                    <span class="block text-[9px] font-mono text-cyan-500 uppercase tracking-wider">// Operator Profile</span>
+                </div>
+                <button onclick="location.reload();" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5 py-1.5 rounded transition-all uppercase cursor-pointer">
+                    Sign Out
+                </button>
+            </div>
+        </header>
+
+        <!-- DASHBOARD GRID: 1/4 COMPACT SIDEBAR | 3/4 MASSIVE MONITOR -->
+        <main class="flex-1 flex gap-3 p-3 h-full overflow-hidden">
+            
+            <!-- LEFT COLUMN: 1/4 WIDTH (w-1/4), SCROLLABLE -->
+            <div class="w-1/4 flex flex-col gap-3.5 overflow-y-auto pr-1 select-none shrink-0">
+                
+                <!-- EXPANDED PANEL 1 -->
+                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Strait of Hormuz</h2>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="input-hormuz" placeholder="Maritime query..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button onclick="triggerUnifiedSearch('Strait of Hormuz', 'input-hormuz')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                    </div>
+                    <button onclick="triggerAnythingNew('Strait of Hormuz')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Anything New
+                    </button>
+                </section>
+
+                <!-- EXPANDED PANEL 2 -->
+                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Trump Watch Matrix</h2>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="input-trump" placeholder="Policy matrix..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button onclick="triggerUnifiedSearch('Trump Watch', 'input-trump')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                    </div>
+                    <button onclick="triggerAnythingNew('Trump Watch')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Anything New
+                    </button>
+                </section>
+
+                <!-- EXPANDED PANEL 3 -->
+                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Grand Ethiopian Dam (GERD)</h2>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="input-gerd" placeholder="Riparian terms..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button onclick="triggerUnifiedSearch('GERD', 'input-gerd')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                    </div>
+                    <button onclick="triggerAnythingNew('GERD')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Anything New
+                    </button>
+                </section>
+
+                <!-- EXPANDED PANEL 4 -->
+                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Ethiopia Sovereign Core</h2>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="input-ethiopia" placeholder="National filters..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button onclick="triggerUnifiedSearch('Ethiopia Core', 'input-ethiopia')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                    </div>
+                    <button onclick="triggerAnythingNew('Ethiopia Core')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Anything New
+                    </button>
+                </section>
+
+            </div>
+
+            <!-- RIGHT COLUMN: 3/4 WIDTH, MASSIVE RESULTS MONITOR PANEL -->
+            <div class="flex-1 flex flex-col justify-between bg-slate-950/90 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden">
+                
+                <!-- Monitor Header Layout with Exact Custom Checkbox Configuration -->
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
+                    
+                    <!-- Left Section Title -->
+                    <div class="flex items-center gap-2 shrink-0">
+                        <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></div>
+                        <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">Central Stream Monitor</span>
+                    </div>
+
+                    <!-- Centered Custom Selection Segment -->
+                    <div class="flex items-center gap-3 justify-center flex-1 mx-4" id="languageContainer">
+                        <button onclick="toggleSelectAllEnsembles()" id="btn-select-all" class="ensemble-btn uppercase">Select All Ensembles</button>
+                        
+                        <button onclick="toggleLangCheckbox('OROMIFFA')" id="lang-OROMIFFA" class="lang-checkbox-btn active">
+                            <span class="custom-box"></span> OROMIFFA
+                        </button>
+                        <button onclick="toggleLangCheckbox('AMHARIC')" id="lang-AMHARIC" class="lang-checkbox-btn active">
+                            <span class="custom-box"></span> AMHARIC
+                        </button>
+                        <button onclick="toggleLangCheckbox('ENGLISH')" id="lang-ENGLISH" class="lang-checkbox-btn active">
+                            <span class="custom-box"></span> ENGLISH
+                        </button>
+                        <button onclick="toggleLangCheckbox('ARABIC')" id="lang-ARABIC" class="lang-checkbox-btn">
+                            <span class="custom-box"></span> ARABIC
+                        </button>
+                    </div>
+
+                    <!-- Right alignment status tracker -->
+                    <div class="text-right text-[10px] font-mono text-slate-600 select-none shrink-0">// CAPTURE MATRICES</div>
+                </div>
+
+                <!-- Live Query Stream Data Console Outputs -->
+                <div id="unifiedResultsConsole" class="flex-1 overflow-y-auto font-mono text-xs text-slate-400 bg-slate-950/40 border border-slate-900/60 rounded-md p-3 space-y-3">
+                    <div class="text-slate-600 tracking-wide">// System online. Trigger interrogation parameters or request delta updates using sidebar modules to isolate data streams here...</div>
+                </div>
+
+                <!-- Monitor Footer Actions -->
+                <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
+                    <button onclick="downloadTerminalLogs()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
+                        Download Dataset Logs
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- LOWER RECONNAISSANCE CONSOLE -->
+        <footer class="bg-slate-950 border-t border-slate-800 px-4 py-1.5 font-mono text-[10px] text-cyan-500 flex items-center justify-between shrink-0">
+            <div id="statusConsole">// MONITOR HUB ACTIVE: Gateway running nominal profiles.</div>
+            <div class="text-slate-600 select-none text-[9px]">GATEWAY INTERFACE v5.2</div>
+        </footer>
+    </div>
+
+    <!-- SCRIPT PIPELINE IMPLEMENTATION -->
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+
+        // 1. BACKDROP VECTOR LAYER
+        const canvas = document.getElementById('governanceCanvas');
+        const ctx = canvas.getContext('2d');
+        function sizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        sizeCanvas(); window.addEventListener('resize', sizeCanvas);
+
+        const stateNodes = [];
+        for(let i=0; i<15; i++) {
+            stateNodes.push({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                vx: (Math.random() - 0.5) * 0.1,
+                vy: (Math.random() - 0.5) * 0.1,
+                radius: Math.random() * 1.5 + 1
+            });
+        }
+        function drawNetwork() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(6, 182, 212, 0.15)';
+            stateNodes.forEach(nA => {
+                nA.x += nA.vx; nA.y += nA.vy;
+                if(nA.x < 0 || nA.x > canvas.width) nA.vx *= -1;
+                if(nA.y < 0 || nA.y > canvas.height) nA.vy *= -1;
+                ctx.beginPath(); ctx.arc(nA.x, nA.y, nA.radius, 0, Math.PI*2); ctx.fill();
+            });
+            requestAnimationFrame(drawNetwork);
+        }
+        drawNetwork();
+
+        // 2. SUPABASE CONNECTIONS ENGINE
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let cachedDataStream = [];
+
+        // Track state of checkboxes
+        const activeLanguages = {
+            OROMIFFA: true,
+            AMHARIC: true,
+            ENGLISH: true,
+            ARABIC: false
+        };
+
+        window.toggleLangCheckbox = function(langKey) {
+            const btn = document.getElementById(`lang-${langKey}`);
+            activeLanguages[langKey] = !activeLanguages[langKey];
+            
+            if(activeLanguages[langKey]) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+            
+            const activeList = Object.keys(activeLanguages).filter(k => activeLanguages[k]);
+            document.getElementById('statusConsole').innerText = `// FILTER LAYER MODIFIED. ACTIVE STRINGS: [${activeList.join(', ')}]`;
+        };
+
+        window.toggleSelectAllEnsembles = function() {
+            const keys = Object.keys(activeLanguages);
+            // Check if all are already true
+            const allTrue = keys.every(k => activeLanguages[k]);
+            
+            keys.forEach(k => {
+                activeLanguages[k] = !allTrue;
+                const btn = document.getElementById(`lang-${k}`);
+                if(!allTrue) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            document.getElementById('statusConsole').innerText = allTrue ? `// ENSEMBLES DE-SELECTED` : `// ALL ENSEMBLES ACTIVE`;
+        };
+
+        // Anything New Delta Workflow Trigger 
+        window.triggerAnythingNew = async function(sectorContext) {
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+            const statusLog = document.getElementById('statusConsole');
+
+            statusLog.innerText = `// TRIGGERING DELTA CHECK FOR: [${sectorContext.toUpperCase()}]`;
+            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying database logs chronologically for recent insertions...</div>`;
+
+            try {
+                let tableTarget = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
+                    ? 'Ethiopian -Politics and governance websites'
+                    : 'politics and governance -websites';
+
+                const { data, error } = await supabaseClient
+                    .from(tableTarget)
+                    .select('*')
+                    .order('id', { ascending: false })
+                    .limit(4);
+
+                if (error) throw error;
+                cachedDataStream = data || [];
+
+                let resultsHTML = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// RECENT DEVELOPMENTS MATRIX: [${sectorContext.toUpperCase()}]</div><div class="space-y-3">`;
+                cachedDataStream.forEach((row, index) => {
+                    resultsHTML += `
+                        <div class="border-b border-slate-900 pb-2 last:border-0">
+                            <span class="text-amber-400 font-bold">[NEW-${index+1}]</span> <span class="text-slate-200">${row.title || 'Untitled Stream Element'}</span>
+                            <p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p>
+                        </div>`;
+                });
+                resultsHTML += `</div>`;
+                outputPanel.innerHTML = resultsHTML;
+                statusLog.innerText = `// DELTA CAPTURE COMPLETE: Streaming chronological data elements.`;
+            } catch (err) {
+                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// DELTA READ EXCEPTION: Failed to process recent entries.</span>`;
+            }
+        };
+
+        // Text Matrix Query Trigger
+        window.triggerUnifiedSearch = async function(sectorContext, inputId) {
+            const inputField = document.getElementById(inputId);
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+            const statusLog = document.getElementById('statusConsole');
+            const queryValue = inputField.value.trim();
+
+            if (!queryValue) {
+                outputPanel.innerHTML = `<span class="text-red-400 font-mono">// SYSTEM EXCEPTION: Missing parameter data strings.</span>`;
+                return;
+            }
+
+            statusLog.innerText = `// INTROSPECTING METADATA: QUERYING DATABASE FOR MATCHES IN [${sectorContext.toUpperCase()}]...`;
+            outputPanel.innerHTML = `<div class="text-cyan-400 animate-pulse">// ACCESSING RELATIONAL TABLE MATRIX FOR TARGET ARRAYS CONTROLLING: "${queryValue}"...</div>`;
+
+            try {
+                let currentTable = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
+                    ? 'Ethiopian -Politics and governance websites'
+                    : 'politics and governance -websites';
+
+                const { data, error } = await supabaseClient
+                    .from(currentTable)
+                    .select('*')
+                    .ilike('title', `%${queryValue}%`)
+                    .limit(6);
+
+                if (error) throw error;
+                cachedDataStream = data || [];
+
+                if (cachedDataStream.length === 0) {
+                    outputPanel.innerHTML = `<div class="text-slate-500">// Interrogation query completed. No matches located inside the table for payload parameter: "${queryValue}".</div>`;
+                    statusLog.innerText = `// MONITOR STANDBY: 0 Records Returned.`;
+                } else {
+                    statusLog.innerText = `// DATASET LOCATED: Streaming ${cachedDataStream.length} indexes down to terminal feed monitor logs.`;
+                    
+                    let resultsHTML = `<div class="text-cyan-400 border-b border-slate-900 pb-1.5 mb-2">// CAPTURED SIGNALS: ${sectorContext.toUpperCase()}</div><div class="space-y-3">`;
+                    cachedDataStream.forEach((row, index) => {
+                        resultsHTML += `
+                            <div class="border-b border-slate-900 pb-2 last:border-0">
+                                <span class="text-cyan-400 font-bold">[HIT-${index+1}]</span> <span class="text-slate-200">${row.title || 'Unknown Asset Label'}</span>
+                                <p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p>
+                            </div>`;
+                    });
+                    resultsHTML += `</div>`;
+                    outputPanel.innerHTML = resultsHTML;
+                }
+            } catch (err) {
+                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// DATABASE FAULT: Stream configuration connection failed.</span>`;
+                statusLog.innerText = `// RUNTIME ERROR REPORTED AT DB PIPELINE CONNECT.`;
+            }
+        };
+
+        // Download Action Functionality
+        window.downloadTerminalLogs = function() {
+            if (cachedDataStream.length === 0) {
+                alert("The Central Monitor is empty. Run a trace or check updates to fetch stream data first.");
+                return;
+            }
+            const blobString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cachedDataStream, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", blobString);
+            downloadAnchor.setAttribute("download", "central_monitor_telemetry.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        };
+    </script>
+</body>
+</html>
