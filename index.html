@@ -13,37 +13,16 @@
         ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 5px; }
 
-        /* Crisp Matrix Background Layer */
-        .matrix-bg {
+        /* Crisp Demonstration & Governance Network Grid Backdrop */
+        .governance-bg-canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 0;
-            overflow: hidden;
             pointer-events: none;
-            opacity: 0.90; 
-        }
-
-        /* Clean Symbol Stream for Politics and Governance */
-        .policy-stream {
-            position: absolute;
-            top: -1000px;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: 500; 
-            color: #00d2ff;
-            text-shadow: 0 0 6px #00d2ff, 0 0 15px #2563eb;
-            writing-mode: vertical-rl; 
-            text-orientation: upright;
-            letter-spacing: 10px;
-            line-height: 1;
-            animation: rain linear infinite;
-        }
-
-        @keyframes rain {
-            0% { top: -1000px; }
-            100% { top: 100%; }
+            opacity: 0.35; 
         }
 
         /* Selected State for Vectors */
@@ -57,8 +36,8 @@
 </head>
 <body class="font-sans">
 
-    <!-- GEOPOLITICAL LOGIC BACKGROUND LAYER -->
-    <div class="matrix-bg" id="matrixBg"></div>
+    <!-- DEMONSTRATION & GOVERNANCE GRAPHICS STAGE CANVAS -->
+    <canvas class="governance-bg-canvas" id="governanceCanvas"></canvas>
 
     <!-- MAIN INTERFACE CONTAINER -->
     <div class="relative z-10 flex flex-col h-full w-full">
@@ -75,21 +54,21 @@
         <!-- MAIN INTERFACE MATRIX -->
         <main class="flex-1 grid grid-cols-4 gap-5 p-5 h-full overflow-hidden">
             
-            <!-- LEFT CONTROL DRAWER (2 Selectable Buttons + Active Stream Monitor) -->
+            <!-- LEFT CONTROL DRAWER -->
             <div class="col-span-1 bg-slate-950/95 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl">
                 <h3 class="text-[11px] font-medium text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Intelligence Sectors
                 </h3>
                 
                 <div id="categoryContainer" class="space-y-4 mb-6">
-                    <!-- ETHIOPIAN DISPATCH DEPT -->
+                    <!-- ETHIOPIAN NEWS DEPT -->
                     <button onclick="selectVector(this, 'ethiopian')" class="vector-btn w-full text-left bg-slate-900 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-blue-500 flex flex-col gap-1">
-                        <span class="text-xs font-normal uppercase text-slate-300">🇪🇹 Ethiopian News & Policy</span>
+                        <span class="text-xs font-normal uppercase text-slate-300">🇪🇹 Ethiopian News</span>
                     </button>
 
-                    <!-- INTERNATIONAL DISPATCH DEPT -->
+                    <!-- INTERNATIONAL NEWS DEPT -->
                     <button onclick="selectVector(this, 'international')" class="vector-btn w-full text-left bg-slate-900 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-blue-500 flex flex-col gap-1">
-                        <span class="text-xs font-normal uppercase text-slate-300">🌐 International Governance</span>
+                        <span class="text-xs font-normal uppercase text-slate-300">🌐 International News</span>
                     </button>
                 </div>
                 
@@ -102,22 +81,22 @@
                 <button id="runBtn" class="w-full bg-blue-600 border-4 border-blue-400 p-4 rounded-xl font-medium text-xs uppercase hover:bg-blue-500 transition-all cursor-pointer shadow-md tracking-wider">Initialize Pipeline</button>
             </div>
 
-            <!-- RIGHT RUN TIME VIEWER (Language Filters Matrix & Legislative Outputs) -->
+            <!-- RIGHT RUN TIME VIEWER -->
             <div class="col-span-3 bg-slate-950/90 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl">
                 <h3 class="font-medium text-sm text-slate-300 mb-4 flex items-center gap-2">Geopolitical Intel Matrix</h3>
                 
                 <!-- FAST INTEL BAR -->
                 <div class="bg-slate-900 border-4 border-slate-800 p-4 rounded-xl w-full mb-4">
                     <h3 class="text-[10px] font-medium text-red-500 uppercase mb-2 flex items-center gap-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span> High-Priority Intelligence Alert
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span> Fast Hot News
                     </h3>
                     <div class="flex gap-3">
-                        <input type="text" id="hotNewsInput" placeholder="Enter administrative region, legislative code, policy framework..." class="flex-1 bg-slate-950 border-4 border-slate-800 rounded-xl p-3 text-xs text-white focus:border-red-500 outline-none">
-                        <button id="hotNewsBtn" class="bg-red-600 border-4 border-red-400 px-6 py-2 rounded-xl font-medium text-xs uppercase hover:bg-red-500 cursor-pointer transition-colors">Intercept</button>
+                        <input type="text" id="hotNewsInput" placeholder="Write the query." class="flex-1 bg-slate-950 border-4 border-slate-800 rounded-xl p-3 text-xs text-white focus:border-red-500 outline-none">
+                        <button id="hotNewsBtn" class="bg-red-600 border-4 border-red-400 px-6 py-2 rounded-xl font-medium text-xs uppercase hover:bg-red-500 cursor-pointer transition-colors">Go</button>
                     </div>
                 </div>
 
-                <!-- REGIONAL LANGUAGE FILTER TOOL (Heavy Edges) -->
+                <!-- REGIONAL LANGUAGE FILTER TOOL -->
                 <div class="bg-slate-900 border-4 border-slate-800 p-4 rounded-xl w-full flex items-center gap-5 mb-4">
                     <button id="selectAllBtn" class="bg-blue-950 hover:bg-blue-600 border-4 border-blue-500 text-blue-400 hover:text-white px-5 py-2.5 rounded-xl font-medium text-xs uppercase transition-all cursor-pointer">Select All Ensembles</button>
                     <div class="flex gap-4 flex-wrap">
@@ -136,34 +115,66 @@
         </main>
     </div>
 
-    <!-- BACKEND APPLICATION LAYER & BACKGROUND ANIMATION LOGIC -->
+    <!-- BACKEND APPLICATION LAYER & GEOPOLITICAL BACKGROUND INFRASTRUCTURE CANVAS LOGIC -->
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
-        // 1. GENERATE SPECIFIC GOVERNANCE WATERFALLS
-        // Geopolitical symbols used for matrix streams instead of currency symbols
-        const govSymbols = ['🏛', '⚖', '🗳', '📜', '🌍'];
-        const bgContainer = document.getElementById('matrixBg');
-        const columnCount = 24; 
+        // 1. DYNAMIC RECONSTRUCTION OF THE DEMONSTRATION & GOVERNANCE GRID 
+        const canvas = document.getElementById('governanceCanvas');
+        const ctx = canvas.getContext('2d');
 
-        for (let i = 0; i < columnCount; i++) {
-            const stream = document.createElement('div');
-            stream.className = 'policy-stream';
-            
-            let streamContent = '';
-            const streamLength = Math.floor(Math.random() * 15) + 15; 
-            for (let j = 0; j < streamLength; j++) {
-                streamContent += govSymbols[Math.floor(Math.random() * govSymbols.length)] + ' ';
-            }
-            stream.textContent = streamContent;
-            
-            stream.style.left = `${i * (100 / columnCount)}%`;
-            stream.style.fontSize = `${Math.floor(Math.random() * 3) + 16}px`; 
-            stream.style.animationDuration = `${Math.floor(Math.random() * 4) + 6}s`; 
-            stream.style.animationDelay = `${Math.random() * -10}s`;
-            
-            bgContainer.appendChild(stream);
+        function sizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
+        sizeCanvas();
+        window.addEventListener('resize', sizeCanvas);
+
+        const stateNodes = [];
+        const maxNodes = 45;
+
+        for(let i=0; i<maxNodes; i++) {
+            stateNodes.push({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                vx: (Math.random() - 0.5) * 0.4,
+                vy: (Math.random() - 0.5) * 0.4,
+                radius: Math.random() * 2 + 1
+            });
+        }
+
+        function drawGovernanceGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+            ctx.strokeStyle = 'rgba(37, 99, 235, 0.12)';
+
+            // Draw systemic connections representing governance infrastructure models
+            for(let i=0; i<maxNodes; i++) {
+                let nA = stateNodes[i];
+                nA.x += nA.vx;
+                nA.y += nA.vy;
+
+                if(nA.x < 0 || nA.x > canvas.width) nA.vx *= -1;
+                if(nA.y < 0 || nA.y > canvas.height) nA.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(nA.x, nA.y, nA.radius, 0, Math.PI*2);
+                ctx.fill();
+
+                for(let j=i+1; j<maxNodes; j++) {
+                    let nB = stateNodes[j];
+                    let dist = Math.hypot(nA.x - nB.x, nA.y - nB.y);
+                    if(dist < 140) {
+                        ctx.beginPath();
+                        ctx.moveTo(nA.x, nA.y);
+                        ctx.lineTo(nB.x, nB.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(drawGovernanceGrid);
+        }
+        drawGovernanceGrid();
 
         // 2. SUPABASE API CONNECT LAYER
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -179,7 +190,6 @@
         let selectedVectorType = null;
         let dbCache = { eth: null, int: null };
 
-        // Fetch sources immediately to keep runtime lightweight
         async function prefetchDatabases() {
             try {
                 const { data: ethData } = await supabaseClient
