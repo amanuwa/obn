@@ -25,10 +25,10 @@
             pointer-events: none;
         }
 
-        /* Smooth UI entry fade */
+        /* Smooth UI entry fade after map forms */
         #dashboardContent {
             opacity: 0;
-            transition: opacity 1.5s ease-in-out;
+            transition: opacity 1.8s ease-in-out;
             pointer-events: none;
         }
         #dashboardContent.visible {
@@ -83,7 +83,7 @@
             box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
         }
 
-        /* Language Filter Buttons */
+        /* Language Filter Buttons Layout */
         .ensemble-btn {
             background-color: #16224f;
             border: 2.5px solid #2563eb;
@@ -142,14 +142,14 @@
 </head>
 <body class="font-sans bg-[#010206]">
 
-    <!-- MATRIX CANVAS LAYER -->
+    <!-- GLOWING MATRIX CANVAS BACKGROUND LAYER -->
     <canvas class="governance-bg-canvas" id="governanceCanvas"></canvas>
 
-    <!-- DASHBOARD CONTAINER (Initially hidden until map forms) -->
+    <!-- DASHBOARD CONTAINER (Fades in smoothly after map settles) -->
     <div id="dashboardContent" class="relative z-10 flex flex-col h-full w-full">
         
         <!-- TOP TERMINAL HEADER INTERFACE -->
-        <header class="bg-slate-950/90 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none backdrop-blur-sm">
+        <header class="bg-slate-950/80 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none backdrop-blur-sm">
             <div class="flex items-center gap-3">
                 <div class="w-7 h-7 rounded bg-cyan-600 flex items-center justify-center font-bold text-[10px] border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]">TG</div>
                 <div>
@@ -174,10 +174,10 @@
             </div>
         </header>
 
-        <!-- DASHBOARD GRID -->
+        <!-- DASHBOARD WORKSPACE GRID -->
         <main class="flex-1 flex gap-3 p-3 h-full overflow-hidden">
             
-            <!-- LEFT COLUMN: SIDEBAR PANELS -->
+            <!-- LEFT COLUMN: TARGET SECTORS -->
             <div class="w-1/4 flex flex-col gap-3.5 overflow-y-auto pr-1 select-none shrink-0">
                 <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Strait of Hormuz</h2>
@@ -224,8 +224,8 @@
                 </section>
             </div>
 
-            <!-- RIGHT COLUMN: RESULTS MONITOR -->
-            <div class="flex-1 flex flex-col justify-between bg-slate-950/80 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden backdrop-blur-xs">
+            <!-- RIGHT COLUMN: CENTRAL MONITOR -->
+            <div class="flex-1 flex flex-col justify-between bg-slate-950/70 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden backdrop-blur-xs">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
                     <div class="flex items-center gap-2 shrink-0">
                         <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></div>
@@ -244,7 +244,7 @@
                 </div>
 
                 <div id="unifiedResultsConsole" class="flex-1 overflow-y-auto font-mono text-xs text-slate-400 bg-slate-950/40 border border-slate-900/60 rounded-md p-3 space-y-3">
-                    <div class="text-slate-500 tracking-wide">// Core sequence operational. Select sidebar targets or run updates to fetch information feeds...</div>
+                    <div class="text-slate-500 tracking-wide">// System online. Terminal metrics initialized. Run an inquiry lookup via sidebar modules to display intercept logs...</div>
                 </div>
 
                 <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
@@ -263,58 +263,66 @@
         </footer>
     </div>
 
-    <!-- CODE SCRIPT EXECUTOR -->
+    <!-- CODE SCRIPT ENGINE -->
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
-        // 1. ETHIOPIA MAP MATRIX MATRIX COALESCE GENERATOR
+        // 1. HIGH-DENSITY GEOMETRIC ETHIOPIA MAP ASSEMBLE
         const canvas = document.getElementById('governanceCanvas');
         const ctx = canvas.getContext('2d');
         function sizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         sizeCanvas(); window.addEventListener('resize', sizeCanvas);
 
-        const hexTokens = ['0', '1', 'A', 'F', 'C', '9', '2', 'B', 'E', '5'];
+        const hexPool = ['0', '1', 'X', 'A', 'F', '9', '4', 'C', '2', 'E'];
         const particles = [];
         
-        // Exact geometric silhouette layout representation of the Ethiopian borders
+        // Accurate topological border design grid matching your blueprint layout
         const ethiopiaMapMatrix = [
-            "          0111111000          ",
-            "       0111111111111110       ",
-            "     01111111111111111110     ",
-            "   01111111111111111111111    ",
-            "  0111111111111111111111111   ",
-            " 0111111111111111111111111110 ",
-            "011111111111111111111111111111",
-            " 011111111111111111111111111  ",
-            "   011111111111111111111110   ",
-            "     0111111111111111110      ",
-            "       01111111111110         ",
-            "         011111110            "
+            "               11111111111111                 ",
+            "            11111111111111111111              ",
+            "          111111111111111111111111            ",
+            "        1111111111111111111111111111          ",
+            "       111111111111111111111111111111         ",
+            "      11111111111111111111111111111111        ",
+            "     1111111111111111111111111111111111       ",
+            "    1111111111111111111111111111111111111     ",
+            "   1111111111111111111111111111111111111111   ",
+            "  1111111111111111111111111111111111111111111 ",
+            "1111111111111111111111111111111111111111111111",
+            "111111111111111111111111111111111111111111111 ",
+            " 11111111111111111111111111111111111111111    ",
+            "   111111111111111111111111111111111111       ",
+            "     111111111111111111111111111110           ",
+            "       1111111111111111111111110              ",
+            "         1111111111111111110                  ",
+            "           1111111111110                      ",
+            "             11111110                         "
         ];
 
         const mapRows = ethiopiaMapMatrix.length;
         const mapCols = ethiopiaMapMatrix[0].length;
         
-        const mapWidth = window.innerWidth * 0.45;
-        const mapHeight = window.innerHeight * 0.55;
-        const originX = (window.innerWidth - mapWidth) / 2;
-        const originY = (window.innerHeight - mapHeight) / 2;
+        // Grid sizing structures
+        const mapWidth = window.innerWidth * 0.55;
+        const mapHeight = window.innerHeight * 0.65;
+        const startX = (window.innerWidth - mapWidth) / 2;
+        const startY = (window.innerHeight - mapHeight) / 2;
         
-        const deltaX = mapWidth / mapCols;
-        const deltaY = mapHeight / mapRows;
+        const stepX = mapWidth / mapCols;
+        const stepY = mapHeight / mapRows;
 
-        // Build target locations for falling data
+        // Generate coordinates
         for (let r = 0; r < mapRows; r++) {
             for (let c = 0; c < mapCols; c++) {
-                if (ethiopiaMapMatrix[r][c] === '1' || ethiopiaMapMatrix[r][c] === '0') {
+                if (ethiopiaMapMatrix[r][c] === '1') {
                     particles.push({
                         x: Math.random() * window.innerWidth,
-                        y: Math.random() * -window.innerHeight - 50,
-                        destX: originX + (c * deltaX) + (Math.random() * 6 - 3),
-                        destY: originY + (r * deltaY) + (Math.random() * 6 - 3),
-                        speed: Math.random() * 0.025 + 0.015,
-                        val: hexTokens[Math.floor(Math.random() * hexTokens.length)],
-                        fontSize: Math.floor(Math.random() * 3) + 10,
+                        y: Math.random() * -window.innerHeight - 60, // Falls down from top
+                        targetX: startX + (c * stepX) + (Math.random() * 4 - 2),
+                        targetY: startY + (r * stepY) + (Math.random() * 4 - 2),
+                        speed: Math.random() * 0.02 + 0.012,
+                        char: hexPool[Math.floor(Math.random() * hexPool.length)],
+                        size: Math.floor(Math.random() * 3) + 10,
                         settled: false
                     });
                 }
@@ -324,55 +332,55 @@
         let totalSettled = 0;
         let panelsRevealed = false;
 
-        function runMatrixMapSequence() {
+        function renderEncryptionMap() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.font = 'monospace';
-            
             totalSettled = 0;
 
             particles.forEach(p => {
-                ctx.font = `${p.fontSize}px monospace`;
+                ctx.font = `bold ${p.size}px monospace`;
                 
-                // Falling math calculation to pull particles to map nodes
-                let diffX = p.destX - p.x;
-                let diffY = p.destY - p.y;
+                let dx = p.targetX - p.x;
+                let dy = p.targetY - p.y;
                 
-                p.x += diffX * p.speed;
-                p.y += diffY * p.speed;
+                p.x += dx * p.speed;
+                p.y += dy * p.speed;
 
-                if (Math.abs(diffY) < 1.5 && Math.abs(diffX) < 1.5) {
+                if (Math.abs(dx) < 2 && Math.abs(dy) < 2) {
                     p.settled = true;
                     totalSettled++;
                 }
 
-                if (Math.random() < 0.04) {
-                    p.val = hexTokens[Math.floor(Math.random() * hexTokens.length)];
+                if (Math.random() < 0.05) {
+                    p.char = hexPool[Math.floor(Math.random() * hexPool.length)];
                 }
 
-                // Opacity shift to brighter cyan once locked into mapping arrays
+                // INTENSIFIED GLOW & SHADOW EFFECTS
                 if (p.settled) {
-                    ctx.fillStyle = 'rgba(6, 182, 212, 0.45)';
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = '#06b6d4';
+                    ctx.fillStyle = 'rgba(34, 211, 238, 0.7)'; // Vibrant neon cyan
                 } else {
-                    ctx.fillStyle = 'rgba(6, 182, 212, 0.15)';
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = 'rgba(6, 182, 212, 0.2)'; // Faint trail
                 }
 
-                ctx.fillText(p.val, p.x, p.y);
+                ctx.fillText(p.char, p.x, p.y);
             });
 
-            // Trigger workspace panel opacity fade when 92%+ particles arrive
-            if (!panelsRevealed && (totalSettled / particles.length) > 0.92) {
+            // Reveal the dashboard dashboardContent when map completes assembly
+            if (!panelsRevealed && (totalSettled / particles.length) > 0.90) {
                 panelsRevealed = true;
                 document.getElementById('dashboardContent').classList.add('visible');
             }
 
-            requestAnimationFrame(runMatrixMapSequence);
+            requestAnimationFrame(renderEncryptionMap);
         }
         
-        // Execute compilation map timeline sequence
-        runMatrixMapSequence();
+        // Execute loop sequence
+        renderEncryptionMap();
 
 
-        // 2. SUPABASE CONNECTIONS ENGINE
+        // 2. SUPABASE RELATIONAL ACTIONS PIPELINE
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let cachedDataStream = [];
 
@@ -383,7 +391,7 @@
             activeLanguages[langKey] = !activeLanguages[langKey];
             btn.classList.toggle('active', activeLanguages[langKey]);
             const activeList = Object.keys(activeLanguages).filter(k => activeLanguages[k]);
-            document.getElementById('statusConsole').innerText = `// MODIFIED ACTIVE LANGUAGE STREAMS: [${activeList.join(', ')}]`;
+            document.getElementById('statusConsole').innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
         };
 
         window.toggleSelectAllEnsembles = function() {
@@ -399,8 +407,8 @@
         window.triggerAnythingNew = async function(sectorContext) {
             const outputPanel = document.getElementById('unifiedResultsConsole');
             const statusLog = document.getElementById('statusConsole');
-            statusLog.innerText = `// TRIGGERING DELTA CHECK FOR: [${sectorContext.toUpperCase()}]`;
-            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying recent backend rows...</div>`;
+            statusLog.innerText = `// TRACKING RECENT CHRONO ENTRIES FOR: [${sectorContext.toUpperCase()}]`;
+            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying database metrics chronologically...</div>`;
 
             try {
                 let tableTarget = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
@@ -410,14 +418,14 @@
                 if (error) throw error;
                 cachedDataStream = data || [];
 
-                let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// RECENT DELTA INSIGHTS: [${sectorContext.toUpperCase()}]</div>`;
+                let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// DELTA RECONNAISSANCE SEARCH: [${sectorContext.toUpperCase()}]</div>`;
                 cachedDataStream.forEach((row, idx) => {
-                    html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-amber-400 font-bold">[NEW-${idx+1}]</span> <span class="text-slate-200">${row.title || 'Untitled Segment'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
+                    html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-amber-400 font-bold">[NEW-${idx+1}]</span> <span class="text-slate-200">${row.title || 'Untitled Element'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
                 });
                 outputPanel.innerHTML = html;
-                statusLog.innerText = `// DELTA CAPTURE COMPLETE.`;
+                statusLog.innerText = `// DELTA CAPTURE FINISHED.`;
             } catch (err) {
-                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// DELTA READ EXCEPTION.</span>`;
+                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// READ TIMEOUT ERROR.</span>`;
             }
         };
 
@@ -427,12 +435,12 @@
             const statusLog = document.getElementById('statusConsole');
 
             if (!queryValue) {
-                outputPanel.innerHTML = `<span class="text-red-400 font-mono">// EXCEPTION: Payload parameters undefined.</span>`;
+                outputPanel.innerHTML = `<span class="text-red-400 font-mono">// ERROR: Missing query metrics.</span>`;
                 return;
             }
 
-            statusLog.innerText = `// SEARCHING MATRIX ARRAYS FOR: "${queryValue}"...`;
-            outputPanel.innerHTML = `<div class="text-cyan-400 animate-pulse">// SCANNING DATA TABLES...</div>`;
+            statusLog.innerText = `// INTERROGATING ROW INDICES FOR: "${queryValue}"...`;
+            outputPanel.innerHTML = `<div class="text-cyan-400 animate-pulse">// SCANNING INDEX SCHEMAS...</div>`;
 
             try {
                 let currentTable = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
@@ -443,25 +451,25 @@
                 cachedDataStream = data || [];
 
                 if (cachedDataStream.length === 0) {
-                    outputPanel.innerHTML = `<div class="text-slate-500">// Search sequence complete. 0 matches found for: "${queryValue}".</div>`;
+                    outputPanel.innerHTML = `<div class="text-slate-500">// Search completed. 0 matching sequences found for: "${queryValue}".</div>`;
                 } else {
-                    let html = `<div class="text-cyan-400 border-b border-slate-900 pb-1.5 mb-2">// INTERCEPTED FEED SIGNALS: ${sectorContext.toUpperCase()}</div>`;
+                    let html = `<div class="text-cyan-400 border-b border-slate-900 pb-1.5 mb-2">// ISOLATED FEED RECORDS: ${sectorContext.toUpperCase()}</div>`;
                     cachedDataStream.forEach((row, idx) => {
-                        html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-cyan-400 font-bold">[HIT-${idx+1}]</span> <span class="text-slate-200">${row.title || 'Unknown Label'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
+                        html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-cyan-400 font-bold">[HIT-${idx+1}]</span> <span class="text-slate-200">${row.title || 'Unknown Asset'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
                     });
                     outputPanel.innerHTML = html;
                 }
             } catch (err) {
-                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// TABLE PIPELINE FAULT.</span>`;
+                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// RELATIONAL MAP EXCEPTION.</span>`;
             }
         };
 
         window.downloadTerminalLogs = function() {
-            if (cachedDataStream.length === 0) return alert("Run a trace to fetch data logs first.");
+            if (cachedDataStream.length === 0) return alert("Run a lookup sequence to populate logs first.");
             const blobString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cachedDataStream, null, 2));
             const anchor = document.createElement('a');
             anchor.setAttribute("href", blobString);
-            anchor.setAttribute("download", "terminal_telemetry_dump.json");
+            anchor.setAttribute("download", "terminal_dataset_dump.json");
             document.body.appendChild(anchor);
             anchor.click();
             anchor.remove();
