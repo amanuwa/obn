@@ -3,214 +3,280 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Gateway Access | Terminal</title>
-    <!-- Tailwind CSS -->
+    <title>Agent Access Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Supabase CDN Script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; items-center justify-content: center; background-color: #010206; font-family: monospace; position: relative; overflow: hidden; }
-        
-        /* Subtle scanlines for terminal texture */
-        body::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 5;
-            background-size: 100% 3px, 6px 100%;
-            pointer-events: none;
+        body {
+            background-color: #02040a;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
         }
 
-        /* -------------------------------------------------------------
-           ROTATING HOLOGRAM GLOBE BACKGROUND
-           ------------------------------------------------------------- */
-        .globe-bg-wrapper {
-            position: absolute;
+        /* REVOLVING CYBER GLOBE BACKGROUND */
+        .rotating-globe {
+            position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            width: 85vh;
-            height: 85vh;
-            max-width: 90vw;
-            max-height: 90vw;
+            width: 140vmax;
+            height: 140vmax;
+            background-image: url('Screenshot 2026-07-05 050457.jpg');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
             z-index: 0;
             pointer-events: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            opacity: 0.45;
+            animation: spin 120s linear infinite;
         }
 
-        .rotating-globe {
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* UI Contrast Veil */
+        .overlay-veil {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            opacity: 0.45; /* Blends nicely into the dark layout without blinding text */
-            filter: drop-shadow(0 0 30px rgba(6, 182, 212, 0.3));
-            animation: slowGlobeSpin 40s linear infinite;
+            background: radial-gradient(circle at center, rgba(2, 4, 10, 0.1) 0%, rgba(2, 4, 10, 0.9) 100%);
+            z-index: 1;
+            pointer-events: none;
         }
 
-        @keyframes slowGlobeSpin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .ui-container {
+            position: relative;
+            z-index: 2;
         }
 
-        /* ------------------------------------------------------------- */
-
-        .auth-card {
-            background: rgba(6, 11, 24, 0.85); /* Slightly translucent to see the globe spin underneath */
-            border: 1px solid #06b6d4;
-            box-shadow: 0 0 30px rgba(6, 182, 212, 0.25);
-            backdrop-filter: blur(6px); /* Blurs the globe under the card for readability */
+        .glow-border:focus-within {
+            border-color: #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
         }
-
-        .terminal-input {
-            background-color: #02050c;
-            border: 1px solid #1e293b;
-            color: #f1f5f9;
-            transition: all 0.2s ease;
-        }
-        .terminal-input:focus {
-            outline: none;
-            border-color: #06b6d4;
-            box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+        
+        input:focus, select:focus {
+            outline: none !important;
+            box-shadow: none !important;
         }
     </style>
 </head>
-<body class="flex items-center justify-center p-4">
+<body class="text-slate-100 font-sans flex items-center justify-center p-6">
 
-    <!-- ROTATING GLOBE BACKDROP -->
-    <div class="globe-bg-wrapper">
-        <img src="Screenshot 2026-07-08 004611.jpg" alt="Hologram Globe" class="rotating-globe">
-    </div>
+    <div class="rotating-globe"></div>
+    <div class="overlay-veil"></div>
 
-    <!-- COMPACT TERMINAL LOCKBOX -->
-    <div class="auth-card w-full max-w-md rounded-xl p-6 relative z-10">
-        <!-- Header Matrix Identity -->
-        <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
-            <div class="w-8 h-8 rounded bg-cyan-600 flex items-center justify-center font-bold text-xs text-slate-950 shadow-[0_0_10px_rgba(6,182,212,0.4)]">🔑</div>
-            <div>
-                <h1 class="text-sm font-bold text-slate-100 uppercase tracking-wider">Gateway Authentication</h1>
-                <span class="text-[10px] text-cyan-500 uppercase tracking-widest">// ACCESS DETERMINATION NODE</span>
-            </div>
-        </div>
+    <div class="ui-container w-full max-w-md">
 
-        <!-- System Alerts Console -->
-        <div id="authAlert" class="hidden text-[11px] p-2.5 rounded border mb-4 bg-slate-950 font-mono"></div>
+        <div id="signUpScreen" class="w-full bg-slate-950/85 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
 
-        <!-- Access Credentials Form -->
-        <form id="authForm" class="space-y-4">
-            <div>
-                <label class="block text-[10px] uppercase text-slate-400 tracking-wider mb-1.5">// Identity Email</label>
-                <input type="email" id="email" required placeholder="operator@domain.com" class="terminal-input w-full px-3 py-2 text-xs rounded-md font-mono">
-            </div>
+            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
+                Initialize Agent Access
+            </h2>
+            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
 
-            <div>
-                <label class="block text-[10px] uppercase text-slate-400 tracking-wider mb-1.5">// Security Passkey</label>
-                <input type="password" id="password" required placeholder="••••••••••••" class="terminal-input w-full px-3 py-2 text-xs rounded-md font-mono">
-            </div>
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
+                </div>
 
-            <div class="pt-2 flex flex-col gap-2.5">
-                <!-- Action Executioners -->
-                <button type="submit" id="btnLogin" class="w-full bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs py-2 rounded-md transition-all uppercase tracking-wide cursor-pointer shadow-[0_0_12px_rgba(6,182,212,0.2)]">
-                    Authorize Session [Sign In]
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assigned Sector</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🗂️</span>
+                        <select id="regSection" required class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer text-slate-300">
+                            <option value="" disabled selected class="bg-slate-950 text-slate-500">Select Sector...</option>
+                            <option value="world politics and governance" class="bg-slate-950 text-white">World Politics and Governance</option>
+                            <option value="sports & analytics" class="bg-slate-950 text-white">Sports & Analytics</option>
+                            <option value="business and finance" class="bg-slate-950 text-white">Business and Finance</option>
+                            <option value="general hot news" class="bg-slate-950 text-white">General Hot News</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                        <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                    </div>
+                </div>
+
+                <button id="signUpBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Sign Up
                 </button>
                 
-                <button type="button" id="btnRegister" class="w-full border border-slate-800 hover:border-cyan-900/50 bg-slate-950/40 hover:bg-cyan-950/10 text-slate-400 hover:text-cyan-400 font-mono text-[11px] py-1.5 rounded transition-all uppercase tracking-wide cursor-pointer">
-                    Provision New Access [Sign Up]
-                </button>
-            </div>
-        </form>
+                <p id="successMessage" class="text-sm text-emerald-400 font-mono text-center mt-2 hidden">✓ Profile compiled! Routing to Portal Terminal...</p>
 
-        <!-- Footer Metric Status -->
-        <div class="mt-5 pt-3 border-t border-slate-900 flex justify-between items-center text-[9px] text-slate-600">
-            <span>SECURE LINK SEC-V5</span>
-            <span id="systemClock">// WAITING FOR OPERATOR INITIALS</span>
+                <div class="text-center mt-4">
+                    <p class="text-xs text-slate-400">Already registered? <button id="toSignInBtn" class="text-sky-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Secure Log In</button></p>
+                </div>
+            </div>
         </div>
+
+        <div id="signInScreen" class="hidden w-full bg-slate-950/85 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
+
+            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
+                Operator Portal
+            </h2>
+            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Access Password</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                        <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                    </div>
+                </div>
+
+                <button id="signInBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Sign In
+                </button>
+
+                <div class="text-center mt-4">
+                    <button id="toSignUpBtn" class="text-xs text-sky-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Initialize Access Profile</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- CORE CONFIGURATION & SUPABASE GLUE -->
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+        import { DESK_CONFIGS } from './deskConfigs.js';
 
-        // Initialize connection layers
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        const authForm = document.getElementById('authForm');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const alertBox = document.getElementById('authAlert');
-        const systemClock = document.getElementById('systemClock');
-
-        function displayNotice(msg, type = 'info') {
-            alertBox.classList.remove('hidden', 'text-cyan-400', 'border-cyan-900/50', 'text-red-400', 'border-red-950/60', 'text-emerald-400', 'border-emerald-950/60');
-            
-            if (type === 'error') {
-                alertBox.classList.add('text-red-400', 'border-red-950/60');
-            } else if (type === 'success') {
-                alertBox.classList.add('text-emerald-400', 'border-emerald-950/60');
-            } else {
-                alertBox.classList.add('text-cyan-400', 'border-cyan-900/50');
+        // FIXING THE API KEY AUTHENTICATION ERROR: Explicitly enforcing global apiKey headers
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: { persistSession: true },
+            global: {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
             }
-            alertBox.innerText = `// ${msg.toUpperCase()}`;
+        });
+
+        function showScreen(screenId) {
+            document.getElementById('signUpScreen').classList.add('hidden');
+            document.getElementById('signInScreen').classList.add('hidden');
+            document.getElementById(screenId).classList.remove('hidden');
         }
 
-        // SIGN IN LOGIC SEQUENCE
-        authForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            systemClock.innerText = "// COMMENCING TOKENS EXTRACTION...";
-            displayNotice("Verifying crypto credentials sequence...", "info");
+        // Action Initializations
+        document.getElementById('toSignInBtn').addEventListener('click', () => showScreen('signInScreen'));
+        document.getElementById('toSignUpBtn').addEventListener('click', () => showScreen('signUpScreen'));
+        document.getElementById('signUpBtn').addEventListener('click', registerJournalist);
+        document.getElementById('signInBtn').addEventListener('click', loginJournalist);
+
+        async function registerJournalist() {
+            const fullName = document.getElementById('regName').value.trim();
+            const section = document.getElementById('regSection').value;
+            const password = document.getElementById('regPassword').value;
+            const signUpBtn = document.getElementById('signUpBtn');
+            const successMsg = document.getElementById('successMessage');
+
+            if (!fullName || !section || !password) return alert("All profile registration parameters are required.");
+
+            signUpBtn.disabled = true;
+            signUpBtn.innerText = "Processing Profile...";
 
             try {
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: emailInput.value.trim(),
-                    password: passwordInput.value
-                });
+                const { data: existingUsers, error: checkError } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', fullName);
 
-                if (error) throw error;
+                if (checkError) throw checkError;
+                if (existingUsers && existingUsers.length > 0) {
+                    alert(`Registration failed: The operator name "${fullName}" is already taken.`);
+                    signUpBtn.disabled = false;
+                    signUpBtn.innerText = "Sign Up";
+                    return; 
+                }
 
-                displayNotice("Identity authenticated. Redirecting to workspace interface...", "success");
-                systemClock.innerText = "// SESSION ESTABLISHED.";
-                
+                const { error: insertError } = await supabaseClient
+                    .from('journalists')
+                    .insert([{"Journalist name": fullName, "journalism Section": section, "Password": password}]);
+
+                if (insertError) throw insertError;
+
+                successMsg.classList.remove('hidden');
                 setTimeout(() => {
-                    window.location.href = 'dashboard.html'; 
-                }, 1000);
+                    successMsg.classList.add('hidden');
+                    document.getElementById('loginName').value = fullName;
+                    signUpBtn.disabled = false;
+                    signUpBtn.innerText = "Sign Up";
+                    showScreen('signInScreen');
+                }, 1500);
 
-            } catch (err) {
-                displayNotice(err.message || "Authorization rejected.", "error");
-                systemClock.innerText = "// ACCESS DENIED.";
+            } catch (error) {
+                alert("Database Insertion Error: " + error.message);
+                signUpBtn.disabled = false;
+                signUpBtn.innerText = "Sign Up";
             }
-        });
+        }
 
-        // SIGN UP NEW ACCOUNTS PIPELINE
-        document.getElementById('btnRegister').addEventListener('click', async () => {
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
+        async function loginJournalist() {
+            const nameInput = document.getElementById('loginName').value.trim();
+            const passwordInput = document.getElementById('loginPassword').value;
+            const signInBtn = document.getElementById('signInBtn');
 
-            if (!email || !password) {
-                displayNotice("Complete credential input arrays first.", "error");
-                return;
-            }
+            if (!nameInput || !passwordInput) return alert("Please enter both your name and password.");
 
-            systemClock.innerText = "// PROVISIONING MATRIX ENTRY...";
-            displayNotice("Registering terminal operator identity profile...", "info");
+            signInBtn.disabled = true;
+            signInBtn.innerText = "Authenticating...";
 
             try {
-                const { data, error } = await supabaseClient.auth.signUp({
-                    email,
-                    password
-                });
+                const { data: records, error } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', nameInput);
 
                 if (error) throw error;
+                if (!records || records.length === 0 || records[0].Password !== passwordInput) {
+                    alert("Authentication Error: Invalid profile credentials.");
+                    signInBtn.disabled = false;
+                    signInBtn.innerText = "Sign In";
+                    return;
+                }
 
-                displayNotice("Identity provisioned. Confirm link verification email if active, or authorize sign in.", "success");
-                systemClock.innerText = "// RECORD WRITTEN.";
-            } catch (err) {
-                displayNotice(err.message || "Provisioning sequence failure.", "error");
-                systemClock.innerText = "// HANDSHAKE ABORTED.";
+                const assignedSection = records[0]["journalism Section"];
+                const configMatch = DESK_CONFIGS[assignedSection];
+
+                if (configMatch) {
+                    alert(`Access Authenticated! Welcome Operator ${records[0]["Journalist name"]}.\nRouting to: ${configMatch.title}`);
+                } else {
+                    alert(`Access Authenticated! Welcome Operator ${records[0]["Journalist name"]}.`);
+                }
+
+                signInBtn.disabled = false;
+                signInBtn.innerText = "Sign In";
+                document.getElementById('loginPassword').value = ""; 
+
+            } catch (error) {
+                alert("Login Error: " + error.message);
+                signInBtn.disabled = false;
+                signInBtn.innerText = "Sign In";
             }
-        });
+        }
     </script>
 </body>
 </html>
