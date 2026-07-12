@@ -25,25 +25,27 @@
             opacity: 0.35; 
         }
 
-        /* Match the exact button styling from the screenshot */
-        .vector-btn {
+        /* Card Wrapper Style matching the screenshot layout */
+        .sector-card {
             background-color: #0b1329;
-            border: 3px solid #1e293b; /* Slate-800 inactive border */
+            border: 3px solid #1e293b;
             border-radius: 1rem;
             padding: 1.25rem 1.5rem;
             width: 100%;
-            text-align: left;
             cursor: pointer;
             transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .vector-btn:hover {
+        .sector-card:hover {
             border-color: #334155;
         }
 
-        /* Active highlight state matching screenshot */
-        .vector-btn.active {
-            border-color: #3b82f6 !important; /* Vibrant Blue-500 */
+        /* Dynamically highlighted border when the checkbox inside is checked */
+        .sector-card.active {
+            border-color: #3b82f6 !important;
             box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
         }
     </style>
@@ -56,7 +58,7 @@
     <!-- MAIN INTERFACE CONTAINER -->
     <div class="relative z-10 flex flex-col h-full w-full">
         
-        <!-- HEADER LOGO BAR (Heavy 4px Framing Edge) -->
+        <!-- HEADER LOGO BAR -->
         <header class="bg-slate-950 border-b-4 border-slate-800 px-8 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-md bg-blue-600 flex items-center justify-center font-bold text-xs border-2 border-blue-400">GI</div>
@@ -68,30 +70,36 @@
         <!-- MAIN INTERFACE MATRIX -->
         <main class="flex-1 grid grid-cols-4 gap-5 p-5 h-full overflow-hidden">
             
-            <!-- LEFT CONTROL DRAWER -->
+            <!-- LEFT CONTROL DRAWER (Rebuilt with Selectable Checkbox Cards) -->
             <div class="col-span-1 bg-slate-950/95 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl">
                 <h3 class="text-[11px] font-semibold text-blue-400 uppercase tracking-widest mb-5 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Intelligence Sectors
                 </h3>
                 
                 <div id="categoryContainer" class="space-y-4 mb-6">
-                    <!-- ETHIOPIAN NEWS DEPT -->
-                    <button onclick="selectVector(this, 'ethiopian')" class="vector-btn flex items-center gap-2.5">
-                        <span class="text-[11px] font-bold text-slate-400 tracking-wider">ET</span>
-                        <span class="text-xs font-semibold uppercase text-slate-200 tracking-wide">Ethiopian News</span>
-                    </button>
+                    <!-- ETHIOPIAN NEWS CHECKBOX CARD -->
+                    <label id="ethCard" class="sector-card">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-[11px] font-bold text-slate-400 tracking-wider">ET</span>
+                            <span class="text-xs font-semibold uppercase text-slate-200 tracking-wide">Ethiopian News</span>
+                        </div>
+                        <input type="checkbox" id="ethCheck" class="sector-check scale-125 accent-blue-500" value="ethiopian" onchange="syncSectorState()">
+                    </label>
 
-                    <!-- INTERNATIONAL NEWS DEPT -->
-                    <button onclick="selectVector(this, 'international')" class="vector-btn flex items-center gap-2.5">
-                        <span class="text-xs text-blue-400">🌐</span>
-                        <span class="text-xs font-semibold uppercase text-slate-200 tracking-wide">International News</span>
-                    </button>
+                    <!-- INTERNATIONAL NEWS CHECKBOX CARD -->
+                    <label id="intCard" class="sector-card">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-xs text-blue-400">🌐</span>
+                            <span class="text-xs font-semibold uppercase text-slate-200 tracking-wide">International News</span>
+                        </div>
+                        <input type="checkbox" id="intCheck" class="sector-check scale-125 accent-blue-500" value="international" onchange="syncSectorState()">
+                    </label>
                 </div>
                 
                 <!-- STREAM MONITOR FEED -->
                 <div class="flex-1 bg-slate-950 rounded-xl border-4 border-slate-800/80 p-4 mb-4 overflow-y-auto">
                     <h3 class="text-[9px] font-medium text-slate-400 uppercase mb-3">Sub-Sector Agencies</h3>
-                    <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-500 italic">// Awaiting vector mapping...</div>
+                    <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-500 italic">// Awaiting selection...</div>
                 </div>
 
                 <button id="runBtn" class="w-full bg-blue-600 border-4 border-blue-400 p-4 rounded-xl font-medium text-xs uppercase hover:bg-blue-500 transition-all cursor-pointer shadow-md tracking-wider">Initialize Pipeline</button>
@@ -201,8 +209,7 @@
             }
         });
 
-        // 3. UI OPERATIONS & VECTOR CONTROL
-        let selectedVectorType = null;
+        // 3. UI OPERATIONS & DYNAMIC MONITOR MATRIX
         let dbCache = { eth: null, int: null };
 
         async function prefetchDatabases() {
@@ -223,26 +230,47 @@
         }
         prefetchDatabases();
 
-        window.selectVector = function(btn, vectorType) {
-            document.querySelectorAll('.vector-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            selectedVectorType = vectorType;
-
+        // Dynamically changes borders and populates endpoints based on checked sectors
+        window.syncSectorState = function() {
+            const ethCheck = document.getElementById('ethCheck');
+            const intCheck = document.getElementById('intCheck');
+            const ethCard = document.getElementById('ethCard');
+            const intCard = document.getElementById('intCard');
             const agencyContainer = document.getElementById('activeSourceList');
+
+            // Handle active frame styles
+            if (ethCheck.checked) ethCard.classList.add('active');
+            else ethCard.classList.remove('active');
+
+            if (intCheck.checked) intCard.classList.add('active');
+            else intCard.classList.remove('active');
+
+            // Populate source feed
             agencyContainer.innerHTML = '';
+            let sourcesFound = false;
 
-            const data = vectorType === 'ethiopian' ? dbCache.eth : dbCache.int;
-            const colName = vectorType === 'ethiopian' ? 'Website -source' : 'website Source';
-
-            if (data && data.length > 0) {
-                data.forEach(item => {
+            if (ethCheck.checked && dbCache.eth) {
+                sourcesFound = true;
+                dbCache.eth.forEach(item => {
                     const node = document.createElement('div');
                     node.className = "p-2 bg-slate-900 border-2 border-slate-800 text-slate-400 font-mono text-[10px] rounded-lg tracking-wide uppercase";
-                    node.innerHTML = `» ${item[colName]}`;
+                    node.innerHTML = `» ${item['Website -source']}`;
                     agencyContainer.appendChild(node);
                 });
-            } else {
-                agencyContainer.innerHTML = `<div class="text-slate-600 italic">// Loading regional endpoints...</div>`;
+            }
+
+            if (intCheck.checked && dbCache.int) {
+                sourcesFound = true;
+                dbCache.int.forEach(item => {
+                    const node = document.createElement('div');
+                    node.className = "p-2 bg-slate-900 border-2 border-slate-800 text-slate-400 font-mono text-[10px] rounded-lg tracking-wide uppercase";
+                    node.innerHTML = `» ${item['website Source']}`;
+                    agencyContainer.appendChild(node);
+                });
+            }
+
+            if (!sourcesFound) {
+                agencyContainer.innerHTML = `<div class="text-slate-600 italic">// Awaiting selection...</div>`;
             }
         }
 
@@ -256,17 +284,22 @@
         });
         
         document.getElementById('runBtn').onclick = () => {
-            if (!selectedVectorType) return alert("Error: Select a geopolitical input sector.");
+            const ethChecked = document.getElementById('ethCheck').checked;
+            const intChecked = document.getElementById('intCheck').checked;
+            
+            if (!ethChecked && !intChecked) return alert("Error: Select at least one news intelligence sector.");
             
             const activeLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
             if (activeLangs.length === 0) return alert("Error: Select at least one active language node.");
             
-            const currentVectorLabel = selectedVectorType === 'ethiopian' ? 'ETHIOPIAN POLITICS & POLICY' : 'INTERNATIONAL GOVERNANCE';
+            let sectors = [];
+            if (ethChecked) sectors.push("ETHIOPIAN NEWS");
+            if (intChecked) sectors.push("INTERNATIONAL NEWS");
             
             document.getElementById('outputContainer').innerHTML = `
                 <div class="text-emerald-400 font-mono text-xs">
                     // GEOPOLITICAL PIPELINE ACTIVE & AUTHENTICATED WITH POSTGREST LAYER<br>
-                    // STRATIFICATION FIELD: ${currentVectorLabel}<br>
+                    // ACTIVE SECTOR FEED: ${sectors.join(' & ')}<br>
                     // STREAM LANGUAGE NODES LISTENING: ${activeLangs.join(' | ').toUpperCase()}
                 </div>`;
         };
