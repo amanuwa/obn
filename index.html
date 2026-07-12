@@ -3,79 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Gateway | Terminal Hub</title>
+    <title>Secure Gateway Access | Terminal</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Supabase CDN Script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #010206; position: relative; overflow: hidden; }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
-
-        /* Crisp Fullscreen Background Canvas */
-        .governance-bg-canvas {
+        body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; items-center justify-content: center; background-color: #010206; font-family: monospace; position: relative; overflow: hidden; }
+        
+        /* Subtle scanlines for terminal texture */
+        body::before {
+            content: " ";
+            display: block;
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 5;
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* -------------------------------------------------------------
+           ROTATING HOLOGRAM GLOBE BACKGROUND
+           ------------------------------------------------------------- */
+        .globe-bg-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85vh;
+            height: 85vh;
+            max-width: 90vw;
+            max-height: 90vw;
             z-index: 0;
             pointer-events: none;
-            transition: opacity 0.5s ease-out; /* Smoothly blend out canvas */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Smooth UI entry fade after matrix sequence stabilizes */
-        #dashboardContent {
-            opacity: 0;
-            transition: opacity 1.5s ease-in-out;
-            pointer-events: none;
-        }
-        #dashboardContent.visible {
-            opacity: 1;
-            pointer-events: auto;
+        .rotating-globe {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0.45; /* Blends nicely into the dark layout without blinding text */
+            filter: drop-shadow(0 0 30px rgba(6, 182, 212, 0.3));
+            animation: slowGlobeSpin 40s linear infinite;
         }
 
-        /* Routing Domain Buttons */
-        .domain-btn {
-            display: inline-block;
-            text-align: center;
-            background-color: #050b18;
+        @keyframes slowGlobeSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* ------------------------------------------------------------- */
+
+        .auth-card {
+            background: rgba(6, 11, 24, 0.85); /* Slightly translucent to see the globe spin underneath */
             border: 1px solid #06b6d4;
-            color: #22d3ee;
-            border-radius: 0.5rem;
-            padding: 0.4rem 1rem;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        .domain-btn:hover {
-            border-color: #38bdf8;
-            color: #ffffff;
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.25);
+            backdrop-filter: blur(6px); /* Blurs the globe under the card for readability */
         }
 
-        /* Left Control Tiles */
-        .compact-tile {
-            background: linear-gradient(180deg, #060b18 0%, #02040a 100%);
-            border: 1px solid #1e293b;
-            transition: border-color 0.2s ease;
-        }
-        .compact-tile:hover {
-            border-color: #334155;
-        }
-
-        /* Input Styling */
         .terminal-input {
             background-color: #02050c;
-            border: 1px solid #334155;
+            border: 1px solid #1e293b;
             color: #f1f5f9;
-            font-family: monospace;
-            font-size: 11px;
             transition: all 0.2s ease;
         }
         .terminal-input:focus {
@@ -83,367 +76,141 @@
             border-color: #06b6d4;
             box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
         }
-
-        /* Language Filter Buttons Layout */
-        .ensemble-btn {
-            background-color: #16224f;
-            border: 2.5px solid #2563eb;
-            color: #3b82f6;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 6px 14px;
-            border-radius: 10px;
-            transition: all 0.2s ease;
-            letter-spacing: 0.02em;
-            cursor: pointer;
-        }
-        .ensemble-btn:hover {
-            border-color: #60a5fa;
-            color: #60a5fa;
-        }
-
-        .lang-checkbox-btn {
-            background-color: #030712;
-            border: 1.5px solid #1e293b;
-            color: #94a3b8;
-            font-size: 10px;
-            font-weight: 600;
-            padding: 6px 12px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            letter-spacing: 0.05em;
-        }
-        .lang-checkbox-btn:hover {
-            border-color: #334155;
-            color: #cbd5e1;
-        }
-        .lang-checkbox-btn.active {
-            border-color: #1d4ed8;
-            color: #3b82f6;
-            background-color: #070f2e;
-        }
-        .custom-box {
-            width: 11px;
-            height: 11px;
-            border-radius: 2px;
-            background-color: #0f172a;
-            border: 1px solid #475569;
-            transition: all 0.15s ease;
-            display: inline-block;
-        }
-        .lang-checkbox-btn.active .custom-box {
-            background-color: #ffffff;
-            border-color: #ffffff;
-        }
     </style>
 </head>
-<body class="font-sans bg-[#010206]">
+<body class="flex items-center justify-center p-4">
 
-    <!-- GLOWING FULL-SCREEN DATA FIELD CANVAS -->
-    <canvas class="governance-bg-canvas" id="governanceCanvas"></canvas>
-
-    <!-- MAIN INTERFACE PANELS -->
-    <div id="dashboardContent" class="relative z-10 flex flex-col h-full w-full">
-        
-        <!-- TOP TERMINAL HEADER INTERFACE -->
-        <header class="bg-slate-950/80 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none backdrop-blur-sm">
-            <div class="flex items-center gap-3">
-                <div class="w-7 h-7 rounded bg-cyan-600 flex items-center justify-center font-bold text-[10px] border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]">TG</div>
-                <div>
-                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Custom Terminal Gateway</span>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2" id="topDomainNav">
-                <a href="business and finance.html" class="domain-btn">Business & Finance</a>
-                <a href="sport.html" class="domain-btn">Sport</a>
-                <a href="World Politics and Governance.html" class="domain-btn">Politics & Governance</a>
-            </div>
-
-            <div class="flex items-center gap-4 border-l border-slate-800 pl-4">
-                <div class="text-right">
-                    <span class="block text-[11px] font-mono font-semibold text-slate-300">Amanuel Bekele Woldesenbet</span>
-                    <span class="block text-[9px] font-mono text-cyan-500 uppercase tracking-wider">// Operator Profile</span>
-                </div>
-                <button onclick="location.reload();" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5 py-1.5 rounded transition-all uppercase cursor-pointer">
-                    Sign Out
-                </button>
-            </div>
-        </header>
-
-        <!-- DASHBOARD WORKSPACE GRID -->
-        <main class="flex-1 flex gap-3 p-3 h-full overflow-hidden">
-            
-            <!-- LEFT COLUMN: TARGET SECTORS -->
-            <div class="w-1/4 flex flex-col gap-3.5 overflow-y-auto pr-1 select-none shrink-0">
-                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Strait of Hormuz</h2>
-                    <div class="flex items-center gap-1.5">
-                        <input type="text" id="input-hormuz" placeholder="Maritime query..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button onclick="triggerUnifiedSearch('Strait of Hormuz', 'input-hormuz')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
-                    </div>
-                    <button onclick="triggerAnythingNew('Strait of Hormuz')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
-                        ✨ Anything New
-                    </button>
-                </section>
-
-                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Trump Watch Matrix</h2>
-                    <div class="flex items-center gap-1.5">
-                        <input type="text" id="input-trump" placeholder="Policy matrix..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button onclick="triggerUnifiedSearch('Trump Watch', 'input-trump')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
-                    </div>
-                    <button onclick="triggerAnythingNew('Trump Watch')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
-                        ✨ Anything New
-                    </button>
-                </section>
-
-                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Grand Ethiopian Dam (GERD)</h2>
-                    <div class="flex items-center gap-1.5">
-                        <input type="text" id="input-gerd" placeholder="Riparian terms..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button onclick="triggerUnifiedSearch('GERD', 'input-gerd')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
-                    </div>
-                    <button onclick="triggerAnythingNew('GERD')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
-                        ✨ Anything New
-                    </button>
-                </section>
-
-                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Ethiopia Sovereign Core</h2>
-                    <div class="flex items-center gap-1.5">
-                        <input type="text" id="input-ethiopia" placeholder="National filters..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button onclick="triggerUnifiedSearch('Ethiopia Core', 'input-ethiopia')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
-                    </div>
-                    <button onclick="triggerAnythingNew('Ethiopia Core')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
-                        ✨ Anything New
-                    </button>
-                </section>
-            </div>
-
-            <!-- RIGHT COLUMN: CENTRAL MONITOR -->
-            <div class="flex-1 flex flex-col justify-between bg-slate-950/70 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden backdrop-blur-xs">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
-                    <div class="flex items-center gap-2 shrink-0">
-                        <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></div>
-                        <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">Central Stream Monitor</span>
-                    </div>
-
-                    <div class="flex items-center gap-3 justify-center flex-1 mx-4" id="languageContainer">
-                        <button onclick="toggleSelectAllEnsembles()" id="btn-select-all" class="ensemble-btn uppercase">Select All Ensembles</button>
-                        <button onclick="toggleLangCheckbox('OROMIFFA')" id="lang-OROMIFFA" class="lang-checkbox-btn active"><span class="custom-box"></span> OROMIFFA</button>
-                        <button onclick="toggleLangCheckbox('AMHARIC')" id="lang-AMHARIC" class="lang-checkbox-btn active"><span class="custom-box"></span> AMHARIC</button>
-                        <button onclick="toggleLangCheckbox('ENGLISH')" id="lang-ENGLISH" class="lang-checkbox-btn active"><span class="custom-box"></span> ENGLISH</button>
-                        <button onclick="toggleLangCheckbox('ARABIC')" id="lang-ARABIC" class="lang-checkbox-btn"><span class="custom-box"></span> ARABIC</button>
-                    </div>
-
-                    <div class="text-right text-[10px] font-mono text-slate-600 select-none shrink-0">// CAPTURE MATRICES</div>
-                </div>
-
-                <div id="unifiedResultsConsole" class="flex-1 overflow-y-auto font-mono text-xs text-slate-400 bg-slate-950/40 border border-slate-900/60 rounded-md p-3 space-y-3">
-                    <div class="text-slate-500 tracking-wide">// System online. Terminal metrics initialized. Run an inquiry lookup via sidebar modules to display intercept logs...</div>
-                </div>
-
-                <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
-                    <button onclick="downloadTerminalLogs()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
-                        Download Dataset Logs
-                    </button>
-                </div>
-            </div>
-        </main>
-
-        <!-- FOOTER STATUS -->
-        <footer class="bg-slate-950 border-t border-slate-800 px-4 py-1.5 font-mono text-[10px] text-cyan-500 flex items-center justify-between shrink-0">
-            <div id="statusConsole">// MONITOR HUB ACTIVE: System initialized.</div>
-            <div class="text-slate-600 select-none text-[9px]">GATEWAY INTERFACE v5.5</div>
-        </footer>
+    <!-- ROTATING GLOBE BACKDROP -->
+    <div class="globe-bg-wrapper">
+        <img src="Screenshot 2026-07-08 004611.jpg" alt="Hologram Globe" class="rotating-globe">
     </div>
 
-    <!-- HIGH-DENSITY GLOWING MATRIX EXECUTOR -->
+    <!-- COMPACT TERMINAL LOCKBOX -->
+    <div class="auth-card w-full max-w-md rounded-xl p-6 relative z-10">
+        <!-- Header Matrix Identity -->
+        <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
+            <div class="w-8 h-8 rounded bg-cyan-600 flex items-center justify-center font-bold text-xs text-slate-950 shadow-[0_0_10px_rgba(6,182,212,0.4)]">🔑</div>
+            <div>
+                <h1 class="text-sm font-bold text-slate-100 uppercase tracking-wider">Gateway Authentication</h1>
+                <span class="text-[10px] text-cyan-500 uppercase tracking-widest">// ACCESS DETERMINATION NODE</span>
+            </div>
+        </div>
+
+        <!-- System Alerts Console -->
+        <div id="authAlert" class="hidden text-[11px] p-2.5 rounded border mb-4 bg-slate-950 font-mono"></div>
+
+        <!-- Access Credentials Form -->
+        <form id="authForm" class="space-y-4">
+            <div>
+                <label class="block text-[10px] uppercase text-slate-400 tracking-wider mb-1.5">// Identity Email</label>
+                <input type="email" id="email" required placeholder="operator@domain.com" class="terminal-input w-full px-3 py-2 text-xs rounded-md font-mono">
+            </div>
+
+            <div>
+                <label class="block text-[10px] uppercase text-slate-400 tracking-wider mb-1.5">// Security Passkey</label>
+                <input type="password" id="password" required placeholder="••••••••••••" class="terminal-input w-full px-3 py-2 text-xs rounded-md font-mono">
+            </div>
+
+            <div class="pt-2 flex flex-col gap-2.5">
+                <!-- Action Executioners -->
+                <button type="submit" id="btnLogin" class="w-full bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs py-2 rounded-md transition-all uppercase tracking-wide cursor-pointer shadow-[0_0_12px_rgba(6,182,212,0.2)]">
+                    Authorize Session [Sign In]
+                </button>
+                
+                <button type="button" id="btnRegister" class="w-full border border-slate-800 hover:border-cyan-900/50 bg-slate-950/40 hover:bg-cyan-950/10 text-slate-400 hover:text-cyan-400 font-mono text-[11px] py-1.5 rounded transition-all uppercase tracking-wide cursor-pointer">
+                    Provision New Access [Sign Up]
+                </button>
+            </div>
+        </form>
+
+        <!-- Footer Metric Status -->
+        <div class="mt-5 pt-3 border-t border-slate-900 flex justify-between items-center text-[9px] text-slate-600">
+            <span>SECURE LINK SEC-V5</span>
+            <span id="systemClock">// WAITING FOR OPERATOR INITIALS</span>
+        </div>
+    </div>
+
+    <!-- CORE CONFIGURATION & SUPABASE GLUE -->
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
-        const canvas = document.getElementById('governanceCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        function sizeCanvas() { 
-            canvas.width = window.innerWidth; 
-            canvas.height = window.innerHeight; 
-            initMatrixGrid();
-        }
-
-        const tokenChars = ['0', '1', 'X', 'A', 'F', '9', '4', 'C', '2', 'E', 'B', '7', 'Z', 'M', 'V', 'K'];
-        let particles = [];
-
-        function initMatrixGrid() {
-            particles = [];
-            const columns = Math.ceil(canvas.width / 22);
-            const rows = Math.ceil(canvas.height / 22);
-
-            for (let c = 0; c < columns; c++) {
-                for (let r = 0; r < rows; r++) {
-                    particles.push({
-                        x: c * 22 + 8,
-                        y: r * 22 + 14,
-                        char: tokenChars[Math.floor(Math.random() * tokenChars.length)],
-                        size: Math.random() > 0.5 ? 9 : 10
-                    });
-                }
-            }
-        }
-
-        sizeCanvas(); 
-        window.addEventListener('resize', sizeCanvas);
-
-        let animationFrameId;
-        let startTimestamp = null;
-        let panelsRevealed = false;
-        let canvasCleanedUp = false;
-
-        function runStaticGlitchField(timestamp) {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const elapsed = timestamp - startTimestamp;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Render glowing grid characters
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#06b6d4';
-            ctx.fillStyle = 'rgba(34, 211, 238, 0.75)';
-
-            particles.forEach(p => {
-                ctx.font = `bold ${p.size}px monospace`;
-                if (Math.random() < 0.08) {
-                    p.char = tokenChars[Math.floor(Math.random() * tokenChars.length)];
-                }
-                ctx.fillText(p.char, p.x, p.y);
-            });
-
-            // STEP 1: Bring panels into view immediately at 2000ms (2 seconds mark)
-            if (!panelsRevealed && elapsed >= 2000) {
-                panelsRevealed = true;
-                document.getElementById('dashboardContent').classList.add('visible');
-            }
-
-            // STEP 2: Show for 2 seconds alongside panels, then trigger removal process
-            if (elapsed >= 4000) {
-                if (!canvasCleanedUp) {
-                    canvasCleanedUp = true;
-                    canvas.style.opacity = '0'; // Smoothly fade opacity down
-                    setTimeout(() => {
-                        canvas.style.display = 'none'; // Clear from viewport pipeline completely
-                        cancelAnimationFrame(animationFrameId); // Terminate execution engine context
-                    }, 500); 
-                }
-                return; // Break frame cycle recursion loop
-            }
-
-            animationFrameId = requestAnimationFrame(runStaticGlitchField);
-        }
-        
-        // Boot up background intro engine timeline
-        animationFrameId = requestAnimationFrame(runStaticGlitchField);
-
-
-        // 2. SUPABASE RELATIONAL ACTIONS PIPELINE
+        // Initialize connection layers
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        let cachedDataStream = [];
 
-        const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
+        const authForm = document.getElementById('authForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const alertBox = document.getElementById('authAlert');
+        const systemClock = document.getElementById('systemClock');
 
-        window.toggleLangCheckbox = function(langKey) {
-            const btn = document.getElementById(`lang-${langKey}`);
-            activeLanguages[langKey] = !activeLanguages[langKey];
-            btn.classList.toggle('active', activeLanguages[langKey]);
-            const activeList = Object.keys(activeLanguages).filter(k => activeLanguages[k]);
-            document.getElementById('statusConsole').innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
-        };
+        function displayNotice(msg, type = 'info') {
+            alertBox.classList.remove('hidden', 'text-cyan-400', 'border-cyan-900/50', 'text-red-400', 'border-red-950/60', 'text-emerald-400', 'border-emerald-950/60');
+            
+            if (type === 'error') {
+                alertBox.classList.add('text-red-400', 'border-red-950/60');
+            } else if (type === 'success') {
+                alertBox.classList.add('text-emerald-400', 'border-emerald-950/60');
+            } else {
+                alertBox.classList.add('text-cyan-400', 'border-cyan-900/50');
+            }
+            alertBox.innerText = `// ${msg.toUpperCase()}`;
+        }
 
-        window.toggleSelectAllEnsembles = function() {
-            const keys = Object.keys(activeLanguages);
-            const allTrue = keys.every(k => activeLanguages[k]);
-            keys.forEach(k => {
-                activeLanguages[k] = !allTrue;
-                document.getElementById(`lang-${k}`).classList.toggle('active', !allTrue);
-            });
-            document.getElementById('statusConsole').innerText = allTrue ? `// ENSEMBLES DE-SELECTED` : `// ALL ENSEMBLES ACTIVE`;
-        };
-
-        window.triggerAnythingNew = async function(sectorContext) {
-            const outputPanel = document.getElementById('unifiedResultsConsole');
-            const statusLog = document.getElementById('statusConsole');
-            statusLog.innerText = `// TRACKING RECENT CHRONO ENTRIES FOR: [${sectorContext.toUpperCase()}]`;
-            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying database metrics chronologically...</div>`;
+        // SIGN IN LOGIC SEQUENCE
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            systemClock.innerText = "// COMMENCING TOKENS EXTRACTION...";
+            displayNotice("Verifying crypto credentials sequence...", "info");
 
             try {
-                let tableTarget = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
-                    ? 'Ethiopian -Politics and governance websites' : 'politics and governance -websites';
-
-                const { data, error } = await supabaseClient.from(tableTarget).select('*').order('id', { ascending: false }).limit(4);
-                if (error) throw error;
-                cachedDataStream = data || [];
-
-                let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// DELTA RECONNAISSANCE SEARCH: [${sectorContext.toUpperCase()}]</div>`;
-                cachedDataStream.forEach((row, idx) => {
-                    html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-amber-400 font-bold">[NEW-${idx+1}]</span> <span class="text-slate-200">${row.title || 'Untitled Element'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: emailInput.value.trim(),
+                    password: passwordInput.value
                 });
-                outputPanel.innerHTML = html;
-                statusLog.innerText = `// DELTA CAPTURE FINISHED.`;
+
+                if (error) throw error;
+
+                displayNotice("Identity authenticated. Redirecting to workspace interface...", "success");
+                systemClock.innerText = "// SESSION ESTABLISHED.";
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html'; 
+                }, 1000);
+
             } catch (err) {
-                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// READ TIMEOUT ERROR.</span>`;
+                displayNotice(err.message || "Authorization rejected.", "error");
+                systemClock.innerText = "// ACCESS DENIED.";
             }
-        };
+        });
 
-        window.triggerUnifiedSearch = async function(sectorContext, inputId) {
-            const queryValue = document.getElementById(inputId).value.trim();
-            const outputPanel = document.getElementById('unifiedResultsConsole');
-            const statusLog = document.getElementById('statusConsole');
+        // SIGN UP NEW ACCOUNTS PIPELINE
+        document.getElementById('btnRegister').addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
 
-            if (!queryValue) {
-                outputPanel.innerHTML = `<span class="text-red-400 font-mono">// ERROR: Missing query metrics.</span>`;
+            if (!email || !password) {
+                displayNotice("Complete credential input arrays first.", "error");
                 return;
             }
 
-            statusLog.innerText = `// INTERROGATING ROW INDICES FOR: "${queryValue}"...`;
-            outputPanel.innerHTML = `<div class="text-cyan-400 animate-pulse">// SCANNING INDEX SCHEMAS...</div>`;
+            systemClock.innerText = "// PROVISIONING MATRIX ENTRY...";
+            displayNotice("Registering terminal operator identity profile...", "info");
 
             try {
-                let currentTable = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
-                    ? 'Ethiopian -Politics and governance websites' : 'politics and governance -websites';
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email,
+                    password
+                });
 
-                const { data, error } = await supabaseClient.from(currentTable).select('*').ilike('title', `%${queryValue}%`).limit(6);
                 if (error) throw error;
-                cachedDataStream = data || [];
 
-                if (cachedDataStream.length === 0) {
-                    outputPanel.innerHTML = `<div class="text-slate-500">// Search completed. 0 matching sequences found for: "${queryValue}".</div>`;
-                } else {
-                    let html = `<div class="text-cyan-400 border-b border-slate-900 pb-1.5 mb-2">// ISOLATED FEED RECORDS: ${sectorContext.toUpperCase()}</div>`;
-                    cachedDataStream.forEach((row, idx) => {
-                        html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-cyan-400 font-bold">[HIT-${idx+1}]</span> <span class="text-slate-200">${row.title || 'Unknown Asset'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
-                    });
-                    outputPanel.innerHTML = html;
-                }
+                displayNotice("Identity provisioned. Confirm link verification email if active, or authorize sign in.", "success");
+                systemClock.innerText = "// RECORD WRITTEN.";
             } catch (err) {
-                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// RELATIONAL MAP EXCEPTION.</span>`;
+                displayNotice(err.message || "Provisioning sequence failure.", "error");
+                systemClock.innerText = "// HANDSHAKE ABORTED.";
             }
-        };
-
-        window.downloadTerminalLogs = function() {
-            if (cachedDataStream.length === 0) return alert("Run a lookup sequence to populate logs first.");
-            const blobString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cachedDataStream, null, 2));
-            const anchor = document.createElement('a');
-            anchor.setAttribute("href", blobString);
-            anchor.setAttribute("download", "terminal_dataset_dump.json");
-            document.body.appendChild(anchor);
-            anchor.click();
-            anchor.remove();
-        };
+        });
     </script>
 </body>
 </html>
