@@ -24,10 +24,13 @@
             width: 100vmax;
             height: 100vmax;
             transform: translate(-50%, -50%);
+            /* Failsafe: Added a radial gradient background that will show if the image fails */
+            background: radial-gradient(circle, #0c4a6e 0%, #02040a 70%);
             background-image: url('Screenshot 2026-07-08 004611_2.jpg');
             background-position: center;
             background-repeat: no-repeat;
             background-size: contain;
+            filter: brightness(0.7) contrast(1.2);
             z-index: 0;
             animation: rotateGlobe 60s linear infinite;
         }
@@ -56,9 +59,9 @@
         <h2 class="text-white text-center font-bold text-xl mb-6">Operator Portal</h2>
         
         <div class="space-y-4">
-            <input type="text" placeholder="Journalist Name" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-white">
-            <input type="password" placeholder="Password" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-white">
-            <button class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg">AUTHENTICATE</button>
+            <input type="text" placeholder="Journalist Name" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="password" placeholder="Password" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none">
+            <button class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-colors">AUTHENTICATE</button>
         </div>
     </div>
 
