@@ -8,233 +8,59 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        body { background-color: #02071a; margin: 0; overflow-x: hidden; min-height: 100vh; }
-        #canvas-container { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100vw; 
-            height: 100vh; 
-            z-index: 0; 
-            pointer-events: none; 
-        }
+        body { background-color: #02071a; margin: 0; overflow: hidden; height: 100vh; }
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; }
+        .ui-container { position: relative; z-index: 10; height: 100%; display: flex; align-items: center; justify-content: center; }
         .glow-border:focus-within { border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
-        input:focus, select:focus { outline: none !important; box-shadow: none !important; }
-        select option { background-color: #020617; color: #f8fafc; }
     </style>
 </head>
-<body class="text-slate-100 min-h-screen flex flex-col font-sans relative">
+<body class="text-slate-100 font-sans">
 
+    <!-- 3D BACKGROUND -->
     <div id="canvas-container"></div>
 
-    <!-- SIGN-UP MODULE -->
-    <div id="signUpScreen" class="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/50 backdrop-blur-xl p-8 rounded-2xl border border-sky-500/20 relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
-            <h2 class="text-2xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-white to-sky-200 tracking-tight mb-1">Initialize Agent Access</h2>
-            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Create Security Profile</p>
+    <!-- UI LAYER -->
+    <div class="ui-container">
+        <!-- SIGN-UP MODULE -->
+        <div id="signUpScreen" class="w-full max-w-md bg-slate-950/50 backdrop-blur-xl p-8 rounded-2xl border border-sky-500/20">
+            <h2 class="text-2xl font-black text-center text-white mb-1">Initialize Agent Access</h2>
             <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5 font-mono">Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3">
-                        <span class="mr-2.5 text-slate-500">👤</span>
-                        <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5 font-mono">Assignment Sector</label>
-                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3">
-                        <span class="mr-2.5 text-slate-500">📰</span>
-                        <select id="regSection" required class="w-full bg-transparent text-slate-300 text-sm cursor-pointer">
-                            <option value="" disabled selected>Select assigned sector...</option>
-                            <option value="World Politics and Governance">World Politics and Governance</option>
-                            <option value="Sports & Analytics">Sports & Analytics</option>
-                            <option value="Business and Finance">Business and Finance</option>
-                            <option value="General Hot News">Custome news</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5 font-mono">Password</label>
-                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3">
-                        <span class="mr-2.5 text-slate-500">🔑</span>
-                        <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm font-mono tracking-widest">
-                    </div>
-                </div>
-                <button id="signUpBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 text-white py-3.5 rounded-lg font-mono uppercase text-xs tracking-wider cursor-pointer mt-4">Sign Up</button>
-                <p id="successMessage" class="text-sm text-emerald-400 font-mono text-center mt-2 hidden">✓ Profile compiled! Routing...</p>
-                <div class="text-center mt-4">
-                    <p class="text-xs text-slate-400">Already registered? <button id="toSignIn" class="text-sky-400 font-mono hover:underline bg-transparent border-0 cursor-pointer">Secure Log In</button></p>
-                </div>
+                <input type="text" id="regName" placeholder="Full Name" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-sm">
+                <select id="regSection" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-sm">
+                    <option value="Sports & Analytics">Sports & Analytics</option>
+                </select>
+                <input type="password" id="regPassword" placeholder="Password" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-sm">
+                <button id="signUpBtn" class="w-full bg-sky-600 py-3 rounded-lg font-bold uppercase text-xs">Sign Up</button>
             </div>
         </div>
     </div>
 
-    <!-- SIGN-IN MODULE -->
-    <div id="signInScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/50 backdrop-blur-xl p-8 rounded-2xl border border-sky-500/20 relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
-            <h2 class="text-2xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-white to-sky-200 tracking-tight mb-1">Operator Portal</h2>
-            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5 font-mono">Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3">
-                        <span class="mr-2.5 text-slate-500">👤</span>
-                        <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm">
-                    </div>
-                </div>
-                <div>
-                    <div class="flex justify-between items-center mb-1.5">
-                        <label class="block text-xs font-semibold uppercase text-slate-400 font-mono">Access Password</label>
-                        <button id="toForgot" class="text-[11px] text-slate-500 hover:text-sky-400 font-mono bg-transparent border-0 cursor-pointer">Forgot Password?</button>
-                    </div>
-                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3">
-                        <span class="mr-2.5 text-slate-500">🔑</span>
-                        <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm font-mono tracking-widest">
-                    </div>
-                </div>
-                <button id="signInBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 text-white py-3.5 rounded-lg font-mono uppercase text-xs tracking-wider cursor-pointer mt-4">Sign In</button>
-                <div class="text-center mt-4">
-                    <p class="text-xs text-slate-400">New Agent? <button id="toSignUp" class="text-sky-400 font-mono hover:underline bg-transparent border-0 cursor-pointer">Initialize Access</button></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- FORGOT PROFILE MODULE -->
-    <div id="forgotScreen" class="hidden flex-1 flex items-center justify-center p-6 relative z-10">
-        <div class="max-w-md w-full bg-slate-950/50 backdrop-blur-xl p-8 rounded-2xl border border-sky-500/20 relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 to-indigo-500"></div>
-            <h2 class="text-2xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-white to-sky-200 tracking-tight mb-1">Override Key Request</h2>
-            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Identify Account Profile</p>
-            <div class="space-y-4">
-                <p class="text-xs text-slate-400 font-mono leading-relaxed bg-slate-950/80 p-3 border border-slate-800/50 rounded-lg">Enter your registered full name to locate your credentials profile.</p>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5 font-mono">Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-950/80 border border-slate-800 rounded-lg p-3">
-                        <span class="mr-2.5 text-slate-500">👤</span>
-                        <input type="text" id="forgotName" required placeholder="Enter Full Name" class="w-full bg-transparent text-white text-sm">
-                    </div>
-                </div>
-                <button id="forgotBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-3.5 rounded-lg font-mono uppercase text-xs tracking-wider cursor-pointer">Verify Profile Key</button>
-                <div class="text-center mt-4">
-                    <button id="abortForgot" class="text-xs text-slate-500 hover:text-sky-400 font-mono bg-transparent border-0 cursor-pointer">← Abort and Return to Portal</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- AUTOMATION CONTROL DASHBOARD INTERFACE -->
-    <div id="dashboardScreen" class="hidden flex-1 flex flex-col relative z-10">
-        <header class="bg-slate-950/60 backdrop-blur-md border-b border-slate-850 px-8 py-4 flex items-center justify-between shadow-lg">
-            <div class="flex items-center gap-3">
-                <div id="portalIcon" class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center font-black text-xs">AI</div>
-                <span class="text-sm text-slate-600 font-mono">/</span>
-                <span id="portalTitle" class="font-bold tracking-tight text-slate-200">Automation Control Hub</span>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="flex items-center gap-3 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
-                    <span class="text-xs text-slate-500 font-mono">Active Operator:</span>
-                    <span id="profileDisplay" class="text-xs text-sky-400 font-mono font-bold">---</span>
-                </div>
-                <button id="logoutBtn" class="text-xs font-mono text-slate-400 hover:text-rose-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg cursor-pointer">Logout</button>
-            </div>
-        </header>
-
-        <main class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 p-8 flex-1 items-start">
-            <div class="bg-slate-950/50 backdrop-blur-xl p-6 rounded-2xl border border-slate-850 space-y-5">
-                <h3 class="text-md font-semibold text-sky-400 flex items-center gap-2 uppercase tracking-wider text-xs font-mono">
-                    <span>⚙️</span> <span id="enginePanelTitle">Engine Variables</span>
-                </h3>
-                <div class="space-y-4">
-                    <div>
-                        <label id="keywordLabel" class="block text-xs font-medium mb-1 text-slate-400">Search Keywords</label>
-                        <input type="text" id="keywords" placeholder="Enter engine metrics..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
-                    </div>
-                    <div id="dynamicFilterWrapper">
-                        <label id="dynamicLabel" class="block text-xs font-medium mb-1 text-slate-400">Day History Span</label>
-                        <div id="dynamicInputContainer">
-                            <input type="number" id="daySpan" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
-                        </div>
-                    </div>
-                    <div>
-                        <label id="sourceLabel" class="block text-xs font-medium mb-1 text-slate-400">Core News Source</label>
-                        <select id="newsSource" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500"></select>
-                    </div>
-                    <button id="runBtn" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg font-mono uppercase text-xs tracking-wider cursor-pointer">Fire Automation Pipeline</button>
-                </div>
-            </div>
-
-            <div class="md:col-span-2 bg-slate-950/50 backdrop-blur-xl p-6 rounded-2xl border border-slate-850 flex flex-col min-h-[480px]">
-                <h3 class="text-md font-semibold text-slate-300 flex items-center gap-2 uppercase tracking-wider text-xs font-mono mb-4">
-                    <span>📊</span> <span id="terminalPanelTitle">Live Matrix Terminal</span>
-                </h3>
-                <div id="loadingState" class="hidden my-auto text-center py-12">
-                    <div class="animate-spin inline-block w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full mb-4"></div>
-                    <p class="text-slate-400 font-mono text-xs animate-pulse">Invoking background scraping clusters... Streaming results.</p>
-                </div>
-                <div id="emptyState" class="my-auto text-center py-12">
-                    <span class="text-3xl opacity-40">📥</span>
-                    <p class="text-slate-500 mt-2 font-mono text-xs">Waiting for active engine variables...</p>
-                </div>
-                <div id="outputState" class="hidden flex-1 flex flex-col">
-                    <div class="bg-slate-950 rounded-xl p-4 border border-slate-850 font-mono text-xs overflow-auto max-h-[380px] flex-1">
-                        <pre id="jsonDisplay" class="text-slate-300 whitespace-pre-wrap"></pre>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- CORE EXECUTION ENGINE LINKED MODULE -->
     <script type="module">
-        import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_CONTENT_URL, DEV_MODE_OVERRIDE } from './config.js';
-        import { DESK_CONFIGS } from './deskConfigs.js';
-
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        let currentSessionOperator = { name: "", section: "" };
-
-        // --- 3D GLOBE GENERATION ---
+        // 3D GLOBE INITIALIZATION
         let scene, camera, renderer, globeGroup, pointCloud;
         function initCyberGlobe() {
             const container = document.getElementById('canvas-container');
-            if (!container) return;
-
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 100;
-
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
             container.appendChild(renderer.domElement);
 
-            const particleCount = 2000;
             const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
-            for(let i = 0; i < particleCount * 3; i++) {
-                positions[i] = (Math.random() - 0.5) * 200;
-            }
+            const positions = new Float32Array(2000 * 3);
+            for(let i = 0; i < 2000 * 3; i++) positions[i] = (Math.random() - 0.5) * 200;
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             
-            const pointMaterial = new THREE.PointsMaterial({ 
-                color: 0x38bdf8, 
-                size: 0.8, 
-                transparent: true, 
-                opacity: 0.6,
-                blending: THREE.AdditiveBlending 
-            });
-            
-            pointCloud = new THREE.Points(geometry, pointMaterial);
+            pointCloud = new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0x38bdf8, size: 0.8, transparent: true, opacity: 0.6 }));
             globeGroup = new THREE.Group();
             globeGroup.add(pointCloud);
             scene.add(globeGroup);
-            animateGlobe();
+            animate();
         }
 
-        function animateGlobe() {
-            requestAnimationFrame(animateGlobe);
+        function animate() {
+            requestAnimationFrame(animate);
             globeGroup.rotation.y += 0.002;
             renderer.render(scene, camera);
         }
@@ -246,116 +72,6 @@
         });
 
         initCyberGlobe();
-
-        // --- DYNAMIC UI MORPH MATRIX ---
-        function morphDashboardUI(section) {
-            const key = section ? section.toLowerCase().trim() : "default";
-            const config = DESK_CONFIGS[key] || DESK_CONFIGS["default"];
-
-            document.getElementById("portalTitle").textContent = config.title;
-            document.getElementById("enginePanelTitle").textContent = config.engineTitle;
-            document.getElementById("terminalPanelTitle").textContent = config.terminalTitle;
-            document.getElementById("keywordLabel").textContent = config.keywordLabel;
-            
-            const keywordInput = document.getElementById('keywords');
-            keywordInput.placeholder = config.placeholder;
-            keywordInput.value = config.defaultKeywords;
-
-            document.getElementById("dynamicLabel").textContent = config.dynamicLabel;
-            document.getElementById("dynamicInputContainer").innerHTML = config.dynamicRender();
-
-            const sourceSelect = document.getElementById("newsSource");
-            sourceSelect.innerHTML = "";
-            config.sources.forEach(src => {
-                const opt = document.createElement("option");
-                opt.value = src.value; opt.text = src.text; sourceSelect.appendChild(opt);
-            });
-
-            document.getElementById('portalIcon').className = `w-8 h-8 rounded-lg ${config.bgHeader} flex items-center justify-center font-black text-xs`;
-            document.getElementById('profileDisplay').textContent = `${currentSessionOperator.name} | ${currentSessionOperator.section.toUpperCase()}`;
-
-            if (pointCloud && pointCloud.material) pointCloud.material.color.setHex(config.glowColor);
-        }
-
-        function showScreen(screenId) {
-            ['signUpScreen', 'signInScreen', 'forgotScreen', 'dashboardScreen'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById(screenId).classList.remove('hidden');
-        }
-
-        // --- EVENT BINDING ---
-        document.getElementById('toSignIn').onclick = () => showScreen('signInScreen');
-        document.getElementById('toSignUp').onclick = () => showScreen('signUpScreen');
-        document.getElementById('toForgot').onclick = () => showScreen('forgotScreen');
-        document.getElementById('abortForgot').onclick = () => showScreen('signInScreen');
-        document.getElementById('logoutBtn').onclick = () => { currentSessionOperator = { name: "", section: "" }; if(pointCloud?.material) pointCloud.material.color.setHex(0x38bdf8); showScreen('signInScreen'); };
-        document.getElementById('signUpBtn').onclick = registerJournalist;
-        document.getElementById('signInBtn').onclick = loginJournalist;
-        document.getElementById('forgotBtn').onclick = lookupPassword;
-        document.getElementById('runBtn').onclick = executeWorkflow;
-
-        // --- DATABASE INTERACTIONS ---
-        async function registerJournalist() {
-            const fullName = document.getElementById('regName').value.trim();
-            const section = document.getElementById('regSection').value;
-            const password = document.getElementById('regPassword').value;
-            if (!fullName || !section || !password) return alert("Allocation parameters missing.");
-            const { data } = await supabaseClient.from('journalists').select('*').eq('Journalist name', fullName);
-            if (data?.length > 0) return alert("Operator profile exists.");
-            await supabaseClient.from('journalists').insert([{"Journalist name": fullName, "journalism Section": section, "Password": password}]);
-            document.getElementById('successMessage').classList.remove('hidden');
-            setTimeout(() => { document.getElementById('successMessage').classList.add('hidden'); document.getElementById('loginName').value = fullName; showScreen('signInScreen'); }, 1000);
-        }
-
-        async function loginJournalist() {
-            const nameInput = document.getElementById('loginName').value.trim();
-            const passwordInput = document.getElementById('loginPassword').value;
-            const { data, error } = await supabaseClient.from('journalists').select('*').eq('Journalist name', nameInput);
-            if (error || !data || data[0]?.Password !== passwordInput) return alert("Mismatched security profile.");
-            currentSessionOperator.name = data[0]["Journalist name"];
-            currentSessionOperator.section = data[0]["journalism Section"];
-            morphDashboardUI(currentSessionOperator.section);
-            showScreen('dashboardScreen');
-        }
-
-        async function lookupPassword() {
-            const name = document.getElementById('forgotName').value.trim();
-            const { data } = await supabaseClient.from('journalists').select('*').eq('Journalist name', name);
-            alert(data?.length > 0 ? "Profile Key Confirmed. Coordinate with admin node for overrides." : "Matrix Mismatch.");
-            showScreen('signInScreen');
-        }
-
-        async function executeWorkflow() {
-            document.getElementById('emptyState').classList.add('hidden');
-            document.getElementById('outputState').classList.add('hidden');
-            document.getElementById('loadingState').classList.remove('hidden');
-            try {
-                const response = await fetch(N8N_CONTENT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify({
-                        keywords: document.getElementById('keywords').value,
-                        daySpan: document.getElementById('daySpan').value,
-                        newsSource: document.getElementById('newsSource').value,
-                        journalist: currentSessionOperator.name,
-                        section: currentSessionOperator.section
-                    })
-                });
-                const result = await response.json();
-                document.getElementById('jsonDisplay').textContent = JSON.stringify(result, null, 2);
-                document.getElementById('outputState').classList.remove('hidden');
-            } catch (e) {
-                alert('Pipeline Failure: ' + e.message);
-                document.getElementById('emptyState').classList.remove('hidden');
-            } finally {
-                document.getElementById('loadingState').classList.add('hidden');
-            }
-        }
-
-        if (DEV_MODE_OVERRIDE !== "SPORTS" && DEV_MODE_OVERRIDE !== undefined) {
-             // Logic for dev mode bypass
-        }
     </script>
 </body>
 </html>
