@@ -3,77 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinIntel Terminal | Market Wire Matrix</title>
+    <title>Command Center | Analytics Terminal</title>
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        terminal: {
-                            bg: '#040814',
-                            grid: 'rgba(56, 189, 248, 0.05)',
-                            accent: '#38bdf8', /* Bloomberg Sky Blue */
-                            success: '#10b981', /* Market Green */
-                            ticker: '#f59e0b', /* Market Amber/Gold */
-                            panel: 'rgba(15, 23, 42, 0.45)',
-                            subpanel: 'rgba(7, 11, 23, 0.8)',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         body { 
-            margin: 0; color: #cbd5e1; height: 100vh; display: flex; flex-direction: column;
-            background-color: #040814; position: relative; overflow: hidden;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column;
+            background-color: #02040e; position: relative; overflow: hidden;
         }
 
-        /* FINANCIAL CANVAS STAGE */
+        /* CYBER MATRIX CANVAS STAGE */
         .cyber-backdrop-container {
             position: absolute; inset: 0; z-index: 0; pointer-events: none;
-            background: radial-gradient(circle at center, #0a1432 0%, #040814 100%);
+            background: radial-gradient(circle at center, #071235 0%, #02040e 100%);
             transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
-        /* HUD Financial Grid Overlay */
+        /* HUD Grid */
         .hud-overlay {
             position: absolute; inset: 0;
             background-image: 
-                linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
-            background-size: 40px 40px; z-index: 1;
+                linear-gradient(to right, rgba(16, 185, 129, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(16, 185, 129, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px; z-index: 1;
         }
 
-        /* Matrix Elements Falling Cascade */
+        /* Falling Cyber Sports Items Container */
         .falling-matrix-stage {
             position: absolute; inset: 0; z-index: 2; overflow: hidden;
         }
 
-        .market-item {
+        .sport-item {
             position: absolute; top: -160px;
-            font-size: 8rem;
-            filter: drop-shadow(0 0 15px currentColor);
-            animation: fallDownMarket 3.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-            opacity: 0.15;
+            font-size: 10rem; /* Kept large for the visual sequence impact */
+            filter: drop-shadow(0 0 20px currentColor);
+            animation: fallDownBig 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            opacity: 0.85;
         }
 
-        @keyframes fallDownMarket {
-            0% { transform: translateY(0) scale(0.6); opacity: 0; }
-            10% { opacity: 0.25; }
-            90% { opacity: 0.15; }
-            100% { transform: translateY(110vh) scale(1.1); opacity: 0.02; }
+        @keyframes fallDownBig {
+            0% {
+                transform: translateY(0) rotate(0deg) scale(0.4);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 0.85; }
+            100% {
+                transform: translateY(110vh) rotate(540deg) scale(1);
+                opacity: 0.1;
+            }
         }
 
-        /* Laser Scan Sweep */
+        /* Laser Sweep Line */
         .scanline {
-            position: absolute; width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, #38bdf8, #10b981, #38bdf8, transparent);
-            box-shadow: 0 0 15px #38bdf8; top: 0; z-index: 4;
-            animation: scanning 4s linear infinite;
+            position: absolute; width: 100%; height: 4px;
+            background: linear-gradient(90deg, transparent, #10b981, #00f2fe, #10b981, transparent);
+            box-shadow: 0 0 20px #10b981; top: 0; z-index: 4;
+            animation: scanning 3s linear infinite;
         }
 
         @keyframes scanning {
@@ -82,188 +68,151 @@
             100% { top: 0%; }
         }
 
-        /* ACTIVE DASHBOARD TRANSITIONS */
+        /* 3-SECOND DASHBOARD STATE RULES */
         .cyber-backdrop-container.dashboard-active {
-            opacity: 0.5;
+            opacity: 0.4;
         }
         .cyber-backdrop-container.dashboard-active .scanline {
             display: none;
         }
 
+        /* PANELS LAYER TRANSITION SYSTEM */
         .app-interface {
-            opacity: 0; transform: scale(0.99);
-            transition: opacity 1s cubic-bezier(0.1, 1, 0.1, 1), transform 1s cubic-bezier(0.1, 1, 0.1, 1);
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 1.2s cubic-bezier(0.1, 1, 0.1, 1), transform 1.2s cubic-bezier(0.1, 1, 0.1, 1);
         }
         .app-interface.visible {
-            opacity: 1; transform: scale(1);
+            opacity: 1; transform: translateY(0);
         }
 
-        /* Interactive Select Button States */
-        .finance-btn.active {
-            background-color: #0284c7 !important; /* sky-600 */
-            border-color: #38bdf8 !important; /* sky-400 */
-            color: #ffffff !important;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-        }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
     </style>
 </head>
-<body class="text-xs">
+<body class="font-sans text-sm">
 
-    <!-- CANVAS GRAPHICS STAGE -->
+    <!-- STEP 1: INITIAL FALLING SPORTS ITEMS HERO PREVIEW -->
     <div id="backdropStage" class="cyber-backdrop-container">
         <div class="hud-overlay"></div>
         <div id="laserLine" class="scanline"></div>
         <div id="matrixFallingStage" class="falling-matrix-stage"></div>
     </div>
 
-    <!-- MAIN DATA INTERFACE PANEL FRAME -->
+    <!-- STEP 2: METRICS TELEMETRY PANELS DISPLAY (Normalized Interface Sizes) -->
     <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full">
         
-        <!-- FINANCIAL APP HEADER BAR -->
-        <header class="bg-slate-950/80 border-b border-slate-800 px-6 py-3 flex items-center justify-between backdrop-blur-md">
-            <div class="flex items-center gap-4">
-                <div class="bg-sky-950 text-terminal-accent px-2 py-1 rounded border border-sky-800 font-bold tracking-tight text-[11px]">FIN-INTEL</div>
-                <span class="font-bold text-slate-200 tracking-wider text-sm uppercase">Global Market Registry Terminal</span>
+        <!-- HEADER -->
+        <header class="bg-slate-950/60 border-b-2 border-slate-800 px-6 py-4 flex items-center justify-between backdrop-blur-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-400">AI</div>
+                <span class="font-semibold text-slate-100 tracking-tight text-base">Sports Analytics Terminal</span>
             </div>
-            <div class="flex items-center gap-6 text-[11px]">
-                <div class="text-terminal-success font-bold animate-pulse">// EXCHANGE STATUS: OPEN</div>
-                <div class="text-slate-500">// STREAMING REAL-TIME BUSINESS ENSEMBLES</div>
-            </div>
+            <div class="font-mono text-xs text-emerald-400 tracking-wider animate-pulse">// MULTI-SPORT STREAM INGESTION ACTIVE</div>
         </header>
 
-        <!-- MAIN TERMINAL MATRIX DISPLAY -->
+        <!-- DASHBOARD BODY PANEL MATRIX -->
         <main class="flex-1 grid grid-cols-4 gap-4 p-4 h-full overflow-hidden">
             
-            <!-- LEFT COLUMN: VECTOR INDEX ASSIGNMENT -->
-            <div class="col-span-1 bg-terminal-panel p-5 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded shadow-2xl backdrop-blur-xl">
-                <h3 class="text-[10px] font-bold text-terminal-accent uppercase tracking-widest mb-6 flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 bg-terminal-accent rounded-full animate-ping"></span> Select Feed Vector
+            <!-- CONTROLS SIDE PANEL -->
+            <div class="col-span-1 bg-slate-950/45 p-5 border-2 border-slate-800 flex flex-col h-full overflow-y-auto rounded-xl shadow-2xl backdrop-blur-lg">
+                <h3 class="text-[11px] font-bold text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Select Categories
                 </h3>
                 
-                <div class="space-y-4 mb-6">
-                    <!-- 2 Main Selectable Corporate Financial Buttons -->
-                    <button onclick="selectVector(this, 'ethiopian')" class="finance-btn w-full bg-slate-900/60 hover:bg-slate-800/80 border-2 border-slate-700 text-slate-300 p-6 rounded font-bold uppercase transition-all cursor-pointer tracking-wider flex flex-col items-start gap-1">
-                        <span class="text-lg">🇪🇹</span>
-                        <span class="text-xs tracking-wider">Ethiopian Finance</span>
+                <div id="categoryContainer" class="space-y-2 mb-4">
+                    <button onclick="toggleAll('.cat-check', true)" class="w-full bg-emerald-950/40 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white py-2 px-3 rounded-lg font-medium text-xs uppercase transition-all cursor-pointer tracking-wider">
+                        Select All Categories
                     </button>
-                    <button onclick="selectVector(this, 'international')" class="finance-btn w-full bg-slate-900/60 hover:bg-slate-800/80 border-2 border-slate-700 text-slate-300 p-6 rounded font-bold uppercase transition-all cursor-pointer tracking-wider flex flex-col items-start gap-1">
-                        <span class="text-lg">🌐</span>
-                        <span class="text-xs tracking-wider">International Markets</span>
-                    </button>
+
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="epl"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
+                    </label>
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="international"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
+                    </label>
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="athletics"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Athletics</span>
+                    </label>
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="others"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Others</span>
+                    </label>
                 </div>
 
-                <div class="flex-1 bg-terminal-subpanel rounded border border-slate-900 p-4 mb-4 overflow-y-auto">
-                    <h3 class="text-[9px] font-bold text-slate-500 uppercase mb-2 tracking-wider">Sub-Market Datasets</h3>
-                    <div id="activeSourceList" class="space-y-1 text-slate-500 italic text-[11px]">// Awaiting pipeline vector map...</div>
+                <div class="flex-1 bg-slate-950/70 rounded-lg border border-slate-850 p-4 mb-4 overflow-y-auto">
+                    <h3 class="text-[10px] font-medium text-slate-400 uppercase mb-2">Active Sources</h3>
+                    <div id="activeSourceList" class="space-y-2 font-mono text-[11px] text-slate-500 italic">// Waiting for pipeline...</div>
                 </div>
 
-                <button id="runBtn" class="w-full bg-slate-900 hover:bg-sky-950 text-terminal-accent border border-sky-800 py-3 rounded font-bold uppercase transition-all cursor-pointer shadow-md tracking-widest text-[11px]">Compile Matrix</button>
+                <button id="runBtn" class="w-full bg-emerald-600 border border-emerald-400 py-3 rounded-lg font-semibold text-xs uppercase hover:bg-emerald-500 transition-all cursor-pointer shadow-md tracking-wider">Fire Pipeline</button>
             </div>
 
-            <!-- RIGHT COLUMN: MULTI-LANGUAGE ARRAYS & TICKER FEED -->
-            <div class="col-span-3 bg-terminal-panel p-5 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded shadow-2xl backdrop-blur-xl">
+            <!-- TERMINAL MAIN DATA MONITOR -->
+            <div class="col-span-3 bg-slate-950/40 p-5 border-2 border-slate-800 flex flex-col h-full overflow-y-auto rounded-xl shadow-2xl backdrop-blur-lg">
                 <div class="mb-4">
-                    <h3 class="font-bold text-[11px] uppercase text-slate-400 tracking-wider mb-3">Scraped Financial Intelligence Matrix</h3>
+                    <h3 class="font-semibold text-xs uppercase text-slate-400 tracking-wider mb-3">Scraped Intelligence Matrix</h3>
                     
-                    <!-- HIGH SEVERITY MARKET BREAKING NEWS BULLETIN -->
-                    <div class="bg-terminal-subpanel border border-slate-900 p-4 rounded w-full mb-4">
-                        <h3 class="text-[9px] font-bold text-terminal-ticker uppercase mb-2 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-terminal-ticker animate-pulse"></span> Instant Commodity / Forex Intercept
+                    <div class="bg-slate-950/50 border border-slate-800 p-4 rounded-xl w-full mb-4">
+                        <h3 class="text-[10px] font-bold text-rose-500 uppercase mb-2 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Fast Hot News
                         </h3>
                         <div class="flex gap-2">
-                            <input type="text" id="hotNewsInput" placeholder="Enter asset class, stock ticker, corporate entity registry code..." class="flex-1 bg-slate-950 border border-slate-800 rounded p-2 text-slate-200 focus:border-terminal-accent outline-none font-mono">
-                            <button onclick="getHotNews()" class="bg-sky-950 border border-sky-700 text-terminal-accent px-5 py-2 rounded font-bold uppercase hover:bg-sky-900 cursor-pointer transition-colors tracking-wider">Intercept</button>
+                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:border-rose-500 outline-none">
+                            <button onclick="getHotNews()" class="bg-rose-600 border border-rose-400 px-5 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>
                         </div>
                     </div>
                     
-                    <!-- CONFIGURATION OF LANGUAGES MATRIX -->
-                    <div class="bg-terminal-subpanel border border-slate-900 p-4 rounded w-full flex justify-between items-center flex-wrap gap-3">
-                        <div class="flex gap-2 flex-wrap items-center">
-                            <button onclick="toggleAll('.lang-check', true)" class="bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 px-3 py-2 rounded font-bold uppercase transition-all cursor-pointer text-[10px]">Select All Ensembles</button>
-                            
-                            <!-- 4 Corporate Target Languages -->
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-1.5 px-3 border border-slate-800 rounded hover:border-slate-700">
-                                <input type="checkbox" class="lang-check accent-terminal-accent" value="oromifa"> 
-                                <span class="font-bold text-slate-400 uppercase text-[10px]">Oromifa</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-1.5 px-3 border border-slate-800 rounded hover:border-slate-700">
-                                <input type="checkbox" class="lang-check accent-terminal-accent" value="amharic"> 
-                                <span class="font-bold text-slate-400 uppercase text-[10px]">Amharic</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-1.5 px-3 border border-slate-800 rounded hover:border-slate-700">
-                                <input type="checkbox" class="lang-check accent-terminal-accent" value="english"> 
-                                <span class="font-bold text-slate-400 uppercase text-[10px]">English</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-1.5 px-3 border border-slate-800 rounded hover:border-slate-700">
-                                <input type="checkbox" class="lang-check accent-terminal-accent" value="arabic"> 
-                                <span class="font-bold text-slate-400 uppercase text-[10px]">Arabic</span>
-                            </label>
+                    <div class="bg-slate-950/50 border border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-3">
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white px-4 py-2 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All</button>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
                         </div>
-                        <button onclick="downloadData()" class="bg-emerald-950 border border-emerald-700 text-terminal-success px-4 py-2 rounded font-bold uppercase shadow-sm hover:bg-emerald-900 transition-all cursor-pointer tracking-wider text-[10px]">Export Data Sheet</button>
+                        <button onclick="downloadData()" class="bg-blue-600 border border-blue-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download</button>
                     </div>
                 </div>
 
-                <!-- RUNTIME TERMINAL DATASTREAM OUTPUT -->
-                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded p-4 border border-slate-900 text-terminal-success shadow-inner leading-relaxed">
-                    <p class="text-slate-600 italic">// Terminal engine initialized. Standby for target corporate indices...</p>
+                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/80 rounded-lg p-4 border border-slate-900 font-mono text-xs text-emerald-400 shadow-inner">
+                    <p class="text-slate-500 italic font-normal">// Matrix ready for sports intelligence ingestion...</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- RUNTIME DATA ARCHITECTURE CONTROL SCRIPTS -->
+    <!-- LIFECYCLE CONTROLLER SCRIPTS -->
     <script>
-        const financialMatrixPool = [
-            { icon: '📈', color: '#10b981' }, 
-            { icon: '📉', color: '#ef4444' }, 
-            { icon: '💵', color: '#10b981' }, 
-            { icon: '📊', color: '#38bdf8' }, 
-            { icon: '🏦', color: '#38bdf8' }, 
-            { icon: '🪙', color: '#f59e0b' }  
+        const sportsPool = [
+            { icon: '⚽', color: '#00f2fe' },
+            { icon: '🏀', color: '#f59e0b' },
+            { icon: '🏈', color: '#ef4444' },
+            { icon: '🎾', color: '#a3e635' },
+            { icon: '🏃', color: '#10b981' },
+            { icon: '🏆', color: '#eab308' },
+            { icon: '👟', color: '#38bdf8' }
         ];
 
-        function spawnFinancialRain() {
+        function spawnBigSportsRain() {
             const stage = document.getElementById('matrixFallingStage');
-            const totalItems = 16;
+            const totalItems = 20;
 
             for (let i = 0; i < totalItems; i++) {
                 const item = document.createElement('div');
-                const template = financialMatrixPool[Math.floor(Math.random() * financialMatrixPool.length)];
+                const template = sportsPool[Math.floor(Math.random() * sportsPool.length)];
                 
-                item.className = 'market-item';
+                item.className = 'sport-item';
                 item.innerText = template.icon;
                 item.style.color = template.color;
                 
-                item.style.left = `${Math.random() * 92}%`;
-                item.style.animationDelay = `${Math.random() * 1.5}s`;
+                item.style.left = `${Math.random() * 90}%`;
+                item.style.animationDelay = `${Math.random() * 1.2}s`;
                 
                 stage.appendChild(item);
             }
         }
 
-        let selectedMarketVector = null;
-
-        function selectVector(btn, vectorType) {
-            document.querySelectorAll('.finance-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            selectedMarketVector = vectorType;
-
-            const sourceList = document.getElementById('activeSourceList');
-            if (vectorType === 'ethiopian') {
-                sourceList.innerHTML = `<div class="p-2 bg-slate-950 border border-slate-900 rounded text-sky-400 font-mono text-[10px] uppercase">» FX_REFORM_BIRR_LIQUIDITY</div>
-                                      <div class="p-2 bg-slate-950 border border-slate-900 rounded text-sky-400 font-mono text-[10px] uppercase">» ETH_NBE_REGULATORY_WIRES</div>`;
-            } else if (vectorType === 'international') {
-                sourceList.innerHTML = `<div class="p-2 bg-slate-950 border border-slate-900 rounded text-cyan-400 font-mono text-[10px] uppercase">» BLOOMBERG_TICKER_FEED</div>
-                                      <div class="p-2 bg-slate-950 border border-slate-900 rounded text-cyan-400 font-mono text-[10px] uppercase">» LSE_REUTERS_MACRO_GLOBAL</div>`;
-            }
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
-            spawnFinancialRain();
+            spawnBigSportsRain();
             
             const stage = document.getElementById('backdropStage');
             const appFrame = document.getElementById('mainAppFrame');
@@ -271,25 +220,24 @@
             setTimeout(() => {
                 stage.classList.add('dashboard-active');
                 appFrame.classList.add('visible');
-            }, 2500);
+            }, 3000);
         });
 
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
-        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-terminal-ticker font-mono">// SCANNING BLOCKCHAIN REGISTRIES, FX TELEMETRY BOARDS, AND GLOBAL TRADING DESKS...</div>`; }
+        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500 font-mono">// Querying global sports wire feeds...</div>`; }
         
         document.getElementById('runBtn').onclick = () => {
-            if (!selectedMarketVector) return alert("CRITICAL ERROR: Select a market feed input vector.");
-            const activeLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+            const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
+            const sourceList = document.getElementById('activeSourceList');
             const output = document.getElementById('outputContainer');
 
-            if (activeLangs.length === 0) return alert("CRITICAL ERROR: Select at least one target extraction language node.");
+            if (mainCats.length === 0) return alert("Select at least one active intelligence sector category.");
 
-            output.innerHTML = `<div class="text-terminal-success font-mono">
-                [SYSTEM LOG] PIPELINE EXECUTION COMPLETELY RESOLVED<br>
-                [METRIC VECTOR] » ${selectedMarketVector.toUpperCase()}<br>
-                [LANGUAGE STRATIFICATION] » ${activeLangs.join(' | ').toUpperCase()}<br>
-                [INGESTION STATUS] » READY TO STREAM PACKETS SECURELY
-            </div>`;
+            sourceList.innerHTML = mainCats.map(item => 
+                `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
+            ).join('');
+
+            output.innerHTML = `<div class="text-emerald-400 font-mono">// SYSTEM INTELLIGENCE STREAM COUPLING COMPLETED<br>// CAPTURING ACTIVE NODES: ${mainCats.join(', ').toUpperCase()}</div>`;
         };
 
         function downloadData() {
@@ -297,7 +245,7 @@
             const blob = new Blob([data], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = 'market-intelligence-brief.csv'; a.click();
+            a.href = url; a.download = 'sports-scrapped-intel.txt'; a.click();
         }
     </script>
 </body>
