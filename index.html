@@ -25,6 +25,47 @@
             opacity: 0.35; 
         }
 
+        /* Intro Splash Overlay Layer */
+        #introOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #010206;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), visibility 1s;
+        }
+
+        /* Glitch/Type Sequence Text Styling */
+        .intro-headline {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: #f8fafc;
+            border-right: 3px solid #3b82f6;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 0;
+            animation: typing 2s steps(30, end) forwards, blink 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink {
+            from, to { border-color: transparent }
+            50% { border-color: #3b82f6 }
+        }
+
         /* Card Wrapper Style matching the screenshot layout */
         .sector-card {
             background-color: #0b1329;
@@ -48,15 +89,44 @@
             border-color: #3b82f6 !important;
             box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
         }
+
+        /* Smooth reveal layout state for main interface container */
+        #mainContainer {
+            opacity: 0;
+            filter: blur(10px);
+            transition: opacity 1.2s ease, filter 1.2s ease;
+        }
+        #mainContainer.revealed {
+            opacity: 1;
+            filter: blur(0);
+        }
     </style>
 </head>
 <body class="font-sans">
+
+    <!-- INTRO SEQUENCE OVERLAY SCREEN -->
+    <div id="introOverlay">
+        <div class="max-w-xl w-full px-6 flex flex-col items-start gap-3">
+            <div class="intro-headline" id="introText">POLITICS. GOVERNANCE. AUTHORITY.</div>
+            <div class="h-1 bg-blue-600/20 w-full rounded-full overflow-hidden relative">
+                <div class="h-full bg-blue-500 w-1/3 rounded-full absolute left-0 animate-[shimmer_1.5s_infinite_linear]"></div>
+            </div>
+            <span class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-2 animate-pulse">// Booting core jurisdiction engine...</span>
+        </div>
+    </div>
+    
+    <style>
+        @keyframes shimmer {
+            0% { left: -33%; }
+            100% { left: 100%; }
+        }
+    </style>
 
     <!-- DEMONSTRATION & GOVERNANCE GRAPHICS STAGE CANVAS -->
     <canvas class="governance-bg-canvas" id="governanceCanvas"></canvas>
 
     <!-- MAIN INTERFACE CONTAINER -->
-    <div class="relative z-10 flex flex-col h-full w-full">
+    <div id="mainContainer" class="relative z-10 flex flex-col h-full w-full">
         
         <!-- HEADER LOGO BAR -->
         <header class="bg-slate-950 border-b-4 border-slate-800 px-8 py-4 flex items-center justify-between">
@@ -70,7 +140,7 @@
         <!-- MAIN INTERFACE MATRIX -->
         <main class="flex-1 grid grid-cols-4 gap-5 p-5 h-full overflow-hidden">
             
-            <!-- LEFT CONTROL DRAWER (Rebuilt with Selectable Checkbox Cards) -->
+            <!-- LEFT CONTROL DRAWER -->
             <div class="col-span-1 bg-slate-950/95 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl">
                 <h3 class="text-[11px] font-semibold text-blue-400 uppercase tracking-widest mb-5 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Intelligence Sectors
@@ -142,6 +212,21 @@
     <!-- BACKEND APPLICATION LAYER & GEOPOLITICAL BACKGROUND INFRASTRUCTURE CANVAS LOGIC -->
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+
+        // 0. SYSTEM TIMEOUT FOR INTRO SEQUENCER
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const overlay = document.getElementById('introOverlay');
+                const mainContainer = document.getElementById('mainContainer');
+                
+                // Hide splash smoothly
+                overlay.style.opacity = '0';
+                overlay.style.visibility = 'hidden';
+                
+                // Bring main UI panels into complete sharp focus
+                mainContainer.classList.add('revealed');
+            }, 3200); // 3.2 Seconds allowing text typing completion
+        });
 
         // 1. DYNAMIC RECONSTRUCTION OF THE DEMONSTRATION & GOVERNANCE GRID 
         const canvas = document.getElementById('governanceCanvas');
@@ -230,7 +315,6 @@
         }
         prefetchDatabases();
 
-        // Dynamically changes borders and populates endpoints based on checked sectors
         window.syncSectorState = function() {
             const ethCheck = document.getElementById('ethCheck');
             const intCheck = document.getElementById('intCheck');
@@ -238,14 +322,12 @@
             const intCard = document.getElementById('intCard');
             const agencyContainer = document.getElementById('activeSourceList');
 
-            // Handle active frame styles
             if (ethCheck.checked) ethCard.classList.add('active');
             else ethCard.classList.remove('active');
 
             if (intCheck.checked) intCard.classList.add('active');
             else intCard.classList.remove('active');
 
-            // Populate source feed
             agencyContainer.innerHTML = '';
             let sourcesFound = false;
 
