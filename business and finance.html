@@ -52,8 +52,8 @@
     <!-- CYBERPUNK GLOWING CURRENCY BACKGROUND LAYER -->
     <div class="matrix-bg" id="matrixBg"></div>
 
-    <!-- MAIN INTERFACE CONTAINER -->
-    <div class="relative z-10 flex flex-col h-full w-full">
+    <!-- MAIN INTERFACE CONTAINER (Initially hidden via Tailwind 'hidden' utility) -->
+    <div id="mainInterface" class="hidden relative z-10 flex flex-col h-full w-full opacity-0 transition-opacity duration-700">
         
         <!-- HEADER LOGO BAR (Heavy 4px Framing Edge) -->
         <header class="bg-slate-950 border-b-4 border-slate-800 px-8 py-4 flex items-center justify-between">
@@ -164,6 +164,15 @@
             bgContainer.appendChild(stream);
         }
 
+        // INTRO TIMEOUT SYSTEM: Fade panels in after 2 seconds
+        setTimeout(() => {
+            const mainInterface = document.getElementById('mainInterface');
+            mainInterface.classList.remove('hidden');
+            // Force a reflow for smooth opacity fade transition
+            void mainInterface.offsetWidth;
+            mainInterface.classList.remove('opacity-0');
+        }, 2000);
+
         // 2. SUPABASE API CONNECT LAYER
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             global: {
@@ -241,4 +250,3 @@
     </script>
 </body>
 </html>
-
