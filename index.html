@@ -3,322 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent Access Terminal</title>
+    <title>Command Center | Analytics Terminal</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- THREE.JS CORE ENGINE DEPENDENCY -->
+    <!-- Three.js Library Dependency -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        body {
-            background-color: #010206;
-            margin: 0;
-            overflow: hidden;
-            height: 100vh;
+        body { 
+            margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column;
+            background-color: #02040e; position: relative; overflow: hidden;
         }
 
-        /* 3D CANVAS LAYER POSITIONING */
-        #canvas-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 0;
-            pointer-events: none;
+        /* CYBER MATRIX CANVAS STAGE */
+        .cyber-backdrop-container {
+            position: absolute; inset: 0; z-index: 0;
+            background: radial-gradient(circle at center, #071235 0%, #02040e 100%);
+            transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
-        /* 2060 Quantum Contrast Veil */
-        .overlay-veil {
-            position: fixed;
-            top: 0;
-            left: 0;
+        #globeCanvasContainer {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, rgba(1, 2, 6, 0) 0%, rgba(1, 2, 6, 0.75) 70%, rgba(1, 2, 6, 0.95) 100%);
-            z-index: 1;
+        }
+
+        /* HUD Grid */
+        .hud-overlay {
+            position: absolute; inset: 0;
+            background-image: 
+                linear-gradient(to right, rgba(16, 185, 129, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px; z-index: 1;
             pointer-events: none;
         }
 
-        .ui-container {
-            position: relative;
-            z-index: 2;
+        /* Laser Sweep Line */
+        .scanline {
+            position: absolute; width: 100%; height: 4px;
+            background: linear-gradient(90deg, transparent, #10b981, #00f2fe, #10b981, transparent);
+            box-shadow: 0 0 20px #10b981; top: 0; z-index: 4;
+            animation: scanning 3s linear infinite;
+            pointer-events: none;
         }
 
-        .glow-border:focus-within {
-            border-color: #38bdf8;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+        @keyframes scanning {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
         }
-        
-        input:focus, select:focus {
-            outline: none !important;
-            box-shadow: none !important;
+
+        /* DASHBOARD STATE RULES */
+        .cyber-backdrop-container.dashboard-active {
+            opacity: 0.4;
         }
+        .cyber-backdrop-container.dashboard-active .scanline {
+            display: none;
+        }
+
+        /* PANELS LAYER TRANSITION SYSTEM */
+        .app-interface {
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 1.2s cubic-bezier(0.1, 1, 0.1, 1), transform 1.2s cubic-bezier(0.1, 1, 0.1, 1);
+        }
+        .app-interface.visible {
+            opacity: 1; transform: translateY(0);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
     </style>
 </head>
-<body class="text-slate-100 font-sans flex items-center justify-center p-6">
+<body class="font-sans text-sm">
 
-    <!-- 3D BACKGROUND STRUCTURES -->
-    <div id="canvas-container"></div>
-    <div class="overlay-veil"></div>
-
-    <div class="ui-container w-full max-w-md">
-
-        <!-- SYSTEM STATUS NOTICE BUFFER -->
-        <div id="statusBuffer" class="hidden text-xs p-3.5 rounded-xl border mb-4 bg-slate-950/90 backdrop-blur-xl font-mono transition-all duration-300"></div>
-
-        <!-- SIGN UP PANEL -->
-        <div id="signUpScreen" class="w-full bg-slate-950/80 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500"></div>
-
-            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
-                Initialize Agent Access
-            </h2>
-            <p class="text-xs text-cyan-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
-
-            <div class="space-y-4 text-left">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
-                        <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assigned Sector</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">🗂️</span>
-                        <select id="regSection" required class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer text-slate-300">
-                            <option value="" disabled selected class="bg-slate-950 text-slate-500">Select Sector...</option>
-                            <option value="world politics and governance" class="bg-slate-950 text-white">World Politics and Governance</option>
-                            <option value="sports & analytics" class="bg-slate-950 text-white">Sports & Analytics</option>
-                            <option value="business and finance" class="bg-slate-950 text-white">Business and Finance</option>
-                            <option value="general hot news" class="bg-slate-950 text-white">General Hot News</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
-                        <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
-                    </div>
-                </div>
-
-                <button id="signUpBtn" class="w-full bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 hover:from-cyan-500 hover:via-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-cyan-500/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
-                    Sign Up
-                </button>
-
-                <div class="text-center mt-4">
-                    <p class="text-xs text-slate-400">Already registered? <button id="toSignInBtn" class="text-cyan-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Secure Log In</button></p>
-                </div>
-            </div>
+    <!-- STEP 1: QUANTUM PARTICLE SYSTEM AND HUD LAYER -->
+    <div id="backdropStage" class="cyber-backdrop-container">
+        <div class="hud-overlay"></div>
+        <div id="laserLine" class="scanline"></div>
+        <!-- 3D Globe Pipeline Container -->
+        <div id="globeCanvasContainer"></div>
+        
+        <!-- DYNAMIC LOOPING SPORT BIG TEXT DISPLAY -->
+        <div id="quantumSportText" class="absolute inset-0 flex items-center justify-center pointer-events-none z-3 opacity-0 select-none will-change-transform transition-all ease-out duration-100">
+            <h1 class="text-8xl md:text-[13rem] font-black tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 filter drop-shadow-[0_0_50px_rgba(6,182,212,0.6)] font-sans">
+                SPORT
+            </h1>
         </div>
-
-        <!-- SIGN IN PANEL -->
-        <div id="signInScreen" class="hidden w-full bg-slate-950/80 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-400 to-indigo-600"></div>
-
-            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
-                Operator Portal
-            </h2>
-            <p class="text-xs text-cyan-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
-
-            <div class="space-y-4 text-left">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
-                        <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Access Password</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
-                        <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
-                    </div>
-                </div>
-
-                <button id="signInBtn" class="w-full bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 hover:from-cyan-500 hover:via-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-cyan-500/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
-                    Sign In
-                </button>
-
-                <div class="text-center mt-4">
-                    <button id="toSignUpBtn" class="text-xs text-cyan-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Initialize Access Profile</button>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <!-- SCRIPT INFRASTRUCTURE MODULE -->
-    <script type="module">
-        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-        import { DESK_CONFIGS } from './deskConfigs.js';
-
-        // --- 2060 QUANTUM COMPUTER GLOBE SYSTEM ---
-        let scene, camera, renderer, masterGroup, coreMesh, dataStreams;
-        let clock = new THREE.Clock();
+    <!-- STEP 2: METRICS TELEMETRY PANELS DISPLAY -->
+    <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full pointer-events-auto">
         
-        // High-Intensity Dynamic Canvas Glow Sprite Generator
-        function createQuantumGlowNode(coreColor, edgeColor) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 64;
-            canvas.height = 64;
-            const ctx = canvas.getContext('2d');
+        <!-- HEADER -->
+        <header class="bg-slate-950/60 border-b-2 border-slate-800 px-6 py-4 flex items-center justify-between backdrop-blur-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-400">AI</div>
+                <span class="font-semibold text-slate-100 tracking-tight text-base">Sports Analytics Terminal</span>
+            </div>
+            <div class="font-mono text-xs text-emerald-400 tracking-wider animate-pulse">// MULTI-SPORT STREAM INGESTION ACTIVE</div>
+        </header>
+
+        <!-- DASHBOARD BODY PANEL MATRIX -->
+        <main class="flex-1 grid grid-cols-4 gap-4 p-4 h-full overflow-hidden">
             
+            <!-- CONTROLS SIDE PANEL -->
+            <div class="col-span-1 bg-slate-950/45 p-5 border-2 border-slate-800 flex flex-col h-full overflow-y-auto rounded-xl shadow-2xl backdrop-blur-lg">
+                <h3 class="text-[11px] font-bold text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Select Categories
+                </h3>
+                
+                <div id="categoryContainer" class="space-y-2 mb-4">
+                    <button onclick="toggleAll('.cat-check', true)" class="w-full bg-emerald-950/40 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white py-2 px-3 rounded-lg font-medium text-xs uppercase transition-all cursor-pointer tracking-wider">
+                        Select All Categories
+                    </button>
+
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="epl"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
+                    </label>
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="international"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
+                    </label>
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="athletics"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Athletics</span>
+                    </label>
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="others"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Others</span>
+                    </label>
+                </div>
+
+                <div class="flex-1 bg-slate-950/70 rounded-lg border border-slate-850 p-4 mb-4 overflow-y-auto">
+                    <h3 class="text-[10px] font-medium text-slate-400 uppercase mb-2">Active Sources</h3>
+                    <div id="activeSourceList" class="space-y-2 font-mono text-[11px] text-slate-500 italic">// Waiting for pipeline...</div>
+                </div>
+
+                <button id="runBtn" class="w-full bg-emerald-600 border border-emerald-400 py-3 rounded-lg font-semibold text-xs uppercase hover:bg-emerald-500 transition-all cursor-pointer shadow-md tracking-wider">Fire Pipeline</button>
+            </div>
+
+            <!-- TERMINAL MAIN DATA MONITOR -->
+            <div class="col-span-3 bg-slate-950/40 p-5 border-2 border-slate-800 flex flex-col h-full overflow-y-auto rounded-xl shadow-2xl backdrop-blur-lg">
+                <div class="mb-4">
+                    <h3 class="font-semibold text-xs uppercase text-slate-400 tracking-wider mb-3">Scraped Intelligence Matrix</h3>
+                    
+                    <div class="bg-slate-950/50 border border-slate-800 p-4 rounded-xl w-full mb-4">
+                        <h3 class="text-[10px] font-bold text-rose-500 uppercase mb-2 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Fast Hot News
+                        </h3>
+                        <div class="flex gap-2">
+                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:border-rose-500 outline-none">
+                            <button onclick="getHotNews()" class="bg-rose-600 border border-rose-400 px-5 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-950/50 border border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-3">
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white px-4 py-2 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All</button>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
+                        </div>
+                        <button onclick="downloadData()" class="bg-blue-600 border border-blue-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download</button>
+                    </div>
+                </div>
+
+                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/80 rounded-lg p-4 border border-slate-900 font-mono text-xs text-emerald-400 shadow-inner">
+                    <p class="text-slate-500 italic font-normal">// Matrix ready for sports intelligence ingestion...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- LIFECYCLE CONTROLLER SCRIPTS -->
+    <script>
+        // --- THREE.JS QUANTUM GLOBE ENGINE ---
+        let scene, camera, renderer, globeParticles;
+        const clock = new THREE.Clock();
+        const baseRadius = 50;
+        const totalParticles = 2800;
+        let sportTextEl;
+
+        function buildEnergyNodeTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64; canvas.height = 64;
+            const ctx = canvas.getContext('2d');
             const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
             gradient.addColorStop(0, '#ffffff');
-            gradient.addColorStop(0.15, coreColor);
-            gradient.addColorStop(0.4, edgeColor);
+            gradient.addColorStop(0.2, '#00f2fe');
+            gradient.addColorStop(0.5, '#10b981');
             gradient.addColorStop(1, 'rgba(0,0,0,0)');
-            
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, 64, 64);
             return new THREE.CanvasTexture(canvas);
         }
 
-        function initQuantumGlobe() {
-            const container = document.getElementById('canvas-container');
-            if (!container) return;
-
+        function initGlobeSystem() {
+            const container = document.getElementById('globeCanvasContainer');
+            sportTextEl = document.getElementById('quantumSportText');
             scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
-            camera.position.z = 160;
+            
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.z = 180;
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            masterGroup = new THREE.Group();
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(totalParticles * 3);
+            const vectors = new Float32Array(totalParticles * 3);
+            const burstSpeeds = new Float32Array(totalParticles);
 
-            const radius = 52;
-            const segments = 32;
+            for(let i = 0; i < totalParticles; i++) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
 
-            // 1. Core Energy Biosphere (Inner Soft Light Reservoir)
-            const coreGeo = new THREE.SphereGeometry(radius - 2, 16, 16);
-            const coreMat = new THREE.MeshBasicMaterial({
-                color: 0x032b59,
-                transparent: true,
-                opacity: 0.25,
-                blending: THREE.AdditiveBlending,
-                wireframe: false
-            });
-            coreMesh = new THREE.Mesh(coreGeo, coreMat);
-            masterGroup.add(coreMesh);
+                const x = Math.sin(phi) * Math.cos(theta);
+                const y = Math.sin(phi) * Math.sin(theta);
+                const z = Math.cos(phi);
 
-            // 2. High-Tech Structural Grid Matrix
-            const gridGeo = new THREE.SphereGeometry(radius, segments, segments);
-            const gridMat = new THREE.MeshBasicMaterial({
-                color: 0x06b6d4, // Neon Cyan
-                wireframe: true,
-                transparent: true,
-                opacity: 0.18,
-                blending: THREE.AdditiveBlending
-            });
-            const matrixShell = new THREE.Mesh(gridGeo, gridMat);
-            masterGroup.add(matrixShell);
+                vectors[i * 3] = x;
+                vectors[i * 3 + 1] = y;
+                vectors[i * 3 + 2] = z;
 
-            // 3. Anchor Points / Main Latitudinal Junction Nodes
-            const nodeMat = new THREE.PointsMaterial({
-                size: 2.8,
-                transparent: true,
-                opacity: 0.95,
-                map: createQuantumGlowNode('#22d3ee', '#093370'),
-                blending: THREE.AdditiveBlending,
-                depthWrite: false
-            });
-            const matrixNodes = new THREE.Points(gridGeo, nodeMat);
-            masterGroup.add(matrixNodes);
+                positions[i * 3] = x * baseRadius;
+                positions[i * 3 + 1] = y * baseRadius;
+                positions[i * 3 + 2] = z * baseRadius;
 
-            // 4. Kinetic Data Flow Particles (Dynamic Ring Orbit Clusters)
-            const particleCount = 1500;
-            const streamGeometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
-            const randomSpeeds = new Float32Array(particleCount);
-            
-            for (let i = 0; i < particleCount; i++) {
-                // Generate locations inside a thin holographic spherical shell layer
-                const u = Math.random();
-                const v = Math.random();
-                const theta = u * 2.0 * Math.PI;
-                const phi = Math.acos(2.0 * v - 1.0);
-                
-                const shellRadius = radius + (Math.random() - 0.5) * 8;
-                
-                positions[i * 3] = shellRadius * Math.sin(phi) * Math.cos(theta);
-                positions[i * 3 + 1] = shellRadius * Math.sin(phi) * Math.sin(theta);
-                positions[i * 3 + 2] = shellRadius * Math.cos(phi);
-                
-                randomSpeeds[i] = 0.2 + Math.random() * 0.8;
+                burstSpeeds[i] = 0.4 + Math.random() * 1.6;
             }
 
-            streamGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            
-            const streamMat = new THREE.PointsMaterial({
-                size: 1.6,
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 2.2,
                 transparent: true,
-                opacity: 0.85,
-                map: createQuantumGlowNode('#ffffff', '#3b82f6'),
+                opacity: 0.9,
+                map: buildEnergyNodeTexture(),
                 blending: THREE.AdditiveBlending,
                 depthWrite: false
             });
 
-            dataStreams = new THREE.Points(streamGeometry, streamMat);
-            dataStreams.userData = { speeds: randomSpeeds };
-            masterGroup.add(dataStreams);
+            globeParticles = new THREE.Points(geometry, material);
+            globeParticles.userData = { vectors, burstSpeeds, loopTimer: 0 };
+            scene.add(globeParticles);
 
-            // 5. Outer Atmospheric Quantum Containment Rings
-            for (let i = 0; i < 4; i++) {
-                const ringGeo = new THREE.RingGeometry(radius + 6 + (i * 4), radius + 6.8 + (i * 4), 64);
-                const ringMat = new THREE.MeshBasicMaterial({
-                    color: i % 2 === 0 ? 0x22d3ee : 0x6366f1,
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.12 - (i * 0.02),
-                    blending: THREE.AdditiveBlending
-                });
-                const perimeterRing = new THREE.Mesh(ringGeo, ringMat);
-                perimeterRing.rotation.x = Math.random() * Math.PI;
-                perimeterRing.rotation.y = Math.random() * Math.PI;
-                masterGroup.add(perimeterRing);
-            }
-
-            scene.add(masterGroup);
-            animateQuantumEngine();
+            animateGlobePipeline();
         }
 
-        function animateQuantumEngine() {
-            requestAnimationFrame(animateQuantumEngine);
-            const elapsedTime = clock.getElapsedTime();
+        function animateGlobePipeline() {
+            requestAnimationFrame(animateGlobePipeline);
+            const delta = clock.getDelta();
+            const elapsed = clock.getElapsedTime();
 
-            if (masterGroup) {
-                // Rotation on base axis vectors
-                masterGroup.rotation.y = elapsedTime * 0.04;
-                masterGroup.rotation.x = elapsedTime * 0.015;
-            }
-
-            // Animate dynamic vector data points
-            if (dataStreams) {
-                const positions = dataStreams.geometry.attributes.position.array;
-                const speeds = dataStreams.userData.speeds;
+            if (globeParticles) {
+                const posAttr = globeParticles.geometry.attributes.position;
+                const positions = posAttr.array;
+                const vectors = globeParticles.userData.vectors;
+                const speeds = globeParticles.userData.burstSpeeds;
                 
-                for (let i = 0; i < speeds.length; i++) {
-                    // Micro-shift positions to create flowing data effect over time
-                    positions[i * 3 + 1] += Math.sin(elapsedTime * speeds[i]) * 0.03;
-                    positions[i * 3] += Math.cos(elapsedTime * speeds[i]) * 0.02;
-                }
-                dataStreams.geometry.attributes.position.needsUpdate = true;
-            }
+                globeParticles.userData.loopTimer += delta;
+                const timer = globeParticles.userData.loopTimer % 6; // Strict 6-second total loop duration
 
-            // Pulse the energy core volume
-            if (coreMesh) {
-                const pulseScale = 1.0 + Math.sin(elapsedTime * 2.5) * 0.06;
-                coreMesh.scale.set(pulseScale, pulseScale, pulseScale);
+                // Rotation metrics applied onto geometry axis
+                globeParticles.rotation.y += 0.008;
+                globeParticles.rotation.x += 0.003;
+
+                if (timer < 2.0) {
+                    // --- PHASE 1: STABLE ROTATING MODE (0s to 2s) ---
+                    if(sportTextEl) {
+                        sportTextEl.style.opacity = '0';
+                        sportTextEl.style.transform = 'scale(0.85)';
+                    }
+
+                    for (let i = 0; i < totalParticles; i++) {
+                        positions[i * 3] = vectors[i * 3] * baseRadius;
+                        positions[i * 3 + 1] = vectors[i * 3 + 1] * baseRadius;
+                        positions[i * 3 + 2] = vectors[i * 3 + 2] * baseRadius;
+                    }
+                } 
+                else if (timer >= 2.0 && timer < 3.5) {
+                    // --- PHASE 2: DETACH AND SCATTER EXPLOSION (2s to 3.5s) ---
+                    const progress = (timer - 2.0) / 1.5; // Normalized progress window (0.0 to 1.0)
+                    
+                    // Reveal and dynamically expand the text panel alongside the explosion progress
+                    if(sportTextEl) {
+                        sportTextEl.style.opacity = progress;
+                        sportTextEl.style.transform = `scale(${0.85 + (progress * 0.15)})`;
+                    }
+
+                    for (let i = 0; i < totalParticles; i++) {
+                        const vx = vectors[i * 3];
+                        const vy = vectors[i * 3 + 1];
+                        const vz = vectors[i * 3 + 2];
+                        const speed = speeds[i];
+
+                        const expansionDist = baseRadius + (progress * 380 * speed);
+                        
+                        positions[i * 3] = vx * expansionDist + Math.sin(elapsed * speed * 3) * 5;
+                        positions[i * 3 + 1] = vy * expansionDist + Math.cos(elapsed * speed * 3) * 5;
+                        positions[i * 3 + 2] = vz * expansionDist;
+                    }
+                } 
+                else {
+                    // --- PHASE 3: COMPRESSION BACK TO ORIGINAL STATE (3.5s to 6s) ---
+                    const returnProgress = (timer - 3.5) / 2.5; // Smooth interpolation progress (0.0 to 1.0)
+                    
+                    // Elegantly fade out the word matrix as globe pieces assemble back
+                    if(sportTextEl) {
+                        sportTextEl.style.opacity = 1 - returnProgress;
+                    }
+
+                    for (let i = 0; i < totalParticles; i++) {
+                        const vx = vectors[i * 3];
+                        const vy = vectors[i * 3 + 1];
+                        const vz = vectors[i * 3 + 2];
+
+                        const currentX = positions[i * 3];
+                        const currentY = positions[i * 3 + 1];
+                        const currentZ = positions[i * 3 + 2];
+
+                        const targetX = vx * baseRadius;
+                        const targetY = vy * baseRadius;
+                        const targetZ = vz * baseRadius;
+
+                        positions[i * 3] = THREE.MathUtils.lerp(currentX, targetX, returnProgress);
+                        positions[i * 3 + 1] = THREE.MathUtils.lerp(currentY, targetY, returnProgress);
+                        positions[i * 3 + 2] = THREE.MathUtils.lerp(currentZ, targetZ, returnProgress);
+                    }
+                }
+                posAttr.needsUpdate = true;
             }
 
             renderer.render(scene, camera);
@@ -331,146 +346,43 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Fire Quantum Terminal Engine System
-        initQuantumGlobe();
+        // --- CORE LIFECYCLE CONTROLLERS ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initGlobeSystem();
+            
+            const stage = document.getElementById('backdropStage');
+            const appFrame = document.getElementById('mainAppFrame');
 
-        // --- AUTHENTICATION INTERACTION INFRASTRUCTURE ---
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            auth: { persistSession: true },
-            global: {
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                }
-            }
+            // Dashboard panels appear smoothly after the first structural scatter sequence
+            setTimeout(() => {
+                stage.classList.add('dashboard-active');
+                appFrame.classList.add('visible');
+            }, 3500);
         });
 
-        const statusBuffer = document.getElementById('statusBuffer');
+        function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
+        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500 font-mono">// Querying global sports wire feeds...</div>`; }
+        
+        document.getElementById('runBtn').onclick = () => {
+            const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
+            const sourceList = document.getElementById('activeSourceList');
+            const output = document.getElementById('outputContainer');
 
-        function displayTerminalNotice(message, statusType = 'info') {
-            statusBuffer.classList.remove('hidden', 'text-cyan-400', 'border-cyan-950/60', 'text-red-400', 'border-red-950/60', 'text-emerald-400', 'border-emerald-950/60');
-            
-            if (statusType === 'error') {
-                statusBuffer.classList.add('text-red-400', 'border-red-950/60');
-            } else if (statusType === 'success') {
-                statusBuffer.classList.add('text-emerald-400', 'border-emerald-950/60');
-            } else {
-                statusBuffer.classList.add('text-cyan-400', 'border-cyan-950/60');
-            }
-            statusBuffer.innerText = `// ${message.toUpperCase()}`;
-        }
+            if (mainCats.length === 0) return alert("Select at least one active intelligence sector category.");
 
-        function showScreen(screenId) {
-            statusBuffer.classList.add('hidden');
-            document.getElementById('signUpScreen').classList.add('hidden');
-            document.getElementById('signInScreen').classList.add('hidden');
-            document.getElementById(screenId).classList.remove('hidden');
-        }
+            sourceList.innerHTML = mainCats.map(item => 
+                `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
+            ).join('');
 
-        document.getElementById('toSignInBtn').addEventListener('click', () => showScreen('signInScreen'));
-        document.getElementById('toSignUpBtn').addEventListener('click', () => showScreen('signUpScreen'));
-        document.getElementById('signUpBtn').addEventListener('click', registerJournalist);
-        document.getElementById('signInBtn').addEventListener('click', loginJournalist);
+            output.innerHTML = `<div class="text-emerald-400 font-mono">// SYSTEM INTELLIGENCE STREAM COUPLING COMPLETED<br>// CAPTURING ACTIVE NODES: ${mainCats.join(', ').toUpperCase()}</div>`;
+        };
 
-        async function registerJournalist() {
-            const fullName = document.getElementById('regName').value.trim();
-            const section = document.getElementById('regSection').value;
-            const password = document.getElementById('regPassword').value;
-            const signUpBtn = document.getElementById('signUpBtn');
-
-            if (!fullName || !section || !password) {
-                displayTerminalNotice("Registration Error: All parameters required.", "error");
-                return;
-            }
-
-            signUpBtn.disabled = true;
-            signUpBtn.innerText = "Processing Profile...";
-
-            try {
-                const { data: existingUsers, error: checkError } = await supabaseClient
-                    .from('journalists')
-                    .select('*')
-                    .eq('Journalist name', fullName);
-
-                if (checkError) throw checkError;
-                if (existingUsers && existingUsers.length > 0) {
-                    displayTerminalNotice(`Registration failure: Name "${fullName}" is taken.`, "error");
-                    signUpBtn.disabled = false;
-                    signUpBtn.innerText = "Sign Up";
-                    return; 
-                }
-
-                const { error: insertError } = await supabaseClient
-                    .from('journalists')
-                    .insert([{"Journalist name": fullName, "journalism Section": section, "Password": password}]);
-
-                if (insertError) throw insertError;
-
-                displayTerminalNotice("Profile Compiled! Switching to authentication panel...", "success");
-                setTimeout(() => {
-                    statusBuffer.classList.add('hidden');
-                    document.getElementById('loginName').value = fullName;
-                    signUpBtn.disabled = false;
-                    signUpBtn.innerText = "Sign Up";
-                    showScreen('signInScreen');
-                }, 1500);
-
-            } catch (error) {
-                displayTerminalNotice("Database Core Error: " + error.message, "error");
-                signUpBtn.disabled = false;
-                signUpBtn.innerText = "Sign Up";
-            }
-        }
-
-        async function loginJournalist() {
-            const nameInput = document.getElementById('loginName').value.trim();
-            const passwordInput = document.getElementById('loginPassword').value;
-            const signInBtn = document.getElementById('signInBtn');
-
-            if (!nameInput || !passwordInput) {
-                displayTerminalNotice("Authentication Error: Credentials missing.", "error");
-                return;
-            }
-
-            signInBtn.disabled = true;
-            signInBtn.innerText = "Authenticating...";
-
-            try {
-                const { data: records, error } = await supabaseClient
-                    .from('journalists')
-                    .select('*')
-                    .eq('Journalist name', nameInput);
-
-                if (error) throw error;
-                if (!records || records.length === 0 || records[0].Password !== passwordInput) {
-                    displayTerminalNotice("Authentication Error: Invalid identity passkey.", "error");
-                    signInBtn.disabled = false;
-                    signInBtn.innerText = "Sign In";
-                    return;
-                }
-
-                const assignedSection = records[0]["journalism Section"];
-                const configMatch = DESK_CONFIGS[assignedSection];
-
-                if (configMatch) {
-                    displayTerminalNotice(`Access Granted! Routing to: ${configMatch.title}`, "success");
-                } else {
-                    displayTerminalNotice("Access Granted! Establishing session tunnel...", "success");
-                }
-
-                document.getElementById('loginPassword').value = ""; 
-
-                setTimeout(() => {
-                    signInBtn.disabled = false;
-                    signInBtn.innerText = "Sign In";
-                    window.location.href = 'customepage.html';
-                }, 1200);
-
-            } catch (error) {
-                displayTerminalNotice("Security Subsystem Error: " + error.message, "error");
-                signInBtn.disabled = false;
-                signInBtn.innerText = "Sign In";
-            }
+        function downloadData() {
+            const data = document.getElementById('outputContainer').innerText;
+            const blob = new Blob([data], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'sports-scrapped-intel.txt'; a.click();
         }
     </script>
 </body>
