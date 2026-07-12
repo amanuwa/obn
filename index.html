@@ -25,12 +25,26 @@
             opacity: 0.35; 
         }
 
-        /* Selected State for Vectors */
+        /* Match the exact button styling from the screenshot */
+        .vector-btn {
+            background-color: #0b1329;
+            border: 3px solid #1e293b; /* Slate-800 inactive border */
+            border-radius: 1rem;
+            padding: 1.25rem 1.5rem;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .vector-btn:hover {
+            border-color: #334155;
+        }
+
+        /* Active highlight state matching screenshot */
         .vector-btn.active {
-            background-color: #1e3a8a !important; /* blue-900 */
-            border-color: #3b82f6 !important; /* blue-500 */
-            color: #ffffff !important;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            border-color: #3b82f6 !important; /* Vibrant Blue-500 */
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
         }
     </style>
 </head>
@@ -56,19 +70,21 @@
             
             <!-- LEFT CONTROL DRAWER -->
             <div class="col-span-1 bg-slate-950/95 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl">
-                <h3 class="text-[11px] font-medium text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <h3 class="text-[11px] font-semibold text-blue-400 uppercase tracking-widest mb-5 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Intelligence Sectors
                 </h3>
                 
                 <div id="categoryContainer" class="space-y-4 mb-6">
                     <!-- ETHIOPIAN NEWS DEPT -->
-                    <button onclick="selectVector(this, 'ethiopian')" class="vector-btn w-full text-left bg-slate-900 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-blue-500 flex flex-col gap-1">
-                        <span class="text-xs font-normal uppercase text-slate-300">🇪🇹 Ethiopian News</span>
+                    <button onclick="selectVector(this, 'ethiopian')" class="vector-btn flex items-center gap-2.5">
+                        <span class="text-[11px] font-bold text-slate-400 tracking-wider">ET</span>
+                        <span class="text-xs font-semibold uppercase text-slate-200 tracking-wide">Ethiopian News</span>
                     </button>
 
                     <!-- INTERNATIONAL NEWS DEPT -->
-                    <button onclick="selectVector(this, 'international')" class="vector-btn w-full text-left bg-slate-900 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-blue-500 flex flex-col gap-1">
-                        <span class="text-xs font-normal uppercase text-slate-300">🌐 International News</span>
+                    <button onclick="selectVector(this, 'international')" class="vector-btn flex items-center gap-2.5">
+                        <span class="text-xs text-blue-400">🌐</span>
+                        <span class="text-xs font-semibold uppercase text-slate-200 tracking-wide">International News</span>
                     </button>
                 </div>
                 
@@ -148,7 +164,6 @@
             ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
             ctx.strokeStyle = 'rgba(37, 99, 235, 0.12)';
 
-            // Draw systemic connections representing governance infrastructure models
             for(let i=0; i<maxNodes; i++) {
                 let nA = stateNodes[i];
                 nA.x += nA.vx;
