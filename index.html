@@ -23,12 +23,13 @@
             height: 100%;
             z-index: 0;
             pointer-events: none;
+            transition: opacity 0.5s ease-out; /* Smoothly blend out canvas */
         }
 
         /* Smooth UI entry fade after matrix sequence stabilizes */
         #dashboardContent {
             opacity: 0;
-            transition: opacity 1.8s ease-in-out;
+            transition: opacity 1.5s ease-in-out;
             pointer-events: none;
         }
         #dashboardContent.visible {
@@ -258,7 +259,7 @@
 
         <!-- FOOTER STATUS -->
         <footer class="bg-slate-950 border-t border-slate-800 px-4 py-1.5 font-mono text-[10px] text-cyan-500 flex items-center justify-between shrink-0">
-            <div id="statusConsole">// MONITOR HUB ACTIVE: Map telemetry stabilized.</div>
+            <div id="statusConsole">// MONITOR HUB ACTIVE: System initialized.</div>
             <div class="text-slate-600 select-none text-[9px]">GATEWAY INTERFACE v5.5</div>
         </footer>
     </div>
@@ -278,12 +279,11 @@
 
         const tokenChars = ['0', '1', 'X', 'A', 'F', '9', '4', 'C', '2', 'E', 'B', '7', 'Z', 'M', 'V', 'K'];
         let particles = [];
-        const fontSize = 10; // Tiny small characters layout
 
         function initMatrixGrid() {
             particles = [];
-            const columns = Math.ceil(canvas.width / 22); // Fine horizontal distribution spacing
-            const rows = Math.ceil(canvas.height / 22);    // Fine vertical distribution spacing
+            const columns = Math.ceil(canvas.width / 22);
+            const rows = Math.ceil(canvas.height / 22);
 
             for (let c = 0; c < columns; c++) {
                 for (let r = 0; r < rows; r++) {
@@ -291,51 +291,63 @@
                         x: c * 22 + 8,
                         y: r * 22 + 14,
                         char: tokenChars[Math.floor(Math.random() * tokenChars.length)],
-                        // Base colors alternate sizes slightly for density textures
                         size: Math.random() > 0.5 ? 9 : 10
                     });
                 }
             }
         }
 
-        // Initialize grid layout boundaries
         sizeCanvas(); 
         window.addEventListener('resize', sizeCanvas);
 
-        let systemClockFrames = 0;
+        let animationFrameId;
+        let startTimestamp = null;
         let panelsRevealed = false;
+        let canvasCleanedUp = false;
 
-        function runStaticGlitchField() {
+        function runStaticGlitchField(timestamp) {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const elapsed = timestamp - startTimestamp;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            systemClockFrames++;
 
-            // Global configurations for intense neon glowing effects
+            // Render glowing grid characters
             ctx.shadowBlur = 10;
             ctx.shadowColor = '#06b6d4';
-            ctx.fillStyle = 'rgba(34, 211, 238, 0.75)'; // Sharp glow visibility text rendering
+            ctx.fillStyle = 'rgba(34, 211, 238, 0.75)';
 
             particles.forEach(p => {
                 ctx.font = `bold ${p.size}px monospace`;
-                
-                // Characters morph rapidly every few animation cycles for active interface look
                 if (Math.random() < 0.08) {
                     p.char = tokenChars[Math.floor(Math.random() * tokenChars.length)];
                 }
-
                 ctx.fillText(p.char, p.x, p.y);
             });
 
-            // Reveal workspace panels after 120 frames (~2 seconds of matrix initialization sequence)
-            if (!panelsRevealed && systemClockFrames > 120) {
+            // STEP 1: Bring panels into view immediately at 2000ms (2 seconds mark)
+            if (!panelsRevealed && elapsed >= 2000) {
                 panelsRevealed = true;
                 document.getElementById('dashboardContent').classList.add('visible');
             }
 
-            requestAnimationFrame(runStaticGlitchField);
+            // STEP 2: Show for 2 seconds alongside panels, then trigger removal process
+            if (elapsed >= 4000) {
+                if (!canvasCleanedUp) {
+                    canvasCleanedUp = true;
+                    canvas.style.opacity = '0'; // Smoothly fade opacity down
+                    setTimeout(() => {
+                        canvas.style.display = 'none'; // Clear from viewport pipeline completely
+                        cancelAnimationFrame(animationFrameId); // Terminate execution engine context
+                    }, 500); 
+                }
+                return; // Break frame cycle recursion loop
+            }
+
+            animationFrameId = requestAnimationFrame(runStaticGlitchField);
         }
         
-        // Boot up background timeline engine
-        runStaticGlitchField();
+        // Boot up background intro engine timeline
+        animationFrameId = requestAnimationFrame(runStaticGlitchField);
 
 
         // 2. SUPABASE RELATIONAL ACTIONS PIPELINE
