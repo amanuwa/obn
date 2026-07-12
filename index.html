@@ -237,7 +237,7 @@
             globeGroup.add(coreNodes);
 
             // 4. THE QUANTUM EXPLOSION ARRAYS (Tethered to Globe Cycle)
-            const arrayParticleCount = 3000;
+            const arrayParticleCount = 3500;
             const arrayGeometry = new THREE.BufferGeometry();
             
             const positions = new Float32Array(arrayParticleCount * 3);
@@ -315,17 +315,17 @@
 
             // Continuous rotation base metrics
             if (globeGroup) {
-                globeGroup.rotation.y += 0.008;
-                globeGroup.rotation.x += 0.003;
+                globeGroup.rotation.y += 0.012;
+                globeGroup.rotation.x += 0.004;
             }
 
             // Pulse the central cluster engine
             if (coreMesh) {
-                const pulse = 1.0 + Math.sin(elapsed * 3.0) * 0.06;
+                const pulse = 1.0 + Math.sin(elapsed * 4.0) * 0.06;
                 coreMesh.scale.set(pulse, pulse, pulse);
             }
 
-            // PHASE SCHEDULER (8 second complete cycle)
+            // PHASE SCHEDULER (8 second total duration cycle loop)
             if (quantumExplosionArrays) {
                 const positions = quantumExplosionArrays.geometry.attributes.position.array;
                 const vectors = quantumExplosionArrays.userData.vectors;
@@ -336,9 +336,8 @@
 
                 const coreRadius = 45;
 
-                if (loopTime < 3) {
-                    // --- PHASE 1: STABLE ROTATING MODE (0-3s) ---
-                    // Fade wireframe shells up to clean sharpness
+                if (loopTime < 1) {
+                    // --- PHASE 1: STABLE ROTATING GLOBE (Exactly 1 Second) ---
                     matrixShell.material.opacity = 0.25;
                     coreNodes.material.opacity = 0.95;
                     coreMesh.material.opacity = 0.4;
@@ -348,16 +347,14 @@
                         const vy = vectors[i * 3 + 1];
                         const vz = vectors[i * 3 + 2];
                         
-                        // Keep arrays resting smoothly directly on the shell structure
                         positions[i * 3] = vx * coreRadius;
                         positions[i * 3 + 1] = vy * coreRadius;
                         positions[i * 3 + 2] = vz * coreRadius;
                     }
                 } 
-                else if (loopTime >= 3 && loopTime < 5) {
-                    // --- PHASE 2: SCREEN SCATTER EXPLOSION (3-5s) ---
-                    // Animate structural dissolution drop
-                    const progress = (loopTime - 3) / 2; // Normalize window 
+                else if (loopTime >= 1 && loopTime < 3) {
+                    // --- PHASE 2: SCATTER ALL OVER THE SCREEN (2 Seconds) ---
+                    const progress = (loopTime - 1) / 2; // Normalize to 0-1
                     matrixShell.material.opacity = 0.25 * (1.0 - progress);
                     coreNodes.material.opacity = 0.95 * (1.0 - progress);
                     coreMesh.material.opacity = 0.4 * (1.0 - progress);
@@ -368,19 +365,18 @@
                         const vz = vectors[i * 3 + 2];
                         const pSpeed = speeds[i];
 
-                        // Accelerate outward dramatically over the field depth vectors
-                        const burstRange = coreRadius + (progress * 350 * pSpeed);
+                        // Instantly fire vectors away across structural viewport metrics
+                        const burstRange = coreRadius + (progress * 400 * pSpeed);
                         
-                        positions[i * 3] = vx * burstRange + Math.sin(elapsed * pSpeed) * 15;
-                        positions[i * 3 + 1] = vy * burstRange + Math.cos(elapsed * pSpeed) * 15;
+                        positions[i * 3] = vx * burstRange + Math.sin(elapsed * pSpeed * 2) * 20;
+                        positions[i * 3 + 1] = vy * burstRange + Math.cos(elapsed * pSpeed * 2) * 20;
                         positions[i * 3 + 2] = vz * burstRange;
                     }
                 } 
                 else {
-                    // --- PHASE 3: CORE RE-INTEGRATION PULL BACK (5-8s) ---
-                    const returnProgress = (loopTime - 5) / 3; // 3 seconds to re-assemble
+                    // --- PHASE 3: RETURN BACK TO ROTATING GLOBE FORM (5 Seconds) ---
+                    const returnProgress = (loopTime - 3) / 5; // Normalize to 0-1 over 5s
                     
-                    // Gradually restore core visuals
                     matrixShell.material.opacity = 0.25 * returnProgress;
                     coreNodes.material.opacity = 0.95 * returnProgress;
                     coreMesh.material.opacity = 0.4 * returnProgress;
@@ -394,7 +390,6 @@
                         const currentY = positions[i * 3 + 1];
                         const currentZ = positions[i * 3 + 2];
                         
-                        // Absolute targets back home
                         const targetX = vx * coreRadius;
                         const targetY = vy * coreRadius;
                         const targetZ = vz * coreRadius;
