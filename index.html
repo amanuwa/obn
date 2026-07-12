@@ -14,26 +14,37 @@
             height: 100vh;
         }
 
-        /* REVOLVING CYBER GLOBE BACKGROUND */
-        .rotating-globe {
+        /* REVOLVING CYBER GLOBE CONTAINER */
+        .rotating-globe-container {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 140vmax;
-            height: 140vmax;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .rotating-globe-asset {
+            width: 120vmax;
+            height: 120vmax;
+            flex-shrink: 0;
             background-image: url('Screenshot 2026-07-08 004611.jpg');
             background-position: center;
             background-repeat: no-repeat;
             background-size: contain;
-            z-index: 1; /* Sits above base background layer */
-            pointer-events: none;
             opacity: 0.35;
-            animation: spin 120s linear infinite;
+            /* Using a clean 2D rotation layer that doesn't disrupt parent positioning */
+            animation: terminalGlobeSpin 120s linear infinite;
         }
 
-        @keyframes spin {
-            from { transform: translate(-50%, -50%) rotate(0deg); }
-            to { transform: translate(-50%, -50%) rotate(360deg); }
+        @keyframes terminalGlobeSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         /* UI Contrast Veil */
@@ -43,14 +54,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, rgba(2, 4, 10, 0) 0%, rgba(2, 4, 10, 0.85) 100%), rgba(2, 4, 10, 0.4);
-            z-index: 2; /* Sits directly over rotating globe */
+            background: radial-gradient(circle at center, rgba(2, 4, 10, 0.1) 0%, rgba(2, 4, 10, 0.9) 100%);
+            z-index: 2;
             pointer-events: none;
         }
 
         .ui-container {
             position: relative;
-            z-index: 3; /* Completely on top of all background animations */
+            z-index: 3;
         }
 
         .glow-border:focus-within {
@@ -66,7 +77,11 @@
 </head>
 <body class="text-slate-100 font-sans flex items-center justify-center p-6">
 
-    <div class="rotating-globe"></div>
+    <!-- FIXED NESTED BACKDROP INFRASTRUCTURE -->
+    <div class="rotating-globe-container">
+        <div class="rotating-globe-asset"></div>
+    </div>
+    
     <div class="overlay-veil"></div>
 
     <div class="ui-container w-full max-w-md">
@@ -292,7 +307,6 @@
 
                 document.getElementById('loginPassword').value = ""; 
 
-                // Redirect target updated cleanly without alert interruption
                 setTimeout(() => {
                     signInBtn.disabled = false;
                     signInBtn.innerText = "Sign In";
