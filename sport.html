@@ -6,6 +6,8 @@
     <title>Command Center | Analytics Terminal</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Three.js Library Dependency -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body { 
             margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column;
@@ -14,44 +16,27 @@
 
         /* CYBER MATRIX CANVAS STAGE */
         .cyber-backdrop-container {
-            position: absolute; inset: 0; z-index: 0; pointer-events: none;
+            position: absolute; inset: 0; z-index: 0;
             background: radial-gradient(circle at center, #071235 0%, #02040e 100%);
             transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        #globeCanvasContainer {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
         }
 
         /* HUD Grid */
         .hud-overlay {
             position: absolute; inset: 0;
             background-image: 
-                linear-gradient(to right, rgba(16, 185, 129, 0.1) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(16, 185, 129, 0.1) 1px, transparent 1px);
+                linear-gradient(to right, rgba(16, 185, 129, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
             background-size: 50px 50px; z-index: 1;
-        }
-
-        /* Falling Cyber Sports Items Container */
-        .falling-matrix-stage {
-            position: absolute; inset: 0; z-index: 2; overflow: hidden;
-        }
-
-        .sport-item {
-            position: absolute; top: -160px;
-            font-size: 10rem; /* Kept large for the visual sequence impact */
-            filter: drop-shadow(0 0 20px currentColor);
-            animation: fallDownBig 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-            opacity: 0.85;
-        }
-
-        @keyframes fallDownBig {
-            0% {
-                transform: translateY(0) rotate(0deg) scale(0.4);
-                opacity: 0;
-            }
-            10% { opacity: 1; }
-            90% { opacity: 0.85; }
-            100% {
-                transform: translateY(110vh) rotate(540deg) scale(1);
-                opacity: 0.1;
-            }
+            pointer-events: none;
         }
 
         /* Laser Sweep Line */
@@ -60,6 +45,7 @@
             background: linear-gradient(90deg, transparent, #10b981, #00f2fe, #10b981, transparent);
             box-shadow: 0 0 20px #10b981; top: 0; z-index: 4;
             animation: scanning 3s linear infinite;
+            pointer-events: none;
         }
 
         @keyframes scanning {
@@ -68,7 +54,7 @@
             100% { top: 0%; }
         }
 
-        /* 3-SECOND DASHBOARD STATE RULES */
+        /* DASHBOARD STATE RULES */
         .cyber-backdrop-container.dashboard-active {
             opacity: 0.4;
         }
@@ -91,15 +77,23 @@
 </head>
 <body class="font-sans text-sm">
 
-    <!-- STEP 1: INITIAL FALLING SPORTS ITEMS HERO PREVIEW -->
+    <!-- STEP 1: QUANTUM PARTICLE SYSTEM AND HUD LAYER -->
     <div id="backdropStage" class="cyber-backdrop-container">
         <div class="hud-overlay"></div>
         <div id="laserLine" class="scanline"></div>
-        <div id="matrixFallingStage" class="falling-matrix-stage"></div>
+        <!-- 3D Globe Pipeline Container -->
+        <div id="globeCanvasContainer"></div>
+        
+        <!-- DYNAMIC LOOPING SPORT BIG TEXT DISPLAY -->
+        <div id="quantumSportText" class="absolute inset-0 flex items-center justify-center pointer-events-none z-3 opacity-0 select-none will-change-transform transition-all ease-out duration-100">
+            <h1 class="text-8xl md:text-[13rem] font-black tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 filter drop-shadow-[0_0_50px_rgba(6,182,212,0.6)] font-sans">
+                SPORT
+            </h1>
+        </div>
     </div>
 
-    <!-- STEP 2: METRICS TELEMETRY PANELS DISPLAY (Normalized Interface Sizes) -->
-    <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full">
+    <!-- STEP 2: METRICS TELEMETRY PANELS DISPLAY -->
+    <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full pointer-events-auto">
         
         <!-- HEADER -->
         <header class="bg-slate-950/60 border-b-2 border-slate-800 px-6 py-4 flex items-center justify-between backdrop-blur-lg">
@@ -182,45 +176,188 @@
 
     <!-- LIFECYCLE CONTROLLER SCRIPTS -->
     <script>
-        const sportsPool = [
-            { icon: '⚽', color: '#00f2fe' },
-            { icon: '🏀', color: '#f59e0b' },
-            { icon: '🏈', color: '#ef4444' },
-            { icon: '🎾', color: '#a3e635' },
-            { icon: '🏃', color: '#10b981' },
-            { icon: '🏆', color: '#eab308' },
-            { icon: '👟', color: '#38bdf8' }
-        ];
+        // --- THREE.JS QUANTUM GLOBE ENGINE ---
+        let scene, camera, renderer, globeParticles;
+        const clock = new THREE.Clock();
+        const baseRadius = 50;
+        const totalParticles = 2800;
+        let sportTextEl;
 
-        function spawnBigSportsRain() {
-            const stage = document.getElementById('matrixFallingStage');
-            const totalItems = 20;
-
-            for (let i = 0; i < totalItems; i++) {
-                const item = document.createElement('div');
-                const template = sportsPool[Math.floor(Math.random() * sportsPool.length)];
-                
-                item.className = 'sport-item';
-                item.innerText = template.icon;
-                item.style.color = template.color;
-                
-                item.style.left = `${Math.random() * 90}%`;
-                item.style.animationDelay = `${Math.random() * 1.2}s`;
-                
-                stage.appendChild(item);
-            }
+        function buildEnergyNodeTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64; canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(0.2, '#00f2fe');
+            gradient.addColorStop(0.5, '#10b981');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 64, 64);
+            return new THREE.CanvasTexture(canvas);
         }
 
+        function initGlobeSystem() {
+            const container = document.getElementById('globeCanvasContainer');
+            sportTextEl = document.getElementById('quantumSportText');
+            scene = new THREE.Scene();
+            
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.z = 180;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(totalParticles * 3);
+            const vectors = new Float32Array(totalParticles * 3);
+            const burstSpeeds = new Float32Array(totalParticles);
+
+            for(let i = 0; i < totalParticles; i++) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+
+                const x = Math.sin(phi) * Math.cos(theta);
+                const y = Math.sin(phi) * Math.sin(theta);
+                const z = Math.cos(phi);
+
+                vectors[i * 3] = x;
+                vectors[i * 3 + 1] = y;
+                vectors[i * 3 + 2] = z;
+
+                positions[i * 3] = x * baseRadius;
+                positions[i * 3 + 1] = y * baseRadius;
+                positions[i * 3 + 2] = z * baseRadius;
+
+                burstSpeeds[i] = 0.4 + Math.random() * 1.6;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 2.2,
+                transparent: true,
+                opacity: 0.9,
+                map: buildEnergyNodeTexture(),
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            globeParticles = new THREE.Points(geometry, material);
+            globeParticles.userData = { vectors, burstSpeeds, loopTimer: 0 };
+            scene.add(globeParticles);
+
+            animateGlobePipeline();
+        }
+
+        function animateGlobePipeline() {
+            requestAnimationFrame(animateGlobePipeline);
+            const delta = clock.getDelta();
+            const elapsed = clock.getElapsedTime();
+
+            if (globeParticles) {
+                const posAttr = globeParticles.geometry.attributes.position;
+                const positions = posAttr.array;
+                const vectors = globeParticles.userData.vectors;
+                const speeds = globeParticles.userData.burstSpeeds;
+                
+                globeParticles.userData.loopTimer += delta;
+                const timer = globeParticles.userData.loopTimer % 6; // Strict 6-second total loop duration
+
+                // Rotation metrics applied onto geometry axis
+                globeParticles.rotation.y += 0.008;
+                globeParticles.rotation.x += 0.003;
+
+                if (timer < 2.0) {
+                    // --- PHASE 1: STABLE ROTATING MODE (0s to 2s) ---
+                    if(sportTextEl) {
+                        sportTextEl.style.opacity = '0';
+                        sportTextEl.style.transform = 'scale(0.85)';
+                    }
+
+                    for (let i = 0; i < totalParticles; i++) {
+                        positions[i * 3] = vectors[i * 3] * baseRadius;
+                        positions[i * 3 + 1] = vectors[i * 3 + 1] * baseRadius;
+                        positions[i * 3 + 2] = vectors[i * 3 + 2] * baseRadius;
+                    }
+                } 
+                else if (timer >= 2.0 && timer < 3.5) {
+                    // --- PHASE 2: DETACH AND SCATTER EXPLOSION (2s to 3.5s) ---
+                    const progress = (timer - 2.0) / 1.5; // Normalized progress window (0.0 to 1.0)
+                    
+                    // Reveal and dynamically expand the text panel alongside the explosion progress
+                    if(sportTextEl) {
+                        sportTextEl.style.opacity = progress;
+                        sportTextEl.style.transform = `scale(${0.85 + (progress * 0.15)})`;
+                    }
+
+                    for (let i = 0; i < totalParticles; i++) {
+                        const vx = vectors[i * 3];
+                        const vy = vectors[i * 3 + 1];
+                        const vz = vectors[i * 3 + 2];
+                        const speed = speeds[i];
+
+                        const expansionDist = baseRadius + (progress * 380 * speed);
+                        
+                        positions[i * 3] = vx * expansionDist + Math.sin(elapsed * speed * 3) * 5;
+                        positions[i * 3 + 1] = vy * expansionDist + Math.cos(elapsed * speed * 3) * 5;
+                        positions[i * 3 + 2] = vz * expansionDist;
+                    }
+                } 
+                else {
+                    // --- PHASE 3: COMPRESSION BACK TO ORIGINAL STATE (3.5s to 6s) ---
+                    const returnProgress = (timer - 3.5) / 2.5; // Smooth interpolation progress (0.0 to 1.0)
+                    
+                    // Elegantly fade out the word matrix as globe pieces assemble back
+                    if(sportTextEl) {
+                        sportTextEl.style.opacity = 1 - returnProgress;
+                    }
+
+                    for (let i = 0; i < totalParticles; i++) {
+                        const vx = vectors[i * 3];
+                        const vy = vectors[i * 3 + 1];
+                        const vz = vectors[i * 3 + 2];
+
+                        const currentX = positions[i * 3];
+                        const currentY = positions[i * 3 + 1];
+                        const currentZ = positions[i * 3 + 2];
+
+                        const targetX = vx * baseRadius;
+                        const targetY = vy * baseRadius;
+                        const targetZ = vz * baseRadius;
+
+                        positions[i * 3] = THREE.MathUtils.lerp(currentX, targetX, returnProgress);
+                        positions[i * 3 + 1] = THREE.MathUtils.lerp(currentY, targetY, returnProgress);
+                        positions[i * 3 + 2] = THREE.MathUtils.lerp(currentZ, targetZ, returnProgress);
+                    }
+                }
+                posAttr.needsUpdate = true;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            if (!camera || !renderer) return;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- CORE LIFECYCLE CONTROLLERS ---
         window.addEventListener('DOMContentLoaded', () => {
-            spawnBigSportsRain();
+            initGlobeSystem();
             
             const stage = document.getElementById('backdropStage');
             const appFrame = document.getElementById('mainAppFrame');
 
+            // Dashboard panels appear smoothly after the first structural scatter sequence
             setTimeout(() => {
                 stage.classList.add('dashboard-active');
                 appFrame.classList.add('visible');
-            }, 3000);
+            }, 3500);
         });
 
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
