@@ -3,75 +3,358 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Command Center</title>
+    <title>Agent Access Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- THREE.JS CORE ENGINE DEPENDENCY -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        body { background-color: #02071a; margin: 0; overflow: hidden; height: 100vh; }
-        #canvas-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; }
-        .ui-container { position: relative; z-index: 10; height: 100%; display: flex; align-items: center; justify-content: center; }
-        .glow-border:focus-within { border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+        body {
+            background-color: #02040a;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* 3D CANVAS LAYER POSITIONING */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* UI Contrast Veil */
+        .overlay-veil {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(2, 4, 10, 0) 0%, rgba(2, 4, 10, 0.85) 100%), rgba(2, 4, 10, 0.4);
+            z-index: 1; /* Sits directly over 3D background */
+            pointer-events: none;
+        }
+
+        .ui-container {
+            position: relative;
+            z-index: 2; /* Completely on top of background animations */
+        }
+
+        .glow-border:focus-within {
+            border-color: #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+        
+        input:focus, select:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
-<body class="text-slate-100 font-sans">
+<body class="text-slate-100 font-sans flex items-center justify-center p-6">
 
-    <!-- 3D BACKGROUND -->
+    <!-- 3D BACKGROUND STRUCTURES -->
     <div id="canvas-container"></div>
+    <div class="overlay-veil"></div>
 
-    <!-- UI LAYER -->
-    <div class="ui-container">
-        <!-- SIGN-UP MODULE -->
-        <div id="signUpScreen" class="w-full max-w-md bg-slate-950/50 backdrop-blur-xl p-8 rounded-2xl border border-sky-500/20">
-            <h2 class="text-2xl font-black text-center text-white mb-1">Initialize Agent Access</h2>
-            <div class="space-y-4">
-                <input type="text" id="regName" placeholder="Full Name" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-sm">
-                <select id="regSection" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-sm">
-                    <option value="Sports & Analytics">Sports & Analytics</option>
-                </select>
-                <input type="password" id="regPassword" placeholder="Password" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-sm">
-                <button id="signUpBtn" class="w-full bg-sky-600 py-3 rounded-lg font-bold uppercase text-xs">Sign Up</button>
+    <div class="ui-container w-full max-w-md">
+
+        <!-- SYSTEM STATUS NOTICE BUFFER -->
+        <div id="statusBuffer" class="hidden text-xs p-3.5 rounded-xl border mb-4 bg-slate-950/90 backdrop-blur-xl font-mono transition-all duration-300"></div>
+
+        <!-- SIGN UP PANEL -->
+        <div id="signUpScreen" class="w-full bg-slate-950/85 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"></div>
+
+            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
+                Initialize Agent Access
+            </h2>
+            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assigned Sector</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🗂️</span>
+                        <select id="regSection" required class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer text-slate-300">
+                            <option value="" disabled selected class="bg-slate-950 text-slate-500">Select Sector...</option>
+                            <option value="world politics and governance" class="bg-slate-950 text-white">World Politics and Governance</option>
+                            <option value="sports & analytics" class="bg-slate-950 text-white">Sports & Analytics</option>
+                            <option value="business and finance" class="bg-slate-950 text-white">Business and Finance</option>
+                            <option value="general hot news" class="bg-slate-950 text-white">General Hot News</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                        <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                    </div>
+                </div>
+
+                <button id="signUpBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Sign Up
+                </button>
+
+                <div class="text-center mt-4">
+                    <p class="text-xs text-slate-400">Already registered? <button id="toSignInBtn" class="text-sky-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Secure Log In</button></p>
+                </div>
             </div>
         </div>
+
+        <!-- SIGN IN PANEL -->
+        <div id="signInScreen" class="hidden w-full bg-slate-950/85 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-sky-500 to-indigo-600"></div>
+
+            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
+                Operator Portal
+            </h2>
+            <p class="text-xs text-sky-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Access Password</label>
+                    <div class="glow-border flex items-center bg-slate-900 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                        <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                    </div>
+                </div>
+
+                <button id="signInBtn" class="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-sky-600/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Sign In
+                </button>
+
+                <div class="text-center mt-4">
+                    <button id="toSignUpBtn" class="text-xs text-sky-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Initialize Access Profile</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
+    <!-- SCRIPT INFRASTRUCTURE MODULE -->
     <script type="module">
-        // 3D GLOBE INITIALIZATION
-        let scene, camera, renderer, globeGroup, pointCloud;
-        function initCyberGlobe() {
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+        import { DESK_CONFIGS } from './deskConfigs.js';
+
+        // --- CYBER PARTICLES BACKGROUND ENGINE ---
+        let scene, camera, renderer, pointCloud;
+        
+        function initCyberBackground() {
             const container = document.getElementById('canvas-container');
+            if (!container) return;
+
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 100;
+
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
+            const particleCount = 2000;
             const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(2000 * 3);
-            for(let i = 0; i < 2000 * 3; i++) positions[i] = (Math.random() - 0.5) * 200;
+            const positions = new Float32Array(particleCount * 3);
+            
+            for(let i = 0; i < particleCount * 3; i++) {
+                positions[i] = (Math.random() - 0.5) * 200;
+            }
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             
-            pointCloud = new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0x38bdf8, size: 0.8, transparent: true, opacity: 0.6 }));
-            globeGroup = new THREE.Group();
-            globeGroup.add(pointCloud);
-            scene.add(globeGroup);
-            animate();
+            const pointMaterial = new THREE.PointsMaterial({ 
+                color: 0x38bdf8, 
+                size: 0.7, 
+                transparent: true, 
+                opacity: 0.55,
+                blending: THREE.AdditiveBlending 
+            });
+            
+            pointCloud = new THREE.Points(geometry, pointMaterial);
+            scene.add(pointCloud);
+            
+            animateBackground();
         }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            globeGroup.rotation.y += 0.002;
+        function animateBackground() {
+            requestAnimationFrame(animateBackground);
+            if (pointCloud) {
+                pointCloud.rotation.y += 0.0015;
+                pointCloud.rotation.x += 0.0005;
+            }
             renderer.render(scene, camera);
         }
 
         window.addEventListener('resize', () => {
+            if (!camera || !renderer) return;
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        initCyberGlobe();
+        // Initialize Background Loop
+        initCyberBackground();
+
+        // --- AUTHENTICATION INTERACTION INFRASTRUCTURE ---
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: { persistSession: true },
+            global: {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            }
+        });
+
+        const statusBuffer = document.getElementById('statusBuffer');
+
+        function displayTerminalNotice(message, statusType = 'info') {
+            statusBuffer.classList.remove('hidden', 'text-cyan-400', 'border-cyan-950/60', 'text-red-400', 'border-red-950/60', 'text-emerald-400', 'border-emerald-950/60');
+            
+            if (statusType === 'error') {
+                statusBuffer.classList.add('text-red-400', 'border-red-950/60');
+            } else if (statusType === 'success') {
+                statusBuffer.classList.add('text-emerald-400', 'border-emerald-950/60');
+            } else {
+                statusBuffer.classList.add('text-cyan-400', 'border-cyan-950/60');
+            }
+            statusBuffer.innerText = `// ${message.toUpperCase()}`;
+        }
+
+        function showScreen(screenId) {
+            statusBuffer.classList.add('hidden');
+            document.getElementById('signUpScreen').classList.add('hidden');
+            document.getElementById('signInScreen').classList.add('hidden');
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        document.getElementById('toSignInBtn').addEventListener('click', () => showScreen('signInScreen'));
+        document.getElementById('toSignUpBtn').addEventListener('click', () => showScreen('signUpScreen'));
+        document.getElementById('signUpBtn').addEventListener('click', registerJournalist);
+        document.getElementById('signInBtn').addEventListener('click', loginJournalist);
+
+        async function registerJournalist() {
+            const fullName = document.getElementById('regName').value.trim();
+            const section = document.getElementById('regSection').value;
+            const password = document.getElementById('regPassword').value;
+            const signUpBtn = document.getElementById('signUpBtn');
+
+            if (!fullName || !section || !password) {
+                displayTerminalNotice("Registration Error: All parameters required.", "error");
+                return;
+            }
+
+            signUpBtn.disabled = true;
+            signUpBtn.innerText = "Processing Profile...";
+
+            try {
+                const { data: existingUsers, error: checkError } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', fullName);
+
+                if (checkError) throw checkError;
+                if (existingUsers && existingUsers.length > 0) {
+                    displayTerminalNotice(`Registration failure: Name "${fullName}" is taken.`, "error");
+                    signUpBtn.disabled = false;
+                    signUpBtn.innerText = "Sign Up";
+                    return; 
+                }
+
+                const { error: insertError } = await supabaseClient
+                    .from('journalists')
+                    .insert([{"Journalist name": fullName, "journalism Section": section, "Password": password}]);
+
+                if (insertError) throw insertError;
+
+                displayTerminalNotice("Profile Compiled! Switching to authentication panel...", "success");
+                setTimeout(() => {
+                    statusBuffer.classList.add('hidden');
+                    document.getElementById('loginName').value = fullName;
+                    signUpBtn.disabled = false;
+                    signUpBtn.innerText = "Sign Up";
+                    showScreen('signInScreen');
+                }, 1500);
+
+            } catch (error) {
+                displayTerminalNotice("Database Core Error: " + error.message, "error");
+                signUpBtn.disabled = false;
+                signUpBtn.innerText = "Sign Up";
+            }
+        }
+
+        async function loginJournalist() {
+            const nameInput = document.getElementById('loginName').value.trim();
+            const passwordInput = document.getElementById('loginPassword').value;
+            const signInBtn = document.getElementById('signInBtn');
+
+            if (!nameInput || !passwordInput) {
+                displayTerminalNotice("Authentication Error: Credentials missing.", "error");
+                return;
+            }
+
+            signInBtn.disabled = true;
+            signInBtn.innerText = "Authenticating...";
+
+            try {
+                const { data: records, error } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', nameInput);
+
+                if (error) throw error;
+                if (!records || records.length === 0 || records[0].Password !== passwordInput) {
+                    displayTerminalNotice("Authentication Error: Invalid identity passkey.", "error");
+                    signInBtn.disabled = false;
+                    signInBtn.innerText = "Sign In";
+                    return;
+                }
+
+                const assignedSection = records[0]["journalism Section"];
+                const configMatch = DESK_CONFIGS[assignedSection];
+
+                if (configMatch) {
+                    displayTerminalNotice(`Access Granted! Routing to: ${configMatch.title}`, "success");
+                } else {
+                    displayTerminalNotice("Access Granted! Establishing session tunnel...", "success");
+                }
+
+                document.getElementById('loginPassword').value = ""; 
+
+                setTimeout(() => {
+                    signInBtn.disabled = false;
+                    signInBtn.innerText = "Sign In";
+                    window.location.href = 'customepage.html';
+                }, 1200);
+
+            } catch (error) {
+                displayTerminalNotice("Security Subsystem Error: " + error.message, "error");
+                signInBtn.disabled = false;
+                signInBtn.innerText = "Sign In";
+            }
+        }
     </script>
 </body>
 </html>
