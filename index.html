@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agent Access Terminal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         body {
             background-color: #02040a;
@@ -15,39 +16,50 @@
             justify-content: center;
         }
 
-        /* CSS-ONLY GLOWING GLOBE */
-        .globe-container {
+        /* FIXED CYBER SPHERE BACKGROUND */
+        .globe-background {
             position: fixed;
-            z-index: 1;
-            width: 500px;
-            height: 500px;
-            border-radius: 50%;
-            /* Radiant grid effect */
-            background: radial-gradient(circle at 30% 30%, #38bdf8, #0f172a 70%);
-            box-shadow: inset -20px -20px 50px rgba(0,0,0,0.8), 0 0 50px rgba(56, 189, 248, 0.3);
-            animation: rotateGlobe 10s linear infinite;
+            top: 50%;
+            left: 50%;
+            width: 100vmax;
+            height: 100vmax;
+            transform: translate(-50%, -50%);
+            background-image: url('Screenshot 2026-07-08 004611_2.jpg');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            z-index: 0;
+            animation: rotateGlobe 60s linear infinite;
         }
 
         @keyframes rotateGlobe {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
+        /* FOREGROUND UI CONTAINER */
         .ui-container {
             position: relative;
-            z-index: 2;
-            color: white;
-            font-family: sans-serif;
+            z-index: 10;
+            width: 100%;
+            max-width: 400px;
         }
     </style>
 </head>
 <body>
 
-    <!-- This will now definitely appear as a glowing rotating orb -->
-    <div class="globe-container"></div>
+    <!-- THE CYBER SPHERE -->
+    <div class="globe-background"></div>
 
-    <div class="ui-container">
-        <h1>TERMINAL ACTIVE</h1>
+    <!-- YOUR AUTHENTICATION PORTAL -->
+    <div class="ui-container bg-slate-950/80 backdrop-blur-md p-8 rounded-2xl border border-slate-800 shadow-2xl">
+        <h2 class="text-white text-center font-bold text-xl mb-6">Operator Portal</h2>
+        
+        <div class="space-y-4">
+            <input type="text" placeholder="Journalist Name" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-white">
+            <input type="password" placeholder="Password" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-white">
+            <button class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg">AUTHENTICATE</button>
+        </div>
     </div>
 
 </body>
