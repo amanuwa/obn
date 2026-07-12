@@ -131,7 +131,7 @@
             </div>
             <div class="flex items-center gap-6 text-[11px]">
                 <div class="text-terminal-success font-bold animate-pulse">// EXCHANGE STATUS: OPEN</div>
-                <div class="text-slate-500">// ETHIOPIAN BIRR SPOT DATA ACTIVE</div>
+                <div class="text-slate-500">// STREAMING REAL-TIME BUSINESS ENSEMBLES</div>
             </div>
         </header>
 
@@ -139,20 +139,20 @@
         <main class="flex-1 grid grid-cols-4 gap-4 p-4 h-full overflow-hidden">
             
             <!-- LEFT COLUMN: VECTOR INDEX ASSIGNMENT -->
-            <div class="col-span-1 bg-terminal-panel p-5 border border-slate-800 flex flex-col h-full overflow-y-auto rounded shadow-2xl backdrop-blur-xl">
+            <div class="col-span-1 bg-terminal-panel p-5 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded shadow-2xl backdrop-blur-xl">
                 <h3 class="text-[10px] font-bold text-terminal-accent uppercase tracking-widest mb-6 flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 bg-terminal-accent rounded-full animate-ping"></span> Data Stream Input Vector
+                    <span class="w-1.5 h-1.5 bg-terminal-accent rounded-full animate-ping"></span> Select Feed Vector
                 </h3>
                 
-                <div class="space-y-3 mb-6">
-                    <!-- 2 Selectable Corporate Financial Buttons -->
-                    <button onclick="selectVector(this, 'ethiopian')" class="finance-btn w-full bg-slate-900/60 hover:bg-slate-800/80 border border-slate-700 text-slate-300 p-5 rounded font-bold uppercase transition-all cursor-pointer tracking-wider flex items-center justify-between">
-                        <span>🇪🇹 Ethio Macro & Finance</span>
-                        <span class="text-terminal-accent text-base">→</span>
+                <div class="space-y-4 mb-6">
+                    <!-- 2 Main Selectable Corporate Financial Buttons -->
+                    <button onclick="selectVector(this, 'ethiopian')" class="finance-btn w-full bg-slate-900/60 hover:bg-slate-800/80 border-2 border-slate-700 text-slate-300 p-6 rounded font-bold uppercase transition-all cursor-pointer tracking-wider flex flex-col items-start gap-1">
+                        <span class="text-lg">🇪🇹</span>
+                        <span class="text-xs tracking-wider">Ethiopian Finance</span>
                     </button>
-                    <button onclick="selectVector(this, 'international')" class="finance-btn w-full bg-slate-900/60 hover:bg-slate-800/80 border border-slate-700 text-slate-300 p-5 rounded font-bold uppercase transition-all cursor-pointer tracking-wider flex items-center justify-between">
-                        <span>🌐 International Markets</span>
-                        <span class="text-terminal-accent text-base">→</span>
+                    <button onclick="selectVector(this, 'international')" class="finance-btn w-full bg-slate-900/60 hover:bg-slate-800/80 border-2 border-slate-700 text-slate-300 p-6 rounded font-bold uppercase transition-all cursor-pointer tracking-wider flex flex-col items-start gap-1">
+                        <span class="text-lg">🌐</span>
+                        <span class="text-xs tracking-wider">International Markets</span>
                     </button>
                 </div>
 
@@ -165,9 +165,9 @@
             </div>
 
             <!-- RIGHT COLUMN: MULTI-LANGUAGE ARRAYS & TICKER FEED -->
-            <div class="col-span-3 bg-terminal-panel p-5 border border-slate-800 flex flex-col h-full overflow-y-auto rounded shadow-2xl backdrop-blur-xl">
+            <div class="col-span-3 bg-terminal-panel p-5 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded shadow-2xl backdrop-blur-xl">
                 <div class="mb-4">
-                    <h3 class="font-bold text-[11px] uppercase text-slate-400 tracking-wider mb-3">Scraped Financial Intelligence</h3>
+                    <h3 class="font-bold text-[11px] uppercase text-slate-400 tracking-wider mb-3">Scraped Financial Intelligence Matrix</h3>
                     
                     <!-- HIGH SEVERITY MARKET BREAKING NEWS BULLETIN -->
                     <div class="bg-terminal-subpanel border border-slate-900 p-4 rounded w-full mb-4">
@@ -175,12 +175,12 @@
                             <span class="w-1.5 h-1.5 rounded-full bg-terminal-ticker animate-pulse"></span> Instant Commodity / Forex Intercept
                         </h3>
                         <div class="flex gap-2">
-                            <input type="text" id="hotNewsInput" placeholder="Enter asset class, stock ticker, central bank registry code..." class="flex-1 bg-slate-950 border border-slate-800 rounded p-2 text-slate-200 focus:border-terminal-accent outline-none font-mono">
+                            <input type="text" id="hotNewsInput" placeholder="Enter asset class, stock ticker, corporate entity registry code..." class="flex-1 bg-slate-950 border border-slate-800 rounded p-2 text-slate-200 focus:border-terminal-accent outline-none font-mono">
                             <button onclick="getHotNews()" class="bg-sky-950 border border-sky-700 text-terminal-accent px-5 py-2 rounded font-bold uppercase hover:bg-sky-900 cursor-pointer transition-colors tracking-wider">Intercept</button>
                         </div>
                     </div>
                     
-                    <!-- LANGUAGE FILTERS CONFIGURATION -->
+                    <!-- CONFIGURATION OF LANGUAGES MATRIX -->
                     <div class="bg-terminal-subpanel border border-slate-900 p-4 rounded w-full flex justify-between items-center flex-wrap gap-3">
                         <div class="flex gap-2 flex-wrap items-center">
                             <button onclick="toggleAll('.lang-check', true)" class="bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 px-3 py-2 rounded font-bold uppercase transition-all cursor-pointer text-[10px]">Select All Ensembles</button>
@@ -209,7 +209,7 @@
 
                 <!-- RUNTIME TERMINAL DATASTREAM OUTPUT -->
                 <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded p-4 border border-slate-900 text-terminal-success shadow-inner leading-relaxed">
-                    <p class="text-slate-600 italic">// Terminal engine initialized. Standby for target cross-border indices...</p>
+                    <p class="text-slate-600 italic">// Terminal engine initialized. Standby for target corporate indices...</p>
                 </div>
             </div>
         </main>
@@ -218,12 +218,12 @@
     <!-- RUNTIME DATA ARCHITECTURE CONTROL SCRIPTS -->
     <script>
         const financialMatrixPool = [
-            { icon: '📈', color: '#10b981' }, /* Upward Trend */
-            { icon: '📉', color: '#ef4444' }, /* Downward Trend */
-            { icon: '💵', color: '#10b981' }, /* Currency Cash */
-            { icon: '📊', color: '#38bdf8' }, /* Market Analytics */
-            { icon: '🏦', color: '#38bdf8' }, /* Central Bank Vault */
-            { icon: '🪙', color: '#f59e0b' }  /* Bullion Commodity */
+            { icon: '📈', color: '#10b981' }, 
+            { icon: '📉', color: '#ef4444' }, 
+            { icon: '💵', color: '#10b981' }, 
+            { icon: '📊', color: '#38bdf8' }, 
+            { icon: '🏦', color: '#38bdf8' }, 
+            { icon: '🪙', color: '#f59e0b' }  
         ];
 
         function spawnFinancialRain() {
@@ -257,7 +257,7 @@
                 sourceList.innerHTML = `<div class="p-2 bg-slate-950 border border-slate-900 rounded text-sky-400 font-mono text-[10px] uppercase">» FX_REFORM_BIRR_LIQUIDITY</div>
                                       <div class="p-2 bg-slate-950 border border-slate-900 rounded text-sky-400 font-mono text-[10px] uppercase">» ETH_NBE_REGULATORY_WIRES</div>`;
             } else if (vectorType === 'international') {
-                sourceList.innerHTML = `<div class="p-2 bg-slate-950 border border-slate-900 rounded text-cyan-400 font-mono text-[10px] uppercase">» BOOMBERG_TICKER_FEED</div>
+                sourceList.innerHTML = `<div class="p-2 bg-slate-950 border border-slate-900 rounded text-cyan-400 font-mono text-[10px] uppercase">» BLOOMBERG_TICKER_FEED</div>
                                       <div class="p-2 bg-slate-950 border border-slate-900 rounded text-cyan-400 font-mono text-[10px] uppercase">» LSE_REUTERS_MACRO_GLOBAL</div>`;
             }
         }
@@ -278,7 +278,7 @@
         function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-terminal-ticker font-mono">// SCANNING BLOCKCHAIN REGISTRIES, FX TELEMETRY BOARDS, AND GLOBAL TRADING DESKS...</div>`; }
         
         document.getElementById('runBtn').onclick = () => {
-            if (!selectedMarketVector) return alert("CRITICAL ERROR: Select a market data stream input vector.");
+            if (!selectedMarketVector) return alert("CRITICAL ERROR: Select a market feed input vector.");
             const activeLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
             const output = document.getElementById('outputContainer');
 
