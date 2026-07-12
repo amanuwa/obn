@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Intel | Business Terminal</title>
+    <title>GovIntel | Politics & Governance Terminal</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Supabase CDN Script -->
@@ -26,8 +26,8 @@
             opacity: 0.90; 
         }
 
-        /* Reverted from 900 to regular font weight for clean symbols */
-        .currency-stream {
+        /* Clean Symbol Stream for Politics and Governance */
+        .policy-stream {
             position: absolute;
             top: -1000px;
             font-family: 'Courier New', Courier, monospace;
@@ -45,11 +45,19 @@
             0% { top: -1000px; }
             100% { top: 100%; }
         }
+
+        /* Selected State for Vectors */
+        .vector-btn.active {
+            background-color: #1e3a8a !important; /* blue-900 */
+            border-color: #3b82f6 !important; /* blue-500 */
+            color: #ffffff !important;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
     </style>
 </head>
 <body class="font-sans">
 
-    <!-- CYBERPUNK GLOWING CURRENCY BACKGROUND LAYER -->
+    <!-- GEOPOLITICAL LOGIC BACKGROUND LAYER -->
     <div class="matrix-bg" id="matrixBg"></div>
 
     <!-- MAIN INTERFACE CONTAINER -->
@@ -58,8 +66,8 @@
         <!-- HEADER LOGO BAR (Heavy 4px Framing Edge) -->
         <header class="bg-slate-950 border-b-4 border-slate-800 px-8 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-md bg-blue-600 flex items-center justify-center font-bold text-xs border-2 border-blue-400">FI</div>
-                <span class="font-medium text-slate-100 tracking-tight text-base">Financial Intelligence Terminal</span>
+                <div class="w-8 h-8 rounded-md bg-blue-600 flex items-center justify-center font-bold text-xs border-2 border-blue-400">GI</div>
+                <span class="font-medium text-slate-100 tracking-tight text-base">Political Intelligence & Governance Terminal</span>
             </div>
             <a href="index.html" class="text-xs text-slate-400 hover:text-white transition-colors border-4 border-slate-800 rounded-xl px-4 py-2 bg-slate-900">← Back to Login</a>
         </header>
@@ -67,57 +75,51 @@
         <!-- MAIN INTERFACE MATRIX -->
         <main class="flex-1 grid grid-cols-4 gap-5 p-5 h-full overflow-hidden">
             
-            <!-- LEFT CONTROL DRAWER (Heavy 4px framing edge, regular interior text) -->
+            <!-- LEFT CONTROL DRAWER (2 Selectable Buttons + Active Stream Monitor) -->
             <div class="col-span-1 bg-slate-950/95 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl">
                 <h3 class="text-[11px] font-medium text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Financial Sectors
+                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Intelligence Sectors
                 </h3>
                 
                 <div id="categoryContainer" class="space-y-4 mb-6">
                     <!-- ETHIOPIAN DISPATCH DEPT -->
-                    <div>
-                        <label class="block bg-slate-900 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-blue-500">
-                            <input type="checkbox" id="ethToggle" class="cat-check scale-125 accent-blue-600"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">Ethiopian news</span>
-                        </label>
-                        <div id="ethSources" class="hidden mt-2 ml-4 space-y-2 border-l-4 border-blue-500 pl-3"></div>
-                    </div>
+                    <button onclick="selectVector(this, 'ethiopian')" class="vector-btn w-full text-left bg-slate-900 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-blue-500 flex flex-col gap-1">
+                        <span class="text-xs font-normal uppercase text-slate-300">🇪🇹 Ethiopian News & Policy</span>
+                    </button>
 
                     <!-- INTERNATIONAL DISPATCH DEPT -->
-                    <div>
-                        <label class="block bg-slate-900 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-blue-500">
-                            <input type="checkbox" id="intToggle" class="cat-check scale-125 accent-blue-600"> <span class="text-xs font-normal uppercase ml-2 text-slate-300">International</span>
-                        </label>
-                        <div id="intSources" class="hidden mt-2 ml-4 space-y-2 border-l-4 border-blue-500 pl-3"></div>
-                    </div>
+                    <button onclick="selectVector(this, 'international')" class="vector-btn w-full text-left bg-slate-900 border-4 border-slate-700 p-4 rounded-xl cursor-pointer transition-all hover:border-blue-500 flex flex-col gap-1">
+                        <span class="text-xs font-normal uppercase text-slate-300">🌐 International Governance</span>
+                    </button>
                 </div>
                 
                 <!-- STREAM MONITOR FEED -->
                 <div class="flex-1 bg-slate-950 rounded-xl border-4 border-slate-800/80 p-4 mb-4 overflow-y-auto">
-                    <h3 class="text-[9px] font-medium text-slate-400 uppercase mb-3">Active Data Streams</h3>
-                    <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-500 italic">// Awaiting stream...</div>
+                    <h3 class="text-[9px] font-medium text-slate-400 uppercase mb-3">Sub-Sector Agencies</h3>
+                    <div id="activeSourceList" class="space-y-2 font-mono text-[10px] text-slate-500 italic">// Awaiting vector mapping...</div>
                 </div>
 
                 <button id="runBtn" class="w-full bg-blue-600 border-4 border-blue-400 p-4 rounded-xl font-medium text-xs uppercase hover:bg-blue-500 transition-all cursor-pointer shadow-md tracking-wider">Initialize Pipeline</button>
             </div>
 
-            <!-- RIGHT RUN TIME VIEWER (Heavy 4px framing edge, regular interior text) -->
+            <!-- RIGHT RUN TIME VIEWER (Language Filters Matrix & Legislative Outputs) -->
             <div class="col-span-3 bg-slate-950/90 p-6 border-4 border-slate-800 flex flex-col h-full overflow-y-auto rounded-2xl shadow-2xl">
-                <h3 class="font-medium text-sm text-slate-300 mb-4 flex items-center gap-2">Financial Intelligence Matrix</h3>
+                <h3 class="font-medium text-sm text-slate-300 mb-4 flex items-center gap-2">Geopolitical Intel Matrix</h3>
                 
                 <!-- FAST INTEL BAR -->
                 <div class="bg-slate-900 border-4 border-slate-800 p-4 rounded-xl w-full mb-4">
                     <h3 class="text-[10px] font-medium text-red-500 uppercase mb-2 flex items-center gap-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span> Fast Hot News
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span> High-Priority Intelligence Alert
                     </h3>
                     <div class="flex gap-3">
-                        <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border-4 border-slate-800 rounded-xl p-3 text-xs text-white focus:border-red-500 outline-none">
-                        <button id="hotNewsBtn" class="bg-red-600 border-4 border-red-400 px-6 py-2 rounded-xl font-medium text-xs uppercase hover:bg-red-500 cursor-pointer transition-colors">Go</button>
+                        <input type="text" id="hotNewsInput" placeholder="Enter administrative region, legislative code, policy framework..." class="flex-1 bg-slate-950 border-4 border-slate-800 rounded-xl p-3 text-xs text-white focus:border-red-500 outline-none">
+                        <button id="hotNewsBtn" class="bg-red-600 border-4 border-red-400 px-6 py-2 rounded-xl font-medium text-xs uppercase hover:bg-red-500 cursor-pointer transition-colors">Intercept</button>
                     </div>
                 </div>
 
                 <!-- REGIONAL LANGUAGE FILTER TOOL (Heavy Edges) -->
                 <div class="bg-slate-900 border-4 border-slate-800 p-4 rounded-xl w-full flex items-center gap-5 mb-4">
-                    <button id="selectAllBtn" class="bg-blue-950 hover:bg-blue-600 border-4 border-blue-500 text-blue-400 hover:text-white px-5 py-2.5 rounded-xl font-medium text-xs uppercase transition-all cursor-pointer">Select All</button>
+                    <button id="selectAllBtn" class="bg-blue-950 hover:bg-blue-600 border-4 border-blue-500 text-blue-400 hover:text-white px-5 py-2.5 rounded-xl font-medium text-xs uppercase transition-all cursor-pointer">Select All Ensembles</button>
                     <div class="flex gap-4 flex-wrap">
                         <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-blue-500" value="oromiffa"> <span class="text-xs font-normal uppercase text-slate-400">Oromiffa</span></label>
                         <label class="flex items-center gap-2 cursor-pointer bg-slate-950 py-2 px-4 border-4 border-slate-800 rounded-xl hover:border-slate-600"><input type="checkbox" class="lang-check scale-125 accent-blue-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
@@ -128,7 +130,7 @@
 
                 <!-- CONSOLE OUTPUT MONITOR -->
                 <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950 rounded-xl p-6 border-4 border-slate-900 font-mono text-xs text-blue-400 shadow-inner">
-                    <p class="text-slate-500 italic font-normal">// System ready for financial data... </p>
+                    <p class="text-slate-500 italic font-normal">// System standing by for target geopolitical datasets... </p>
                 </div>
             </div>
         </main>
@@ -138,21 +140,20 @@
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
-        // 1. GENERATE SPECIFIC TARGETED CURRENCY WATERFALLS
-        // Explicitly limited to requested currencies only
-        const currencies = ['$', '€', '¥', 'AED', 'ETB'];
+        // 1. GENERATE SPECIFIC GOVERNANCE WATERFALLS
+        // Geopolitical symbols used for matrix streams instead of currency symbols
+        const govSymbols = ['🏛', '⚖', '🗳', '📜', '🌍'];
         const bgContainer = document.getElementById('matrixBg');
         const columnCount = 24; 
 
         for (let i = 0; i < columnCount; i++) {
             const stream = document.createElement('div');
-            stream.className = 'currency-stream';
+            stream.className = 'policy-stream';
             
             let streamContent = '';
             const streamLength = Math.floor(Math.random() * 15) + 15; 
             for (let j = 0; j < streamLength; j++) {
-                // Pick randomly, but alternate with spaces for clear separation between characters
-                streamContent += currencies[Math.floor(Math.random() * currencies.length)] + ' ';
+                streamContent += govSymbols[Math.floor(Math.random() * govSymbols.length)] + ' ';
             }
             stream.textContent = streamContent;
             
@@ -174,50 +175,51 @@
             }
         });
 
-        async function loadSourcesFromDB() {
+        // 3. UI OPERATIONS & VECTOR CONTROL
+        let selectedVectorType = null;
+        let dbCache = { eth: null, int: null };
+
+        // Fetch sources immediately to keep runtime lightweight
+        async function prefetchDatabases() {
             try {
-                const { data: ethData, error: ethErr } = await supabaseClient
-                    .from('Ethiopian -Business and finance websites')
+                const { data: ethData } = await supabaseClient
+                    .from('Ethiopian -Politics and governance websites')
                     .select('"Website -source", websites');
                     
-                const { data: intData, error: intErr } = await supabaseClient
-                    .from('business and finance -websites')
+                const { data: intData } = await supabaseClient
+                    .from('politics and governance -websites')
                     .select('"website Source", websites');
 
-                if(ethErr) console.error("Ethiopian Database Load Error:", ethErr);
-                if(intErr) console.error("International Database Load Error:", intErr);
-
-                const buildList = (data, containerId, className, colName) => {
-                    const container = document.getElementById(containerId);
-                    if (!data) return;
-                    container.innerHTML = '';
-                    
-                    data.forEach(item => {
-                        const label = document.createElement('label');
-                        label.className = "flex items-center gap-2 text-[11px] py-2 px-2 border-2 border-transparent hover:border-slate-800 rounded-md cursor-pointer hover:text-blue-400 text-slate-300 transition-all";
-                        label.innerHTML = `<input type="checkbox" class="${className} scale-125 accent-blue-500" value="${item.websites}"> <span class="ml-1">${item[colName]}</span>`;
-                        container.appendChild(label);
-                    });
-                };
-
-                buildList(ethData, 'ethSources', 'eth-src', 'Website -source');
-                buildList(intData, 'intSources', 'int-src', 'website Source');
-                
+                if (ethData) dbCache.eth = ethData;
+                if (intData) dbCache.int = intData;
             } catch (err) {
-                console.error("Critical structural database error:", err);
+                console.error("Pipeline initialization error:", err);
             }
         }
+        prefetchDatabases();
 
-        loadSourcesFromDB();
+        window.selectVector = function(btn, vectorType) {
+            document.querySelectorAll('.vector-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedVectorType = vectorType;
 
-        // 3. UI OPERATIONS
-        document.getElementById('ethToggle').addEventListener('change', (e) => {
-            document.getElementById('ethSources').classList.toggle('hidden', !e.target.checked);
-        });
-        
-        document.getElementById('intToggle').addEventListener('change', (e) => {
-            document.getElementById('intSources').classList.toggle('hidden', !e.target.checked);
-        });
+            const agencyContainer = document.getElementById('activeSourceList');
+            agencyContainer.innerHTML = '';
+
+            const data = vectorType === 'ethiopian' ? dbCache.eth : dbCache.int;
+            const colName = vectorType === 'ethiopian' ? 'Website -source' : 'website Source';
+
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    const node = document.createElement('div');
+                    node.className = "p-2 bg-slate-900 border-2 border-slate-800 text-slate-400 font-mono text-[10px] rounded-lg tracking-wide uppercase";
+                    node.innerHTML = `» ${item[colName]}`;
+                    agencyContainer.appendChild(node);
+                });
+            } else {
+                agencyContainer.innerHTML = `<div class="text-slate-600 italic">// Loading regional endpoints...</div>`;
+            }
+        }
 
         document.getElementById('selectAllBtn').addEventListener('click', () => {
             document.querySelectorAll('.lang-check').forEach(c => c.checked = true);
@@ -225,18 +227,23 @@
 
         document.getElementById('hotNewsBtn').addEventListener('click', () => {
             const topic = document.getElementById('hotNewsInput').value.trim();
-            document.getElementById('outputContainer').innerHTML = `<div class="text-red-400 font-mono">// INTEL CHANNELS INITIALIZED FOR SEARCH MATRIX: ${topic || 'GLOBAL RUN'}...</div>`;
+            document.getElementById('outputContainer').innerHTML = `<div class="text-red-400 font-mono">// INTEL CHANNELS INITIALIZED FOR THREAT/POLICY MATRIX: ${topic.toUpperCase() || 'GLOBAL MONITOR'}...</div>`;
         });
         
         document.getElementById('runBtn').onclick = () => {
-            const selected = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
-                .filter(c => c.className.includes('-src'))
-                .map(c => c.parentElement.querySelector('span').textContent.trim());
+            if (!selectedVectorType) return alert("Error: Select a geopolitical input sector.");
             
-            if (selected.length === 0) return alert("Error: Select at least one active pipeline node.");
+            const activeLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+            if (activeLangs.length === 0) return alert("Error: Select at least one active language node.");
             
-            document.getElementById('activeSourceList').innerHTML = selected.map(item => `<div class="p-2 bg-slate-900 rounded-lg border-2 border-blue-500 text-blue-300 font-mono text-xs">» ${item}</div>`).join('');
-            document.getElementById('outputContainer').innerHTML = `<div class="text-emerald-400 font-mono text-xs">// PIPELINE ACTIVE & AUTHENTICATED WITH POSTGREST LAYER<br>// STREAM NODES LISTENING: ${selected.join(', ')}</div>`;
+            const currentVectorLabel = selectedVectorType === 'ethiopian' ? 'ETHIOPIAN POLITICS & POLICY' : 'INTERNATIONAL GOVERNANCE';
+            
+            document.getElementById('outputContainer').innerHTML = `
+                <div class="text-emerald-400 font-mono text-xs">
+                    // GEOPOLITICAL PIPELINE ACTIVE & AUTHENTICATED WITH POSTGREST LAYER<br>
+                    // STRATIFICATION FIELD: ${currentVectorLabel}<br>
+                    // STREAM LANGUAGE NODES LISTENING: ${activeLangs.join(' | ').toUpperCase()}
+                </div>`;
         };
     </script>
 </body>
