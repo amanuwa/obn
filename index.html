@@ -34,7 +34,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, rgba(0, 2, 5, 0) 20%, rgba(0, 2, 5, 0.6) 65%, rgba(0, 2, 5, 0.95) 100%);
+            background: radial-gradient(circle at center, rgba(0, 2, 5, 0) 20%, rgba(0, 2, 5, 0.5) 60%, rgba(0, 2, 5, 0.95) 100%);
             z-index: 1;
             pointer-events: none;
         }
@@ -159,8 +159,8 @@
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
         import { DESK_CONFIGS } from './deskConfigs.js';
 
-        // --- 2060 MAXIMUM DYNAMIC SCREEN PIPELINE ---
-        let scene, camera, renderer, globeGroup, coreMesh, quantumExplosionArrays;
+        // --- 2060 QUANTUM TIMELINE ENGINE SYSTEM ---
+        let scene, camera, renderer, globeGroup, coreMesh, matrixShell, coreNodes, quantumExplosionArrays;
         let clock = new THREE.Clock();
         
         // Canvas particle texture generator 
@@ -206,7 +206,7 @@
             const coreMat = new THREE.MeshBasicMaterial({
                 color: 0x083344,
                 transparent: true,
-                opacity: 0.35,
+                opacity: 0.4,
                 blending: THREE.AdditiveBlending
             });
             coreMesh = new THREE.Mesh(coreGeo, coreMat);
@@ -218,26 +218,26 @@
                 color: 0x06b6d4,
                 wireframe: true,
                 transparent: true,
-                opacity: 0.2,
+                opacity: 0.25,
                 blending: THREE.AdditiveBlending
             });
-            const shellMesh = new THREE.Mesh(structuralGeo, wireMat);
-            globeGroup.add(shellMesh);
+            matrixShell = new THREE.Mesh(structuralGeo, wireMat);
+            globeGroup.add(matrixShell);
 
             // 3. Stationary Junction Core Nodes
             const coreNodeMat = new THREE.PointsMaterial({
-                size: 3.5,
+                size: 3.8,
                 transparent: true,
-                opacity: 0.9,
+                opacity: 0.95,
                 map: createEnergyNodeTexture('#22d3ee', '#0e7490'),
                 blending: THREE.AdditiveBlending,
                 depthWrite: false
             });
-            const coreNodes = new THREE.Points(structuralGeo, coreNodeMat);
+            coreNodes = new THREE.Points(structuralGeo, coreNodeMat);
             globeGroup.add(coreNodes);
 
-            // 4. THE MASSIVE FULL-SCREEN QUANTUM BURST ARRAY BLOCKS
-            const arrayParticleCount = 2500;
+            // 4. THE QUANTUM EXPLOSION ARRAYS (Tethered to Globe Cycle)
+            const arrayParticleCount = 3000;
             const arrayGeometry = new THREE.BufferGeometry();
             
             const positions = new Float32Array(arrayParticleCount * 3);
@@ -245,11 +245,9 @@
             const travelSpeeds = new Float32Array(arrayParticleCount);
 
             for (let i = 0; i < arrayParticleCount; i++) {
-                // Generate uniform structured array trajectories shooting out away from center
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos((Math.random() * 2) - 1);
                 
-                // Vector paths
                 const vx = Math.sin(phi) * Math.cos(theta);
                 const vy = Math.sin(phi) * Math.sin(theta);
                 const vz = Math.cos(phi);
@@ -258,18 +256,18 @@
                 originalVectors[i * 3 + 1] = vy;
                 originalVectors[i * 3 + 2] = vz;
 
-                // Start compact in the deep core center
-                positions[i * 3] = vx * (Math.random() * 5);
-                positions[i * 3 + 1] = vy * (Math.random() * 5);
-                positions[i * 3 + 2] = vz * (Math.random() * 5);
+                // Position them perfectly on the outer shell of the globe radius at birth
+                positions[i * 3] = vx * coreRadius;
+                positions[i * 3 + 1] = vy * coreRadius;
+                positions[i * 3 + 2] = vz * coreRadius;
 
-                travelSpeeds[i] = 0.5 + Math.random() * 2.5;
+                travelSpeeds[i] = 0.4 + Math.random() * 2.0;
             }
 
             arrayGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             
             const arrayNodeMat = new THREE.PointsMaterial({
-                size: 2.2,
+                size: 2.5,
                 transparent: true,
                 opacity: 0.95,
                 map: createEnergyNodeTexture('#ffffff', '#3b82f6'),
@@ -284,15 +282,15 @@
                 cycleTimer: 0
             };
             
-            scene.add(quantumExplosionArrays);
+            globeGroup.add(quantumExplosionArrays);
 
-            // 5. Ambient Background Energy Space
-            const ambientCount = 400;
+            // 5. Ambient Background Spatial Field
+            const ambientCount = 300;
             const ambientGeo = new THREE.BufferGeometry();
             const ambientPositions = new Float32Array(ambientCount * 3);
             for(let i=0; i<ambientCount; i++) {
-                ambientPositions[i*3] = (Math.random() - 0.5) * 600;
-                ambientPositions[i*3+1] = (Math.random() - 0.5) * 600;
+                ambientPositions[i*3] = (Math.random() - 0.5) * 700;
+                ambientPositions[i*3+1] = (Math.random() - 0.5) * 700;
                 ambientPositions[i*3+2] = (Math.random() - 0.5) * 400;
             }
             ambientGeo.setAttribute('position', new THREE.BufferAttribute(ambientPositions, 3));
@@ -315,60 +313,91 @@
             const delta = clock.getDelta();
             const elapsed = clock.getElapsedTime();
 
-            // Continuous rotation metrics for core framework
+            // Continuous rotation base metrics
             if (globeGroup) {
-                globeGroup.rotation.y = elapsed * 0.05;
-                globeGroup.rotation.x = elapsed * 0.02;
+                globeGroup.rotation.y += 0.008;
+                globeGroup.rotation.x += 0.003;
             }
 
-            // Pulse the intense inner engine core
+            // Pulse the central cluster engine
             if (coreMesh) {
-                const pulse = 1.0 + Math.sin(elapsed * 4.0) * 0.08;
+                const pulse = 1.0 + Math.sin(elapsed * 3.0) * 0.06;
                 coreMesh.scale.set(pulse, pulse, pulse);
             }
 
-            // ANIMATE QUANTUM ARRAYS (Pulse Out Across Screen -> Scatter -> Pull Back)
+            // PHASE SCHEDULER (8 second complete cycle)
             if (quantumExplosionArrays) {
                 const positions = quantumExplosionArrays.geometry.attributes.position.array;
                 const vectors = quantumExplosionArrays.userData.vectors;
                 const speeds = quantumExplosionArrays.userData.speeds;
                 
-                // Track cycle over a repeating 8 second window loop
                 quantumExplosionArrays.userData.cycleTimer += delta;
                 const loopTime = quantumExplosionArrays.userData.cycleTimer % 8; 
 
-                for (let i = 0; i < speeds.length; i++) {
-                    const vx = vectors[i * 3];
-                    const vy = vectors[i * 3 + 1];
-                    const vz = vectors[i * 3 + 2];
-                    const pSpeed = speeds[i];
+                const coreRadius = 45;
 
-                    if (loopTime < 2) {
-                        // PHASE 1: MASSIVE QUANTUM BURST (Explode outward all across viewport)
-                        const progress = loopTime / 2;
-                        const distance = coreMesh.position.distanceTo(camera.position) * 1.3 * progress * pSpeed;
-                        positions[i * 3] = vx * distance;
-                        positions[i * 3 + 1] = vy * distance;
-                        positions[i * 3 + 2] = vz * distance;
-                    } 
-                    else if (loopTime >= 2 && loopTime < 5) {
-                        // PHASE 2: SCATTER GRID (Chaotic displacement across the full screen dimensions)
-                        const driftFactor = Math.sin(elapsed * 0.5 * pSpeed) * 0.4;
-                        positions[i * 3] += (vx + driftFactor);
-                        positions[i * 3 + 1] += (vy + Math.cos(elapsed * driftFactor) * 0.3);
-                        positions[i * 3 + 2] += vz;
-                    } 
-                    else {
-                        // PHASE 3: CORE RE-INTEGRATION (Gravity pulls all data nodes back into center cleanly)
-                        const returnProgress = (loopTime - 5) / 3; // 3 seconds to pull back down
+                if (loopTime < 3) {
+                    // --- PHASE 1: STABLE ROTATING MODE (0-3s) ---
+                    // Fade wireframe shells up to clean sharpness
+                    matrixShell.material.opacity = 0.25;
+                    coreNodes.material.opacity = 0.95;
+                    coreMesh.material.opacity = 0.4;
+
+                    for (let i = 0; i < speeds.length; i++) {
+                        const vx = vectors[i * 3];
+                        const vy = vectors[i * 3 + 1];
+                        const vz = vectors[i * 3 + 2];
+                        
+                        // Keep arrays resting smoothly directly on the shell structure
+                        positions[i * 3] = vx * coreRadius;
+                        positions[i * 3 + 1] = vy * coreRadius;
+                        positions[i * 3 + 2] = vz * coreRadius;
+                    }
+                } 
+                else if (loopTime >= 3 && loopTime < 5) {
+                    // --- PHASE 2: SCREEN SCATTER EXPLOSION (3-5s) ---
+                    // Animate structural dissolution drop
+                    const progress = (loopTime - 3) / 2; // Normalize window 
+                    matrixShell.material.opacity = 0.25 * (1.0 - progress);
+                    coreNodes.material.opacity = 0.95 * (1.0 - progress);
+                    coreMesh.material.opacity = 0.4 * (1.0 - progress);
+
+                    for (let i = 0; i < speeds.length; i++) {
+                        const vx = vectors[i * 3];
+                        const vy = vectors[i * 3 + 1];
+                        const vz = vectors[i * 3 + 2];
+                        const pSpeed = speeds[i];
+
+                        // Accelerate outward dramatically over the field depth vectors
+                        const burstRange = coreRadius + (progress * 350 * pSpeed);
+                        
+                        positions[i * 3] = vx * burstRange + Math.sin(elapsed * pSpeed) * 15;
+                        positions[i * 3 + 1] = vy * burstRange + Math.cos(elapsed * pSpeed) * 15;
+                        positions[i * 3 + 2] = vz * burstRange;
+                    }
+                } 
+                else {
+                    // --- PHASE 3: CORE RE-INTEGRATION PULL BACK (5-8s) ---
+                    const returnProgress = (loopTime - 5) / 3; // 3 seconds to re-assemble
+                    
+                    // Gradually restore core visuals
+                    matrixShell.material.opacity = 0.25 * returnProgress;
+                    coreNodes.material.opacity = 0.95 * returnProgress;
+                    coreMesh.material.opacity = 0.4 * returnProgress;
+
+                    for (let i = 0; i < speeds.length; i++) {
+                        const vx = vectors[i * 3];
+                        const vy = vectors[i * 3 + 1];
+                        const vz = vectors[i * 3 + 2];
+
                         const currentX = positions[i * 3];
                         const currentY = positions[i * 3 + 1];
                         const currentZ = positions[i * 3 + 2];
                         
-                        // Targeted fallback resting vector coordinates inside globe volume
-                        const targetX = vx * (45 + (pSpeed * 2));
-                        const targetY = vy * (45 + (pSpeed * 2));
-                        const targetZ = vz * (45 + (pSpeed * 2));
+                        // Absolute targets back home
+                        const targetX = vx * coreRadius;
+                        const targetY = vy * coreRadius;
+                        const targetZ = vz * coreRadius;
 
                         positions[i * 3] = THREE.MathUtils.lerp(currentX, targetX, returnProgress);
                         positions[i * 3 + 1] = THREE.MathUtils.lerp(currentY, targetY, returnProgress);
