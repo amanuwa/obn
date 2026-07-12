@@ -10,13 +10,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body {
-            background-color: #010206;
+            background-color: #000205;
             margin: 0;
             overflow: hidden;
             height: 100vh;
         }
 
-        /* 3D CANVAS LAYER POSITIONING */
+        /* FULL-SCREEN 3D CANVAS LAYER */
         #canvas-container {
             position: fixed;
             top: 0;
@@ -27,14 +27,14 @@
             pointer-events: none;
         }
 
-        /* 2060 Quantum Contrast Veil */
+        /* Immersive Screen Edge Vignette Matrix Veil */
         .overlay-veil {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, rgba(1, 2, 6, 0) 0%, rgba(1, 2, 6, 0.75) 70%, rgba(1, 2, 6, 0.95) 100%);
+            background: radial-gradient(circle at center, rgba(0, 2, 5, 0) 20%, rgba(0, 2, 5, 0.6) 65%, rgba(0, 2, 5, 0.95) 100%);
             z-index: 1;
             pointer-events: none;
         }
@@ -45,8 +45,8 @@
         }
 
         .glow-border:focus-within {
-            border-color: #38bdf8;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+            border-color: #22d3ee;
+            box-shadow: 0 0 25px rgba(34, 211, 238, 0.6);
         }
         
         input:focus, select:focus {
@@ -57,7 +57,7 @@
 </head>
 <body class="text-slate-100 font-sans flex items-center justify-center p-6">
 
-    <!-- 3D BACKGROUND STRUCTURES -->
+    <!-- FULL SCREEN 3D LAYER PIPELINES -->
     <div id="canvas-container"></div>
     <div class="overlay-veil"></div>
 
@@ -67,7 +67,7 @@
         <div id="statusBuffer" class="hidden text-xs p-3.5 rounded-xl border mb-4 bg-slate-950/90 backdrop-blur-xl font-mono transition-all duration-300"></div>
 
         <!-- SIGN UP PANEL -->
-        <div id="signUpScreen" class="w-full bg-slate-950/80 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
+        <div id="signUpScreen" class="w-full bg-slate-950/75 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl border border-slate-800/60 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500"></div>
 
             <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
@@ -78,7 +78,7 @@
             <div class="space-y-4 text-left">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <div class="glow-border flex items-center bg-slate-900/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">👤</span>
                         <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
                     </div>
@@ -86,7 +86,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assigned Sector</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <div class="glow-border flex items-center bg-slate-900/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">🗂️</span>
                         <select id="regSection" required class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer text-slate-300">
                             <option value="" disabled selected class="bg-slate-950 text-slate-500">Select Sector...</option>
@@ -100,7 +100,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <div class="glow-border flex items-center bg-slate-900/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">🔑</span>
                         <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
                     </div>
@@ -117,7 +117,7 @@
         </div>
 
         <!-- SIGN IN PANEL -->
-        <div id="signInScreen" class="hidden w-full bg-slate-950/80 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
+        <div id="signInScreen" class="hidden w-full bg-slate-950/75 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl border border-slate-800/60 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-400 to-indigo-600"></div>
 
             <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
@@ -128,7 +128,7 @@
             <div class="space-y-4 text-left">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <div class="glow-border flex items-center bg-slate-900/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">👤</span>
                         <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
                     </div>
@@ -136,7 +136,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Access Password</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                    <div class="glow-border flex items-center bg-slate-900/80 border border-slate-800 rounded-lg p-3 transition-all duration-200">
                         <span class="text-slate-500 mr-2.5 select-none">🔑</span>
                         <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
                     </div>
@@ -159,12 +159,12 @@
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
         import { DESK_CONFIGS } from './deskConfigs.js';
 
-        // --- 2060 QUANTUM COMPUTER GLOBE SYSTEM ---
-        let scene, camera, renderer, masterGroup, coreMesh, dataStreams;
+        // --- 2060 MAXIMUM DYNAMIC SCREEN PIPELINE ---
+        let scene, camera, renderer, globeGroup, coreMesh, quantumExplosionArrays;
         let clock = new THREE.Clock();
         
-        // High-Intensity Dynamic Canvas Glow Sprite Generator
-        function createQuantumGlowNode(coreColor, edgeColor) {
+        // Canvas particle texture generator 
+        function createEnergyNodeTexture(coreColor, edgeColor) {
             const canvas = document.createElement('canvas');
             canvas.width = 64;
             canvas.height = 64;
@@ -172,8 +172,8 @@
             
             const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
             gradient.addColorStop(0, '#ffffff');
-            gradient.addColorStop(0.15, coreColor);
-            gradient.addColorStop(0.4, edgeColor);
+            gradient.addColorStop(0.2, coreColor);
+            gradient.addColorStop(0.5, edgeColor);
             gradient.addColorStop(1, 'rgba(0,0,0,0)');
             
             ctx.fillStyle = gradient;
@@ -181,144 +181,201 @@
             return new THREE.CanvasTexture(canvas);
         }
 
-        function initQuantumGlobe() {
+        function initQuantumFieldSystem() {
             const container = document.getElementById('canvas-container');
             if (!container) return;
 
             scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
-            camera.position.z = 160;
+            
+            // Expanded viewing field to catch full screen canvas margins
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
+            camera.position.z = 220;
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            masterGroup = new THREE.Group();
+            globeGroup = new THREE.Group();
 
-            const radius = 52;
-            const segments = 32;
+            const coreRadius = 45;
+            const segmentResolutions = 32;
 
-            // 1. Core Energy Biosphere (Inner Soft Light Reservoir)
-            const coreGeo = new THREE.SphereGeometry(radius - 2, 16, 16);
+            // 1. Central Core Energy Field
+            const coreGeo = new THREE.SphereGeometry(coreRadius - 3, 16, 16);
             const coreMat = new THREE.MeshBasicMaterial({
-                color: 0x032b59,
+                color: 0x083344,
                 transparent: true,
-                opacity: 0.25,
-                blending: THREE.AdditiveBlending,
-                wireframe: false
-            });
-            coreMesh = new THREE.Mesh(coreGeo, coreMat);
-            masterGroup.add(coreMesh);
-
-            // 2. High-Tech Structural Grid Matrix
-            const gridGeo = new THREE.SphereGeometry(radius, segments, segments);
-            const gridMat = new THREE.MeshBasicMaterial({
-                color: 0x06b6d4, // Neon Cyan
-                wireframe: true,
-                transparent: true,
-                opacity: 0.18,
+                opacity: 0.35,
                 blending: THREE.AdditiveBlending
             });
-            const matrixShell = new THREE.Mesh(gridGeo, gridMat);
-            masterGroup.add(matrixShell);
+            coreMesh = new THREE.Mesh(coreGeo, coreMat);
+            globeGroup.add(coreMesh);
 
-            // 3. Anchor Points / Main Latitudinal Junction Nodes
-            const nodeMat = new THREE.PointsMaterial({
-                size: 2.8,
+            // 2. Structural Wireframe Globe Matrix Layer
+            const structuralGeo = new THREE.SphereGeometry(coreRadius, segmentResolutions, segmentResolutions);
+            const wireMat = new THREE.MeshBasicMaterial({
+                color: 0x06b6d4,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.2,
+                blending: THREE.AdditiveBlending
+            });
+            const shellMesh = new THREE.Mesh(structuralGeo, wireMat);
+            globeGroup.add(shellMesh);
+
+            // 3. Stationary Junction Core Nodes
+            const coreNodeMat = new THREE.PointsMaterial({
+                size: 3.5,
+                transparent: true,
+                opacity: 0.9,
+                map: createEnergyNodeTexture('#22d3ee', '#0e7490'),
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            const coreNodes = new THREE.Points(structuralGeo, coreNodeMat);
+            globeGroup.add(coreNodes);
+
+            // 4. THE MASSIVE FULL-SCREEN QUANTUM BURST ARRAY BLOCKS
+            const arrayParticleCount = 2500;
+            const arrayGeometry = new THREE.BufferGeometry();
+            
+            const positions = new Float32Array(arrayParticleCount * 3);
+            const originalVectors = new Float32Array(arrayParticleCount * 3);
+            const travelSpeeds = new Float32Array(arrayParticleCount);
+
+            for (let i = 0; i < arrayParticleCount; i++) {
+                // Generate uniform structured array trajectories shooting out away from center
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+                
+                // Vector paths
+                const vx = Math.sin(phi) * Math.cos(theta);
+                const vy = Math.sin(phi) * Math.sin(theta);
+                const vz = Math.cos(phi);
+
+                originalVectors[i * 3] = vx;
+                originalVectors[i * 3 + 1] = vy;
+                originalVectors[i * 3 + 2] = vz;
+
+                // Start compact in the deep core center
+                positions[i * 3] = vx * (Math.random() * 5);
+                positions[i * 3 + 1] = vy * (Math.random() * 5);
+                positions[i * 3 + 2] = vz * (Math.random() * 5);
+
+                travelSpeeds[i] = 0.5 + Math.random() * 2.5;
+            }
+
+            arrayGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            const arrayNodeMat = new THREE.PointsMaterial({
+                size: 2.2,
                 transparent: true,
                 opacity: 0.95,
-                map: createQuantumGlowNode('#22d3ee', '#093370'),
+                map: createEnergyNodeTexture('#ffffff', '#3b82f6'),
                 blending: THREE.AdditiveBlending,
                 depthWrite: false
             });
-            const matrixNodes = new THREE.Points(gridGeo, nodeMat);
-            masterGroup.add(matrixNodes);
 
-            // 4. Kinetic Data Flow Particles (Dynamic Ring Orbit Clusters)
-            const particleCount = 1500;
-            const streamGeometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
-            const randomSpeeds = new Float32Array(particleCount);
+            quantumExplosionArrays = new THREE.Points(arrayGeometry, arrayNodeMat);
+            quantumExplosionArrays.userData = {
+                vectors: originalVectors,
+                speeds: travelSpeeds,
+                cycleTimer: 0
+            };
             
-            for (let i = 0; i < particleCount; i++) {
-                // Generate locations inside a thin holographic spherical shell layer
-                const u = Math.random();
-                const v = Math.random();
-                const theta = u * 2.0 * Math.PI;
-                const phi = Math.acos(2.0 * v - 1.0);
-                
-                const shellRadius = radius + (Math.random() - 0.5) * 8;
-                
-                positions[i * 3] = shellRadius * Math.sin(phi) * Math.cos(theta);
-                positions[i * 3 + 1] = shellRadius * Math.sin(phi) * Math.sin(theta);
-                positions[i * 3 + 2] = shellRadius * Math.cos(phi);
-                
-                randomSpeeds[i] = 0.2 + Math.random() * 0.8;
+            scene.add(quantumExplosionArrays);
+
+            // 5. Ambient Background Energy Space
+            const ambientCount = 400;
+            const ambientGeo = new THREE.BufferGeometry();
+            const ambientPositions = new Float32Array(ambientCount * 3);
+            for(let i=0; i<ambientCount; i++) {
+                ambientPositions[i*3] = (Math.random() - 0.5) * 600;
+                ambientPositions[i*3+1] = (Math.random() - 0.5) * 600;
+                ambientPositions[i*3+2] = (Math.random() - 0.5) * 400;
             }
-
-            streamGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            
-            const streamMat = new THREE.PointsMaterial({
-                size: 1.6,
+            ambientGeo.setAttribute('position', new THREE.BufferAttribute(ambientPositions, 3));
+            const ambientMat = new THREE.PointsMaterial({
+                size: 1.5,
+                color: 0x0ea5e9,
                 transparent: true,
-                opacity: 0.85,
-                map: createQuantumGlowNode('#ffffff', '#3b82f6'),
-                blending: THREE.AdditiveBlending,
-                depthWrite: false
+                opacity: 0.3,
+                blending: THREE.AdditiveBlending
             });
+            const ambientSpace = new THREE.Points(ambientGeo, ambientMat);
+            scene.add(ambientSpace);
 
-            dataStreams = new THREE.Points(streamGeometry, streamMat);
-            dataStreams.userData = { speeds: randomSpeeds };
-            masterGroup.add(dataStreams);
-
-            // 5. Outer Atmospheric Quantum Containment Rings
-            for (let i = 0; i < 4; i++) {
-                const ringGeo = new THREE.RingGeometry(radius + 6 + (i * 4), radius + 6.8 + (i * 4), 64);
-                const ringMat = new THREE.MeshBasicMaterial({
-                    color: i % 2 === 0 ? 0x22d3ee : 0x6366f1,
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.12 - (i * 0.02),
-                    blending: THREE.AdditiveBlending
-                });
-                const perimeterRing = new THREE.Mesh(ringGeo, ringMat);
-                perimeterRing.rotation.x = Math.random() * Math.PI;
-                perimeterRing.rotation.y = Math.random() * Math.PI;
-                masterGroup.add(perimeterRing);
-            }
-
-            scene.add(masterGroup);
-            animateQuantumEngine();
+            scene.add(globeGroup);
+            animateQuantumPipeline();
         }
 
-        function animateQuantumEngine() {
-            requestAnimationFrame(animateQuantumEngine);
-            const elapsedTime = clock.getElapsedTime();
+        function animateQuantumPipeline() {
+            requestAnimationFrame(animateQuantumPipeline);
+            const delta = clock.getDelta();
+            const elapsed = clock.getElapsedTime();
 
-            if (masterGroup) {
-                // Rotation on base axis vectors
-                masterGroup.rotation.y = elapsedTime * 0.04;
-                masterGroup.rotation.x = elapsedTime * 0.015;
+            // Continuous rotation metrics for core framework
+            if (globeGroup) {
+                globeGroup.rotation.y = elapsed * 0.05;
+                globeGroup.rotation.x = elapsed * 0.02;
             }
 
-            // Animate dynamic vector data points
-            if (dataStreams) {
-                const positions = dataStreams.geometry.attributes.position.array;
-                const speeds = dataStreams.userData.speeds;
-                
-                for (let i = 0; i < speeds.length; i++) {
-                    // Micro-shift positions to create flowing data effect over time
-                    positions[i * 3 + 1] += Math.sin(elapsedTime * speeds[i]) * 0.03;
-                    positions[i * 3] += Math.cos(elapsedTime * speeds[i]) * 0.02;
-                }
-                dataStreams.geometry.attributes.position.needsUpdate = true;
-            }
-
-            // Pulse the energy core volume
+            // Pulse the intense inner engine core
             if (coreMesh) {
-                const pulseScale = 1.0 + Math.sin(elapsedTime * 2.5) * 0.06;
-                coreMesh.scale.set(pulseScale, pulseScale, pulseScale);
+                const pulse = 1.0 + Math.sin(elapsed * 4.0) * 0.08;
+                coreMesh.scale.set(pulse, pulse, pulse);
+            }
+
+            // ANIMATE QUANTUM ARRAYS (Pulse Out Across Screen -> Scatter -> Pull Back)
+            if (quantumExplosionArrays) {
+                const positions = quantumExplosionArrays.geometry.attributes.position.array;
+                const vectors = quantumExplosionArrays.userData.vectors;
+                const speeds = quantumExplosionArrays.userData.speeds;
+                
+                // Track cycle over a repeating 8 second window loop
+                quantumExplosionArrays.userData.cycleTimer += delta;
+                const loopTime = quantumExplosionArrays.userData.cycleTimer % 8; 
+
+                for (let i = 0; i < speeds.length; i++) {
+                    const vx = vectors[i * 3];
+                    const vy = vectors[i * 3 + 1];
+                    const vz = vectors[i * 3 + 2];
+                    const pSpeed = speeds[i];
+
+                    if (loopTime < 2) {
+                        // PHASE 1: MASSIVE QUANTUM BURST (Explode outward all across viewport)
+                        const progress = loopTime / 2;
+                        const distance = coreMesh.position.distanceTo(camera.position) * 1.3 * progress * pSpeed;
+                        positions[i * 3] = vx * distance;
+                        positions[i * 3 + 1] = vy * distance;
+                        positions[i * 3 + 2] = vz * distance;
+                    } 
+                    else if (loopTime >= 2 && loopTime < 5) {
+                        // PHASE 2: SCATTER GRID (Chaotic displacement across the full screen dimensions)
+                        const driftFactor = Math.sin(elapsed * 0.5 * pSpeed) * 0.4;
+                        positions[i * 3] += (vx + driftFactor);
+                        positions[i * 3 + 1] += (vy + Math.cos(elapsed * driftFactor) * 0.3);
+                        positions[i * 3 + 2] += vz;
+                    } 
+                    else {
+                        // PHASE 3: CORE RE-INTEGRATION (Gravity pulls all data nodes back into center cleanly)
+                        const returnProgress = (loopTime - 5) / 3; // 3 seconds to pull back down
+                        const currentX = positions[i * 3];
+                        const currentY = positions[i * 3 + 1];
+                        const currentZ = positions[i * 3 + 2];
+                        
+                        // Targeted fallback resting vector coordinates inside globe volume
+                        const targetX = vx * (45 + (pSpeed * 2));
+                        const targetY = vy * (45 + (pSpeed * 2));
+                        const targetZ = vz * (45 + (pSpeed * 2));
+
+                        positions[i * 3] = THREE.MathUtils.lerp(currentX, targetX, returnProgress);
+                        positions[i * 3 + 1] = THREE.MathUtils.lerp(currentY, targetY, returnProgress);
+                        positions[i * 3 + 2] = THREE.MathUtils.lerp(currentZ, targetZ, returnProgress);
+                    }
+                }
+                quantumExplosionArrays.geometry.attributes.position.needsUpdate = true;
             }
 
             renderer.render(scene, camera);
@@ -332,7 +389,7 @@
         });
 
         // Fire Quantum Terminal Engine System
-        initQuantumGlobe();
+        initQuantumFieldSystem();
 
         // --- AUTHENTICATION INTERACTION INFRASTRUCTURE ---
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
