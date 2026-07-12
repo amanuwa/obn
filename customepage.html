@@ -14,7 +14,7 @@
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
 
-        /* Crisp Network Backdrop Grid */
+        /* Crisp Fullscreen Background Canvas */
         .governance-bg-canvas {
             position: absolute;
             top: 0;
@@ -23,7 +23,18 @@
             height: 100%;
             z-index: 0;
             pointer-events: none;
-            opacity: 0.08; 
+            transition: opacity 0.5s ease-out; /* Smoothly blend out canvas */
+        }
+
+        /* Smooth UI entry fade after matrix sequence stabilizes */
+        #dashboardContent {
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            pointer-events: none;
+        }
+        #dashboardContent.visible {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         /* Routing Domain Buttons */
@@ -48,7 +59,7 @@
             box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
         }
 
-        /* Expanded Left Control Tiles */
+        /* Left Control Tiles */
         .compact-tile {
             background: linear-gradient(180deg, #060b18 0%, #02040a 100%);
             border: 1px solid #1e293b;
@@ -58,7 +69,7 @@
             border-color: #334155;
         }
 
-        /* Custom Input Styling */
+        /* Input Styling */
         .terminal-input {
             background-color: #02050c;
             border: 1px solid #334155;
@@ -73,7 +84,7 @@
             box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
         }
 
-        /* Screenshot Accurate Language Filter Controls */
+        /* Language Filter Buttons Layout */
         .ensemble-btn {
             background-color: #16224f;
             border: 2.5px solid #2563eb;
@@ -132,16 +143,14 @@
 </head>
 <body class="font-sans bg-[#010206]">
 
-    <!-- LIVE VECTOR BACKGROUND LAYER -->
+    <!-- GLOWING FULL-SCREEN DATA FIELD CANVAS -->
     <canvas class="governance-bg-canvas" id="governanceCanvas"></canvas>
 
-    <!-- MAIN HUB DASHBOARD CONTAINER -->
-    <div class="relative z-10 flex flex-col h-full w-full">
+    <!-- MAIN INTERFACE PANELS -->
+    <div id="dashboardContent" class="relative z-10 flex flex-col h-full w-full">
         
         <!-- TOP TERMINAL HEADER INTERFACE -->
-        <header class="bg-slate-950 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none">
-            
-            <!-- Left Brand Identity -->
+        <header class="bg-slate-950/80 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none backdrop-blur-sm">
             <div class="flex items-center gap-3">
                 <div class="w-7 h-7 rounded bg-cyan-600 flex items-center justify-center font-bold text-[10px] border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]">TG</div>
                 <div>
@@ -149,14 +158,12 @@
                 </div>
             </div>
 
-            <!-- Center Domain Routing Links -->
             <div class="flex items-center gap-2" id="topDomainNav">
                 <a href="business and finance.html" class="domain-btn">Business & Finance</a>
                 <a href="sport.html" class="domain-btn">Sport</a>
                 <a href="World Politics and Governance.html" class="domain-btn">Politics & Governance</a>
             </div>
 
-            <!-- Far Right Operator Profile Space -->
             <div class="flex items-center gap-4 border-l border-slate-800 pl-4">
                 <div class="text-right">
                     <span class="block text-[11px] font-mono font-semibold text-slate-300">Amanuel Bekele Woldesenbet</span>
@@ -168,13 +175,11 @@
             </div>
         </header>
 
-        <!-- DASHBOARD GRID: 1/4 COMPACT SIDEBAR | 3/4 MASSIVE MONITOR -->
+        <!-- DASHBOARD WORKSPACE GRID -->
         <main class="flex-1 flex gap-3 p-3 h-full overflow-hidden">
             
-            <!-- LEFT COLUMN: 1/4 WIDTH (w-1/4), SCROLLABLE -->
+            <!-- LEFT COLUMN: TARGET SECTORS -->
             <div class="w-1/4 flex flex-col gap-3.5 overflow-y-auto pr-1 select-none shrink-0">
-                
-                <!-- EXPANDED PANEL 1 -->
                 <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Strait of Hormuz</h2>
                     <div class="flex items-center gap-1.5">
@@ -186,7 +191,6 @@
                     </button>
                 </section>
 
-                <!-- EXPANDED PANEL 2 -->
                 <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Trump Watch Matrix</h2>
                     <div class="flex items-center gap-1.5">
@@ -198,7 +202,6 @@
                     </button>
                 </section>
 
-                <!-- EXPANDED PANEL 3 -->
                 <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Grand Ethiopian Dam (GERD)</h2>
                     <div class="flex items-center gap-1.5">
@@ -210,7 +213,6 @@
                     </button>
                 </section>
 
-                <!-- EXPANDED PANEL 4 -->
                 <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Ethiopia Sovereign Core</h2>
                     <div class="flex items-center gap-1.5">
@@ -221,49 +223,31 @@
                         ✨ Anything New
                     </button>
                 </section>
-
             </div>
 
-            <!-- RIGHT COLUMN: 3/4 WIDTH, MASSIVE RESULTS MONITOR PANEL -->
-            <div class="flex-1 flex flex-col justify-between bg-slate-950/90 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden">
-                
-                <!-- Monitor Header Layout with Exact Custom Checkbox Configuration -->
+            <!-- RIGHT COLUMN: CENTRAL MONITOR -->
+            <div class="flex-1 flex flex-col justify-between bg-slate-950/70 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden backdrop-blur-xs">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
-                    
-                    <!-- Left Section Title -->
                     <div class="flex items-center gap-2 shrink-0">
                         <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></div>
                         <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">Central Stream Monitor</span>
                     </div>
 
-                    <!-- Centered Custom Selection Segment -->
                     <div class="flex items-center gap-3 justify-center flex-1 mx-4" id="languageContainer">
                         <button onclick="toggleSelectAllEnsembles()" id="btn-select-all" class="ensemble-btn uppercase">Select All Ensembles</button>
-                        
-                        <button onclick="toggleLangCheckbox('OROMIFFA')" id="lang-OROMIFFA" class="lang-checkbox-btn active">
-                            <span class="custom-box"></span> OROMIFFA
-                        </button>
-                        <button onclick="toggleLangCheckbox('AMHARIC')" id="lang-AMHARIC" class="lang-checkbox-btn active">
-                            <span class="custom-box"></span> AMHARIC
-                        </button>
-                        <button onclick="toggleLangCheckbox('ENGLISH')" id="lang-ENGLISH" class="lang-checkbox-btn active">
-                            <span class="custom-box"></span> ENGLISH
-                        </button>
-                        <button onclick="toggleLangCheckbox('ARABIC')" id="lang-ARABIC" class="lang-checkbox-btn">
-                            <span class="custom-box"></span> ARABIC
-                        </button>
+                        <button onclick="toggleLangCheckbox('OROMIFFA')" id="lang-OROMIFFA" class="lang-checkbox-btn active"><span class="custom-box"></span> OROMIFFA</button>
+                        <button onclick="toggleLangCheckbox('AMHARIC')" id="lang-AMHARIC" class="lang-checkbox-btn active"><span class="custom-box"></span> AMHARIC</button>
+                        <button onclick="toggleLangCheckbox('ENGLISH')" id="lang-ENGLISH" class="lang-checkbox-btn active"><span class="custom-box"></span> ENGLISH</button>
+                        <button onclick="toggleLangCheckbox('ARABIC')" id="lang-ARABIC" class="lang-checkbox-btn"><span class="custom-box"></span> ARABIC</button>
                     </div>
 
-                    <!-- Right alignment status tracker -->
                     <div class="text-right text-[10px] font-mono text-slate-600 select-none shrink-0">// CAPTURE MATRICES</div>
                 </div>
 
-                <!-- Live Query Stream Data Console Outputs -->
                 <div id="unifiedResultsConsole" class="flex-1 overflow-y-auto font-mono text-xs text-slate-400 bg-slate-950/40 border border-slate-900/60 rounded-md p-3 space-y-3">
-                    <div class="text-slate-600 tracking-wide">// System online. Trigger interrogation parameters or request delta updates using sidebar modules to isolate data streams here...</div>
+                    <div class="text-slate-500 tracking-wide">// System online. Terminal metrics initialized. Run an inquiry lookup via sidebar modules to display intercept logs...</div>
                 </div>
 
-                <!-- Monitor Footer Actions -->
                 <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
                     <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
                     <button onclick="downloadTerminalLogs()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
@@ -271,196 +255,194 @@
                     </button>
                 </div>
             </div>
-
         </main>
 
-        <!-- LOWER RECONNAISSANCE CONSOLE -->
+        <!-- FOOTER STATUS -->
         <footer class="bg-slate-950 border-t border-slate-800 px-4 py-1.5 font-mono text-[10px] text-cyan-500 flex items-center justify-between shrink-0">
-            <div id="statusConsole">// MONITOR HUB ACTIVE: Gateway running nominal profiles.</div>
-            <div class="text-slate-600 select-none text-[9px]">GATEWAY INTERFACE v5.2</div>
+            <div id="statusConsole">// MONITOR HUB ACTIVE: System initialized.</div>
+            <div class="text-slate-600 select-none text-[9px]">GATEWAY INTERFACE v5.5</div>
         </footer>
     </div>
 
-    <!-- SCRIPT PIPELINE IMPLEMENTATION -->
+    <!-- HIGH-DENSITY GLOWING MATRIX EXECUTOR -->
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
-        // 1. BACKDROP VECTOR LAYER
         const canvas = document.getElementById('governanceCanvas');
         const ctx = canvas.getContext('2d');
-        function sizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        sizeCanvas(); window.addEventListener('resize', sizeCanvas);
-
-        const stateNodes = [];
-        for(let i=0; i<15; i++) {
-            stateNodes.push({
-                x: Math.random() * window.innerWidth,
-                y: Math.random() * window.innerHeight,
-                vx: (Math.random() - 0.5) * 0.1,
-                vy: (Math.random() - 0.5) * 0.1,
-                radius: Math.random() * 1.5 + 1
-            });
+        
+        function sizeCanvas() { 
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight; 
+            initMatrixGrid();
         }
-        function drawNetwork() {
+
+        const tokenChars = ['0', '1', 'X', 'A', 'F', '9', '4', 'C', '2', 'E', 'B', '7', 'Z', 'M', 'V', 'K'];
+        let particles = [];
+
+        function initMatrixGrid() {
+            particles = [];
+            const columns = Math.ceil(canvas.width / 22);
+            const rows = Math.ceil(canvas.height / 22);
+
+            for (let c = 0; c < columns; c++) {
+                for (let r = 0; r < rows; r++) {
+                    particles.push({
+                        x: c * 22 + 8,
+                        y: r * 22 + 14,
+                        char: tokenChars[Math.floor(Math.random() * tokenChars.length)],
+                        size: Math.random() > 0.5 ? 9 : 10
+                    });
+                }
+            }
+        }
+
+        sizeCanvas(); 
+        window.addEventListener('resize', sizeCanvas);
+
+        let animationFrameId;
+        let startTimestamp = null;
+        let panelsRevealed = false;
+        let canvasCleanedUp = false;
+
+        function runStaticGlitchField(timestamp) {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const elapsed = timestamp - startTimestamp;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'rgba(6, 182, 212, 0.15)';
-            stateNodes.forEach(nA => {
-                nA.x += nA.vx; nA.y += nA.vy;
-                if(nA.x < 0 || nA.x > canvas.width) nA.vx *= -1;
-                if(nA.y < 0 || nA.y > canvas.height) nA.vy *= -1;
-                ctx.beginPath(); ctx.arc(nA.x, nA.y, nA.radius, 0, Math.PI*2); ctx.fill();
-            });
-            requestAnimationFrame(drawNetwork);
-        }
-        drawNetwork();
 
-        // 2. SUPABASE CONNECTIONS ENGINE
+            // Render glowing grid characters
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#06b6d4';
+            ctx.fillStyle = 'rgba(34, 211, 238, 0.75)';
+
+            particles.forEach(p => {
+                ctx.font = `bold ${p.size}px monospace`;
+                if (Math.random() < 0.08) {
+                    p.char = tokenChars[Math.floor(Math.random() * tokenChars.length)];
+                }
+                ctx.fillText(p.char, p.x, p.y);
+            });
+
+            // STEP 1: Bring panels into view immediately at 2000ms (2 seconds mark)
+            if (!panelsRevealed && elapsed >= 2000) {
+                panelsRevealed = true;
+                document.getElementById('dashboardContent').classList.add('visible');
+            }
+
+            // STEP 2: Show for 2 seconds alongside panels, then trigger removal process
+            if (elapsed >= 4000) {
+                if (!canvasCleanedUp) {
+                    canvasCleanedUp = true;
+                    canvas.style.opacity = '0'; // Smoothly fade opacity down
+                    setTimeout(() => {
+                        canvas.style.display = 'none'; // Clear from viewport pipeline completely
+                        cancelAnimationFrame(animationFrameId); // Terminate execution engine context
+                    }, 500); 
+                }
+                return; // Break frame cycle recursion loop
+            }
+
+            animationFrameId = requestAnimationFrame(runStaticGlitchField);
+        }
+        
+        // Boot up background intro engine timeline
+        animationFrameId = requestAnimationFrame(runStaticGlitchField);
+
+
+        // 2. SUPABASE RELATIONAL ACTIONS PIPELINE
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let cachedDataStream = [];
 
-        // Track state of checkboxes
-        const activeLanguages = {
-            OROMIFFA: true,
-            AMHARIC: true,
-            ENGLISH: true,
-            ARABIC: false
-        };
+        const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
 
         window.toggleLangCheckbox = function(langKey) {
             const btn = document.getElementById(`lang-${langKey}`);
             activeLanguages[langKey] = !activeLanguages[langKey];
-            
-            if(activeLanguages[langKey]) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-            
+            btn.classList.toggle('active', activeLanguages[langKey]);
             const activeList = Object.keys(activeLanguages).filter(k => activeLanguages[k]);
-            document.getElementById('statusConsole').innerText = `// FILTER LAYER MODIFIED. ACTIVE STRINGS: [${activeList.join(', ')}]`;
+            document.getElementById('statusConsole').innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
         };
 
         window.toggleSelectAllEnsembles = function() {
             const keys = Object.keys(activeLanguages);
-            // Check if all are already true
             const allTrue = keys.every(k => activeLanguages[k]);
-            
             keys.forEach(k => {
                 activeLanguages[k] = !allTrue;
-                const btn = document.getElementById(`lang-${k}`);
-                if(!allTrue) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                document.getElementById(`lang-${k}`).classList.toggle('active', !allTrue);
             });
-
             document.getElementById('statusConsole').innerText = allTrue ? `// ENSEMBLES DE-SELECTED` : `// ALL ENSEMBLES ACTIVE`;
         };
 
-        // Anything New Delta Workflow Trigger 
         window.triggerAnythingNew = async function(sectorContext) {
             const outputPanel = document.getElementById('unifiedResultsConsole');
             const statusLog = document.getElementById('statusConsole');
-
-            statusLog.innerText = `// TRIGGERING DELTA CHECK FOR: [${sectorContext.toUpperCase()}]`;
-            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying database logs chronologically for recent insertions...</div>`;
+            statusLog.innerText = `// TRACKING RECENT CHRONO ENTRIES FOR: [${sectorContext.toUpperCase()}]`;
+            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying database metrics chronologically...</div>`;
 
             try {
                 let tableTarget = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
-                    ? 'Ethiopian -Politics and governance websites'
-                    : 'politics and governance -websites';
+                    ? 'Ethiopian -Politics and governance websites' : 'politics and governance -websites';
 
-                const { data, error } = await supabaseClient
-                    .from(tableTarget)
-                    .select('*')
-                    .order('id', { ascending: false })
-                    .limit(4);
-
+                const { data, error } = await supabaseClient.from(tableTarget).select('*').order('id', { ascending: false }).limit(4);
                 if (error) throw error;
                 cachedDataStream = data || [];
 
-                let resultsHTML = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// RECENT DEVELOPMENTS MATRIX: [${sectorContext.toUpperCase()}]</div><div class="space-y-3">`;
-                cachedDataStream.forEach((row, index) => {
-                    resultsHTML += `
-                        <div class="border-b border-slate-900 pb-2 last:border-0">
-                            <span class="text-amber-400 font-bold">[NEW-${index+1}]</span> <span class="text-slate-200">${row.title || 'Untitled Stream Element'}</span>
-                            <p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p>
-                        </div>`;
+                let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// DELTA RECONNAISSANCE SEARCH: [${sectorContext.toUpperCase()}]</div>`;
+                cachedDataStream.forEach((row, idx) => {
+                    html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-amber-400 font-bold">[NEW-${idx+1}]</span> <span class="text-slate-200">${row.title || 'Untitled Element'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
                 });
-                resultsHTML += `</div>`;
-                outputPanel.innerHTML = resultsHTML;
-                statusLog.innerText = `// DELTA CAPTURE COMPLETE: Streaming chronological data elements.`;
+                outputPanel.innerHTML = html;
+                statusLog.innerText = `// DELTA CAPTURE FINISHED.`;
             } catch (err) {
-                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// DELTA READ EXCEPTION: Failed to process recent entries.</span>`;
+                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// READ TIMEOUT ERROR.</span>`;
             }
         };
 
-        // Text Matrix Query Trigger
         window.triggerUnifiedSearch = async function(sectorContext, inputId) {
-            const inputField = document.getElementById(inputId);
+            const queryValue = document.getElementById(inputId).value.trim();
             const outputPanel = document.getElementById('unifiedResultsConsole');
             const statusLog = document.getElementById('statusConsole');
-            const queryValue = inputField.value.trim();
 
             if (!queryValue) {
-                outputPanel.innerHTML = `<span class="text-red-400 font-mono">// SYSTEM EXCEPTION: Missing parameter data strings.</span>`;
+                outputPanel.innerHTML = `<span class="text-red-400 font-mono">// ERROR: Missing query metrics.</span>`;
                 return;
             }
 
-            statusLog.innerText = `// INTROSPECTING METADATA: QUERYING DATABASE FOR MATCHES IN [${sectorContext.toUpperCase()}]...`;
-            outputPanel.innerHTML = `<div class="text-cyan-400 animate-pulse">// ACCESSING RELATIONAL TABLE MATRIX FOR TARGET ARRAYS CONTROLLING: "${queryValue}"...</div>`;
+            statusLog.innerText = `// INTERROGATING ROW INDICES FOR: "${queryValue}"...`;
+            outputPanel.innerHTML = `<div class="text-cyan-400 animate-pulse">// SCANNING INDEX SCHEMAS...</div>`;
 
             try {
                 let currentTable = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
-                    ? 'Ethiopian -Politics and governance websites'
-                    : 'politics and governance -websites';
+                    ? 'Ethiopian -Politics and governance websites' : 'politics and governance -websites';
 
-                const { data, error } = await supabaseClient
-                    .from(currentTable)
-                    .select('*')
-                    .ilike('title', `%${queryValue}%`)
-                    .limit(6);
-
+                const { data, error } = await supabaseClient.from(currentTable).select('*').ilike('title', `%${queryValue}%`).limit(6);
                 if (error) throw error;
                 cachedDataStream = data || [];
 
                 if (cachedDataStream.length === 0) {
-                    outputPanel.innerHTML = `<div class="text-slate-500">// Interrogation query completed. No matches located inside the table for payload parameter: "${queryValue}".</div>`;
-                    statusLog.innerText = `// MONITOR STANDBY: 0 Records Returned.`;
+                    outputPanel.innerHTML = `<div class="text-slate-500">// Search completed. 0 matching sequences found for: "${queryValue}".</div>`;
                 } else {
-                    statusLog.innerText = `// DATASET LOCATED: Streaming ${cachedDataStream.length} indexes down to terminal feed monitor logs.`;
-                    
-                    let resultsHTML = `<div class="text-cyan-400 border-b border-slate-900 pb-1.5 mb-2">// CAPTURED SIGNALS: ${sectorContext.toUpperCase()}</div><div class="space-y-3">`;
-                    cachedDataStream.forEach((row, index) => {
-                        resultsHTML += `
-                            <div class="border-b border-slate-900 pb-2 last:border-0">
-                                <span class="text-cyan-400 font-bold">[HIT-${index+1}]</span> <span class="text-slate-200">${row.title || 'Unknown Asset Label'}</span>
-                                <p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p>
-                            </div>`;
+                    let html = `<div class="text-cyan-400 border-b border-slate-900 pb-1.5 mb-2">// ISOLATED FEED RECORDS: ${sectorContext.toUpperCase()}</div>`;
+                    cachedDataStream.forEach((row, idx) => {
+                        html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-cyan-400 font-bold">[HIT-${idx+1}]</span> <span class="text-slate-200">${row.title || 'Unknown Asset'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
                     });
-                    resultsHTML += `</div>`;
-                    outputPanel.innerHTML = resultsHTML;
+                    outputPanel.innerHTML = html;
                 }
             } catch (err) {
-                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// DATABASE FAULT: Stream configuration connection failed.</span>`;
-                statusLog.innerText = `// RUNTIME ERROR REPORTED AT DB PIPELINE CONNECT.`;
+                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// RELATIONAL MAP EXCEPTION.</span>`;
             }
         };
 
-        // Download Action Functionality
         window.downloadTerminalLogs = function() {
-            if (cachedDataStream.length === 0) {
-                alert("The Central Monitor is empty. Run a trace or check updates to fetch stream data first.");
-                return;
-            }
+            if (cachedDataStream.length === 0) return alert("Run a lookup sequence to populate logs first.");
             const blobString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cachedDataStream, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", blobString);
-            downloadAnchor.setAttribute("download", "central_monitor_telemetry.json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+            const anchor = document.createElement('a');
+            anchor.setAttribute("href", blobString);
+            anchor.setAttribute("download", "terminal_dataset_dump.json");
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
         };
     </script>
 </body>
