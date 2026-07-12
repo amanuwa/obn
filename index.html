@@ -236,8 +236,8 @@
             coreNodes = new THREE.Points(structuralGeo, coreNodeMat);
             globeGroup.add(coreNodes);
 
-            // 4. THE QUANTUM EXPLOSION ARRAYS (Tethered to Globe Cycle)
-            const arrayParticleCount = 3500;
+            // 4. THE QUANTUM EXPLOSION ARRAYS
+            const arrayParticleCount = 3500; // Boosted density
             const arrayGeometry = new THREE.BufferGeometry();
             
             const positions = new Float32Array(arrayParticleCount * 3);
@@ -256,12 +256,12 @@
                 originalVectors[i * 3 + 1] = vy;
                 originalVectors[i * 3 + 2] = vz;
 
-                // Position them perfectly on the outer shell of the globe radius at birth
+                // Rest exactly on globe shell initially
                 positions[i * 3] = vx * coreRadius;
                 positions[i * 3 + 1] = vy * coreRadius;
                 positions[i * 3 + 2] = vz * coreRadius;
 
-                travelSpeeds[i] = 0.4 + Math.random() * 2.0;
+                travelSpeeds[i] = 0.5 + Math.random() * 2.0;
             }
 
             arrayGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -313,31 +313,31 @@
             const delta = clock.getDelta();
             const elapsed = clock.getElapsedTime();
 
-            // Continuous rotation base metrics
+            // Continuous spin metrics for the core axis
             if (globeGroup) {
                 globeGroup.rotation.y += 0.012;
                 globeGroup.rotation.x += 0.004;
             }
 
-            // Pulse the central cluster engine
+            // High frequency engine core sizing pulse
             if (coreMesh) {
                 const pulse = 1.0 + Math.sin(elapsed * 4.0) * 0.06;
                 coreMesh.scale.set(pulse, pulse, pulse);
             }
 
-            // PHASE SCHEDULER (8 second total duration cycle loop)
+            // CRITICAL ENGINE LOOP TIMING CONFIGURATION
             if (quantumExplosionArrays) {
                 const positions = quantumExplosionArrays.geometry.attributes.position.array;
                 const vectors = quantumExplosionArrays.userData.vectors;
                 const speeds = quantumExplosionArrays.userData.speeds;
                 
                 quantumExplosionArrays.userData.cycleTimer += delta;
-                const loopTime = quantumExplosionArrays.userData.cycleTimer % 8; 
+                const loopTime = quantumExplosionArrays.userData.cycleTimer % 6; // Compacted loop window
 
                 const coreRadius = 45;
 
-                if (loopTime < 1) {
-                    // --- PHASE 1: STABLE ROTATING GLOBE (Exactly 1 Second) ---
+                if (loopTime < 2.0) {
+                    // --- PHASE 1: STABLE ROTATING MODE (0s to 2s) ---
                     matrixShell.material.opacity = 0.25;
                     coreNodes.material.opacity = 0.95;
                     coreMesh.material.opacity = 0.4;
@@ -347,14 +347,17 @@
                         const vy = vectors[i * 3 + 1];
                         const vz = vectors[i * 3 + 2];
                         
+                        // Locks down into standard stable orb configuration
                         positions[i * 3] = vx * coreRadius;
                         positions[i * 3 + 1] = vy * coreRadius;
                         positions[i * 3 + 2] = vz * coreRadius;
                     }
                 } 
-                else if (loopTime >= 1 && loopTime < 3) {
-                    // --- PHASE 2: SCATTER ALL OVER THE SCREEN (2 Seconds) ---
-                    const progress = (loopTime - 1) / 2; // Normalize to 0-1
+                else if (loopTime >= 2.0 && loopTime < 3.5) {
+                    // --- PHASE 2: INTERACTIVE SCREEN SCATTER EXPLOSION (2s to 3.5s) ---
+                    const progress = (loopTime - 2.0) / 1.5; // Normalized linear tracker
+                    
+                    // Dissolve geometry lines out dynamically
                     matrixShell.material.opacity = 0.25 * (1.0 - progress);
                     coreNodes.material.opacity = 0.95 * (1.0 - progress);
                     coreMesh.material.opacity = 0.4 * (1.0 - progress);
@@ -365,17 +368,17 @@
                         const vz = vectors[i * 3 + 2];
                         const pSpeed = speeds[i];
 
-                        // Instantly fire vectors away across structural viewport metrics
-                        const burstRange = coreRadius + (progress * 400 * pSpeed);
+                        // Fast expansion over coordinate vector pipelines 
+                        const burstRange = coreRadius + (progress * 420 * pSpeed);
                         
-                        positions[i * 3] = vx * burstRange + Math.sin(elapsed * pSpeed * 2) * 20;
-                        positions[i * 3 + 1] = vy * burstRange + Math.cos(elapsed * pSpeed * 2) * 20;
+                        positions[i * 3] = vx * burstRange + Math.sin(elapsed * pSpeed * 2) * 10;
+                        positions[i * 3 + 1] = vy * burstRange + Math.cos(elapsed * pSpeed * 2) * 10;
                         positions[i * 3 + 2] = vz * burstRange;
                     }
                 } 
                 else {
-                    // --- PHASE 3: RETURN BACK TO ROTATING GLOBE FORM (5 Seconds) ---
-                    const returnProgress = (loopTime - 3) / 5; // Normalize to 0-1 over 5s
+                    // --- PHASE 3: RE-INTEGRATION RECOVERY PULL BACK (3.5s to 6s) ---
+                    const returnProgress = (loopTime - 3.5) / 2.5; // Restores over remaining timeline space
                     
                     matrixShell.material.opacity = 0.25 * returnProgress;
                     coreNodes.material.opacity = 0.95 * returnProgress;
@@ -390,6 +393,7 @@
                         const currentY = positions[i * 3 + 1];
                         const currentZ = positions[i * 3 + 2];
                         
+                        // Pull vector equations down toward baseline globe boundary radius
                         const targetX = vx * coreRadius;
                         const targetY = vy * coreRadius;
                         const targetZ = vz * coreRadius;
