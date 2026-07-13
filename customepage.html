@@ -495,7 +495,8 @@ window.triggerAnythingNew = async function(matrixName) {
 
 // Central engine that talks to n8n
 async function transmitPayloadToN8n(payload) {
-    const monitorContainer = document.getElementById('outputContainer');
+  //  const monitorContainer = document.getElementById('outputContainer');
+    const monitorContainer = document.getElementById('outputPanel');
     if (monitorContainer) {
         monitorContainer.innerHTML = `
             <div class="text-cyan-400 font-mono text-xs animate-pulse">
