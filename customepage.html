@@ -444,6 +444,87 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.j
             anchor.click();
             anchor.remove();
         };
+        // --- DYNAMIC ROUTING ENGINE ---
+
+// Helper to pull active languages from the dashboard UI
+function getSelectedDashboardLanguages() {
+    const checkedLangs = [];
+    document.querySelectorAll('.lang-check:checked').forEach(cb => {
+        checkedLangs.push(cb.value.toLowerCase());
+    });
+    return checkedLangs;
+}
+
+// Logic for your "Go" buttons
+window.triggerUnifiedSearch = async function(matrixName, inputId) {
+    const queryInput = document.getElementById(inputId);
+    const queryText = queryInput ? queryInput.value.trim() : '';
+    
+    if (!queryText) {
+        alert(`Please enter a query parameter for the ${matrixName} matrix first.`);
+        return;
+    }
+
+    const formattedMatrixKey = matrixName.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
+
+    const payload = {
+        targetMatrix: formattedMatrixKey,
+        executionType: 'specific_search',
+        query: queryText,
+        languages: getSelectedDashboardLanguages(),
+        timestamp: new Date().toISOString()
+    };
+
+    await transmitPayloadToN8n(payload);
+};
+
+// Logic for your "Anything New" buttons
+window.triggerAnythingNew = async function(matrixName) {
+    const formattedMatrixKey = matrixName.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
+
+    const payload = {
+        targetMatrix: formattedMatrixKey,
+        executionType: 'anything_new',
+        query: `latest operational updates tracking for ${matrixName}`,
+        languages: getSelectedDashboardLanguages(),
+        timestamp: new Date().toISOString()
+    };
+
+    await transmitPayloadToN8n(payload);
+};
+
+// Central engine that talks to n8n
+async function transmitPayloadToN8n(payload) {
+    const monitorContainer = document.getElementById('outputContainer');
+    if (monitorContainer) {
+        monitorContainer.innerHTML = `
+            <div class="text-cyan-400 font-mono text-xs animate-pulse">
+                // INSTANTIATING INTERCEPT WEBHOOK...<br>
+                // TARGET ROUTE: [${payload.targetMatrix.toUpperCase()}]
+            </div>`;
+    }
+
+    try {
+        const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error(`Gateway Status: ${response.status}`);
+        
+        const data = await response.json();
+        console.log("Transmission successful:", data);
+
+    } catch (error) {
+        if (monitorContainer) {
+            monitorContainer.innerHTML = `
+                <div class="text-red-500 font-mono text-xs">// ROUTING ERROR: ${error.message.toUpperCase()}</div>`;
+        }
+    }
+}
+
+        
     </script>
 </body>
 </html>
