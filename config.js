@@ -9,7 +9,7 @@ export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 export const N8N_CONTENT_URL = 'https://unreached-oboe-evade.ngrok-free.dev/webhook/register-journalist';
 // Direct ngrok tunnel pipeline with zero proxy interference
 
-export const N8N_GATEWAY_WEBHOOK = 'https://unreached-oboe-evade.ngrok-free.dev/webhook-test/strait_of_hormuz';
+export const N8N_GATEWAY_WEBHOOK = 'https://unreached-oboe-evade.ngrok-free.dev/webhook/strait_of_hormuz ';
 //export const N8N_GATEWAY_WEBHOOK = 'https://unreached-oboe-evade.ngrok-free.dev/webhook-test/strait%20of%20hormuz';
 // ========================================================
 // 🚧 DEVELOPMENT ROUTER OVERRIDE
