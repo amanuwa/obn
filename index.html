@@ -3,554 +3,488 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent Access Terminal</title>
+    <title>Custom Gateway | Terminal Hub</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Supabase CDN Script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- THREE.JS CORE ENGINE DEPENDENCY -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        body {
-            background-color: #010206;
-            margin: 0;
-            overflow: hidden;
-            height: 100vh;
-        }
+        body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #010206; position: relative; overflow: hidden; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
 
-        /* 3D CANVAS LAYER POSITIONING */
-        #canvas-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        /* 2060 Quantum Contrast Veil */
-        .overlay-veil {
-            position: fixed;
+        /* Crisp Fullscreen Background Canvas */
+        .governance-bg-canvas {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, rgba(1, 2, 6, 0) 0%, rgba(1, 2, 6, 0.4) 70%, rgba(1, 2, 6, 0.7) 100%);
-            z-index: 1;
+            z-index: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-out; /* Smoothly blend out canvas */
+        }
+
+        /* Smooth UI entry fade after matrix sequence stabilizes */
+        #dashboardContent {
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
             pointer-events: none;
         }
-
-        .ui-container {
-            position: relative;
-            z-index: 2;
+        #dashboardContent.visible {
+            opacity: 1;
+            pointer-events: auto;
         }
 
-        .glow-border:focus-within {
+        /* Routing Domain Buttons */
+        .domain-btn {
+            display: inline-block;
+            text-align: center;
+            background-color: #050b18;
+            border: 1px solid #06b6d4;
+            color: #22d3ee;
+            border-radius: 0.5rem;
+            padding: 0.4rem 1rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .domain-btn:hover {
             border-color: #38bdf8;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
         }
-        
-        input:focus, select:focus {
-            outline: none !important;
-            box-shadow: none !important;
+
+        /* Left Control Tiles */
+        .compact-tile {
+            background: linear-gradient(180deg, #060b18 0%, #02040a 100%);
+            border: 1px solid #1e293b;
+            transition: border-color 0.2s ease;
+        }
+        .compact-tile:hover {
+            border-color: #334155;
+        }
+
+        /* Input Styling */
+        .terminal-input {
+            background-color: #02050c;
+            border: 1px solid #334155;
+            color: #f1f5f9;
+            font-family: monospace;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        .terminal-input:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+        }
+
+        /* Language Filter Buttons Layout */
+        .ensemble-btn {
+            background-color: #16224f;
+            border: 2.5px solid #2563eb;
+            color: #3b82f6;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+        }
+        .ensemble-btn:hover {
+            border-color: #60a5fa;
+            color: #60a5fa;
+        }
+
+        .lang-checkbox-btn {
+            background-color: #030712;
+            border: 1.5px solid #1e293b;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            letter-spacing: 0.05em;
+        }
+        .lang-checkbox-btn:hover {
+            border-color: #334155;
+            color: #cbd5e1;
+        }
+        .lang-checkbox-btn.active {
+            border-color: #1d4ed8;
+            color: #3b82f6;
+            background-color: #070f2e;
+        }
+        .custom-box {
+            width: 11px;
+            height: 11px;
+            border-radius: 2px;
+            background-color: #0f172a;
+            border: 1px solid #475569;
+            transition: all 0.15s ease;
+            display: inline-block;
+        }
+        .lang-checkbox-btn.active .custom-box {
+            background-color: #ffffff;
+            border-color: #ffffff;
         }
     </style>
 </head>
-<body class="text-slate-100 font-sans flex items-center justify-center p-6">
+<body class="font-sans bg-[#010206]">
 
-    <!-- 3D BACKGROUND STRUCTURES -->
-    <div id="canvas-container"></div>
-    <div class="overlay-veil"></div>
+    <!-- GLOWING FULL-SCREEN DATA FIELD CANVAS -->
+    <canvas class="governance-bg-canvas" id="governanceCanvas"></canvas>
 
-    <div class="ui-container w-full max-w-md">
-
-        <!-- SYSTEM STATUS NOTICE BUFFER -->
-        <div id="statusBuffer" class="hidden text-xs p-3.5 rounded-xl border mb-4 bg-slate-950/90 backdrop-blur-xl font-mono transition-all duration-300"></div>
-
-        <!-- SIGN UP PANEL -->
-        <div id="signUpScreen" class="w-full bg-slate-950/80 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500"></div>
-
-            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
-                Initialize Agent Access
-            </h2>
-            <p class="text-xs text-cyan-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
-
-            <div class="space-y-4 text-left">
+    <!-- MAIN INTERFACE PANELS -->
+    <div id="dashboardContent" class="relative z-10 flex flex-col h-full w-full">
+        
+        <!-- TOP TERMINAL HEADER INTERFACE -->
+        <header class="bg-slate-950/80 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none backdrop-blur-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded bg-cyan-600 flex items-center justify-center font-bold text-[10px] border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]">TG</div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
-                        <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assigned Sector</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">🗂️</span>
-                        <select id="regSection" required class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer text-slate-300">
-                            <option value="" disabled selected class="bg-slate-950 text-slate-500">Select Sector...</option>
-                            <option value="world politics and governance" class="bg-slate-950 text-white">World Politics and Governance</option>
-                            <option value="sports & analytics" class="bg-slate-950 text-white">Sports & Analytics</option>
-                            <option value="business and finance" class="bg-slate-950 text-white">Business and Finance</option>
-                            <option value="general hot news" class="bg-slate-950 text-white">Custome  Hot News</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
-                        <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
-                    </div>
-                </div>
-
-                <button id="signUpBtn" class="w-full bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 hover:from-cyan-500 hover:via-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-cyan-500/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
-                    Sign Up
-                </button>
-
-                <div class="text-center mt-4">
-                    <p class="text-xs text-slate-400">Already registered? <button id="toSignInBtn" class="text-cyan-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Secure Log In</button></p>
+                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Custom Terminal Gateway</span>
                 </div>
             </div>
-        </div>
 
-        <!-- SIGN IN PANEL -->
-        <div id="signInScreen" class="hidden w-full bg-slate-950/80 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-400 to-indigo-600"></div>
+            <div class="flex items-center gap-2" id="topDomainNav">
+                <a href="business and finance.html" class="domain-btn">Business & Finance</a>
+                <a href="sport.html" class="domain-btn">Sport</a>
+                <a href="World Politics and Governance.html" class="domain-btn">Politics & Governance</a>
+            </div>
 
-            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
-                Operator Portal
-            </h2>
-            <p class="text-xs text-cyan-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
-
-            <div class="space-y-4 text-left">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
-                        <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
-                    </div>
+            <div class="flex items-center gap-4 border-l border-slate-800 pl-4">
+                <div class="text-right">
+                    <span class="block text-[11px] font-mono font-semibold text-slate-300">Amanuel Bekele Woldesenbet</span>
+                    <span class="block text-[9px] font-mono text-cyan-500 uppercase tracking-wider">// Operator Profile</span>
                 </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Access Password</label>
-                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
-                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
-                        <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
-                    </div>
-                </div>
-
-                <button id="signInBtn" class="w-full bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 hover:from-cyan-500 hover:via-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-cyan-500/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
-                    Sign In
+                <button onclick="location.reload();" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5 py-1.5 rounded transition-all uppercase cursor-pointer">
+                    Sign Out
                 </button>
+            </div>
+        </header>
 
-                <div class="text-center mt-4">
-                    <button id="toSignUpBtn" class="text-xs text-cyan-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Initialize Access Profile</button>
+        <!-- DASHBOARD WORKSPACE GRID -->
+        <main class="flex-1 flex gap-3 p-3 h-full overflow-hidden">
+            
+            <!-- LEFT COLUMN: TARGET SECTORS -->
+            <div class="w-1/4 flex flex-col gap-3.5 overflow-y-auto pr-1 select-none shrink-0">
+                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Strait of Hormuz</h2>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="input-hormuz" placeholder="Maritime query..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button onclick="triggerUnifiedSearch('Strait of Hormuz', 'input-hormuz')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                    </div>
+                    <button onclick="triggerAnythingNew('Strait of Hormuz')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Anything New
+                    </button>
+                </section>
+
+                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Trump Watch Matrix</h2>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="input-trump" placeholder="Policy matrix..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button onclick="triggerUnifiedSearch('Trump Watch', 'input-trump')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                    </div>
+                    <button onclick="triggerAnythingNew('Trump Watch')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Anything New
+                    </button>
+                </section>
+
+                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Grand Ethiopian Dam (GERD)</h2>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="input-gerd" placeholder="Riparian terms..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button onclick="triggerUnifiedSearch('GERD', 'input-gerd')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                    </div>
+                    <button onclick="triggerAnythingNew('GERD')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Anything New
+                    </button>
+                </section>
+
+                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Ethiopia Sovereign Core</h2>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="input-ethiopia" placeholder="National filters..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button onclick="triggerUnifiedSearch('Ethiopia Core', 'input-ethiopia')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                    </div>
+                    <button onclick="triggerAnythingNew('Ethiopia Core')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Anything New
+                    </button>
+                </section>
+            </div>
+
+            <!-- RIGHT COLUMN: CENTRAL MONITOR -->
+            <div class="flex-1 flex flex-col justify-between bg-slate-950/70 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden backdrop-blur-xs">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
+                    <div class="flex items-center gap-2 shrink-0">
+                        <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></div>
+                        <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">Central Stream Monitor</span>
+                    </div>
+
+                    <div class="flex items-center gap-3 justify-center flex-1 mx-4" id="languageContainer">
+                        <button onclick="toggleSelectAllEnsembles()" id="btn-select-all" class="ensemble-btn uppercase">Select All Ensembles</button>
+                        <button onclick="toggleLangCheckbox('OROMIFFA')" id="lang-OROMIFFA" class="lang-checkbox-btn active"><span class="custom-box"></span> OROMIFFA</button>
+                        <button onclick="toggleLangCheckbox('AMHARIC')" id="lang-AMHARIC" class="lang-checkbox-btn active"><span class="custom-box"></span> AMHARIC</button>
+                        <button onclick="toggleLangCheckbox('ENGLISH')" id="lang-ENGLISH" class="lang-checkbox-btn active"><span class="custom-box"></span> ENGLISH</button>
+                        <button onclick="toggleLangCheckbox('ARABIC')" id="lang-ARABIC" class="lang-checkbox-btn"><span class="custom-box"></span> ARABIC</button>
+                    </div>
+
+                    <div class="text-right text-[10px] font-mono text-slate-600 select-none shrink-0">// CAPTURE MATRICES</div>
+                </div>
+
+                <div id="unifiedResultsConsole" class="flex-1 overflow-y-auto font-mono text-xs text-slate-400 bg-slate-950/40 border border-slate-900/60 rounded-md p-3 space-y-3">
+                    <div class="text-slate-500 tracking-wide">// System online. Terminal metrics initialized. Run an inquiry lookup via sidebar modules to display intercept logs...</div>
+                </div>
+
+                <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
+                    <button onclick="downloadTerminalLogs()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
+                        Download Dataset Logs
+                    </button>
                 </div>
             </div>
-        </div>
+        </main>
 
+        <!-- FOOTER STATUS -->
+        <footer class="bg-slate-950 border-t border-slate-800 px-4 py-1.5 font-mono text-[10px] text-cyan-500 flex items-center justify-between shrink-0">
+            <div id="statusConsole">// MONITOR HUB ACTIVE: System initialized.</div>
+            <div class="text-slate-600 select-none text-[9px]">GATEWAY INTERFACE v5.5</div>
+        </footer>
     </div>
 
-    <!-- SCRIPT INFRASTRUCTURE MODULE -->
+    <!-- HIGH-DENSITY GLOWING MATRIX EXECUTOR -->
     <script type="module">
-        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-        import { DESK_CONFIGS } from './deskConfigs.js';
+        import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.js';
 
-        // --- 2060 QUANTUM COMPUTER GLOBE SYSTEM ---
-        let scene, camera, renderer, masterGroup, coreMesh, matrixShell, matrixNodes, dataStreams, perimeterRings = [];
-        let clock = new THREE.Clock();
+        const canvas = document.getElementById('governanceCanvas');
+        const ctx = canvas.getContext('2d');
         
-        // Storage lists to remember original positions for precise reassembly scattering
-        let originalStreamPositions = [];
-        let scatterDirections = [];
-
-        // High-Intensity Dynamic Canvas Glow Sprite Generator
-        function createQuantumGlowNode(coreColor, edgeColor) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 64;
-            canvas.height = 64;
-            const ctx = canvas.getContext('2d');
-            
-            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-            gradient.addColorStop(0, '#ffffff');
-            gradient.addColorStop(0.15, coreColor);
-            gradient.addColorStop(0.4, edgeColor);
-            gradient.addColorStop(1, 'rgba(0,0,0,0)');
-            
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 64, 64);
-            return new THREE.CanvasTexture(canvas);
+        function sizeCanvas() { 
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight; 
+            initMatrixGrid();
         }
 
-        function initQuantumGlobe() {
-            const container = document.getElementById('canvas-container');
-            if (!container) return;
+        const tokenChars = ['0', '1', 'X', 'A', 'F', '9', '4', 'C', '2', 'E', 'B', '7', 'Z', 'M', 'V', 'K'];
+        let particles = [];
 
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
-            
-            // ADJUSTMENT: Brought camera closer (from 160 to 90) to make the globe comfortably fit and fill the entire screen background
-            camera.position.z = 90; 
+        function initMatrixGrid() {
+            particles = [];
+            const columns = Math.ceil(canvas.width / 22);
+            const rows = Math.ceil(canvas.height / 22);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            container.appendChild(renderer.domElement);
+            for (let c = 0; c < columns; c++) {
+                for (let r = 0; r < rows; r++) {
+                    particles.push({
+                        x: c * 22 + 8,
+                        y: r * 22 + 14,
+                        char: tokenChars[Math.floor(Math.random() * tokenChars.length)],
+                        size: Math.random() > 0.5 ? 9 : 10
+                    });
+                }
+            }
+        }
 
-            masterGroup = new THREE.Group();
+        sizeCanvas(); 
+        window.addEventListener('resize', sizeCanvas);
 
-            const radius = 52;
-            const segments = 32;
+        let animationFrameId;
+        let startTimestamp = null;
+        let panelsRevealed = false;
+        let canvasCleanedUp = false;
 
-            // 1. Core Energy Biosphere (Inner Soft Light Reservoir)
-            const coreGeo = new THREE.SphereGeometry(radius - 2, 16, 16);
-            const coreMat = new THREE.MeshBasicMaterial({
-                color: 0x032b59,
-                transparent: true,
-                opacity: 0.25,
-                blending: THREE.AdditiveBlending,
-                wireframe: false
+        function runStaticGlitchField(timestamp) {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const elapsed = timestamp - startTimestamp;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#06b6d4';
+            ctx.fillStyle = 'rgba(34, 211, 238, 0.75)';
+
+            particles.forEach(p => {
+                ctx.font = `bold ${p.size}px monospace`;
+                if (Math.random() < 0.08) {
+                    p.char = tokenChars[Math.floor(Math.random() * tokenChars.length)];
+                }
+                ctx.fillText(p.char, p.x, p.y);
             });
-            coreMesh = new THREE.Mesh(coreGeo, coreMat);
-            masterGroup.add(coreMesh);
 
-            // 2. High-Tech Structural Grid Matrix
-            const gridGeo = new THREE.SphereGeometry(radius, segments, segments);
-            const gridMat = new THREE.MeshBasicMaterial({
-                color: 0x06b6d4, // Neon Cyan
-                wireframe: true,
-                transparent: true,
-                opacity: 0.18,
-                blending: THREE.AdditiveBlending
-            });
-            matrixShell = new THREE.Mesh(gridGeo, gridMat);
-            masterGroup.add(matrixShell);
-
-            // 3. Anchor Points / Main Latitudinal Junction Nodes
-            const nodeMat = new THREE.PointsMaterial({
-                size: 2.8,
-                transparent: true,
-                opacity: 0.95,
-                map: createQuantumGlowNode('#22d3ee', '#093370'),
-                blending: THREE.AdditiveBlending,
-                depthWrite: false
-            });
-            matrixNodes = new THREE.Points(gridGeo, nodeMat);
-            masterGroup.add(matrixNodes);
-
-            // 4. Kinetic Data Flow Particles (Dynamic Ring Orbit Clusters)
-            const particleCount = 1500;
-            const streamGeometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
-            const randomSpeeds = new Float32Array(particleCount);
-            
-            for (let i = 0; i < particleCount; i++) {
-                const u = Math.random();
-                const v = Math.random();
-                const theta = u * 2.0 * Math.PI;
-                const phi = Math.acos(2.0 * v - 1.0);
-                
-                const shellRadius = radius + (Math.random() - 0.5) * 8;
-                
-                const posX = shellRadius * Math.sin(phi) * Math.cos(theta);
-                const posY = shellRadius * Math.sin(phi) * Math.sin(theta);
-                const posZ = shellRadius * Math.cos(phi);
-
-                positions[i * 3] = posX;
-                positions[i * 3 + 1] = posY;
-                positions[i * 3 + 2] = posZ;
-                
-                randomSpeeds[i] = 0.2 + Math.random() * 0.8;
-
-                // Cache original particle coordinates and directional vectors for scattering calculations
-                originalStreamPositions.push(new THREE.Vector3(posX, posY, posZ));
-                
-                // Scatter outward vector combined with noise
-                const dir = new THREE.Vector3(posX, posY, posZ).normalize();
-                dir.x += (Math.random() - 0.5) * 0.5;
-                dir.y += (Math.random() - 0.5) * 0.5;
-                dir.z += (Math.random() - 0.5) * 0.5;
-                scatterDirections.push(dir.normalize());
+            if (!panelsRevealed && elapsed >= 2000) {
+                panelsRevealed = true;
+                document.getElementById('dashboardContent').classList.add('visible');
             }
 
-            streamGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            
-            const streamMat = new THREE.PointsMaterial({
-                size: 1.6,
-                transparent: true,
-                opacity: 0.85,
-                map: createQuantumGlowNode('#ffffff', '#3b82f6'),
-                blending: THREE.AdditiveBlending,
-                depthWrite: false
+            if (elapsed >= 4000) {
+                if (!canvasCleanedUp) {
+                    canvasCleanedUp = true;
+                    canvas.style.opacity = '0';
+                    setTimeout(() => {
+                        canvas.style.display = 'none';
+                        cancelAnimationFrame(animationFrameId);
+                    }, 500); 
+                }
+                return;
+            }
+
+            animationFrameId = requestAnimationFrame(runStaticGlitchField);
+        }
+        
+        animationFrameId = requestAnimationFrame(runStaticGlitchField);
+
+
+        // --- SUPABASE & LOCAL SYSTEM SETUP ---
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let cachedDataStream = [];
+
+        // Track active languages state (true/false matching the dashboard buttons)
+        const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
+
+        window.toggleLangCheckbox = function(langKey) {
+            const btn = document.getElementById(`lang-${langKey}`);
+            activeLanguages[langKey] = !activeLanguages[langKey];
+            btn.classList.toggle('active', activeLanguages[langKey]);
+            const activeList = Object.keys(activeLanguages).filter(k => activeLanguages[k]);
+            document.getElementById('statusConsole').innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
+        };
+
+        window.toggleSelectAllEnsembles = function() {
+            const keys = Object.keys(activeLanguages);
+            const allTrue = keys.every(k => activeLanguages[k]);
+            keys.forEach(k => {
+                activeLanguages[k] = !allTrue;
+                document.getElementById(`lang-${k}`).classList.toggle('active', !allTrue);
             });
+            document.getElementById('statusConsole').innerText = allTrue ? `// ENSEMBLES DE-SELECTED` : `// ALL ENSEMBLES ACTIVE`;
+        };
 
-            dataStreams = new THREE.Points(streamGeometry, streamMat);
-            dataStreams.userData = { speeds: randomSpeeds };
-            masterGroup.add(dataStreams);
+        // Helper to extract languages mapped to active custom styling states
+        function getSelectedDashboardLanguages() {
+            return Object.keys(activeLanguages).filter(lang => activeLanguages[lang]).map(lang => lang.toLowerCase());
+        }
 
-            // 5. Outer Atmospheric Quantum Containment Rings
-            for (let i = 0; i < 4; i++) {
-                const ringGeo = new THREE.RingGeometry(radius + 6 + (i * 4), radius + 6.8 + (i * 4), 64);
-                const ringMat = new THREE.MeshBasicMaterial({
-                    color: i % 2 === 0 ? 0x22d3ee : 0x6366f1,
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.12 - (i * 0.02),
-                    blending: THREE.AdditiveBlending
+        // --- DYNAMIC ROUTING TO WEBHOOK (N8N ENGINE) ---
+
+        // Logic for your "Go" buttons
+        window.triggerUnifiedSearch = async function(matrixName, inputId) {
+            const queryInput = document.getElementById(inputId);
+            const queryText = queryInput ? queryInput.value.trim() : '';
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+            const statusLog = document.getElementById('statusConsole');
+            
+            if (!queryText) {
+                outputPanel.innerHTML = `<span class="text-red-400 font-mono">// ERROR: Missing query metrics.</span>`;
+                return;
+            }
+
+            statusLog.innerText = `// INTERROGATING ROW INDICES FOR: "${queryText}"...`;
+            const formattedMatrixKey = matrixName.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
+
+            const payload = {
+                targetMatrix: formattedMatrixKey,
+                executionType: 'specific_search',
+                query: queryText,
+                languages: getSelectedDashboardLanguages(),
+                timestamp: new Date().toISOString()
+            };
+
+            await transmitPayloadToN8n(payload);
+        };
+
+        // Logic for your "Anything New" buttons
+        window.triggerAnythingNew = async function(matrixName) {
+            const formattedMatrixKey = matrixName.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
+            const statusLog = document.getElementById('statusConsole');
+
+            statusLog.innerText = `// TRACKING RECENT CHRONO ENTRIES FOR: [${matrixName.toUpperCase()}]`;
+
+            const payload = {
+                targetMatrix: formattedMatrixKey,
+                executionType: 'anything_new',
+                query: `latest operational updates tracking for ${matrixName}`,
+                languages: getSelectedDashboardLanguages(),
+                timestamp: new Date().toISOString()
+            };
+
+            await transmitPayloadToN8n(payload);
+        };
+
+        // Central engine that transmits payload securely to hosted n8n Webhook
+        async function transmitPayloadToN8n(payload) {
+            const monitorContainer = document.getElementById('unifiedResultsConsole');
+            
+            if (monitorContainer) {
+                monitorContainer.innerHTML = `
+                    <div class="text-cyan-400 font-mono text-xs animate-pulse">
+                        // INSTANTIATING INTERCEPT WEBHOOK...<br>
+                        // TARGET ROUTE: [${payload.targetMatrix.toUpperCase()}]<br>
+                        // SCANNING INDEX SCHEMAS...
+                    </div>`;
+            }
+
+            try {
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
-                const perimeterRing = new THREE.Mesh(ringGeo, ringMat);
-                perimeterRing.rotation.x = Math.random() * Math.PI;
-                perimeterRing.rotation.y = Math.random() * Math.PI;
+
+                if (!response.ok) throw new Error(`Gateway Status: ${response.status}`);
                 
-                // Keep references to animate or fade rings during cycles
-                perimeterRings.push(perimeterRing);
-                masterGroup.add(perimeterRing);
-            }
+                const data = await response.json();
+                console.log("Transmission successful:", data);
 
-            scene.add(masterGroup);
-            animateQuantumEngine();
-        }
+                // Cache responses locally if returned in array form
+                cachedDataStream = Array.isArray(data) ? data : (data.results || []);
 
-        function animateQuantumEngine() {
-            requestAnimationFrame(animateQuantumEngine);
-            const elapsedTime = clock.getElapsedTime();
-
-            // Timeline phase controller loop:
-            // 0s to 2s: Rotate normally (Phase 1)
-            // 2s to 4s: Scatter/Explode outwards (Phase 2)
-            // 4s to 6s: Reassemble/Collapse back together (Phase 3)
-            const cycleDuration = 6; 
-            const currentCycleTime = elapsedTime % cycleDuration;
-
-            let scatterProgress = 0; // 0 = fully assembled globe, 1 = maximum scatter
-
-            if (currentCycleTime >= 0 && currentCycleTime < 2) {
-                // Phase 1: Pure rotation
-                scatterProgress = 0;
-            } else if (currentCycleTime >= 2 && currentCycleTime < 4) {
-                // Phase 2: Exploding/Scattering (2 seconds transition)
-                const t = (currentCycleTime - 2) / 2;
-                // Cubic ease-out transformation for dramatic snap speed
-                scatterProgress = 1 - Math.pow(1 - t, 3);
-            } else if (currentCycleTime >= 4 && currentCycleTime < 6) {
-                // Phase 3: Returning / Reassembling back smoothly (2 seconds transition)
-                const t = (currentCycleTime - 4) / 2;
-                // Smooth ease-in-out curve
-                scatterProgress = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-                scatterProgress = 1 - scatterProgress; // Reversing progress direction back to 0
-            }
-
-            if (masterGroup) {
-                // Keep base rotation spinning continuously over time
-                masterGroup.rotation.y = elapsedTime * 0.15;
-                masterGroup.rotation.x = elapsedTime * 0.06;
-            }
-
-            // Animate structural mesh entities alongside scatter timeline thresholds
-            const expansionFactor = 1.0 + scatterProgress * 2.5; 
-            
-            if (matrixShell) {
-                matrixShell.scale.set(expansionFactor, expansionFactor, expansionFactor);
-                matrixShell.material.opacity = 0.18 * (1.0 - scatterProgress); // fade out structure
-            }
-            if (matrixNodes) {
-                matrixNodes.scale.set(expansionFactor, expansionFactor, expansionFactor);
-                matrixNodes.material.opacity = 0.95 * (1.0 - scatterProgress * 0.7);
-            }
-            if (coreMesh) {
-                // Local pulse layer logic
-                const pulseScale = (1.0 + Math.sin(elapsedTime * 2.5) * 0.06) * (1.0 + scatterProgress * 4.0);
-                coreMesh.scale.set(pulseScale, pulseScale, pulseScale);
-                coreMesh.material.opacity = 0.25 * (1.0 - scatterProgress);
-            }
-
-            // Fade rings when scattering occurs
-            perimeterRings.forEach((ring, index) => {
-                ring.material.opacity = (0.12 - (index * 0.02)) * (1.0 - scatterProgress);
-            });
-
-            // Animate dynamic data streams (1500 individual elements) out into space
-            if (dataStreams) {
-                const positions = dataStreams.geometry.attributes.position.array;
-                const speeds = dataStreams.userData.speeds;
-                
-                for (let i = 0; i < speeds.length; i++) {
-                    const origPos = originalStreamPositions[i];
-                    const dir = scatterDirections[i];
-                    
-                    // Base coordinates depending on current cycle state
-                    // Explode outwards up to 220 units wide across camera projection plane
-                    const scatterDistance = scatterProgress * (120 + speeds[i] * 100);
-                    
-                    let targetX = origPos.x + dir.x * scatterDistance;
-                    let targetY = origPos.y + dir.y * scatterDistance;
-                    let targetZ = origPos.z + dir.z * scatterDistance;
-
-                    // Apply continuous micro-swirl patterns to floating dots 
-                    targetY += Math.sin(elapsedTime * speeds[i]) * 0.4;
-                    targetX += Math.cos(elapsedTime * speeds[i]) * 0.4;
-
-                    positions[i * 3] = targetX;
-                    positions[i * 3 + 1] = targetY;
-                    positions[i * 3 + 2] = targetZ;
+                // Dynamically update the monitor console with n8n output data
+                if (monitorContainer) {
+                    if (cachedDataStream.length === 0) {
+                        monitorContainer.innerHTML = `<div class="text-slate-500">// Action completed. No new updates retrieved.</div>`;
+                    } else {
+                        let html = `<div class="text-cyan-400 border-b border-slate-900 pb-1.5 mb-2">// ISOLATED FEED RECORDS: RECEIVED FROM API</div>`;
+                        cachedDataStream.forEach((row, idx) => {
+                            html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-cyan-400 font-bold">[DATA-${idx+1}]</span> <span class="text-slate-200">${row.title || 'Unknown Item'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
+                        });
+                        monitorContainer.innerHTML = html;
+                    }
                 }
-                dataStreams.geometry.attributes.position.needsUpdate = true;
-            }
-
-            renderer.render(scene, camera);
-        }
-
-        window.addEventListener('resize', () => {
-            if (!camera || !renderer) return;
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // Fire Quantum Terminal Engine System
-        initQuantumGlobe();
-
-        // --- AUTHENTICATION INTERACTION INFRASTRUCTURE ---
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            auth: { persistSession: true },
-            global: {
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                }
-            }
-        });
-
-        const statusBuffer = document.getElementById('statusBuffer');
-
-        function displayTerminalNotice(message, statusType = 'info') {
-            statusBuffer.classList.remove('hidden', 'text-cyan-400', 'border-cyan-950/60', 'text-red-400', 'border-red-950/60', 'text-emerald-400', 'border-emerald-950/60');
-            
-            if (statusType === 'error') {
-                statusBuffer.classList.add('text-red-400', 'border-red-950/60');
-            } else if (statusType === 'success') {
-                statusBuffer.classList.add('text-emerald-400', 'border-emerald-950/60');
-            } else {
-                statusBuffer.classList.add('text-cyan-400', 'border-cyan-950/60');
-            }
-            statusBuffer.innerText = `// ${message.toUpperCase()}`;
-        }
-
-        function showScreen(screenId) {
-            statusBuffer.classList.add('hidden');
-            document.getElementById('signUpScreen').classList.add('hidden');
-            document.getElementById('signInScreen').classList.add('hidden');
-            document.getElementById(screenId).classList.remove('hidden');
-        }
-
-        document.getElementById('toSignInBtn').addEventListener('click', () => showScreen('signInScreen'));
-        document.getElementById('toSignUpBtn').addEventListener('click', () => showScreen('signUpScreen'));
-        document.getElementById('signUpBtn').addEventListener('click', registerJournalist);
-        document.getElementById('signInBtn').addEventListener('click', loginJournalist);
-
-        async function registerJournalist() {
-            const fullName = document.getElementById('regName').value.trim();
-            const section = document.getElementById('regSection').value;
-            const password = document.getElementById('regPassword').value;
-            const signUpBtn = document.getElementById('signUpBtn');
-
-            if (!fullName || !section || !password) {
-                displayTerminalNotice("Registration Error: All parameters required.", "error");
-                return;
-            }
-
-            signUpBtn.disabled = true;
-            signUpBtn.innerText = "Processing Profile...";
-
-            try {
-                const { data: existingUsers, error: checkError } = await supabaseClient
-                    .from('journalists')
-                    .select('*')
-                    .eq('Journalist name', fullName);
-
-                if (checkError) throw checkError;
-                if (existingUsers && existingUsers.length > 0) {
-                    displayTerminalNotice(`Registration failure: Name "${fullName}" is taken.`, "error");
-                    signUpBtn.disabled = false;
-                    signUpBtn.innerText = "Sign Up";
-                    return; 
-                }
-
-                const { error: insertError } = await supabaseClient
-                    .from('journalists')
-                    .insert([{"Journalist name": fullName, "journalism Section": section, "Password": password}]);
-
-                if (insertError) throw insertError;
-
-                displayTerminalNotice("Profile Compiled! Switching to authentication panel...", "success");
-                setTimeout(() => {
-                    statusBuffer.classList.add('hidden');
-                    document.getElementById('loginName').value = fullName;
-                    signUpBtn.disabled = false;
-                    signUpBtn.innerText = "Sign Up";
-                    showScreen('signInScreen');
-                }, 1500);
+                document.getElementById('statusConsole').innerText = `// TRANSMISSION & DELTA CAPTURE FINISHED.`;
 
             } catch (error) {
-                displayTerminalNotice("Database Core Error: " + error.message, "error");
-                signUpBtn.disabled = false;
-                signUpBtn.innerText = "Sign Up";
+                console.error("Transmission Error:", error);
+                if (monitorContainer) {
+                    monitorContainer.innerHTML = `
+                        <div class="text-red-500 font-mono text-xs">// ROUTING ERROR: ${error.message.toUpperCase()}</div>`;
+                }
+                document.getElementById('statusConsole').innerText = `// ROUTING EXCEPTION DETECTED.`;
             }
         }
 
-        async function loginJournalist() {
-            const nameInput = document.getElementById('loginName').value.trim();
-            const passwordInput = document.getElementById('loginPassword').value;
-            const signInBtn = document.getElementById('signInBtn');
+        window.downloadTerminalLogs = function() {
+            if (cachedDataStream.length === 0) return alert("Run a lookup sequence to populate logs first.");
+            const blobString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cachedDataStream, null, 2));
+            const anchor = document.createElement('a');
+            anchor.setAttribute("href", blobString);
+            anchor.setAttribute("download", "terminal_dataset_dump.json");
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+        };
 
-            if (!nameInput || !passwordInput) {
-                displayTerminalNotice("Authentication Error: Credentials missing.", "error");
-                return;
-            }
-
-            signInBtn.disabled = true;
-            signInBtn.innerText = "Authenticating...";
-
-            try {
-                const { data: records, error } = await supabaseClient
-                    .from('journalists')
-                    .select('*')
-                    .eq('Journalist name', nameInput);
-
-                if (error) throw error;
-                if (!records || records.length === 0 || records[0].Password !== passwordInput) {
-                    displayTerminalNotice("Authentication Error: Invalid identity passkey.", "error");
-                    signInBtn.disabled = false;
-                    signInBtn.innerText = "Sign In";
-                    return;
-                }
-
-                const assignedSection = records[0]["journalism Section"];
-                const configMatch = DESK_CONFIGS[assignedSection];
-
-                if (configMatch) {
-                    displayTerminalNotice(`Access Granted! Routing to: ${configMatch.title}`, "success");
-                } else {
-                    displayTerminalNotice("Access Granted! Establishing session tunnel...", "success");
-                }
-
-                document.getElementById('loginPassword').value = ""; 
-
-                setTimeout(() => {
-                    signInBtn.disabled = false;
-                    signInBtn.innerText = "Sign In";
-                    window.location.href = 'customepage.html';
-                }, 1200);
-
-            } catch (error) {
-                displayTerminalNotice("Security Subsystem Error: " + error.message, "error");
-                signInBtn.disabled = false;
-                signInBtn.innerText = "Sign In";
-            }
-        }
     </script>
 </body>
 </html>
