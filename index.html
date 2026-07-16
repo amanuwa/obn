@@ -658,15 +658,13 @@
                 const data = await response.json();
                 console.log("// WEBHOOK SUCCESS:", data);
 
-                let newsItems = [];
-                // Dig into custom nested data format
-                if (Array.isArray(data) && data[0] && Array.isArray(data[0].news)) {
-                    newsItems = data[0].news;
-                } else if (data && Array.isArray(data.news)) {
-                    newsItems = data.news;
-                } else if (Array.isArray(data)) {
-                    newsItems = data;
-                }
+              let newsItems = [];
+        // Dig into custom nested data format
+        if (data && Array.isArray(data.data)) {
+            newsItems = data.data; // This extracts the 35 items from the "data" field
+        } else if (Array.isArray(data)) {
+            newsItems = data;
+        }
 
                 if (newsItems.length === 0) {
                      monitorContainer.innerHTML = `<div class="text-slate-500">// Intercept completed. 0 matching sequences found.</div>`;
