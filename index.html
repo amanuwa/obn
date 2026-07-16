@@ -242,7 +242,7 @@
             50% { opacity: 1; }
         }
         @keyframes radarSweep {
-            0 { left: -110px; }
+            0% { left: -110px; }
             100% { left: 310px; }
         }
 
@@ -671,46 +671,50 @@
                     let html = `<div class="text-emerald-400 border-b border-slate-900 pb-2 mb-4 font-bold">// WEBHOOK RESPONSE CAPTURES (${newsItems.length} records)</div>`;
                     
                     newsItems.forEach((item, idx) => {
-                        const sourceName = item.sourceName || item.source || 'UNKNOWN SOURCE';
-                        const headline = item.news || 'No headline available';
-                        const linkUrl = item.url || '';
-                        const imgUrl = item.imageUrl || ''; 
-
+                        const titleText = item.news || item.title || 'Untitled Decrypt';
+                        const sourceLabel = item.sourceName || item.source || 'EXTERNAL WEB';
+                        const sourceUrl = item.url || '#';
+                        const imageUrl = item.imageUrl || '';
+                        
                         html += `
                         <div class="result-card">
-                            ${imgUrl ? `
+                            ${imageUrl ? `
                             <div class="result-image-wrapper">
-                                <img src="${imgUrl}" alt="${sourceName}" class="result-image" onerror="this.parentElement.style.display='none';">
+                                <img src="${imageUrl}" class="result-image" alt="Visual Link" onerror="this.parentNode.style.display='none'">
                             </div>
                             ` : ''}
-                            
                             <div class="result-text-content">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-emerald-400 font-bold">[DATA-${idx+1}]</span> 
-                                    <span class="badge-meta text-cyan-400">${sourceName}</span>
+                                <div class="flex items-center justify-between">
+                                    <span class="badge-meta text-cyan-400">[SOURCE: ${sourceLabel.toUpperCase()}]</span>
+                                    <span class="text-[9px] text-slate-500 font-mono">INDEX // 00${idx + 1}</span>
                                 </div>
-                                
-                                <p class="text-slate-200 font-semibold text-[11px] leading-snug">${headline}</p>
-                                
-                                ${linkUrl ? `
-                                <p class="text-[10px] text-slate-500 font-mono truncate hover:text-cyan-400">
-                                    <a href="${linkUrl}" target="_blank" class="hover:underline">${linkUrl}</a>
-                                </p>
-                                ` : ''}
+                                <h3 class="text-slate-100 font-bold text-xs leading-relaxed">
+                                    ${titleText}
+                                </h3>
+                                <div class="flex items-center justify-between mt-1">
+                                    <span class="text-[10px] text-emerald-500 font-semibold font-mono">STATE: DECRYPTED</span>
+                                    <a href="${sourceUrl}" target="_blank" class="text-[10px] text-cyan-400 hover:text-cyan-200 transition underline decoration-cyan-500/30 font-mono">
+                                        ACCESS LINK ->
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                        `;
+                        </div>`;
                     });
                     
                     monitorContainer.innerHTML = html;
-                    cachedDataStream = newsItems;
+                    cachedDataStream = newsItems; // Save to global cache so download log button works seamlessly!
+                    
+                    const statusLog = document.getElementById('statusConsole');
+                    if (statusLog) statusLog.innerText = `// STREAM MONITOR UPDATED WITH ${newsItems.length} RECORDS.`;
                 }
-
-            } catch (error) {
-                console.error("// ROUTING FAILURE:", error);
+            } catch (err) {
+                console.error("// TRANSMISSION ERROR:", err);
                 if (monitorContainer) {
                     monitorContainer.innerHTML = `
-                        <div class="text-red-500 font-mono text-xs">// ROUTING ERROR: ${error.message.toUpperCase()}</div>`;
+                        <div class="text-red-500 font-mono border border-red-500/30 p-3 bg-red-950/20 rounded">
+                            [!] GATEWAY TRANSMISSION FAILED<br>
+                            DETAILS: ${err.message || 'Unknown network interrupt'}
+                        </div>`;
                 }
             }
         }
