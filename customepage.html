@@ -97,7 +97,7 @@
             letter-spacing: 0.02em;
             cursor: pointer;
         }
-        .ensemble-btn:hover {
+        .ensemble-btn:hover:not(:disabled) {
             border-color: #60a5fa;
             color: #60a5fa;
         }
@@ -117,7 +117,7 @@
             cursor: pointer;
             letter-spacing: 0.05em;
         }
-        .lang-checkbox-btn:hover {
+        .lang-checkbox-btn:hover:not(:disabled) {
             border-color: #334155;
             color: #cbd5e1;
         }
@@ -138,6 +138,70 @@
         .lang-checkbox-btn.active .custom-box {
             background-color: #ffffff;
             border-color: #ffffff;
+        }
+
+        /* --- TACTICAL TERMINAL OVERLAY LOADING SCREEN --- */
+        .terminal-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(1, 2, 6, 0.96);
+            border-radius: 0.375rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            font-family: monospace;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            display: none; /* Controlled via JS */
+        }
+
+        .loading-alert-text {
+            color: #ff4444;
+            letter-spacing: 1.5px;
+            animation: terminalPulse 1.8s infinite;
+        }
+
+        /* Scanning Progress Track */
+        .tactical-track {
+            width: 280px;
+            height: 3px;
+            background: #09101f;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 1px;
+        }
+        .tactical-scanner {
+            width: 80px;
+            height: 100%;
+            background: #06b6d4;
+            box-shadow: 0 0 10px #06b6d4;
+            position: absolute;
+            top: 0;
+            animation: radarSweep 1.6s linear infinite;
+        }
+
+        @keyframes terminalPulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        @keyframes radarSweep {
+            0% { left: -100px; }
+            100% { left: 300px; }
+        }
+
+        /* Universal Disabled Styling */
+        button:disabled, 
+        input:disabled, 
+        a.domain-btn.disabled-link {
+            opacity: 0.35 !important;
+            cursor: not-allowed !important;
+            pointer-events: none !important;
         }
     </style>
 </head>
@@ -169,7 +233,7 @@
                     <span class="block text-[11px] font-mono font-semibold text-slate-300">Amanuel Bekele Woldesenbet</span>
                     <span class="block text-[9px] font-mono text-cyan-500 uppercase tracking-wider">// Operator Profile</span>
                 </div>
-                <button onclick="location.reload();" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5 py-1.5 rounded transition-all uppercase cursor-pointer">
+                <button id="btn-sign-out" onclick="location.reload();" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5 py-1.5 rounded transition-all uppercase cursor-pointer">
                     Sign Out
                 </button>
             </div>
@@ -184,9 +248,9 @@
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Strait of Hormuz</h2>
                     <div class="flex items-center gap-1.5">
                         <input type="text" id="input-hormuz" placeholder="Maritime query..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button onclick="triggerUnifiedSearch('Strait of Hormuz', 'input-hormuz')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                        <button id="btn-hormuz-go" onclick="triggerUnifiedSearch('Strait of Hormuz', 'input-hormuz')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
                     </div>
-                    <button onclick="triggerAnythingNew('Strait of Hormuz')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                    <button id="btn-hormuz-new" onclick="triggerAnythingNew('Strait of Hormuz')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
                         ✨ Anything New
                     </button>
                 </section>
@@ -195,9 +259,9 @@
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Trump Watch Matrix</h2>
                     <div class="flex items-center gap-1.5">
                         <input type="text" id="input-trump" placeholder="Policy matrix..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button onclick="triggerUnifiedSearch('Trump Watch', 'input-trump')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                        <button id="btn-trump-go" onclick="triggerUnifiedSearch('Trump Watch', 'input-trump')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
                     </div>
-                    <button onclick="triggerAnythingNew('Trump Watch')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                    <button id="btn-trump-new" onclick="triggerAnythingNew('Trump Watch')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
                         ✨ Anything New
                     </button>
                 </section>
@@ -206,9 +270,9 @@
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Grand Ethiopian Dam (GERD)</h2>
                     <div class="flex items-center gap-1.5">
                         <input type="text" id="input-gerd" placeholder="Riparian terms..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button onclick="triggerUnifiedSearch('GERD', 'input-gerd')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                        <button id="btn-gerd-go" onclick="triggerUnifiedSearch('GERD', 'input-gerd')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
                     </div>
-                    <button onclick="triggerAnythingNew('GERD')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                    <button id="btn-gerd-new" onclick="triggerAnythingNew('GERD')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
                         ✨ Anything New
                     </button>
                 </section>
@@ -217,16 +281,29 @@
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Ethiopia Sovereign Core</h2>
                     <div class="flex items-center gap-1.5">
                         <input type="text" id="input-ethiopia" placeholder="National filters..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button onclick="triggerUnifiedSearch('Ethiopia Core', 'input-ethiopia')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                        <button id="btn-ethiopia-go" onclick="triggerUnifiedSearch('Ethiopia Core', 'input-ethiopia')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
                     </div>
-                    <button onclick="triggerAnythingNew('Ethiopia Core')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                    <button id="btn-ethiopia-new" onclick="triggerAnythingNew('Ethiopia Core')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
                         ✨ Anything New
                     </button>
                 </section>
             </div>
 
             <!-- RIGHT COLUMN: CENTRAL MONITOR -->
-            <div class="flex-1 flex flex-col justify-between bg-slate-950/70 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden backdrop-blur-xs">
+            <div class="flex-1 flex flex-col justify-between bg-slate-950/70 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden backdrop-blur-xs relative">
+                
+                <!-- Terminal Overlay Loader -->
+                <div id="terminalLoader" class="terminal-loading-overlay">
+                    <div class="text-[11px] text-cyan-400">// INTERCEPTING MULTI-STREAM CHANNELS...</div>
+                    <div class="loading-alert-text text-[10px] font-bold mt-1">WARNING: EXECUTING SECURE PIPELINE ENGINE. INTERFACE LOCKED.</div>
+                    
+                    <div class="tactical-track">
+                        <div class="tactical-scanner"></div>
+                    </div>
+                    
+                    <div class="text-[9px] text-slate-500 uppercase tracking-widest">// Connection Route: Secure n8n Webhook Target Gateway</div>
+                </div>
+
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
                     <div class="flex items-center gap-2 shrink-0">
                         <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></div>
@@ -250,7 +327,7 @@
 
                 <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
                     <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
-                    <button onclick="downloadTerminalLogs()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
+                    <button id="btn-download-logs" onclick="downloadTerminalLogs()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
                         Download Dataset Logs
                     </button>
                 </div>
@@ -266,8 +343,7 @@
 
     <!-- HIGH-DENSITY GLOWING MATRIX EXECUTOR -->
     <script type="module">
-      //  import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.js';
+        import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.js';
         const canvas = document.getElementById('governanceCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -356,11 +432,40 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.j
 
         const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
 
+        // Helper to pull active languages from UI state securely
+        function getSelectedDashboardLanguages() {
+            return Object.keys(activeLanguages).filter(langKey => activeLanguages[langKey]);
+        }
+
+        // Global function to toggle/lock page interactivity
+        window.setGlobalProcessingState = function(isProcessing) {
+            // Toggle terminal overlay loading block
+            const overlay = document.getElementById('terminalLoader');
+            if (overlay) {
+                overlay.style.display = isProcessing ? 'flex' : 'none';
+            }
+
+            // Target all interactive page elements
+            const inputs = document.querySelectorAll('input');
+            const buttons = document.querySelectorAll('button');
+            const domainLinks = document.querySelectorAll('#topDomainNav a');
+
+            inputs.forEach(el => el.disabled = isProcessing);
+            buttons.forEach(el => el.disabled = isProcessing);
+            domainLinks.forEach(el => {
+                if (isProcessing) {
+                    el.classList.add('disabled-link');
+                } else {
+                    el.classList.remove('disabled-link');
+                }
+            });
+        };
+
         window.toggleLangCheckbox = function(langKey) {
             const btn = document.getElementById(`lang-${langKey}`);
             activeLanguages[langKey] = !activeLanguages[langKey];
             btn.classList.toggle('active', activeLanguages[langKey]);
-            const activeList = Object.keys(activeLanguages).filter(k => activeLanguages[k]);
+            const activeList = getSelectedDashboardLanguages();
             document.getElementById('statusConsole').innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
         };
 
@@ -375,6 +480,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.j
         };
 
         window.triggerAnythingNew = async function(sectorContext) {
+            window.setGlobalProcessingState(true);
             const outputPanel = document.getElementById('unifiedResultsConsole');
             const statusLog = document.getElementById('statusConsole');
             statusLog.innerText = `// TRACKING RECENT CHRONO ENTRIES FOR: [${sectorContext.toUpperCase()}]`;
@@ -384,6 +490,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.j
                 let tableTarget = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
                     ? 'Ethiopian -Politics and governance websites' : 'politics and governance -websites';
 
+                // First attempt: Supabase pipeline
                 const { data, error } = await supabaseClient.from(tableTarget).select('*').order('id', { ascending: false }).limit(4);
                 if (error) throw error;
                 cachedDataStream = data || [];
@@ -395,12 +502,26 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.j
                 outputPanel.innerHTML = html;
                 statusLog.innerText = `// DELTA CAPTURE FINISHED.`;
             } catch (err) {
-                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// READ TIMEOUT ERROR.</span>`;
+                // If standard Supabase fails, routing falls back to webhook pathway
+                console.log("// Local Supabase exception. Redirecting to n8n secure router...");
+                
+                const formattedMatrixKey = sectorContext.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
+                const fallbackPayload = {
+                    targetMatrix: formattedMatrixKey,
+                    executionType: 'anything_new',
+                    query: `latest operational updates tracking for ${sectorContext}`,
+                    languages: getSelectedDashboardLanguages(),
+                    timestamp: new Date().toISOString()
+                };
+                await transmitPayloadToN8n(fallbackPayload);
+            } finally {
+                window.setGlobalProcessingState(false);
             }
         };
 
         window.triggerUnifiedSearch = async function(sectorContext, inputId) {
-            const queryValue = document.getElementById(inputId).value.trim();
+            const queryInput = document.getElementById(inputId);
+            const queryValue = queryInput ? queryInput.value.trim() : '';
             const outputPanel = document.getElementById('unifiedResultsConsole');
             const statusLog = document.getElementById('statusConsole');
 
@@ -409,6 +530,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.j
                 return;
             }
 
+            window.setGlobalProcessingState(true);
             statusLog.innerText = `// INTERROGATING ROW INDICES FOR: "${queryValue}"...`;
             outputPanel.innerHTML = `<div class="text-cyan-400 animate-pulse">// SCANNING INDEX SCHEMAS...</div>`;
 
@@ -430,7 +552,20 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.j
                     outputPanel.innerHTML = html;
                 }
             } catch (err) {
-                outputPanel.innerHTML = `<span class="text-red-500 font-mono">// RELATIONAL MAP EXCEPTION.</span>`;
+                // Supabase missing table error route triggers webhook fallback
+                console.log("// Supabase table missing/not matching. Forwarding payload to n8n gateway pipeline...");
+                
+                const formattedMatrixKey = sectorContext.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
+                const fallbackPayload = {
+                    targetMatrix: formattedMatrixKey,
+                    executionType: 'specific_search',
+                    query: queryValue,
+                    languages: getSelectedDashboardLanguages(),
+                    timestamp: new Date().toISOString()
+                };
+                await transmitPayloadToN8n(fallbackPayload);
+            } finally {
+                window.setGlobalProcessingState(false);
             }
         };
 
@@ -444,88 +579,54 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.j
             anchor.click();
             anchor.remove();
         };
-        // --- DYNAMIC ROUTING ENGINE ---
 
-// Helper to pull active languages from the dashboard UI
-function getSelectedDashboardLanguages() {
-    const checkedLangs = [];
-    document.querySelectorAll('.lang-check:checked').forEach(cb => {
-        checkedLangs.push(cb.value.toLowerCase());
-    });
-    return checkedLangs;
-}
+        // Central engine that talks to n8n
+        async function transmitPayloadToN8n(payload) {
+            const monitorContainer = document.getElementById('unifiedResultsConsole');
+            if (monitorContainer) {
+                monitorContainer.innerHTML = `
+                    <div class="text-cyan-400 font-mono text-xs animate-pulse">
+                        // INSTANTIATING INTERCEPT WEBHOOK...<br>
+                        // TARGET ROUTE: [${payload.targetMatrix.toUpperCase()}]
+                    </div>`;
+            }
 
-// Logic for your "Go" buttons
-window.triggerUnifiedSearch = async function(matrixName, inputId) {
-    const queryInput = document.getElementById(inputId);
-    const queryText = queryInput ? queryInput.value.trim() : '';
-    
-    if (!queryText) {
-        alert(`Please enter a query parameter for the ${matrixName} matrix first.`);
-        return;
-    }
+            try {
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-    const formattedMatrixKey = matrixName.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
+                if (!response.ok) throw new Error(`Gateway Status: ${response.status}`);
+                
+                const data = await response.json();
+                console.log("Transmission successful:", data);
 
-    const payload = {
-        targetMatrix: formattedMatrixKey,
-        executionType: 'specific_search',
-        query: queryText,
-        languages: getSelectedDashboardLanguages(),
-        timestamp: new Date().toISOString()
-    };
+                // Update standard logs array and render results from webhook response
+                if (data && Array.isArray(data)) {
+                    cachedDataStream = data;
+                } else if (data && data.results && Array.isArray(data.results)) {
+                    cachedDataStream = data.results;
+                }
 
-    await transmitPayloadToN8n(payload);
-};
+                if (cachedDataStream.length === 0) {
+                     monitorContainer.innerHTML = `<div class="text-slate-500">// Intercept completed. 0 matching sequences found.</div>`;
+                } else {
+                    let html = `<div class="text-emerald-400 border-b border-slate-900 pb-1.5 mb-2">// WEBHOOK RESPONSE CAPTURES</div>`;
+                    cachedDataStream.forEach((row, idx) => {
+                        html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-emerald-400 font-bold">[DATA-${idx+1}]</span> <span class="text-slate-200">${row.title || row.name || 'External Item'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
+                    });
+                    monitorContainer.innerHTML = html;
+                }
 
-// Logic for your "Anything New" buttons
-window.triggerAnythingNew = async function(matrixName) {
-    const formattedMatrixKey = matrixName.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
-
-    const payload = {
-        targetMatrix: formattedMatrixKey,
-        executionType: 'anything_new',
-        query: `latest operational updates tracking for ${matrixName}`,
-        languages: getSelectedDashboardLanguages(),
-        timestamp: new Date().toISOString()
-    };
-
-    await transmitPayloadToN8n(payload);
-};
-
-// Central engine that talks to n8n
-async function transmitPayloadToN8n(payload) {
-  //  const monitorContainer = document.getElementById('outputContainer');
-    const monitorContainer = document.getElementById('outputPanel');
-    if (monitorContainer) {
-        monitorContainer.innerHTML = `
-            <div class="text-cyan-400 font-mono text-xs animate-pulse">
-                // INSTANTIATING INTERCEPT WEBHOOK...<br>
-                // TARGET ROUTE: [${payload.targetMatrix.toUpperCase()}]
-            </div>`;
-    }
-
-    try {
-        const response = await fetch(N8N_GATEWAY_WEBHOOK, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) throw new Error(`Gateway Status: ${response.status}`);
-        
-        const data = await response.json();
-        console.log("Transmission successful:", data);
-
-    } catch (error) {
-        if (monitorContainer) {
-            monitorContainer.innerHTML = `
-                <div class="text-red-500 font-mono text-xs">// ROUTING ERROR: ${error.message.toUpperCase()}</div>`;
+            } catch (error) {
+                if (monitorContainer) {
+                    monitorContainer.innerHTML = `
+                        <div class="text-red-500 font-mono text-xs">// ROUTING ERROR: ${error.message.toUpperCase()}</div>`;
+                }
+            }
         }
-    }
-}
-
-        
     </script>
 </body>
 </html>
