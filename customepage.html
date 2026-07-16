@@ -23,10 +23,10 @@
             height: 100%;
             z-index: 0;
             pointer-events: none;
-            transition: opacity 0.5s ease-out; /* Smoothly blend out canvas */
+            transition: opacity 0.5s ease-out;
         }
 
-        /* Smooth UI entry fade after matrix sequence stabilizes */
+        /* Smooth UI entry fade */
         #dashboardContent {
             opacity: 0;
             transition: opacity 1.5s ease-in-out;
@@ -140,14 +140,14 @@
             border-color: #ffffff;
         }
 
-        /* --- TACTICAL TERMINAL OVERLAY LOADING SCREEN --- */
+        /* --- BRIGHT WHITE CENTRAL STREAM OVERLAY --- */
         .terminal-loading-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(1, 2, 6, 0.96);
+            background: #ffffff; /* Solid White Flash Trigger */
             border-radius: 0.375rem;
             display: flex;
             flex-direction: column;
@@ -155,44 +155,46 @@
             align-items: center;
             z-index: 50;
             font-family: monospace;
-            border: 1px solid rgba(6, 182, 212, 0.3);
-            display: none; /* Controlled via JS */
+            border: 2px solid #2563eb; /* Bold boundary highlight */
+            display: none; /* Controlled via JS toggle */
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
         }
 
         .loading-alert-text {
-            color: #ff4444;
+            color: #dc2626; /* Deep Solid Red on White */
+            font-weight: 800;
             letter-spacing: 1.5px;
-            animation: terminalPulse 1.8s infinite;
+            animation: terminalPulse 1.4s infinite;
         }
 
-        /* Scanning Progress Track */
+        /* High Visibility Progress Track */
         .tactical-track {
             width: 280px;
-            height: 3px;
-            background: #09101f;
+            height: 6px;
+            background: #e2e8f0; /* Soft light gray track */
             margin-top: 15px;
             margin-bottom: 15px;
             position: relative;
             overflow: hidden;
-            border-radius: 1px;
+            border-radius: 3px;
         }
         .tactical-scanner {
-            width: 80px;
+            width: 100px;
             height: 100%;
-            background: #06b6d4;
-            box-shadow: 0 0 10px #06b6d4;
+            background: #2563eb; /* Strong Blue Active Scanner */
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.6);
             position: absolute;
             top: 0;
-            animation: radarSweep 1.6s linear infinite;
+            animation: radarSweep 1.3s linear infinite;
         }
 
         @keyframes terminalPulse {
-            0%, 100% { opacity: 0.4; }
+            0%, 100% { opacity: 0.5; }
             50% { opacity: 1; }
         }
         @keyframes radarSweep {
-            0% { left: -100px; }
-            100% { left: 300px; }
+            0% { left: -110px; }
+            100% { left: 310px; }
         }
 
         /* Universal Disabled Styling */
@@ -292,16 +294,16 @@
             <!-- RIGHT COLUMN: CENTRAL MONITOR -->
             <div class="flex-1 flex flex-col justify-between bg-slate-950/70 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden backdrop-blur-xs relative">
                 
-                <!-- Terminal Overlay Loader -->
+                <!-- White Terminal Overlay Loader -->
                 <div id="terminalLoader" class="terminal-loading-overlay">
-                    <div class="text-[11px] text-cyan-400">// INTERCEPTING MULTI-STREAM CHANNELS...</div>
-                    <div class="loading-alert-text text-[10px] font-bold mt-1">WARNING: EXECUTING SECURE PIPELINE ENGINE. INTERFACE LOCKED.</div>
+                    <div class="text-[12px] text-slate-900 font-bold tracking-wider">// INITIALIZING INTERCEPT SEQUENCES...</div>
+                    <div class="loading-alert-text text-[11px] mt-1.5">SYSTEM STATE: PROCESSING - PLEASE WAIT...</div>
                     
                     <div class="tactical-track">
                         <div class="tactical-scanner"></div>
                     </div>
                     
-                    <div class="text-[9px] text-slate-500 uppercase tracking-widest">// Connection Route: Secure n8n Webhook Target Gateway</div>
+                    <div class="text-[9px] text-slate-400 uppercase tracking-widest font-bold">// SECURE NETWORK GATEWAY PIPELINE IN OPERATION</div>
                 </div>
 
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
@@ -344,6 +346,9 @@
     <!-- HIGH-DENSITY GLOWING MATRIX EXECUTOR -->
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.js';
+        
+        console.log("// TERMINAL HUB: Modules loaded successfully. Gateway configured.");
+
         const canvas = document.getElementById('governanceCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -400,52 +405,53 @@
                 ctx.fillText(p.char, p.x, p.y);
             });
 
-            // STEP 1: Bring panels into view immediately at 2000ms (2 seconds mark)
+            // Bring panels into view immediately at 2000ms
             if (!panelsRevealed && elapsed >= 2000) {
                 panelsRevealed = true;
                 document.getElementById('dashboardContent').classList.add('visible');
             }
 
-            // STEP 2: Show for 2 seconds alongside panels, then trigger removal process
+            // Clear from viewport pipeline
             if (elapsed >= 4000) {
                 if (!canvasCleanedUp) {
                     canvasCleanedUp = true;
-                    canvas.style.opacity = '0'; // Smoothly fade opacity down
+                    canvas.style.opacity = '0';
                     setTimeout(() => {
-                        canvas.style.display = 'none'; // Clear from viewport pipeline completely
-                        cancelAnimationFrame(animationFrameId); // Terminate execution engine context
+                        canvas.style.display = 'none';
+                        cancelAnimationFrame(animationFrameId);
                     }, 500); 
                 }
-                return; // Break frame cycle recursion loop
+                return;
             }
 
             animationFrameId = requestAnimationFrame(runStaticGlitchField);
         }
         
-        // Boot up background intro engine timeline
         animationFrameId = requestAnimationFrame(runStaticGlitchField);
 
-
-        // 2. SUPABASE RELATIONAL ACTIONS PIPELINE
+        // Supabase Init Connection Context
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let cachedDataStream = [];
 
         const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
 
-        // Helper to pull active languages from UI state securely
         function getSelectedDashboardLanguages() {
             return Object.keys(activeLanguages).filter(langKey => activeLanguages[langKey]);
         }
 
-        // Global function to toggle/lock page interactivity
+        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        // Global function to control screen states and trigger the white processing overlay
         window.setGlobalProcessingState = function(isProcessing) {
-            // Toggle terminal overlay loading block
+            console.log(`// INTERFACE STATE UPDATE: ${isProcessing ? 'LOCKED (PROCESSING)' : 'UNLOCKED (IDLE)'}`);
+            
+            // Toggle white loading screen layer
             const overlay = document.getElementById('terminalLoader');
             if (overlay) {
                 overlay.style.display = isProcessing ? 'flex' : 'none';
             }
 
-            // Target all interactive page elements
+            // Lock all interface buttons and elements
             const inputs = document.querySelectorAll('input');
             const buttons = document.querySelectorAll('button');
             const domainLinks = document.querySelectorAll('#topDomainNav a');
@@ -480,17 +486,19 @@
         };
 
         window.triggerAnythingNew = async function(sectorContext) {
+            console.log(`// INITIALIZING: Anything New for sector [${sectorContext}]`);
+            const startTime = Date.now();
             window.setGlobalProcessingState(true);
+
             const outputPanel = document.getElementById('unifiedResultsConsole');
             const statusLog = document.getElementById('statusConsole');
             statusLog.innerText = `// TRACKING RECENT CHRONO ENTRIES FOR: [${sectorContext.toUpperCase()}]`;
-            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying database metrics chronologically...</div>`;
+            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying database metrics...</div>`;
 
             try {
                 let tableTarget = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
                     ? 'Ethiopian -Politics and governance websites' : 'politics and governance -websites';
 
-                // First attempt: Supabase pipeline
                 const { data, error } = await supabaseClient.from(tableTarget).select('*').order('id', { ascending: false }).limit(4);
                 if (error) throw error;
                 cachedDataStream = data || [];
@@ -502,8 +510,7 @@
                 outputPanel.innerHTML = html;
                 statusLog.innerText = `// DELTA CAPTURE FINISHED.`;
             } catch (err) {
-                // If standard Supabase fails, routing falls back to webhook pathway
-                console.log("// Local Supabase exception. Redirecting to n8n secure router...");
+                console.warn("// Supabase fallback active. Redirecting payload to webhook...");
                 
                 const formattedMatrixKey = sectorContext.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
                 const fallbackPayload = {
@@ -515,6 +522,12 @@
                 };
                 await transmitPayloadToN8n(fallbackPayload);
             } finally {
+                // Ensure the white loading mask is shown for at least 1.2s
+                const elapsedTime = Date.now() - startTime;
+                const visualBuffer = 1200 - elapsedTime;
+                if (visualBuffer > 0) {
+                    await delay(visualBuffer);
+                }
                 window.setGlobalProcessingState(false);
             }
         };
@@ -530,7 +543,10 @@
                 return;
             }
 
+            console.log(`// INITIALIZING: Unified Search for "${queryValue}" inside [${sectorContext}]`);
+            const startTime = Date.now();
             window.setGlobalProcessingState(true);
+
             statusLog.innerText = `// INTERROGATING ROW INDICES FOR: "${queryValue}"...`;
             outputPanel.innerHTML = `<div class="text-cyan-400 animate-pulse">// SCANNING INDEX SCHEMAS...</div>`;
 
@@ -552,8 +568,7 @@
                     outputPanel.innerHTML = html;
                 }
             } catch (err) {
-                // Supabase missing table error route triggers webhook fallback
-                console.log("// Supabase table missing/not matching. Forwarding payload to n8n gateway pipeline...");
+                console.warn("// Supabase query error. Forwarding payload to webhook...");
                 
                 const formattedMatrixKey = sectorContext.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
                 const fallbackPayload = {
@@ -565,6 +580,12 @@
                 };
                 await transmitPayloadToN8n(fallbackPayload);
             } finally {
+                // Ensure the white loading mask is shown for at least 1.2s
+                const elapsedTime = Date.now() - startTime;
+                const visualBuffer = 1200 - elapsedTime;
+                if (visualBuffer > 0) {
+                    await delay(visualBuffer);
+                }
                 window.setGlobalProcessingState(false);
             }
         };
@@ -580,8 +601,8 @@
             anchor.remove();
         };
 
-        // Central engine that talks to n8n
         async function transmitPayloadToN8n(payload) {
+            console.log("// SENDING PAYLOAD TO N8N WEBHOOK...", payload);
             const monitorContainer = document.getElementById('unifiedResultsConsole');
             if (monitorContainer) {
                 monitorContainer.innerHTML = `
@@ -601,9 +622,8 @@
                 if (!response.ok) throw new Error(`Gateway Status: ${response.status}`);
                 
                 const data = await response.json();
-                console.log("Transmission successful:", data);
+                console.log("// WEBHOOK SUCCESS:", data);
 
-                // Update standard logs array and render results from webhook response
                 if (data && Array.isArray(data)) {
                     cachedDataStream = data;
                 } else if (data && data.results && Array.isArray(data.results)) {
@@ -621,6 +641,7 @@
                 }
 
             } catch (error) {
+                console.error("// ROUTING FAILURE:", error);
                 if (monitorContainer) {
                     monitorContainer.innerHTML = `
                         <div class="text-red-500 font-mono text-xs">// ROUTING ERROR: ${error.message.toUpperCase()}</div>`;
