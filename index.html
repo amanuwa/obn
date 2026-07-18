@@ -816,7 +816,7 @@ function rebuildVisibleCards() {
             anchor.remove();
         };
 
-        async function transmitPayloadToN8n(payload) {
+      async function transmitPayloadToN8n(payload) {
             console.log("// SENDING PAYLOAD TO N8N WEBHOOK...", payload);
             const monitorContainer = document.getElementById('unifiedResultsConsole');
             
@@ -844,7 +844,7 @@ function rebuildVisibleCards() {
                 const data = await response.json();
                 console.log("// WEBHOOK SUCCESS:", data);
 
-           // Get the active language
+                // Get the active language
                 const selected = getSelectedDashboardLanguages();
                 const primaryLang = selected.length > 0 ? selected[0] : null;
 
@@ -865,7 +865,7 @@ function rebuildVisibleCards() {
                 document.getElementById('btn-restore-log').classList.add('hidden');
                 
                 rebuildVisibleCards();
-                }
+                
             } catch (err) {
                 console.error("// GATEWAY ERROR:", err);
                 if (monitorContainer) {
