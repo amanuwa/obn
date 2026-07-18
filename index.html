@@ -815,12 +815,10 @@ function rebuildVisibleCards() {
             anchor.click();
             anchor.remove();
         };
-
-      async function transmitPayloadToN8n(payload) {
+async function transmitPayloadToN8n(payload) {
             console.log("// SENDING PAYLOAD TO N8N WEBHOOK...", payload);
             const monitorContainer = document.getElementById('unifiedResultsConsole');
             
-            // Do not wipe out visible terminal screen cards if this is specifically a quick text translation query action
             if (monitorContainer && payload.executionType !== 'translate_curated_feed') {
                 monitorContainer.innerHTML = `
                     <div class="text-cyan-400 font-mono text-xs animate-pulse">
@@ -842,23 +840,23 @@ function rebuildVisibleCards() {
                 if (!response.ok) throw new Error(`Gateway Status: ${response.status}`);
                 
                 const data = await response.json();
-                console.log("// WEBHOOK SUCCESS:", data);
-
-                // Get the active language
+                
+                // Determine if this is a translation update or an initial scrape
+                const isTranslationUpdate = payload.executionType === 'translate_curated_feed';
                 const selected = getSelectedDashboardLanguages();
-                const primaryLang = selected.length > 0 ? selected[0] : null;
+                const primaryLang = isTranslationUpdate && selected.length > 0 ? selected[0] : 'ENGLISH';
 
-                // Flatten data from the nested structure
                 let rawItems = (data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : []);
 
-                // Filter/Prepare items for display
+                // Map data: Default to ENGLISH if initial load, otherwise use primaryLang
                 cachedDataStream = rawItems.map(item => {
-                    // If a language is selected, only keep items that have that language key
-                    if (primaryLang && item.news && item.news[primaryLang]) {
-                        return { ...item, displayTitle: item.news[primaryLang] };
+                    let title = 'Untitled Decrypt';
+                    if (item.news && typeof item.news === 'object') {
+                        title = item.news[primaryLang] || item.news['ENGLISH'] || item.title;
+                    } else {
+                        title = item.title || item.news;
                     }
-                    // Fallback for non-translated or raw data
-                    return { ...item, displayTitle: item.news || item.title || 'Untitled Decrypt' };
+                    return { ...item, displayTitle: title };
                 });
 
                 deletedItemsStack = [];
