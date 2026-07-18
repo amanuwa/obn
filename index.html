@@ -757,17 +757,17 @@ initLanguageUI();
 function rebuildVisibleCards(forceLang = null) {
     const outputPanel = document.getElementById('unifiedResultsConsole');
     
-    // If forceLang is passed (e.g., 'ENGLISH'), use it. 
-    // Otherwise, use the toggle buttons.
+    // Check if we are forcing a language OR if any are selected via buttons
     const selected = forceLang ? [forceLang] : getSelectedDashboardLanguages();
     
-    // 1. If no language is selected (and not forcing a language), show wait message
-    if (selected.length === 0) {
+    // ONLY show the wait message if we are NOT forcing a language 
+    // AND nothing is selected
+    if (!forceLang && selected.length === 0) {
         outputPanel.innerHTML = '<div class="text-slate-500 text-center p-10">// SELECT A LANGUAGE ENSEMBLE TO DISPLAY DATA...</div>';
         return;
     }
 
-    const primaryLang = selected[0]; 
+    const primaryLang = forceLang || selected[0]; 
     const displayData = Array.isArray(cachedDataStream) ? cachedDataStream : [];
 
     let html = `<div class="text-emerald-400 border-b border-slate-900 pb-2 mb-4 font-bold">// WEBHOOK RESPONSE CAPTURES (${displayData.length} records)</div>`;
@@ -775,9 +775,9 @@ function rebuildVisibleCards(forceLang = null) {
     displayData.forEach((item, idx) => {
         if (item === null) return;
 
-        // Logic: Use the forced/selected language from the payload map
-        // This ensures the title matches whatever was set in transmitPayloadToN8n
-        const titleText = item.displayTitle || 'Untitled Decrypt'; 
+        // Use displayTitle if available, otherwise fallback to the primary language logic
+        const titleText = item.displayTitle || (item.news ? (item.news[primaryLang] || item.news.ENGLISH) : item.title) || 'Untitled Decrypt';
+        
         const sourceLabel = item.sourceName || item.source || 'EXTERNAL WEB';
         const sourceUrl = item.url || '#';
         const imageUrl = item.imageUrl || '';
