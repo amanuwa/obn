@@ -814,61 +814,62 @@ function rebuildVisibleCards(forceLang = null) {
             anchor.remove();
         };
 async function transmitPayloadToN8n(payload) {
-            console.log("// SENDING PAYLOAD TO N8N WEBHOOK...", payload);
-            const monitorContainer = document.getElementById('unifiedResultsConsole');
-            
-            if (monitorContainer && payload.executionType !== 'translate_curated_feed') {
-                monitorContainer.innerHTML = `
-                    <div class="text-cyan-400 font-mono text-xs animate-pulse">
-                        // INSTANTIATING INTERCEPT WEBHOOK...<br>
-                        // TARGET ROUTE: [${payload.targetMatrix.toUpperCase()}]
-                    </div>`;
+    console.log("// SENDING PAYLOAD TO N8N WEBHOOK...", payload);
+    const monitorContainer = document.getElementById('unifiedResultsConsole');
+    
+    if (monitorContainer && payload.executionType !== 'translate_curated_feed') {
+        monitorContainer.innerHTML = `
+            <div class="text-cyan-400 font-mono text-xs animate-pulse">
+                // INSTANTIATING INTERCEPT WEBHOOK...<br>
+                // TARGET ROUTE: [${payload.targetMatrix.toUpperCase()}]
+            </div>`;
+    }
+
+    try {
+        const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error(`Gateway Status: ${response.status}`);
+        
+        const data = await response.json();
+        
+        const isTranslationUpdate = payload.executionType === 'translate_curated_feed';
+        const selected = getSelectedDashboardLanguages();
+        
+        // Determine the language to display
+        const primaryLang = isTranslationUpdate && selected.length > 0 ? selected[0] : 'ENGLISH';
+
+        let rawItems = (data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : []);
+
+        cachedDataStream = rawItems.map(item => {
+            let title = 'Untitled Decrypt';
+            if (item.news && typeof item.news === 'object') {
+                title = item.news[primaryLang] || item.news['ENGLISH'] || item.title;
+            } else {
+                title = item.title || item.news;
             }
+            return { ...item, displayTitle: title };
+        });
 
-            try {
-                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) throw new Error(`Gateway Status: ${response.status}`);
-                
-                const data = await response.json();
-                
-                // Determine if this is a translation update or an initial scrape
-                const isTranslationUpdate = payload.executionType === 'translate_curated_feed';
-                const selected = getSelectedDashboardLanguages();
-                const primaryLang = isTranslationUpdate && selected.length > 0 ? selected[0] : 'ENGLISH';
-
-                let rawItems = (data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : []);
-
-                // Map data: Default to ENGLISH if initial load, otherwise use primaryLang
-                cachedDataStream = rawItems.map(item => {
-                    let title = 'Untitled Decrypt';
-                    if (item.news && typeof item.news === 'object') {
-                        title = item.news[primaryLang] || item.news['ENGLISH'] || item.title;
-                    } else {
-                        title = item.title || item.news;
-                    }
-                    return { ...item, displayTitle: title };
-                });
-
-                deletedItemsStack = [];
-                document.getElementById('btn-restore-log').classList.add('hidden');
-                
-                rebuildVisibleCards();
-                
-            } catch (err) {
-                console.error("// GATEWAY ERROR:", err);
-                if (monitorContainer) {
-                    monitorContainer.innerHTML = `<span class="text-red-400 font-mono">// GATEWAY RECONNAISSANCE INTERRUPTED: ${err.message}</span>`;
-                }
-            }
+        deletedItemsStack = [];
+        document.getElementById('btn-restore-log').classList.add('hidden');
+        
+        // FIX: Pass primaryLang to the rebuild function so it knows exactly what to render
+        rebuildVisibleCards(primaryLang);
+        
+    } catch (err) {
+        console.error("// GATEWAY ERROR:", err);
+        if (monitorContainer) {
+            monitorContainer.innerHTML = `<span class="text-red-400 font-mono">// GATEWAY RECONNAISSANCE INTERRUPTED: ${err.message}</span>`;
         }
+    }
+}
     </script>
 </body>
 </html>
