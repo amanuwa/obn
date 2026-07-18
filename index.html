@@ -800,7 +800,6 @@ function rebuildVisibleCards(forceLang = null) {
     outputPanel.innerHTML = html;
 }
         window.downloadAsPdf = function() {
-    // 1. Filter out deleted cards
     const visibleData = cachedDataStream.filter(item => item !== null);
     
     if (visibleData.length === 0) {
@@ -810,15 +809,15 @@ function rebuildVisibleCards(forceLang = null) {
 
     const printWindow = window.open('', '_blank', 'width=800,height=600');
     
-    // 2. Prepare the content
+    // Updated mapping to include the image if it exists
     let newsHtml = visibleData.map(item => `
         <div class="news-card">
+            ${item.imageUrl ? `<img src="${item.imageUrl}" class="news-image">` : ''}
             <div class="source">[SOURCE: ${item.sourceName || 'EXTERNAL WEB'}]</div>
             <div class="title">${item.displayTitle}</div>
         </div>
     `).join('');
 
-    // 3. Set Header to Source and Date
     const reportDate = new Date().toLocaleDateString();
     
     printWindow.document.write(`
@@ -826,11 +825,12 @@ function rebuildVisibleCards(forceLang = null) {
         <head>
             <style>
                 @page { size: A4; margin: 20mm; }
-                body { font-family: sans-serif; padding: 0; }
+                body { font-family: sans-serif; }
                 .report-header { border-bottom: 2px solid #000; margin-bottom: 30px; padding-bottom: 10px; }
                 .header-title { font-size: 18px; font-weight: bold; text-transform: uppercase; }
                 .header-date { font-size: 12px; color: #666; margin-top: 5px; }
-                .news-card { margin-bottom: 20px; page-break-inside: avoid; }
+                .news-card { margin-bottom: 25px; page-break-inside: avoid; }
+                .news-image { max-width: 100px; float: left; margin-right: 15px; border-radius: 4px; }
                 .source { font-size: 10px; color: #555; font-weight: bold; }
                 .title { font-size: 14px; margin-top: 4px; }
             </style>
@@ -850,8 +850,7 @@ function rebuildVisibleCards(forceLang = null) {
     setTimeout(() => {
         printWindow.print();
     }, 500);
-};
-        window.downloadTerminalLogs = function() {
+};        window.downloadTerminalLogs = function() {
             // Filter empty null allocations cleanly out from download output schema array configurations
             const activeDataset = cachedDataStream.filter(item => item !== null);
 
