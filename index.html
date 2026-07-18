@@ -483,8 +483,17 @@
         let deletedItemsStack = [];
         let lastTriggeredMatrix = "strait_of_hormuz"; // Track last active search matrix context
 
-        const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
-
+     //   const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
+const activeLanguages = { OROMIFFA: false, AMHARIC: false, ENGLISH: false, ARABIC: false };
+// Force all buttons to be visually unchecked on start
+function initLanguageUI() {
+    Object.keys(activeLanguages).forEach(langKey => {
+        const btn = document.getElementById(`lang-${langKey}`);
+        if (btn) btn.classList.remove('active');
+    });
+}
+initLanguageUI();
+        
         function getSelectedDashboardLanguages() {
             return Object.keys(activeLanguages).filter(langKey => activeLanguages[langKey]);
         }
