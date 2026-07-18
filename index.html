@@ -379,9 +379,9 @@
                         <button id="btn-restore-log" onclick="restoreLastDeleted()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md cursor-pointer transition-all tracking-wide uppercase hidden">
                             ⟲ Restore Deleted
                         </button>
-                        <button id="btn-download-logs" onclick="downloadTerminalLogs()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
-                            Download Dataset Logs
-                        </button>
+                       <button id="btn-download-logs" onclick="downloadAsPdf()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
+    Download A4 PDF Report
+</button>
                     </div>
                 </div>
             </div>
@@ -799,6 +799,58 @@ function rebuildVisibleCards(forceLang = null) {
     });
     outputPanel.innerHTML = html;
 }
+        window.downloadAsPdf = function() {
+    // 1. Filter out deleted cards
+    const visibleData = cachedDataStream.filter(item => item !== null);
+    
+    if (visibleData.length === 0) {
+        alert("Nothing to export.");
+        return;
+    }
+
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    
+    // 2. Prepare the content
+    let newsHtml = visibleData.map(item => `
+        <div class="news-card">
+            <div class="source">[SOURCE: ${item.sourceName || 'EXTERNAL WEB'}]</div>
+            <div class="title">${item.displayTitle}</div>
+        </div>
+    `).join('');
+
+    // 3. Set Header to Source and Date
+    const reportDate = new Date().toLocaleDateString();
+    
+    printWindow.document.write(`
+        <html>
+        <head>
+            <style>
+                @page { size: A4; margin: 20mm; }
+                body { font-family: sans-serif; padding: 0; }
+                .report-header { border-bottom: 2px solid #000; margin-bottom: 30px; padding-bottom: 10px; }
+                .header-title { font-size: 18px; font-weight: bold; text-transform: uppercase; }
+                .header-date { font-size: 12px; color: #666; margin-top: 5px; }
+                .news-card { margin-bottom: 20px; page-break-inside: avoid; }
+                .source { font-size: 10px; color: #555; font-weight: bold; }
+                .title { font-size: 14px; margin-top: 4px; }
+            </style>
+        </head>
+        <body>
+            <div class="report-header">
+                <div class="header-title">INTELLIGENCE SOURCE: CENTRAL STREAM MONITOR</div>
+                <div class="header-date">GENERATED: ${reportDate}</div>
+            </div>
+            ${newsHtml}
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
+};
         window.downloadTerminalLogs = function() {
             // Filter empty null allocations cleanly out from download output schema array configurations
             const activeDataset = cachedDataStream.filter(item => item !== null);
