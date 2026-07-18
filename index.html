@@ -754,20 +754,20 @@ initLanguageUI();
             }
         };
 
-function rebuildVisibleCards() {
+function rebuildVisibleCards(forceLang = null) {
     const outputPanel = document.getElementById('unifiedResultsConsole');
-    const selected = getSelectedDashboardLanguages();
     
-    // 1. If no language is selected, show wait message
+    // If forceLang is passed (e.g., 'ENGLISH'), use it. 
+    // Otherwise, use the toggle buttons.
+    const selected = forceLang ? [forceLang] : getSelectedDashboardLanguages();
+    
+    // 1. If no language is selected (and not forcing a language), show wait message
     if (selected.length === 0) {
         outputPanel.innerHTML = '<div class="text-slate-500 text-center p-10">// SELECT A LANGUAGE ENSEMBLE TO DISPLAY DATA...</div>';
         return;
     }
 
     const primaryLang = selected[0]; 
-    
-    // 2. IMPORTANT: Access the data correctly from the webhook response
-    // Based on your screenshot, your data is inside 'result.data'
     const displayData = Array.isArray(cachedDataStream) ? cachedDataStream : [];
 
     let html = `<div class="text-emerald-400 border-b border-slate-900 pb-2 mb-4 font-bold">// WEBHOOK RESPONSE CAPTURES (${displayData.length} records)</div>`;
@@ -775,10 +775,9 @@ function rebuildVisibleCards() {
     displayData.forEach((item, idx) => {
         if (item === null) return;
 
-        // 3. Logic to extract the text from the structure shown in your console
-        // We look for the primaryLang key inside the item
-      //  const titleText = (item[primaryLang] || item.news || item.title || 'Untitled Decrypt');
-       const titleText = item.displayTitle; 
+        // Logic: Use the forced/selected language from the payload map
+        // This ensures the title matches whatever was set in transmitPayloadToN8n
+        const titleText = item.displayTitle || 'Untitled Decrypt'; 
         const sourceLabel = item.sourceName || item.source || 'EXTERNAL WEB';
         const sourceUrl = item.url || '#';
         const imageUrl = item.imageUrl || '';
@@ -790,7 +789,7 @@ function rebuildVisibleCards() {
             <div class="result-text-content">
                 <div class="badge-meta text-cyan-400">[SOURCE: ${sourceLabel.toUpperCase()}]</div>
                 <div class="text-slate-200">${titleText}</div>
-                <div class="text-[9px] text-emerald-500 uppercase font-mono tracking-wider">STATE: DECRYPTED</div>
+                <div class="text-[9px] text-emerald-500 uppercase font-mono tracking-wider">STATE: DECRYPTED [LANG: ${primaryLang}]</div>
             </div>
             <div class="text-right flex flex-col justify-between h-full shrink-0 select-none">
                 <span class="text-[9px] text-slate-600 font-mono">INDEX // ${String(idx + 1).padStart(3, '0')}</span>
@@ -800,7 +799,6 @@ function rebuildVisibleCards() {
     });
     outputPanel.innerHTML = html;
 }
-
         window.downloadTerminalLogs = function() {
             // Filter empty null allocations cleanly out from download output schema array configurations
             const activeDataset = cachedDataStream.filter(item => item !== null);
