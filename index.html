@@ -777,8 +777,8 @@ function rebuildVisibleCards() {
 
         // 3. Logic to extract the text from the structure shown in your console
         // We look for the primaryLang key inside the item
-        const titleText = (item[primaryLang] || item.news || item.title || 'Untitled Decrypt');
-        
+      //  const titleText = (item[primaryLang] || item.news || item.title || 'Untitled Decrypt');
+       const titleText = item.displayTitle; 
         const sourceLabel = item.sourceName || item.source || 'EXTERNAL WEB';
         const sourceUrl = item.url || '#';
         const imageUrl = item.imageUrl || '';
