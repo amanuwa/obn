@@ -886,8 +886,10 @@ async function transmitPayloadToN8n(payload) {
     }
 
     try {
+        // Added mode: 'cors' to explicitly handle CORS preflight checks
         const response = await fetch(N8N_GATEWAY_WEBHOOK, {
             method: 'POST',
+            mode: 'cors', 
             headers: { 
                 'Content-Type': 'application/json',
                 'ngrok-skip-browser-warning': 'true'
@@ -902,7 +904,6 @@ async function transmitPayloadToN8n(payload) {
         const isTranslationUpdate = payload.executionType === 'translate_curated_feed';
         const selected = getSelectedDashboardLanguages();
         
-        // Determine the language to display
         const primaryLang = isTranslationUpdate && selected.length > 0 ? selected[0] : 'ENGLISH';
 
         let rawItems = (data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : []);
@@ -920,7 +921,6 @@ async function transmitPayloadToN8n(payload) {
         deletedItemsStack = [];
         document.getElementById('btn-restore-log').classList.add('hidden');
         
-        // FIX: Pass primaryLang to the rebuild function so it knows exactly what to render
         rebuildVisibleCards(primaryLang);
         
     } catch (err) {
