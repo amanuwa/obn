@@ -128,28 +128,28 @@
                 </h3>
                 
                 <div id="categoryContainer" class="space-y-2 mb-4">
-                    <button onclick="toggleAll('.cat-check', true)" class="w-full bg-emerald-950/40 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white py-2 px-3 rounded-lg font-medium text-xs uppercase transition-all cursor-pointer tracking-wider">
+                    <button id="selectAllCatBtn" class="w-full bg-emerald-950/40 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white py-2 px-3 rounded-lg font-medium text-xs uppercase transition-all cursor-pointer tracking-wider">
                         Select All Categories
                     </button>
 
                     <!-- EPL CHECKBOX TRIGGER DIRECTLY ON CHANGE -->
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl" onchange="handleCategoryTrigger(this)"> 
+                        <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
                     </label>
 
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="international" onchange="handleCategoryTrigger(this)"> 
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="international"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
                     </label>
 
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="athletics" onchange="handleCategoryTrigger(this)"> 
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="athletics"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">Athletics</span>
                     </label>
 
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="others" onchange="handleCategoryTrigger(this)"> 
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="others"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">Others</span>
                     </label>
                 </div>
@@ -171,19 +171,19 @@
                         </h3>
                         <div class="flex gap-2">
                             <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:border-rose-500 outline-none">
-                            <button onclick="getHotNews()" class="bg-rose-600 border border-rose-400 px-5 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>
+                            <button id="hotNewsBtn" class="bg-rose-600 border border-rose-400 px-5 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>
                         </div>
                     </div>
                     
                     <div class="bg-slate-950/50 border border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-3">
                         <div class="flex gap-2 flex-wrap">
-                            <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white px-4 py-2 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All</button>
+                            <button id="selectAllLangBtn" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white px-4 py-2 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All</button>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
                         </div>
-                        <button onclick="downloadData()" class="bg-blue-600 border border-blue-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download</button>
+                        <button id="downloadBtn" class="bg-blue-600 border border-blue-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download</button>
                     </div>
                 </div>
 
@@ -195,7 +195,10 @@
     </div>
 
     <!-- LIFECYCLE CONTROLLER SCRIPTS -->
-    <script>
+    <script type="module">
+        // IMPORT GATEWAY ENDPOINT FROM CONFIG
+        import { N8N_GATEWAY_WEBHOOK } from './config.js';
+
         // --- THREE.JS QUANTUM GLOBE ENGINE ---
         let scene, camera, renderer, globeParticles;
         const clock = new THREE.Clock();
@@ -371,20 +374,29 @@
                 stage.classList.add('dashboard-active');
                 appFrame.classList.add('visible');
             }, 3500);
+
+            // Bind Event Listeners
+            document.querySelectorAll('.cat-check').forEach(cb => {
+                cb.addEventListener('change', (e) => handleCategoryTrigger(e.target));
+            });
+
+            document.getElementById('selectAllCatBtn').addEventListener('click', () => toggleAll('.cat-check', true));
+            document.getElementById('selectAllLangBtn').addEventListener('click', () => toggleAll('.lang-check', true));
+            document.getElementById('hotNewsBtn').addEventListener('click', getHotNews);
+            document.getElementById('downloadBtn').addEventListener('click', downloadData);
         });
 
         function toggleAll(selector, isChecked) { 
             document.querySelectorAll(selector).forEach(c => {
                 c.checked = isChecked;
             }); 
-            // Trigger flow if any checkbox is checked via toggle
+            // Trigger flow if EPL checkbox is checked via toggle
             const eplCheck = document.getElementById('epl-check');
             if (eplCheck && eplCheck.checked) handleCategoryTrigger(eplCheck);
         }
 
         // --- AUTOMATIC TRIGGER ON CHECKBOX CHANGE ---
         async function handleCategoryTrigger(checkboxEl) {
-            // Only trigger n8n when a checkbox is ticked
             if (!checkboxEl.checked) return;
 
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
@@ -426,7 +438,8 @@
             };
 
             try {
-                const response = await fetch('https://unreached-oboe-evade.ngrok-free.dev/webhook-test/staritofhormuz', {
+                // USING IMPORTED N8N_GATEWAY_WEBHOOK
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -472,7 +485,8 @@
             };
 
             try {
-                const response = await fetch('https://unreached-oboe-evade.ngrok-free.dev/webhook-test/staritofhormuz', {
+                // USING IMPORTED N8N_GATEWAY_WEBHOOK
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
