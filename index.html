@@ -505,7 +505,56 @@
             }
         }
 
-        // --- REWRITTEN RENDER FIXTURES FUNCTION ---
+        // --- NEW: FUNCTION TO RE-TRIGGER WEBHOOK ON CARD CLICK ---
+        async function handleCardClick(matchData) {
+            const loader = document.getElementById('fullPageLoader');
+            const loaderTitle = document.getElementById('loaderTitle');
+            const loaderSubtext = document.getElementById('loaderSubtext');
+            const output = document.getElementById('outputContainer');
+
+            // Show full-page loader
+            loaderTitle.innerText = "// FETCHING MATCH DETAILS...";
+            loaderSubtext.innerText = `Querying AI agent for ${matchData.homeTeam || 'Match'} vs ${matchData.awayTeam || 'Details'}...`;
+            loader.classList.remove('hidden');
+            loader.classList.add('flex');
+
+            // Payload sent to n8n when clicking a match card
+            const payload = {
+                page: "sports_match_detail",
+                targetMatrix: "match_deep_dive",
+                matchUrl: matchData.matchUrl || matchData.url || "",
+                homeTeam: matchData.homeTeam || "",
+                awayTeam: matchData.awayTeam || "",
+                round: matchData.round || "",
+                result: matchData.result || "",
+                query: `Fetch detailed match stats, lineups, and summary for ${matchData.homeTeam} vs ${matchData.awayTeam}`,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
+
+                const data = await response.json();
+                renderFixtures(data);
+
+            } catch (err) {
+                output.innerHTML = `<div class="text-rose-500 font-mono">// MATCH DETAIL FETCH FAILED: ${err.message}</div>`;
+            } finally {
+                loader.classList.add('hidden');
+                loader.classList.remove('flex');
+            }
+        }
+
+        // --- RENDER FIXTURES FUNCTION WITH CARD CLICK LISTENERS ---
         function renderFixtures(responseData) {
             const output = document.getElementById('outputContainer');
             output.innerHTML = '';
@@ -525,7 +574,8 @@
 
             dataList.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'p-3 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-lg shadow transition-all flex flex-col justify-between';
+                // Added cursor-pointer, transition effects, and hover state
+                card.className = 'p-3 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-lg shadow transition-all flex flex-col justify-between cursor-pointer hover:scale-[1.01]';
                 
                 // Map fixture or news fields dynamically
                 const matchTitle = (item.homeTeam && item.awayTeam)
@@ -542,18 +592,23 @@
 
                 card.innerHTML = `
                     <div>
-                        <a href="${matchUrl}" target="_blank" class="text-emerald-400 font-bold hover:underline text-xs flex items-center justify-between gap-2">
+                        <div class="text-emerald-400 font-bold hover:underline text-xs flex items-center justify-between gap-2">
                             <span>${matchTitle}</span>
                             <span class="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded flex-shrink-0">↗ MATCH</span>
-                        </a>
+                        </div>
                         <p class="text-slate-300 text-[11px] mt-2 font-mono">
                             <span class="text-emerald-400 font-semibold">${resultOrScore}</span> • ${roundName}
                         </p>
                     </div>
                     <div class="mt-3 flex items-center justify-between border-t border-slate-800 pt-2 text-[10px] text-slate-400 font-mono">
                         <span>📅 Status: ${statusTime}</span>
+                        <a href="${matchUrl}" target="_blank" onclick="event.stopPropagation();" class="hover:text-emerald-300 underline text-[10px]">Open Link ↗</a>
                     </div>
                 `;
+
+                // ATTACH WEBHOOK RE-TRIGGER LISTENER ON ENTIRE CARD
+                card.addEventListener('click', () => handleCardClick(item));
+
                 gridContainer.appendChild(card);
             });
 
