@@ -83,7 +83,7 @@
             <div class="w-16 h-16 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin"></div>
             <div>
                 <h2 id="loaderTitle" class="font-bold text-lg tracking-widest uppercase text-slate-900">// INITIALIZING PIPELINE CONNECTOR...</h2>
-                <p id="loaderSubtext" class="text-slate-500 text-xs mt-2 animate-pulse">Establishing dynamic connection to n8n AI workflow agent...</p>
+                <p id="loaderSubtext" class="text-slate-500 text-xs mt-2 animate-pulse">Executing n8n AI workflow request. Waiting for sports agent response...</p>
             </div>
             <div class="w-48 bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200">
                 <div class="bg-emerald-600 h-full w-full animate-pulse"></div>
@@ -132,18 +132,25 @@
                         Select All Categories
                     </button>
 
+                    <!-- EPL CHECKBOX TRIGGER DIRECTLY ON CHANGE -->
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl"> 
+                        <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl" onchange="handleCategoryTrigger(this)"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
                     </label>
+
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="international"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="international" onchange="handleCategoryTrigger(this)"> 
+                        <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
                     </label>
+
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="athletics"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Athletics</span>
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="athletics" onchange="handleCategoryTrigger(this)"> 
+                        <span class="text-xs font-normal uppercase ml-3 text-slate-300">Athletics</span>
                     </label>
+
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="others"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Others</span>
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="others" onchange="handleCategoryTrigger(this)"> 
+                        <span class="text-xs font-normal uppercase ml-3 text-slate-300">Others</span>
                     </label>
                 </div>
 
@@ -151,8 +158,6 @@
                     <h3 class="text-[10px] font-medium text-slate-400 uppercase mb-2">Active Sources</h3>
                     <div id="activeSourceList" class="space-y-2 font-mono text-[11px] text-slate-500 italic">// Waiting for pipeline...</div>
                 </div>
-
-                <button id="runBtn" class="w-full bg-emerald-600 border border-emerald-400 py-3 rounded-lg font-semibold text-xs uppercase hover:bg-emerald-500 transition-all cursor-pointer shadow-md tracking-wider">Fire Pipeline</button>
             </div>
 
             <!-- TERMINAL MAIN DATA MONITOR -->
@@ -369,13 +374,19 @@
         });
 
         function toggleAll(selector, isChecked) { 
-            document.querySelectorAll(selector).forEach(c => c.checked = isChecked); 
+            document.querySelectorAll(selector).forEach(c => {
+                c.checked = isChecked;
+            }); 
+            // Trigger flow if any checkbox is checked via toggle
+            const eplCheck = document.getElementById('epl-check');
+            if (eplCheck && eplCheck.checked) handleCategoryTrigger(eplCheck);
         }
 
-        // --- FIRE PIPELINE WITH FULL-PAGE WHITE OVERLAY ---
-        document.getElementById('runBtn').onclick = async () => {
-            const runBtn = document.getElementById('runBtn');
-            const eplChecked = document.getElementById('epl-check').checked;
+        // --- AUTOMATIC TRIGGER ON CHECKBOX CHANGE ---
+        async function handleCategoryTrigger(checkboxEl) {
+            // Only trigger n8n when a checkbox is ticked
+            if (!checkboxEl.checked) return;
+
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
             const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
             const sourceList = document.getElementById('activeSourceList');
@@ -385,22 +396,19 @@
             const loaderTitle = document.getElementById('loaderTitle');
             const loaderSubtext = document.getElementById('loaderSubtext');
 
-            if (mainCats.length === 0) return alert("Select at least one active intelligence sector category.");
-
             sourceList.innerHTML = mainCats.map(item => 
                 `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
             ).join('');
 
-            // SHOW FULL-PAGE WHITE SCREEN OVERLAY
+            // SHOW FULL-PAGE WHITE SCREEN OVERLAY IMMEDIATELY
             loaderTitle.innerText = "// INITIALIZING PIPELINE CONNECTOR...";
             loaderSubtext.innerText = "Executing n8n AI workflow request. Waiting for sports agent response...";
             loader.classList.remove('hidden');
             loader.classList.add('flex');
-            runBtn.disabled = true;
 
             // Construct websites array dynamically
             let targetWebsites = [];
-            if (eplChecked) {
+            if (mainCats.includes('epl')) {
                 targetWebsites.push("https://www.besoccer.com/competition/premier_league_ethiopia");
             }
             if (mainCats.includes('international')) {
@@ -413,7 +421,7 @@
                 categories: mainCats,
                 languages: selectedLangs,
                 websites: targetWebsites,
-                query: eplChecked ? "Ethiopian Premier League upcoming fixtures and recent results" : "Latest sports headlines",
+                query: mainCats.includes('epl') ? "Ethiopian Premier League upcoming fixtures and recent results" : "Latest sports headlines",
                 timestamp: new Date().toISOString()
             };
 
@@ -435,12 +443,11 @@
             } catch (err) {
                 output.innerHTML = `<div class="text-rose-500 font-mono">// WORKFLOW EXECUTION FAILED: ${err.message}</div>`;
             } finally {
-                // HIDE FULL-PAGE OVERLAY WHEN DATA ARRIVES OR FAILS
+                // HIDE OVERLAY
                 loader.classList.add('hidden');
                 loader.classList.remove('flex');
-                runBtn.disabled = false;
             }
-        };
+        }
 
         async function getHotNews() {
             const queryVal = document.getElementById('hotNewsInput').value.trim();
