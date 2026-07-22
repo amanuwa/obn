@@ -71,7 +71,7 @@
             opacity: 1; transform: translateY(0);
         }
 
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
     </style>
 </head>
@@ -118,9 +118,19 @@
                         Select All Categories
                     </button>
 
-                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
-                    </label>
+                    <!-- EPL CHECKBOX & SCROLLABLE FIXTURE LIST CONTAINER -->
+                    <div class="bg-slate-950/60 border border-slate-800 rounded-lg overflow-hidden transition-all hover:border-emerald-500">
+                        <label class="flex items-center p-3 cursor-pointer">
+                            <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl" onchange="handleEPLToggle(this)"> 
+                            <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
+                        </label>
+                        
+                        <!-- SCROLLABLE FIXTURE CARDS DIRECTLY BELOW THE BUTTON -->
+                        <div id="epl-fixtures-drawer" class="hidden max-h-56 overflow-y-auto p-2 bg-slate-950/90 border-t border-slate-800 space-y-1.5 font-mono text-[11px]">
+                            <!-- Dynamic Cards Injected Here -->
+                        </div>
+                    </div>
+
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="international"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
                     </label>
@@ -353,13 +363,29 @@
             }, 3500);
         });
 
-        function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
-        
-        // --- DIRECT BESOCCER SCRAPER (NO N8N REQUIRED FOR EPL) ---
-        async function fetchEPLFixturesDirect() {
-            const output = document.getElementById('outputContainer');
-            output.innerHTML = `<div class="text-emerald-400 font-mono animate-pulse">// INGESTING ETHIOPIAN PREMIER LEAGUE FIXTURES DIRECTLY FROM BESOCCER...</div>`;
+        function toggleAll(selector, isChecked) { 
+            document.querySelectorAll(selector).forEach(c => {
+                c.checked = isChecked;
+                if(c.id === 'epl-check') handleEPLToggle(c);
+            }); 
+        }
 
+        // --- TOGGLE LISTENER FOR EPL CHECKBOX ---
+        async function handleEPLToggle(checkbox) {
+            const drawer = document.getElementById('epl-fixtures-drawer');
+            if (checkbox.checked) {
+                drawer.classList.remove('hidden');
+                drawer.innerHTML = `<div class="text-emerald-400 italic animate-pulse">// Ingesting BeSoccer feeds...</div>`;
+                await fetchAndRenderEPLUnderButton();
+            } else {
+                drawer.classList.add('hidden');
+                drawer.innerHTML = '';
+            }
+        }
+
+        // --- DIRECT BESOCCER SCRAPER TO RENDER CARDS DIRECTLY UNDER THE BUTTON ---
+        async function fetchAndRenderEPLUnderButton() {
+            const drawer = document.getElementById('epl-fixtures-drawer');
             const targetUrl = 'https://www.besoccer.com/competition/premier_league_ethiopia';
             const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
@@ -385,39 +411,46 @@
                         
                         extractedFixtures.push({
                             news: text,
-                            url: fullUrl,
-                            detailedText: "Ethiopian Premier League Fixture / Live Match Node",
-                            date: "Current Season / Round"
+                            url: fullUrl
                         });
                     }
                 });
 
                 if (extractedFixtures.length === 0) {
-                    extractedFixtures.push({
-                        news: "Ethiopian Premier League - Competition Hub",
-                        url: targetUrl,
-                        detailedText: "Click to open full Ethiopian Premier League standings, fixtures, and scores.",
-                        date: "Live Direct Stream"
-                    });
+                    drawer.innerHTML = `
+                        <a href="${targetUrl}" target="_blank" class="block p-2 bg-slate-900 border border-emerald-500/50 rounded text-emerald-400 hover:underline">
+                            ↗ Open BeSoccer Ethiopian Premier League Hub
+                        </a>
+                    `;
+                    return;
                 }
 
-                renderFixtures(extractedFixtures);
+                drawer.innerHTML = '';
+                extractedFixtures.forEach(item => {
+                    const card = document.createElement('a');
+                    card.href = item.url;
+                    card.target = "_blank";
+                    card.className = 'block p-2 bg-slate-900/90 border border-emerald-500/30 hover:border-emerald-400 rounded transition-all text-emerald-300 hover:text-white flex items-center justify-between group';
+                    card.innerHTML = `
+                        <span class="truncate pr-2 font-sans font-medium text-[11px]">${item.news}</span>
+                        <span class="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.5 rounded flex-shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">↗</span>
+                    `;
+                    drawer.appendChild(card);
+                });
 
             } catch (err) {
                 console.error("Direct fetch error:", err);
-                output.innerHTML = `
-                    <div class="text-rose-500 font-mono mb-3">// DIRECT SCRAPE ENCOUNTERED CORS CONSTRAINT. ACCESS HUB DIRECTLY:</div>
-                    <a href="${targetUrl}" target="_blank" class="p-3 bg-slate-900 border border-emerald-500 rounded block text-emerald-400 font-bold hover:underline">
-                        ↗ Open BeSoccer Ethiopian Premier League Terminal
+                drawer.innerHTML = `
+                    <a href="${targetUrl}" target="_blank" class="block p-2 bg-slate-900 border border-rose-500/50 rounded text-rose-400 text-[10px] hover:underline">
+                        ⚠ Scrape failed. Open BeSoccer directly ↗
                     </a>
                 `;
             }
         }
 
-        // --- FIRE PIPELINE HANDLER ---
+        // --- FIRE PIPELINE HANDLER FOR MAIN MONITOR ---
         document.getElementById('runBtn').onclick = async () => {
             const runBtn = document.getElementById('runBtn');
-            const eplChecked = document.getElementById('epl-check').checked;
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
             const sourceList = document.getElementById('activeSourceList');
             const output = document.getElementById('outputContainer');
@@ -428,13 +461,7 @@
                 `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
             ).join('');
 
-            // IF EPL IS CHECKED, SCRAPE DIRECTLY WITHOUT N8N
-            if (eplChecked) {
-                await fetchEPLFixturesDirect();
-                return;
-            }
-
-            // FOR OTHER CATEGORIES, ROUTE TO N8N WORKFLOW
+            // FOR OTHER CATEGORIES OR MAIN ANALYSIS, ROUTE TO N8N WORKFLOW
             output.innerHTML = `<div class="text-emerald-400 font-mono animate-pulse">// CONNECTING TO AI INGESTION WORKFLOW...</div>`;
             runBtn.disabled = true;
 
@@ -460,7 +487,7 @@
                 if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
                 const data = await response.json();
-                renderFixtures(data);
+                renderMainOutput(data);
 
             } catch (err) {
                 output.innerHTML = `<div class="text-rose-500 font-mono">// WORKFLOW EXECUTION FAILED: ${err.message}</div>`;
@@ -495,13 +522,13 @@
                 });
 
                 const data = await response.json();
-                renderFixtures(data);
+                renderMainOutput(data);
             } catch (err) {
                 output.innerHTML = `<div class="text-rose-500 font-mono">// FAST HOT NEWS FAILED: ${err.message}</div>`;
             }
         }
 
-        function renderFixtures(dataList) {
+        function renderMainOutput(dataList) {
             const output = document.getElementById('outputContainer');
             output.innerHTML = '';
 
