@@ -140,28 +140,27 @@
             border-color: #ffffff;
         }
 
-        /* --- BRIGHT WHITE CENTRAL STREAM OVERLAY --- */
+        /* --- FIXED FULLSCREEN BRIGHT WHITE OVERLAY (Covers entire window viewport) --- */
         .terminal-loading-overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background: #ffffff; /* Solid White Flash Trigger */
-            border-radius: 0.375rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 50;
+            z-index: 100; /* Layers on top of every elements */
             font-family: monospace;
-            border: 2px solid #2563eb; /* Bold boundary highlight */
-            display: none; /* Controlled via JS toggle */
+            border: 4px solid #2563eb; 
+            display: none; 
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
         }
 
         .loading-alert-text {
-            color: #dc2626; /* Deep Solid Red on White */
+            color: #dc2626; 
             font-weight: 800;
             letter-spacing: 1.5px;
             animation: terminalPulse 1.4s infinite;
@@ -171,7 +170,7 @@
         .tactical-track {
             width: 280px;
             height: 6px;
-            background: #e2e8f0; /* Soft light gray track */
+            background: #e2e8f0; 
             margin-top: 15px;
             margin-bottom: 15px;
             position: relative;
@@ -181,11 +180,60 @@
         .tactical-scanner {
             width: 100px;
             height: 100%;
-            background: #2563eb; /* Strong Blue Active Scanner */
+            background: #2563eb; 
             box-shadow: 0 0 10px rgba(37, 99, 235, 0.6);
             position: absolute;
             top: 0;
             animation: radarSweep 1.3s linear infinite;
+        }
+
+        /* --- HORIZONTAL RESULTS CARD SYSTEM --- */
+        .result-card {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            padding: 14px;
+            background: rgba(15, 23, 42, 0.45);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+            margin-bottom: 12px;
+        }
+        .result-card:hover {
+            border-color: #06b6d4;
+            background: rgba(15, 23, 42, 0.7);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.05);
+        }
+        .result-image-wrapper {
+            width: 110px;
+            height: 75px;
+            flex-shrink: 0;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #334155;
+            background-color: #02050c;
+        }
+        .result-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .result-card:hover .result-image {
+            transform: scale(1.05);
+        }
+        .result-text-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+        .badge-meta {
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         @keyframes terminalPulse {
@@ -209,13 +257,23 @@
 </head>
 <body class="font-sans bg-[#010206]">
 
-    <!-- GLOWING FULL-SCREEN DATA FIELD CANVAS -->
+    <!-- FIXED FULLSCREEN LOADING OVERLAY -->
+    <div id="terminalLoader" class="terminal-loading-overlay">
+        <div class="text-[12px] text-slate-900 font-bold tracking-wider" id="loaderHeader">// INITIALIZING INTERCEPT SEQUENCES...</div>
+        <div class="loading-alert-text text-[11px] mt-1.5" id="loaderSubheader">SYSTEM STATE: PROCESSING - PLEASE WAIT...</div>
+        
+        <div class="tactical-track">
+            <div class="tactical-scanner"></div>
+        </div>
+        
+        <div class="text-[9px] text-slate-400 uppercase tracking-widest font-bold">// SECURE NETWORK GATEWAY PIPELINE IN OPERATION</div>
+    </div>
+
     <canvas class="governance-bg-canvas" id="governanceCanvas"></canvas>
 
-    <!-- MAIN INTERFACE PANELS -->
     <div id="dashboardContent" class="relative z-10 flex flex-col h-full w-full">
         
-        <!-- TOP TERMINAL HEADER INTERFACE -->
+        <!-- HEADER -->
         <header class="bg-slate-950/80 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none backdrop-blur-sm">
             <div class="flex items-center gap-3">
                 <div class="w-7 h-7 rounded bg-cyan-600 flex items-center justify-center font-bold text-[10px] border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]">TG</div>
@@ -241,10 +299,10 @@
             </div>
         </header>
 
-        <!-- DASHBOARD WORKSPACE GRID -->
+        <!-- DASHBOARD GRID -->
         <main class="flex-1 flex gap-3 p-3 h-full overflow-hidden">
             
-            <!-- LEFT COLUMN: TARGET SECTORS -->
+            <!-- LEFT COLUMN: CONTROL TARGETS -->
             <div class="w-1/4 flex flex-col gap-3.5 overflow-y-auto pr-1 select-none shrink-0">
                 <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Strait of Hormuz</h2>
@@ -291,20 +349,8 @@
                 </section>
             </div>
 
-            <!-- RIGHT COLUMN: CENTRAL MONITOR -->
+            <!-- RIGHT COLUMN: CENTRAL MONITOR (RESULTS) -->
             <div class="flex-1 flex flex-col justify-between bg-slate-950/70 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden backdrop-blur-xs relative">
-                
-                <!-- White Terminal Overlay Loader -->
-                <div id="terminalLoader" class="terminal-loading-overlay">
-                    <div class="text-[12px] text-slate-900 font-bold tracking-wider">// INITIALIZING INTERCEPT SEQUENCES...</div>
-                    <div class="loading-alert-text text-[11px] mt-1.5">SYSTEM STATE: PROCESSING - PLEASE WAIT...</div>
-                    
-                    <div class="tactical-track">
-                        <div class="tactical-scanner"></div>
-                    </div>
-                    
-                    <div class="text-[9px] text-slate-400 uppercase tracking-widest font-bold">// SECURE NETWORK GATEWAY PIPELINE IN OPERATION</div>
-                </div>
 
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
                     <div class="flex items-center gap-2 shrink-0">
@@ -329,21 +375,26 @@
 
                 <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
                     <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
-                    <button id="btn-download-logs" onclick="downloadTerminalLogs()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
-                        Download Dataset Logs
-                    </button>
+                    <div class="flex gap-2">
+                        <button id="btn-restore-log" onclick="restoreLastDeleted()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md cursor-pointer transition-all tracking-wide uppercase hidden">
+                            ⟲ Restore Deleted
+                        </button>
+                       <button id="btn-download-logs" onclick="downloadAsPdf()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
+    Download A4 PDF Report
+</button>
+                    </div>
                 </div>
             </div>
         </main>
 
-        <!-- FOOTER STATUS -->
+        <!-- FOOTER -->
         <footer class="bg-slate-950 border-t border-slate-800 px-4 py-1.5 font-mono text-[10px] text-cyan-500 flex items-center justify-between shrink-0">
             <div id="statusConsole">// MONITOR HUB ACTIVE: System initialized.</div>
             <div class="text-slate-600 select-none text-[9px]">GATEWAY INTERFACE v5.5</div>
         </footer>
     </div>
 
-    <!-- HIGH-DENSITY GLOWING MATRIX EXECUTOR -->
+    <!-- ENGINE SCRIPTS -->
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.js';
         
@@ -392,7 +443,6 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Render glowing grid characters
             ctx.shadowBlur = 10;
             ctx.shadowColor = '#06b6d4';
             ctx.fillStyle = 'rgba(34, 211, 238, 0.75)';
@@ -405,13 +455,11 @@
                 ctx.fillText(p.char, p.x, p.y);
             });
 
-            // Bring panels into view immediately at 2000ms
             if (!panelsRevealed && elapsed >= 2000) {
                 panelsRevealed = true;
                 document.getElementById('dashboardContent').classList.add('visible');
             }
 
-            // Clear from viewport pipeline
             if (elapsed >= 4000) {
                 if (!canvasCleanedUp) {
                     canvasCleanedUp = true;
@@ -429,29 +477,49 @@
         
         animationFrameId = requestAnimationFrame(runStaticGlitchField);
 
-        // Supabase Init Connection Context
+        // Supabase Instantiation
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let cachedDataStream = [];
+        let deletedItemsStack = [];
+        let lastTriggeredMatrix = "strait_of_hormuz"; // Track last active search matrix context
 
-        const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
-
+     //   const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
+const activeLanguages = { OROMIFFA: false, AMHARIC: false, ENGLISH: false, ARABIC: false };
+// Force all buttons to be visually unchecked on start
+function initLanguageUI() {
+    Object.keys(activeLanguages).forEach(langKey => {
+        const btn = document.getElementById(`lang-${langKey}`);
+        if (btn) btn.classList.remove('active');
+    });
+}
+initLanguageUI();
+        
         function getSelectedDashboardLanguages() {
             return Object.keys(activeLanguages).filter(langKey => activeLanguages[langKey]);
         }
 
         const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-        // Global function to control screen states and trigger the white processing overlay
-        window.setGlobalProcessingState = function(isProcessing) {
-            console.log(`// INTERFACE STATE UPDATE: ${isProcessing ? 'LOCKED (PROCESSING)' : 'UNLOCKED (IDLE)'}`);
-            
-            // Toggle white loading screen layer
+        window.setGlobalProcessingState = function(isProcessing, processingType = "standard") {
             const overlay = document.getElementById('terminalLoader');
+            const loaderHeader = document.getElementById('loaderHeader');
+            const loaderSubheader = document.getElementById('loaderSubheader');
+
             if (overlay) {
-                overlay.style.display = isProcessing ? 'flex' : 'none';
+                if (isProcessing) {
+                    if (processingType === "language") {
+                        loaderHeader.innerText = "// RE-CONFIGURING ENSEMBLES & RE-GENERATING DATASET...";
+                        loaderSubheader.innerText = "SYSTEM STATE: TRANSLATING FEED RECORDS - PLEASE WAIT...";
+                    } else {
+                        loaderHeader.innerText = "// INITIALIZING INTERCEPT SEQUENCES...";
+                        loaderSubheader.innerText = "SYSTEM STATE: PROCESSING - PLEASE WAIT...";
+                    }
+                    overlay.style.display = 'flex';
+                } else {
+                    overlay.style.display = 'none';
+                }
             }
 
-            // Lock all interface buttons and elements
             const inputs = document.querySelectorAll('input');
             const buttons = document.querySelectorAll('button');
             const domainLinks = document.querySelectorAll('#topDomainNav a');
@@ -467,15 +535,25 @@
             });
         };
 
-        window.toggleLangCheckbox = function(langKey) {
+        // --- FIXED LANGUAGE TOGGLE PATH FUNCTIONS ---
+        window.toggleLangCheckbox = async function(langKey) {
             const btn = document.getElementById(`lang-${langKey}`);
             activeLanguages[langKey] = !activeLanguages[langKey];
             btn.classList.toggle('active', activeLanguages[langKey]);
+            
             const activeList = getSelectedDashboardLanguages();
             document.getElementById('statusConsole').innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
+
+            // Filter down to the active cards remaining on the visual monitor screen
+            const curatedListLeftOnScreen = cachedDataStream.filter(item => item !== null);
+
+            // Path Activation Rule: Only automatically fire workflow if filtered cards exist on screen
+            if (curatedListLeftOnScreen.length > 0) {
+                await executeCuratedFeedRegeneration(curatedListLeftOnScreen);
+            }
         };
 
-        window.toggleSelectAllEnsembles = function() {
+        window.toggleSelectAllEnsembles = async function() {
             const keys = Object.keys(activeLanguages);
             const allTrue = keys.every(k => activeLanguages[k]);
             keys.forEach(k => {
@@ -483,10 +561,45 @@
                 document.getElementById(`lang-${k}`).classList.toggle('active', !allTrue);
             });
             document.getElementById('statusConsole').innerText = allTrue ? `// ENSEMBLES DE-SELECTED` : `// ALL ENSEMBLES ACTIVE`;
+
+            // Filter down to the active cards remaining on the visual monitor screen
+            const curatedListLeftOnScreen = cachedDataStream.filter(item => item !== null);
+
+            // Path Activation Rule: Only automatically fire workflow if filtered cards exist on screen
+            if (curatedListLeftOnScreen.length > 0) {
+                await executeCuratedFeedRegeneration(curatedListLeftOnScreen);
+            }
         };
 
+        // Central processing pipeline wrapper for executing automated screen text updates
+        async function executeCuratedFeedRegeneration(curatedFeedData) {
+            const activeEnsembles = getSelectedDashboardLanguages();
+            if (activeEnsembles.length === 0) return;
+
+            const payload = {
+                targetMatrix: lastTriggeredMatrix,
+                executionType: 'translate_curated_feed', // Custom execution routing signature flag
+                curatedFeed: curatedFeedData,          // Curated card list array extraction dump
+                languages: activeEnsembles,
+                timestamp: new Date().toISOString()
+            };
+
+            const startTime = Date.now();
+            window.setGlobalProcessingState(true, "language"); // Safely masks entire display frame layout
+
+            try {
+                await transmitPayloadToN8n(payload);
+            } finally {
+                const elapsedTime = Date.now() - startTime;
+                const visualBuffer = 1200 - elapsedTime;
+                if (visualBuffer > 0) {
+                    await delay(visualBuffer);
+                }
+                window.setGlobalProcessingState(false); // Unmasks display viewport once node response finishes processing
+            }
+        }
+
         window.triggerAnythingNew = async function(sectorContext) {
-            console.log(`// INITIALIZING: Anything New for sector [${sectorContext}]`);
             const startTime = Date.now();
             window.setGlobalProcessingState(true);
 
@@ -495,6 +608,9 @@
             statusLog.innerText = `// TRACKING RECENT CHRONO ENTRIES FOR: [${sectorContext.toUpperCase()}]`;
             outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying database metrics...</div>`;
 
+            const formattedMatrixKey = sectorContext.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
+            lastTriggeredMatrix = formattedMatrixKey;
+
             try {
                 let tableTarget = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
                     ? 'Ethiopian -Politics and governance websites' : 'politics and governance -websites';
@@ -502,6 +618,8 @@
                 const { data, error } = await supabaseClient.from(tableTarget).select('*').order('id', { ascending: false }).limit(4);
                 if (error) throw error;
                 cachedDataStream = data || [];
+                deletedItemsStack = []; // Reset stack metrics tracking on raw lookups
+                document.getElementById('btn-restore-log').classList.add('hidden');
 
                 let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// DELTA RECONNAISSANCE SEARCH: [${sectorContext.toUpperCase()}]</div>`;
                 cachedDataStream.forEach((row, idx) => {
@@ -510,9 +628,6 @@
                 outputPanel.innerHTML = html;
                 statusLog.innerText = `// DELTA CAPTURE FINISHED.`;
             } catch (err) {
-                console.warn("// Supabase fallback active. Redirecting payload to webhook...");
-                
-                const formattedMatrixKey = sectorContext.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
                 const fallbackPayload = {
                     targetMatrix: formattedMatrixKey,
                     executionType: 'anything_new',
@@ -522,7 +637,6 @@
                 };
                 await transmitPayloadToN8n(fallbackPayload);
             } finally {
-                // Ensure the white loading mask is shown for at least 1.2s
                 const elapsedTime = Date.now() - startTime;
                 const visualBuffer = 1200 - elapsedTime;
                 if (visualBuffer > 0) {
@@ -543,12 +657,14 @@
                 return;
             }
 
-            console.log(`// INITIALIZING: Unified Search for "${queryValue}" inside [${sectorContext}]`);
             const startTime = Date.now();
             window.setGlobalProcessingState(true);
 
             statusLog.innerText = `// INTERROGATING ROW INDICES FOR: "${queryValue}"...`;
             outputPanel.innerHTML = `<div class="text-cyan-400 animate-pulse">// SCANNING INDEX SCHEMAS...</div>`;
+
+            const formattedMatrixKey = sectorContext.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
+            lastTriggeredMatrix = formattedMatrixKey;
 
             try {
                 let currentTable = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
@@ -557,6 +673,8 @@
                 const { data, error } = await supabaseClient.from(currentTable).select('*').ilike('title', `%${queryValue}%`).limit(6);
                 if (error) throw error;
                 cachedDataStream = data || [];
+                deletedItemsStack = []; // Clear card stack buffer logs
+                document.getElementById('btn-restore-log').classList.add('hidden');
 
                 if (cachedDataStream.length === 0) {
                     outputPanel.innerHTML = `<div class="text-slate-500">// Search completed. 0 matching sequences found for: "${queryValue}".</div>`;
@@ -568,9 +686,6 @@
                     outputPanel.innerHTML = html;
                 }
             } catch (err) {
-                console.warn("// Supabase query error. Forwarding payload to webhook...");
-                
-                const formattedMatrixKey = sectorContext.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
                 const fallbackPayload = {
                     targetMatrix: formattedMatrixKey,
                     executionType: 'specific_search',
@@ -580,7 +695,6 @@
                 };
                 await transmitPayloadToN8n(fallbackPayload);
             } finally {
-                // Ensure the white loading mask is shown for at least 1.2s
                 const elapsedTime = Date.now() - startTime;
                 const visualBuffer = 1200 - elapsedTime;
                 if (visualBuffer > 0) {
@@ -590,9 +704,168 @@
             }
         };
 
+        window.deleteCard = function(index) {
+            const targetItem = cachedDataStream[index];
+            if (!targetItem) return;
+
+            // Push item onto the delete stack history along with original index
+            deletedItemsStack.push({ item: targetItem, originalIndex: index });
+
+            // Nullify this slot in our data array to preserve the key index positions
+            cachedDataStream[index] = null;
+
+            // Fade and remove item smoothly from UI
+            const cardEl = document.getElementById(`card-${index}`);
+            if (cardEl) {
+                cardEl.style.transition = 'all 0.15s ease-out';
+                cardEl.style.opacity = '0';
+                cardEl.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    cardEl.remove();
+                }, 150);
+            }
+
+            // Update visible capture counters in the header label
+            const remainingCount = cachedDataStream.filter(item => item !== null).length;
+            const headingEl = document.querySelector('#unifiedResultsConsole > .font-bold');
+            if (headingEl) {
+                headingEl.innerText = `// WEBHOOK RESPONSE CAPTURES (${remainingCount} records)`;
+            }
+
+            // Render "Restore Last Deleted" option active
+            document.getElementById('btn-restore-log').classList.remove('hidden');
+        };
+
+        window.restoreLastDeleted = function() {
+            if (deletedItemsStack.length === 0) return;
+
+            const lastDeleted = deletedItemsStack.pop();
+            const { item, originalIndex } = lastDeleted;
+
+            // Restore element back to its original slot in data cache
+            cachedDataStream[originalIndex] = item;
+
+            // Trigger full re-render cycle using our preserved array
+            rebuildVisibleCards();
+
+            // Toggle hide if no remaining deleted entries left in buffer stack
+            if (deletedItemsStack.length === 0) {
+                document.getElementById('btn-restore-log').classList.add('hidden');
+            }
+        };
+
+function rebuildVisibleCards(forceLang = null) {
+    const outputPanel = document.getElementById('unifiedResultsConsole');
+    
+    // Check if we are forcing a language OR if any are selected via buttons
+    const selected = forceLang ? [forceLang] : getSelectedDashboardLanguages();
+    
+    // ONLY show the wait message if we are NOT forcing a language 
+    // AND nothing is selected
+    if (!forceLang && selected.length === 0) {
+        outputPanel.innerHTML = '<div class="text-slate-500 text-center p-10">// SELECT A LANGUAGE ENSEMBLE TO DISPLAY DATA...</div>';
+        return;
+    }
+
+    const primaryLang = forceLang || selected[0]; 
+    const displayData = Array.isArray(cachedDataStream) ? cachedDataStream : [];
+
+    let html = `<div class="text-emerald-400 border-b border-slate-900 pb-2 mb-4 font-bold">// WEBHOOK RESPONSE CAPTURES (${displayData.length} records)</div>`;
+
+    displayData.forEach((item, idx) => {
+        if (item === null) return;
+
+        // Use displayTitle if available, otherwise fallback to the primary language logic
+        const titleText = item.displayTitle || (item.news ? (item.news[primaryLang] || item.news.ENGLISH) : item.title) || 'Untitled Decrypt';
+        
+        const sourceLabel = item.sourceName || item.source || 'EXTERNAL WEB';
+        const sourceUrl = item.url || '#';
+        const imageUrl = item.imageUrl || '';
+
+        html += `
+        <div id="card-${idx}" class="result-card relative">
+            <button onclick="deleteCard(${idx})" class="absolute top-2 left-2 z-20 w-5 h-5 bg-red-950/80 hover:bg-red-600 border border-red-800 text-red-400 hover:text-white rounded-full flex items-center justify-center text-[10px] font-bold cursor-pointer transition-all shadow-md">✕</button>
+            ${imageUrl ? `<div class="result-image-wrapper pl-6"><img class="result-image" src="${imageUrl}" alt="intel"></div>` : '<div class="pl-6"></div>'}
+            <div class="result-text-content">
+                <div class="badge-meta text-cyan-400">[SOURCE: ${sourceLabel.toUpperCase()}]</div>
+                <div class="text-slate-200">${titleText}</div>
+                <div class="text-[9px] text-emerald-500 uppercase font-mono tracking-wider">STATE: DECRYPTED [LANG: ${primaryLang}]</div>
+            </div>
+            <div class="text-right flex flex-col justify-between h-full shrink-0 select-none">
+                <span class="text-[9px] text-slate-600 font-mono">INDEX // ${String(idx + 1).padStart(3, '0')}</span>
+                <a href="${sourceUrl}" target="_blank" class="text-[9px] text-cyan-400 hover:text-cyan-300 uppercase font-bold tracking-wider hover:underline">ACCESS LINK -></a>
+            </div>
+        </div>`;
+    });
+    outputPanel.innerHTML = html;
+}
+ window.downloadAsPdf = function() {
+    // 1. Filter out deleted entries
+    const visibleData = typeof cachedDataStream !== 'undefined' ? cachedDataStream.filter(item => item !== null) : [];
+    
+    if (visibleData.length === 0) {
+        alert("Nothing to export: No active records found in the monitor.");
+        return;
+    }
+
+    // 2. Open print-ready window
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    
+    // 3. Create content with robust image error handling
+    let newsHtml = visibleData.map(item => `
+        <div class="news-card">
+            ${item.imageUrl ? `<img src="${item.imageUrl}" class="news-image" onerror="this.style.display='none'; this.parentElement.style.paddingLeft='0'">` : ''}
+            <div class="source">[SOURCE: ${item.sourceName || 'EXTERNAL WEB'}]</div>
+            <div class="title">${item.displayTitle || 'No Title Available'}</div>
+        </div>
+    `).join('');
+
+    // 4. Get current date for header
+    const reportDate = new Date().toLocaleDateString('en-GB', {
+        day: '2-digit', month: 'long', year: 'numeric'
+    });
+    
+    printWindow.document.write(`
+        <html>
+        <head>
+            <style>
+                @page { size: A4; margin: 20mm; }
+                body { font-family: 'Helvetica', sans-serif; color: #000; }
+                .report-header { border-bottom: 2px solid #000; margin-bottom: 30px; padding-bottom: 10px; }
+                .header-title { font-size: 18px; font-weight: bold; text-transform: uppercase; }
+                .header-date { font-size: 12px; color: #666; margin-top: 5px; }
+                .news-card { margin-bottom: 25px; page-break-inside: avoid; overflow: hidden; }
+                .news-image { max-width: 80px; float: left; margin-right: 15px; border-radius: 4px; object-fit: cover; }
+                .source { font-size: 9px; color: #555; font-weight: bold; text-transform: uppercase; }
+                .title { font-size: 13px; margin-top: 4px; font-weight: 500; }
+            </style>
+        </head>
+        <body>
+            <div class="report-header">
+                <div class="header-title">INTELLIGENCE SOURCE: CENTRAL STREAM MONITOR</div>
+                <div class="header-date">GENERATED ON: ${reportDate}</div>
+            </div>
+            ${newsHtml}
+        </body>
+        </html>
+    `);
+
+    // 5. Finalize and trigger print
+    printWindow.document.close();
+    printWindow.focus();
+    
+    // Slight delay to ensure images/CSS render before print dialog
+    setTimeout(() => {
+        printWindow.print();
+    }, 800);
+};    
         window.downloadTerminalLogs = function() {
-            if (cachedDataStream.length === 0) return alert("Run a lookup sequence to populate logs first.");
-            const blobString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cachedDataStream, null, 2));
+            // Filter empty null allocations cleanly out from download output schema array configurations
+            const activeDataset = cachedDataStream.filter(item => item !== null);
+
+            if (activeDataset.length === 0) return alert("Run a lookup sequence and preserve at least 1 record to export dataset logs.");
+            
+            const blobString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(activeDataset, null, 2));
             const anchor = document.createElement('a');
             anchor.setAttribute("href", blobString);
             anchor.setAttribute("download", "terminal_dataset_dump.json");
@@ -600,54 +873,61 @@
             anchor.click();
             anchor.remove();
         };
+        
+async function transmitPayloadToN8n(payload) {
+    console.log("// SENDING PAYLOAD TO N8N WEBHOOK...", payload);
+    const monitorContainer = document.getElementById('unifiedResultsConsole');
+    
+    if (monitorContainer && payload.executionType !== 'translate_curated_feed') {
+        monitorContainer.innerHTML = `
+            <div class="text-cyan-400 font-mono text-xs animate-pulse">
+                // INSTANTIATING INTERCEPT WEBHOOK...<br>
+                // TARGET ROUTE: [${payload.targetMatrix.toUpperCase()}]
+            </div>`;
+    }
 
-        async function transmitPayloadToN8n(payload) {
-            console.log("// SENDING PAYLOAD TO N8N WEBHOOK...", payload);
-            const monitorContainer = document.getElementById('unifiedResultsConsole');
-            if (monitorContainer) {
-                monitorContainer.innerHTML = `
-                    <div class="text-cyan-400 font-mono text-xs animate-pulse">
-                        // INSTANTIATING INTERCEPT WEBHOOK...<br>
-                        // TARGET ROUTE: [${payload.targetMatrix.toUpperCase()}]
-                    </div>`;
+    try {
+        const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error(`Gateway Status: ${response.status}`);
+        
+        const data = await response.json();
+        
+        const isTranslationUpdate = payload.executionType === 'translate_curated_feed';
+        const selected = getSelectedDashboardLanguages();
+        const primaryLang = isTranslationUpdate && selected.length > 0 ? selected[0] : 'ENGLISH';
+
+        let rawItems = (data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : []);
+
+        cachedDataStream = rawItems.map(item => {
+            let title = 'Untitled Decrypt';
+            if (item.news && typeof item.news === 'object') {
+                title = item.news[primaryLang] || item.news['ENGLISH'] || item.title;
+            } else {
+                title = item.title || item.news;
             }
+            return { ...item, displayTitle: title };
+        });
 
-            try {
-                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) throw new Error(`Gateway Status: ${response.status}`);
-                
-                const data = await response.json();
-                console.log("// WEBHOOK SUCCESS:", data);
-
-                if (data && Array.isArray(data)) {
-                    cachedDataStream = data;
-                } else if (data && data.results && Array.isArray(data.results)) {
-                    cachedDataStream = data.results;
-                }
-
-                if (cachedDataStream.length === 0) {
-                     monitorContainer.innerHTML = `<div class="text-slate-500">// Intercept completed. 0 matching sequences found.</div>`;
-                } else {
-                    let html = `<div class="text-emerald-400 border-b border-slate-900 pb-1.5 mb-2">// WEBHOOK RESPONSE CAPTURES</div>`;
-                    cachedDataStream.forEach((row, idx) => {
-                        html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-emerald-400 font-bold">[DATA-${idx+1}]</span> <span class="text-slate-200">${row.title || row.name || 'External Item'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
-                    });
-                    monitorContainer.innerHTML = html;
-                }
-
-            } catch (error) {
-                console.error("// ROUTING FAILURE:", error);
-                if (monitorContainer) {
-                    monitorContainer.innerHTML = `
-                        <div class="text-red-500 font-mono text-xs">// ROUTING ERROR: ${error.message.toUpperCase()}</div>`;
-                }
-            }
+        deletedItemsStack = [];
+        document.getElementById('btn-restore-log').classList.add('hidden');
+        
+        rebuildVisibleCards(primaryLang);
+        
+    } catch (err) {
+        console.error("// GATEWAY ERROR:", err);
+        if (monitorContainer) {
+            monitorContainer.innerHTML = `<span class="text-red-400 font-mono">// GATEWAY RECONNAISSANCE INTERRUPTED: ${err.message}</span>`;
         }
+    }
+}
     </script>
 </body>
 </html>
