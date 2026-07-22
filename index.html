@@ -77,6 +77,20 @@
 </head>
 <body class="font-sans text-sm">
 
+    <!-- FULL PAGE WHITE PROGRESS OVERLAY -->
+    <div id="fullPageLoader" class="fixed inset-0 z-50 bg-white text-slate-900 hidden flex-col items-center justify-center font-mono transition-all duration-300">
+        <div class="flex flex-col items-center justify-center space-y-6 max-w-md text-center px-4">
+            <div class="w-16 h-16 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin"></div>
+            <div>
+                <h2 id="loaderTitle" class="font-bold text-lg tracking-widest uppercase text-slate-900">// INITIALIZING PIPELINE CONNECTOR...</h2>
+                <p id="loaderSubtext" class="text-slate-500 text-xs mt-2 animate-pulse">Establishing dynamic connection to n8n AI workflow agent...</p>
+            </div>
+            <div class="w-48 bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200">
+                <div class="bg-emerald-600 h-full w-full animate-pulse"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- STEP 1: QUANTUM PARTICLE SYSTEM AND HUD LAYER -->
     <div id="backdropStage" class="cyber-backdrop-container">
         <div class="hud-overlay"></div>
@@ -118,19 +132,10 @@
                         Select All Categories
                     </button>
 
-                    <!-- EPL CHECKBOX & SCROLLABLE FIXTURE LIST CONTAINER -->
-                    <div class="bg-slate-950/60 border border-slate-800 rounded-lg overflow-hidden transition-all hover:border-emerald-500">
-                        <label class="flex items-center p-3 cursor-pointer">
-                            <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl" onchange="handleEPLToggle(this)"> 
-                            <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
-                        </label>
-                        
-                        <!-- SCROLLABLE FIXTURE CARDS DIRECTLY BELOW THE BUTTON -->
-                        <div id="epl-fixtures-drawer" class="hidden max-h-56 overflow-y-auto p-2 bg-slate-950/90 border-t border-slate-800 space-y-1.5 font-mono text-[11px]">
-                            <!-- Dynamic Cards Injected Here -->
-                        </div>
-                    </div>
-
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl"> 
+                        <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
+                    </label>
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="international"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
                     </label>
@@ -364,96 +369,21 @@
         });
 
         function toggleAll(selector, isChecked) { 
-            document.querySelectorAll(selector).forEach(c => {
-                c.checked = isChecked;
-                if(c.id === 'epl-check') handleEPLToggle(c);
-            }); 
+            document.querySelectorAll(selector).forEach(c => c.checked = isChecked); 
         }
 
-        // --- TOGGLE LISTENER FOR EPL CHECKBOX ---
-        async function handleEPLToggle(checkbox) {
-            const drawer = document.getElementById('epl-fixtures-drawer');
-            if (checkbox.checked) {
-                drawer.classList.remove('hidden');
-                drawer.innerHTML = `<div class="text-emerald-400 italic animate-pulse">// Ingesting BeSoccer feeds...</div>`;
-                await fetchAndRenderEPLUnderButton();
-            } else {
-                drawer.classList.add('hidden');
-                drawer.innerHTML = '';
-            }
-        }
-
-        // --- DIRECT BESOCCER SCRAPER TO RENDER CARDS DIRECTLY UNDER THE BUTTON ---
-        async function fetchAndRenderEPLUnderButton() {
-            const drawer = document.getElementById('epl-fixtures-drawer');
-            const targetUrl = 'https://www.besoccer.com/competition/premier_league_ethiopia';
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-
-            try {
-                const response = await fetch(proxyUrl);
-                if (!response.ok) throw new Error("CORS Proxy unreachable");
-                
-                const data = await response.json();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(data.contents, 'text/html');
-
-                const matchElements = doc.querySelectorAll('a[href*="/match/"]');
-                const extractedFixtures = [];
-                const seenUrls = new Set();
-
-                matchElements.forEach(el => {
-                    const href = el.getAttribute('href');
-                    const text = el.innerText.trim().replace(/\s+/g, ' ');
-
-                    if (href && text.length > 3 && !seenUrls.has(href)) {
-                        seenUrls.add(href);
-                        const fullUrl = href.startsWith('http') ? href : `https://www.besoccer.com${href}`;
-                        
-                        extractedFixtures.push({
-                            news: text,
-                            url: fullUrl
-                        });
-                    }
-                });
-
-                if (extractedFixtures.length === 0) {
-                    drawer.innerHTML = `
-                        <a href="${targetUrl}" target="_blank" class="block p-2 bg-slate-900 border border-emerald-500/50 rounded text-emerald-400 hover:underline">
-                            ↗ Open BeSoccer Ethiopian Premier League Hub
-                        </a>
-                    `;
-                    return;
-                }
-
-                drawer.innerHTML = '';
-                extractedFixtures.forEach(item => {
-                    const card = document.createElement('a');
-                    card.href = item.url;
-                    card.target = "_blank";
-                    card.className = 'block p-2 bg-slate-900/90 border border-emerald-500/30 hover:border-emerald-400 rounded transition-all text-emerald-300 hover:text-white flex items-center justify-between group';
-                    card.innerHTML = `
-                        <span class="truncate pr-2 font-sans font-medium text-[11px]">${item.news}</span>
-                        <span class="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.5 rounded flex-shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">↗</span>
-                    `;
-                    drawer.appendChild(card);
-                });
-
-            } catch (err) {
-                console.error("Direct fetch error:", err);
-                drawer.innerHTML = `
-                    <a href="${targetUrl}" target="_blank" class="block p-2 bg-slate-900 border border-rose-500/50 rounded text-rose-400 text-[10px] hover:underline">
-                        ⚠ Scrape failed. Open BeSoccer directly ↗
-                    </a>
-                `;
-            }
-        }
-
-        // --- FIRE PIPELINE HANDLER FOR MAIN MONITOR ---
+        // --- FIRE PIPELINE WITH FULL-PAGE WHITE OVERLAY ---
         document.getElementById('runBtn').onclick = async () => {
             const runBtn = document.getElementById('runBtn');
+            const eplChecked = document.getElementById('epl-check').checked;
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
+            const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
             const sourceList = document.getElementById('activeSourceList');
             const output = document.getElementById('outputContainer');
+            
+            const loader = document.getElementById('fullPageLoader');
+            const loaderTitle = document.getElementById('loaderTitle');
+            const loaderSubtext = document.getElementById('loaderSubtext');
 
             if (mainCats.length === 0) return alert("Select at least one active intelligence sector category.");
 
@@ -461,16 +391,29 @@
                 `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
             ).join('');
 
-            // FOR OTHER CATEGORIES OR MAIN ANALYSIS, ROUTE TO N8N WORKFLOW
-            output.innerHTML = `<div class="text-emerald-400 font-mono animate-pulse">// CONNECTING TO AI INGESTION WORKFLOW...</div>`;
+            // SHOW FULL-PAGE WHITE SCREEN OVERLAY
+            loaderTitle.innerText = "// INITIALIZING PIPELINE CONNECTOR...";
+            loaderSubtext.innerText = "Executing n8n AI workflow request. Waiting for sports agent response...";
+            loader.classList.remove('hidden');
+            loader.classList.add('flex');
             runBtn.disabled = true;
+
+            // Construct websites array dynamically
+            let targetWebsites = [];
+            if (eplChecked) {
+                targetWebsites.push("https://www.besoccer.com/competition/premier_league_ethiopia");
+            }
+            if (mainCats.includes('international')) {
+                targetWebsites.push("https://www.bbc.com/sport");
+            }
 
             const payload = {
                 page: "sports",
                 targetMatrix: "sports_analytics",
                 categories: mainCats,
-                websites: ["https://www.bbc.com/sport"],
-                query: "Latest global sports headlines",
+                languages: selectedLangs,
+                websites: targetWebsites,
+                query: eplChecked ? "Ethiopian Premier League upcoming fixtures and recent results" : "Latest sports headlines",
                 timestamp: new Date().toISOString()
             };
 
@@ -487,11 +430,14 @@
                 if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
                 const data = await response.json();
-                renderMainOutput(data);
+                renderFixtures(data);
 
             } catch (err) {
                 output.innerHTML = `<div class="text-rose-500 font-mono">// WORKFLOW EXECUTION FAILED: ${err.message}</div>`;
             } finally {
+                // HIDE FULL-PAGE OVERLAY WHEN DATA ARRIVES OR FAILS
+                loader.classList.add('hidden');
+                loader.classList.remove('flex');
                 runBtn.disabled = false;
             }
         };
@@ -501,13 +447,20 @@
             const output = document.getElementById('outputContainer');
             if (!queryVal) return alert("Please enter a sports topic.");
 
-            output.innerHTML = `<div class="text-rose-500 font-mono animate-pulse">// FAST HOT NEWS: QUERYING INGESTION FEED FOR [${queryVal.toUpperCase()}]...</div>`;
+            const loader = document.getElementById('fullPageLoader');
+            const loaderTitle = document.getElementById('loaderTitle');
+            const loaderSubtext = document.getElementById('loaderSubtext');
+
+            loaderTitle.innerText = "// FAST HOT NEWS STREAM ACTIVE...";
+            loaderSubtext.innerText = `Querying global feeds for topic: [${queryVal.toUpperCase()}]`;
+            loader.classList.remove('hidden');
+            loader.classList.add('flex');
 
             const payload = {
                 page: "sports",
                 targetMatrix: "hot_news",
                 query: queryVal,
-                websites: ["https://www.bbc.com/sport"],
+                websites: ["https://www.besoccer.com/competition/premier_league_ethiopia", "https://www.bbc.com/sport"],
                 timestamp: new Date().toISOString()
             };
 
@@ -522,18 +475,21 @@
                 });
 
                 const data = await response.json();
-                renderMainOutput(data);
+                renderFixtures(data);
             } catch (err) {
                 output.innerHTML = `<div class="text-rose-500 font-mono">// FAST HOT NEWS FAILED: ${err.message}</div>`;
+            } finally {
+                loader.classList.add('hidden');
+                loader.classList.remove('flex');
             }
         }
 
-        function renderMainOutput(dataList) {
+        function renderFixtures(dataList) {
             const output = document.getElementById('outputContainer');
             output.innerHTML = '';
 
             if (!Array.isArray(dataList) || dataList.length === 0) {
-                output.innerHTML = `<div class="text-slate-400 font-mono">// NO RECENT DATA NODES RETURNED</div>`;
+                output.innerHTML = `<div class="text-slate-400 font-mono">// NO RECENT MATCH DATA NODES RETURNED FROM WORKFLOW</div>`;
                 return;
             }
 
