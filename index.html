@@ -119,7 +119,7 @@
                     </button>
 
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="epl"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
+                        <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
                     </label>
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="international"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
@@ -264,14 +264,12 @@
                 const speeds = globeParticles.userData.burstSpeeds;
                 
                 globeParticles.userData.loopTimer += delta;
-                const timer = globeParticles.userData.loopTimer % 6; // Strict 6-second total loop duration
+                const timer = globeParticles.userData.loopTimer % 6;
 
-                // Rotation metrics applied onto geometry axis
                 globeParticles.rotation.y += 0.008;
                 globeParticles.rotation.x += 0.003;
 
                 if (timer < 2.0) {
-                    // --- PHASE 1: STABLE ROTATING MODE (0s to 2s) ---
                     if(sportTextEl) {
                         sportTextEl.style.opacity = '0';
                         sportTextEl.style.transform = 'scale(0.85)';
@@ -284,10 +282,8 @@
                     }
                 } 
                 else if (timer >= 2.0 && timer < 3.5) {
-                    // --- PHASE 2: DETACH AND SCATTER EXPLOSION (2s to 3.5s) ---
-                    const progress = (timer - 2.0) / 1.5; // Normalized progress window (0.0 to 1.0)
+                    const progress = (timer - 2.0) / 1.5;
                     
-                    // Reveal and dynamically expand the text panel alongside the explosion progress
                     if(sportTextEl) {
                         sportTextEl.style.opacity = progress;
                         sportTextEl.style.transform = `scale(${0.85 + (progress * 0.15)})`;
@@ -307,10 +303,8 @@
                     }
                 } 
                 else {
-                    // --- PHASE 3: COMPRESSION BACK TO ORIGINAL STATE (3.5s to 6s) ---
-                    const returnProgress = (timer - 3.5) / 2.5; // Smooth interpolation progress (0.0 to 1.0)
+                    const returnProgress = (timer - 3.5) / 2.5;
                     
-                    // Elegantly fade out the word matrix as globe pieces assemble back
                     if(sportTextEl) {
                         sportTextEl.style.opacity = 1 - returnProgress;
                     }
@@ -353,7 +347,6 @@
             const stage = document.getElementById('backdropStage');
             const appFrame = document.getElementById('mainAppFrame');
 
-            // Dashboard panels appear smoothly after the first structural scatter sequence
             setTimeout(() => {
                 stage.classList.add('dashboard-active');
                 appFrame.classList.add('visible');
@@ -361,9 +354,70 @@
         });
 
         function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
-        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500 font-mono">// Querying global sports wire feeds...</div>`; }
         
-        document.getElementById('runBtn').onclick = () => {
+        // --- DIRECT BESOCCER SCRAPER (NO N8N REQUIRED FOR EPL) ---
+        async function fetchEPLFixturesDirect() {
+            const output = document.getElementById('outputContainer');
+            output.innerHTML = `<div class="text-emerald-400 font-mono animate-pulse">// INGESTING ETHIOPIAN PREMIER LEAGUE FIXTURES DIRECTLY FROM BESOCCER...</div>`;
+
+            const targetUrl = 'https://www.besoccer.com/competition/premier_league_ethiopia';
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+
+            try {
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error("CORS Proxy unreachable");
+                
+                const data = await response.json();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.contents, 'text/html');
+
+                const matchElements = doc.querySelectorAll('a[href*="/match/"]');
+                const extractedFixtures = [];
+                const seenUrls = new Set();
+
+                matchElements.forEach(el => {
+                    const href = el.getAttribute('href');
+                    const text = el.innerText.trim().replace(/\s+/g, ' ');
+
+                    if (href && text.length > 3 && !seenUrls.has(href)) {
+                        seenUrls.add(href);
+                        const fullUrl = href.startsWith('http') ? href : `https://www.besoccer.com${href}`;
+                        
+                        extractedFixtures.push({
+                            news: text,
+                            url: fullUrl,
+                            detailedText: "Ethiopian Premier League Fixture / Live Match Node",
+                            date: "Current Season / Round"
+                        });
+                    }
+                });
+
+                if (extractedFixtures.length === 0) {
+                    extractedFixtures.push({
+                        news: "Ethiopian Premier League - Competition Hub",
+                        url: targetUrl,
+                        detailedText: "Click to open full Ethiopian Premier League standings, fixtures, and scores.",
+                        date: "Live Direct Stream"
+                    });
+                }
+
+                renderFixtures(extractedFixtures);
+
+            } catch (err) {
+                console.error("Direct fetch error:", err);
+                output.innerHTML = `
+                    <div class="text-rose-500 font-mono mb-3">// DIRECT SCRAPE ENCOUNTERED CORS CONSTRAINT. ACCESS HUB DIRECTLY:</div>
+                    <a href="${targetUrl}" target="_blank" class="p-3 bg-slate-900 border border-emerald-500 rounded block text-emerald-400 font-bold hover:underline">
+                        ↗ Open BeSoccer Ethiopian Premier League Terminal
+                    </a>
+                `;
+            }
+        }
+
+        // --- FIRE PIPELINE HANDLER ---
+        document.getElementById('runBtn').onclick = async () => {
+            const runBtn = document.getElementById('runBtn');
+            const eplChecked = document.getElementById('epl-check').checked;
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
             const sourceList = document.getElementById('activeSourceList');
             const output = document.getElementById('outputContainer');
@@ -374,8 +428,112 @@
                 `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
             ).join('');
 
-            output.innerHTML = `<div class="text-emerald-400 font-mono">// SYSTEM INTELLIGENCE STREAM COUPLING COMPLETED<br>// CAPTURING ACTIVE NODES: ${mainCats.join(', ').toUpperCase()}</div>`;
+            // IF EPL IS CHECKED, SCRAPE DIRECTLY WITHOUT N8N
+            if (eplChecked) {
+                await fetchEPLFixturesDirect();
+                return;
+            }
+
+            // FOR OTHER CATEGORIES, ROUTE TO N8N WORKFLOW
+            output.innerHTML = `<div class="text-emerald-400 font-mono animate-pulse">// CONNECTING TO AI INGESTION WORKFLOW...</div>`;
+            runBtn.disabled = true;
+
+            const payload = {
+                page: "sports",
+                targetMatrix: "sports_analytics",
+                categories: mainCats,
+                websites: ["https://www.bbc.com/sport"],
+                query: "Latest global sports headlines",
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch('https://unreached-oboe-evade.ngrok-free.dev/webhook-test/staritofhormuz', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
+
+                const data = await response.json();
+                renderFixtures(data);
+
+            } catch (err) {
+                output.innerHTML = `<div class="text-rose-500 font-mono">// WORKFLOW EXECUTION FAILED: ${err.message}</div>`;
+            } finally {
+                runBtn.disabled = false;
+            }
         };
+
+        async function getHotNews() {
+            const queryVal = document.getElementById('hotNewsInput').value.trim();
+            const output = document.getElementById('outputContainer');
+            if (!queryVal) return alert("Please enter a sports topic.");
+
+            output.innerHTML = `<div class="text-rose-500 font-mono animate-pulse">// FAST HOT NEWS: QUERYING INGESTION FEED FOR [${queryVal.toUpperCase()}]...</div>`;
+
+            const payload = {
+                page: "sports",
+                targetMatrix: "hot_news",
+                query: queryVal,
+                websites: ["https://www.bbc.com/sport"],
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch('https://unreached-oboe-evade.ngrok-free.dev/webhook-test/staritofhormuz', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                renderFixtures(data);
+            } catch (err) {
+                output.innerHTML = `<div class="text-rose-500 font-mono">// FAST HOT NEWS FAILED: ${err.message}</div>`;
+            }
+        }
+
+        function renderFixtures(dataList) {
+            const output = document.getElementById('outputContainer');
+            output.innerHTML = '';
+
+            if (!Array.isArray(dataList) || dataList.length === 0) {
+                output.innerHTML = `<div class="text-slate-400 font-mono">// NO RECENT DATA NODES RETURNED</div>`;
+                return;
+            }
+
+            const gridContainer = document.createElement('div');
+            gridContainer.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 font-sans';
+
+            dataList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'p-3 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-lg shadow transition-all flex flex-col justify-between';
+                
+                card.innerHTML = `
+                    <div>
+                        <a href="${item.url || '#'}" target="_blank" class="text-emerald-400 font-bold hover:underline text-xs flex items-center justify-between gap-2">
+                            <span>${item.news || 'Match Fixture'}</span>
+                            <span class="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded flex-shrink-0">↗ MATCH</span>
+                        </a>
+                        <p class="text-slate-300 text-[11px] mt-2 line-clamp-2">${item.detailedText || ''}</p>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between border-t border-slate-800 pt-2 text-[10px] text-slate-400 font-mono">
+                        <span>📅 ${item.date || 'Recent'}</span>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            });
+
+            output.appendChild(gridContainer);
+        }
 
         function downloadData() {
             const data = document.getElementById('outputContainer').innerText;
