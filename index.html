@@ -603,9 +603,12 @@
             const output = document.getElementById('outputContainer');
             if (!output) return;
 
-            // Extract matches array or stats payload
-            const matches = payload?.data?.matches || payload?.matches || (Array.isArray(payload) ? payload : null);
-            const isStatsDetail = isDetailView || payload?.statistics || payload?.goals || payload?.substitutions;
+            // Handle root array response formats e.g. [ { data: { matches: [...] } } ]
+            const rootObj = Array.isArray(payload) ? payload[0] : payload;
+
+            // Safely extract matches array
+            const matches = rootObj?.data?.matches || rootObj?.matches || (Array.isArray(rootObj) ? rootObj : null);
+            const isStatsDetail = isDetailView || rootObj?.statistics || rootObj?.goals || rootObj?.substitutions;
 
             // 1. DETAIL / PDF PAPER VIEW
             if (isStatsDetail) {
@@ -624,9 +627,9 @@
                         <!-- MATCH STATS BODY -->
                         <div class="text-center space-y-2">
                             <h2 class="text-2xl font-black text-white uppercase tracking-wider">
-                                ${payload.homeTeam || 'HOME'} <span class="text-emerald-400 px-2">${payload.score || 'VS'}</span> ${payload.awayTeam || 'AWAY'}
+                                ${rootObj.homeTeam || 'HOME'} <span class="text-emerald-400 px-2">${rootObj.result || rootObj.score || 'VS'}</span> ${rootObj.awayTeam || 'AWAY'}
                             </h2>
-                            <p class="text-xs text-slate-400 font-mono">${payload.league || 'MATCH TELEMETRY REPORT'}</p>
+                            <p class="text-xs text-slate-400 font-mono">${rootObj.league || 'MATCH TELEMETRY REPORT'}</p>
                         </div>
 
                         <!-- BOTTOM ACTION FOOTER -->
@@ -669,13 +672,13 @@
                     card.className = "p-4 bg-slate-900/90 border border-slate-800 hover:border-emerald-500 rounded-xl cursor-pointer hover:scale-[1.01] transition-all flex flex-col justify-between";
                     card.innerHTML = `
                         <div class="flex justify-between items-center text-xs font-bold text-white mb-2">
-                            <span>${match.homeTeam || 'Home'}</span>
-                            <span class="text-emerald-400 font-mono px-2 py-0.5 bg-slate-950 rounded">${match.score || 'VS'}</span>
-                            <span>${match.awayTeam || 'Away'}</span>
+                            <span class="w-2/5 text-left truncate">${match.homeTeam || 'Home'}</span>
+                            <span class="text-emerald-400 font-mono px-2 py-0.5 bg-slate-950 rounded border border-slate-800">${match.result || match.score || 'VS'}</span>
+                            <span class="w-2/5 text-right truncate">${match.awayTeam || 'Away'}</span>
                         </div>
-                        <div class="text-[10px] text-slate-400 font-mono flex justify-between pt-2 border-t border-slate-800">
-                            <span>${match.time || match.date || 'TBD'}</span>
-                            <span class="text-emerald-400">View Details →</span>
+                        <div class="text-[10px] text-slate-400 font-mono flex justify-between items-center pt-2 border-t border-slate-800">
+                            <span>${match.matchDate || ''} ${match.kickOffTime || match.time || ''}</span>
+                            <span class="text-emerald-400 font-semibold hover:underline">View Match Details →</span>
                         </div>
                     `;
                     card.addEventListener('click', () => handleCardClick(match));
