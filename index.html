@@ -400,7 +400,6 @@
 
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
             const sourceList = document.getElementById('activeSourceList');
-            const output = document.getElementById('outputContainer');
 
             sourceList.innerHTML = mainCats.map(item => 
                 `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
@@ -423,7 +422,7 @@
             });
         }
 
-        // RENDER 4 CLICKABLE CARDS BEFORE WE TRIGGER WORKHOOK
+        // RENDER 4 CLICKABLE LEAGUE CARDS BEFORE TRIGGERING WEBHOOK
         function renderInternationalLeaguesMatrix() {
             const output = document.getElementById('outputContainer');
             output.innerHTML = `
@@ -501,7 +500,7 @@
                 </div>
             `;
 
-            // BIND CLICK EVENTS TO EACH CARD TO FIRE WEBHOOK
+            // BIND CLICK EVENTS TO EACH LEAGUE CARD TO FIRE WEBHOOK
             document.querySelectorAll('.league-card').forEach(card => {
                 card.addEventListener('click', () => {
                     const leagueName = card.getAttribute('data-league');
@@ -571,23 +570,28 @@
             });
         }
 
+        // --- DEEP-DIVE MATCH CLICK HANDLER ---
         async function handleCardClick(matchData) {
             const loader = document.getElementById('fullPageLoader');
             const loaderTitle = document.getElementById('loaderTitle');
             const loaderSubtext = document.getElementById('loaderSubtext');
             const output = document.getElementById('outputContainer');
 
+            // EXTRACT MATCH URL FOR DEEP SCRAPE
+            const targetMatchUrl = matchData.matchUrl || matchData.url || matchData.link || "";
+
             loaderTitle.innerText = "// FETCHING MATCH DETAILS...";
-            loaderSubtext.innerText = `Querying AI agent for details...`;
+            loaderSubtext.innerText = `Querying Firecrawl for match telemetry...`;
             loader.classList.remove('hidden');
             loader.classList.add('flex');
 
+            // DEEP-DIVE WEBHOOK PAYLOAD WITH MATCHURL INCLUDED
             const payload = {
                 page: "sports_match_detail",
                 targetMatrix: "match_deep_dive",
+                matchUrl: targetMatchUrl,
                 matchData: matchData,
-                matchUrl: matchData.matchUrl || matchData.url || "",
-                query: `Fetch detailed match stats, lineups, and summary for selected item`,
+                query: `Scrape comprehensive match details, statistics, events, and lineups for ${matchData.homeTeam || 'Home'} vs ${matchData.awayTeam || 'Away'}`,
                 timestamp: new Date().toISOString()
             };
 
@@ -614,148 +618,198 @@
             }
         }
 
-        // --- UNIVERSAL DYNAMIC JSON RENDER ENGINE ---
+        // --- UNIVERSAL DYNAMIC RESPONSE RENDER ENGINE ---
         function renderFixtures(responseData, isDetailView = false) {
             const output = document.getElementById('outputContainer');
             output.innerHTML = '';
 
-            if (responseData === undefined || responseData === null) {
+            if (!responseData) {
                 output.innerHTML = `<div class="text-slate-400 font-mono">// NO DATA RETURNED FROM WORKFLOW</div>`;
                 return;
             }
 
-            if (isDetailView && lastScrapedData) {
-                const backBarTop = document.createElement('div');
-                backBarTop.className = 'mb-4 pb-3 border-b border-slate-800 flex justify-between items-center';
-                backBarTop.innerHTML = `
-                    <button id="btnBackToGridTop" class="bg-slate-900 hover:bg-emerald-950 text-emerald-400 hover:text-emerald-300 border border-emerald-500/50 hover:border-emerald-400 px-4 py-2 rounded-lg font-mono text-xs font-bold uppercase transition-all cursor-pointer flex items-center gap-2 shadow-md">
-                        <span>←</span> BACK TO ALL MATCHES
-                    </button>
-                    <span class="text-[10px] font-mono text-emerald-400 font-bold">// DEEP DIVE MATCH RECORD</span>
-                `;
-                output.appendChild(backBarTop);
-
-                setTimeout(() => {
-                    const btn = document.getElementById('btnBackToGridTop');
-                    if(btn) btn.onclick = () => renderFixtures(lastScrapedData, false);
-                }, 0);
+            // Unify payload array/object structure
+            let payload = responseData;
+            if (Array.isArray(responseData) && responseData.length > 0 && typeof responseData[0] === 'object') {
+                payload = responseData[0];
             }
 
-            let dataList = null;
+            // Extract matches array if present
+            let matchesArray = null;
             if (Array.isArray(responseData)) {
-                dataList = responseData;
-            } else if (typeof responseData === 'object' && responseData !== null) {
-                const possibleKeys = ['data', 'items', 'results', 'fixtures', 'articles', 'output', 'response'];
-                for (let key of possibleKeys) {
-                    if (Array.isArray(responseData[key])) {
-                        dataList = responseData[key];
-                        break;
-                    }
-                }
+                matchesArray = responseData;
+            } else if (payload && typeof payload === 'object') {
+                matchesArray = payload.matches || payload.data || payload.items || payload.results || null;
             }
 
-            if (dataList && dataList.length > 0) {
+            const isMatchDetailPayload = isDetailView || (payload && (payload.statistics || payload.goals || payload.lineups || payload.substitutions));
+
+            // ==========================================
+            // MODE 1: MATCH LIST / FIXTURES (CLICKABLE CARDS)
+            // ==========================================
+            if (matchesArray && Array.isArray(matchesArray) && !isMatchDetailPayload) {
                 const gridContainer = document.createElement('div');
-                gridContainer.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 font-sans';
+                gridContainer.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 font-sans';
 
-                dataList.forEach(item => {
+                matchesArray.forEach(match => {
                     const card = document.createElement('div');
-                    card.className = 'p-3 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-lg shadow transition-all flex flex-col justify-between cursor-pointer hover:scale-[1.01]';
+                    card.className = 'p-4 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-xl shadow-lg transition-all flex flex-col justify-between cursor-pointer hover:scale-[1.01] group';
 
-                    if (typeof item === 'object' && item !== null) {
-                        const title = item.homeTeam && item.awayTeam 
-                            ? `${item.homeTeam} vs ${item.awayTeam}`
-                            : (item.title || item.news || item.headline || item.name || item.event || 'Data Node');
+                    const home = match.homeTeam || 'Home Team';
+                    const away = match.awayTeam || 'Away Team';
+                    const score = match.result || match.score || match.kickOffTime || 'VS';
+                    const round = match.round || match.matchDate || 'Fixture';
+                    const matchUrl = match.matchUrl || match.url || '';
 
-                        const subtitle = item.result || item.score || item.status || item.time || item.category || item.round || '';
-                        const url = item.matchUrl || item.url || item.link || '#';
-                        const summary = item.summary || item.description || item.body || item.text || '';
-
-                        let cardHTML = `
-                            <div>
-                                <div class="text-emerald-400 font-bold hover:underline text-xs flex items-center justify-between gap-2">
-                                    <span class="truncate">${title}</span>
-                                    <span class="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded flex-shrink-0">↗ NODE</span>
-                                </div>
-                        `;
-
-                        if (subtitle) {
-                            cardHTML += `<p class="text-slate-300 text-[11px] mt-1 font-mono"><span class="text-emerald-400 font-semibold">${subtitle}</span></p>`;
-                        }
-
-                        if (summary) {
-                            cardHTML += `<p class="text-slate-400 text-[11px] mt-2 line-clamp-2">${summary}</p>`;
-                        }
-
-                        cardHTML += `</div>`;
-                        cardHTML += `
-                            <div class="mt-3 flex items-center justify-between border-t border-slate-800 pt-2 text-[10px] text-slate-400 font-mono">
-                                <span>📅 Ingested</span>
-                                ${url !== '#' ? `<a href="${url}" target="_blank" onclick="event.stopPropagation();" class="hover:text-emerald-300 underline text-[10px]">Open Link ↗</a>` : '<span>Active Node</span>'}
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex items-center justify-between text-[10px] text-emerald-400 font-mono mb-2">
+                                <span class="uppercase tracking-wider">${round}</span>
+                                <span class="bg-emerald-950 border border-emerald-500/30 px-2 py-0.5 rounded text-emerald-300">CLICK FOR DETAILS →</span>
                             </div>
-                        `;
+                            <div class="flex items-center justify-between my-3 text-slate-100 font-bold text-sm">
+                                <span class="w-[42%] text-right truncate">${home}</span>
+                                <span class="px-2 py-1 bg-slate-950 rounded text-emerald-400 font-mono text-xs border border-slate-800">${score}</span>
+                                <span class="w-[42%] text-left truncate">${away}</span>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px] text-slate-400 font-mono mt-2">
+                            <span>Kickoff: ${match.kickOffTime || 'TBD'}</span>
+                            ${matchUrl ? `<span class="text-emerald-400 group-hover:underline">Deep Scrape Link ↗</span>` : ''}
+                        </div>
+                    `;
 
-                        card.innerHTML = cardHTML;
-                        card.addEventListener('click', () => handleCardClick(item));
-                    } else {
-                        card.innerHTML = `<div class="text-emerald-300 font-mono text-xs">${String(item)}</div>`;
-                    }
-
+                    // On clicking a card, fire the deep-dive detail webhook with matchUrl
+                    card.addEventListener('click', () => handleCardClick(match));
                     gridContainer.appendChild(card);
                 });
 
                 output.appendChild(gridContainer);
-            } 
-            else if (typeof responseData === 'object' && responseData !== null) {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'space-y-3 font-mono';
-
-                const header = document.createElement('div');
-                header.className = 'text-xs text-emerald-400 font-bold border-b border-emerald-500/30 pb-2 mb-3';
-                header.innerText = '// MATCH DETAIL TELEMETRY MATRIX';
-                wrapper.appendChild(header);
-
-                const grid = document.createElement('div');
-                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-2';
-
-                Object.keys(responseData).forEach(key => {
-                    const value = responseData[key];
-                    const itemBox = document.createElement('div');
-                    itemBox.className = 'p-2.5 bg-slate-900/90 border border-slate-800 rounded text-xs';
-                    
-                    const valDisplay = typeof value === 'object' 
-                        ? `<pre class="text-[10px] text-slate-300 overflow-x-auto mt-1">${JSON.stringify(value, null, 2)}</pre>`
-                        : `<span class="text-emerald-300 font-semibold">${value}</span>`;
-
-                    itemBox.innerHTML = `<div class="text-slate-400 text-[11px] uppercase font-bold text-emerald-500/80">${key}</div><div class="mt-1">${valDisplay}</div>`;
-                    grid.appendChild(itemBox);
-                });
-
-                wrapper.appendChild(grid);
-                output.appendChild(wrapper);
-            } 
-            else {
-                const rawContainer = document.createElement('pre');
-                rawContainer.className = 'whitespace-pre-wrap text-slate-200 font-mono text-xs leading-relaxed bg-slate-900/60 p-3 rounded border border-slate-800';
-                rawContainer.innerText = String(responseData);
-                output.appendChild(rawContainer);
+                return;
             }
 
-            if (isDetailView && lastScrapedData) {
-                const backBarBottom = document.createElement('div');
-                backBarBottom.className = 'mt-5 pt-4 border-t border-slate-800 flex justify-center';
-                backBarBottom.innerHTML = `
-                    <button id="btnBackToGridBottom" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold border border-emerald-400 px-6 py-2.5 rounded-lg font-mono text-xs uppercase transition-all cursor-pointer flex items-center gap-2 shadow-lg hover:scale-[1.02]">
-                        <span>←</span> RETURN TO ALL MATCHES MATRIX
-                    </button>
+            // ==========================================
+            // MODE 2: MATCH DETAILS (PDF REPORT PAPER LAYOUT)
+            // ==========================================
+            if (isMatchDetailPayload) {
+                const stats = payload.statistics || {};
+                const goals = payload.goals || [];
+                const subs = payload.substitutions || [];
+                const lineups = payload.lineups || {};
+
+                const pdfDoc = document.createElement('div');
+                pdfDoc.className = 'bg-slate-950 text-slate-100 p-6 md:p-8 rounded-xl border border-slate-800 font-sans shadow-2xl max-w-4xl mx-auto space-y-6';
+
+                pdfDoc.innerHTML = `
+                    <!-- TOP HEADER / BACK BUTTON CONTROLS -->
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                        <button id="btnBackToGridTop" class="bg-slate-900 hover:bg-emerald-950 text-emerald-400 hover:text-emerald-300 border border-emerald-500/50 hover:border-emerald-400 px-4 py-2 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer flex items-center gap-2 shadow-md">
+                            <span>←</span> BACK TO MATCHES
+                        </button>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-mono text-slate-400">// MATCH METRICS REPORT</span>
+                            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 px-4 py-2 rounded-lg font-bold text-xs uppercase font-mono cursor-pointer transition-all">
+                                📄 Export / Print PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- MATCH BANNER HEADER -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center space-y-3">
+                        <div class="text-xs font-mono text-emerald-400 uppercase tracking-widest">${payload.matchDate || 'TELEMETRY SUMMARY'}</div>
+                        <div class="flex items-center justify-center gap-4 text-xl md:text-2xl font-black">
+                            <span class="text-slate-100 flex-1 text-right">${payload.homeTeam || 'Home Team'}</span>
+                            <span class="px-4 py-2 bg-emerald-950 border border-emerald-500 text-emerald-400 font-mono rounded-lg text-lg">${payload.score || payload.result || 'FT'}</span>
+                            <span class="text-slate-100 flex-1 text-left">${payload.awayTeam || 'Away Team'}</span>
+                        </div>
+                    </div>
+
+                    <!-- STATS COMPARISON MATRIX -->
+                    ${Object.keys(stats).length > 0 ? `
+                    <div class="space-y-3 bg-slate-900/50 border border-slate-800 p-5 rounded-xl">
+                        <h4 class="text-xs font-mono uppercase text-emerald-400 border-b border-slate-800 pb-2">// MATCH METRICS & POSSESSION</h4>
+                        <div class="space-y-3 text-xs font-mono">
+                            ${Object.keys(stats).map(key => {
+                                const val = stats[key];
+                                const homeVal = typeof val === 'object' ? (val.home || '0') : '-';
+                                const awayVal = typeof val === 'object' ? (val.away || '0') : '-';
+                                return `
+                                    <div>
+                                        <div class="flex justify-between text-slate-400 mb-1 capitalize">
+                                            <span class="text-emerald-400 font-bold">${homeVal}</span>
+                                            <span class="text-slate-200 font-bold">${key.replace(/([A-Z])/g, ' $1')}</span>
+                                            <span class="text-cyan-400 font-bold">${awayVal}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden flex border border-slate-800">
+                                            <div class="bg-emerald-500 h-full" style="width: 50%"></div>
+                                            <div class="bg-cyan-500 h-full" style="width: 50%"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>` : ''}
+
+                    <!-- INCIDENTS GRID: GOALS & SUBS -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- GOALS -->
+                        <div class="bg-slate-900/50 border border-slate-800 p-4 rounded-xl space-y-2">
+                            <h4 class="text-xs font-mono uppercase text-emerald-400 border-b border-slate-800 pb-2">⚽ Match Goals</h4>
+                            ${goals.length > 0 ? goals.map(g => `
+                                <div class="flex items-center justify-between text-xs py-1.5 border-b border-slate-800/50">
+                                    <span class="font-mono text-emerald-400">${g.minute}</span>
+                                    <span class="font-bold text-slate-200">${g.scorer} <span class="text-slate-500 font-normal">(${g.team})</span></span>
+                                    <span class="text-[10px] text-slate-400 font-mono">${g.assist ? 'Ast: ' + g.assist : ''}</span>
+                                </div>
+                            `).join('') : '<p class="text-xs text-slate-500 italic font-mono">No goal records logged.</p>'}
+                        </div>
+
+                        <!-- SUBSTITUTIONS -->
+                        <div class="bg-slate-900/50 border border-slate-800 p-4 rounded-xl space-y-2">
+                            <h4 class="text-xs font-mono uppercase text-emerald-400 border-b border-slate-800 pb-2">🔄 Substitutions</h4>
+                            ${subs.length > 0 ? subs.map(s => `
+                                <div class="flex items-center justify-between text-xs py-1.5 border-b border-slate-800/50">
+                                    <span class="font-mono text-emerald-400">${s.minute}</span>
+                                    <div class="text-right">
+                                        <span class="text-emerald-400 font-bold">IN: ${s.playerIn}</span> / 
+                                        <span class="text-rose-400 font-bold">OUT: ${s.playerOut}</span>
+                                    </div>
+                                </div>
+                            `).join('') : '<p class="text-xs text-slate-500 italic font-mono">No substitution records logged.</p>'}
+                        </div>
+                    </div>
+
+                    <!-- BOTTOM BACK BUTTON CONTROL -->
+                    <div class="pt-4 border-t border-slate-800 flex justify-center">
+                        <button id="btnBackToGridBottom" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold border border-emerald-400 px-6 py-2.5 rounded-lg font-mono text-xs uppercase transition-all cursor-pointer flex items-center gap-2 shadow-lg hover:scale-[1.02]">
+                            <span>←</span> RETURN TO MATCHES MATRIX
+                        </button>
+                    </div>
                 `;
-                output.appendChild(backBarBottom);
 
+                output.appendChild(pdfDoc);
+
+                // Bind back button actions
                 setTimeout(() => {
-                    const btn = document.getElementById('btnBackToGridBottom');
-                    if(btn) btn.onclick = () => renderFixtures(lastScrapedData, false);
+                    const btnTop = document.getElementById('btnBackToGridTop');
+                    const btnBottom = document.getElementById('btnBackToGridBottom');
+                    
+                    const backAction = () => {
+                        if (lastScrapedData) {
+                            renderFixtures(lastScrapedData, false);
+                        } else {
+                            renderInternationalLeaguesMatrix();
+                        }
+                    };
+
+                    if (btnTop) btnTop.onclick = backAction;
+                    if (btnBottom) btnBottom.onclick = backAction;
                 }, 0);
+                return;
             }
+
+            // Default Fallback: Raw JSON view
+            output.innerHTML = `<pre class="text-xs text-slate-300 font-mono overflow-x-auto p-4 bg-slate-900 rounded border border-slate-800">${JSON.stringify(payload, null, 2)}</pre>`;
         }
 
         function downloadData() {
