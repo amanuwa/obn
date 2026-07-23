@@ -132,14 +132,14 @@
                         Select All Categories
                     </button>
 
-                    <!-- EPL CHECKBOX TRIGGER DIRECTLY ON CHANGE -->
+                    <!-- CHECKBOX TRIGGERS -->
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
                     </label>
 
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="international"> 
+                        <input type="checkbox" id="int-check" class="cat-check scale-110 accent-emerald-600" value="international"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
                     </label>
 
@@ -198,8 +198,7 @@
     <script type="module">
         import { N8N_GATEWAY_WEBHOOK } from './config.js';
 
-        // --- GLOBAL MATRIX STATE MANAGEMENT ---
-        let lastScrapedData = null; // Caches the main grid list dataset permanently until next scraper action
+        let lastScrapedData = null;
 
         // --- THREE.JS QUANTUM GLOBE ENGINE ---
         let scene, camera, renderer, globeParticles;
@@ -377,7 +376,6 @@
                 appFrame.classList.add('visible');
             }, 3500);
 
-            // Bind Event Listeners
             document.querySelectorAll('.cat-check').forEach(cb => {
                 cb.addEventListener('change', (e) => handleCategoryTrigger(e.target));
             });
@@ -392,50 +390,149 @@
             document.querySelectorAll(selector).forEach(c => {
                 c.checked = isChecked;
             }); 
-            // Trigger flow if EPL checkbox is checked via toggle
             const eplCheck = document.getElementById('epl-check');
             if (eplCheck && eplCheck.checked) handleCategoryTrigger(eplCheck);
         }
 
-        // --- AUTOMATIC TRIGGER ON CHECKBOX CHANGE ---
+        // --- CATEGORY SELECTION & INTERNATIONAL SUB-LEAGUES MATRIX ---
         async function handleCategoryTrigger(checkboxEl) {
             if (!checkboxEl.checked) return;
 
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
-            const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
             const sourceList = document.getElementById('activeSourceList');
             const output = document.getElementById('outputContainer');
-            
-            const loader = document.getElementById('fullPageLoader');
-            const loaderTitle = document.getElementById('loaderTitle');
-            const loaderSubtext = document.getElementById('loaderSubtext');
 
             sourceList.innerHTML = mainCats.map(item => 
                 `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
             ).join('');
 
-            loaderTitle.innerText = "// INITIALIZING PIPELINE CONNECTOR...";
-            loaderSubtext.innerText = "Waiting for sports agent response...";
-            loader.classList.remove('hidden');
-            loader.classList.add('flex');
-
-            let targetWebsites = [];
-            if (mainCats.includes('epl')) {
-                targetWebsites.push("https://www.besoccer.com/competition/premier_league_ethiopia");
-            }
-            if (mainCats.includes('international')) {
-                targetWebsites.push("https://www.bbc.com/sport");
+            // IF INTERNATIONAL IS SELECTED, SHOW THE 4 CARDS MATRIX FIRST BEFORE WEBHOOK TRIGGER
+            if (checkboxEl.value === 'international') {
+                renderInternationalLeaguesMatrix();
+                return;
             }
 
-            const payload = {
+            // DEFAULT WORKFLOW CALL FOR OTHER CATEGORIES
+            executeScraperWorkflow({
                 page: "sports",
                 targetMatrix: "sports_analytics",
                 categories: mainCats,
-                languages: selectedLangs,
-                websites: targetWebsites,
-                query: mainCats.includes('epl') ? "Ethiopian Premier League upcoming fixtures and recent results" : "Latest sports headlines",
+                websites: ["https://www.besoccer.com/competition/premier_league_ethiopia"],
+                query: "Ethiopian Premier League fixtures and scores",
                 timestamp: new Date().toISOString()
-            };
+            });
+        }
+
+        // RENDER 4 CLICKABLE CARDS BEFORE WE TRIGGER WORKHOOK
+        function renderInternationalLeaguesMatrix() {
+            const output = document.getElementById('outputContainer');
+            output.innerHTML = `
+                <div class="space-y-4">
+                    <div class="border-b border-slate-800 pb-2">
+                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// INTERNATIONAL LEAGUE MATRIX SELECTION</h3>
+                        <p class="text-[11px] text-slate-400 font-sans mt-0.5">Select a target league to execute the live scraping pipeline:</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans">
+                        <!-- CARD 1 -->
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="English Premier League" data-url="https://www.besoccer.com/competition/premier_league">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">EPL</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">English Premier League live fixtures, scores, table standings & team statistics.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+
+                        <!-- CARD 2 -->
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="Champions League" data-url="https://www.besoccer.com/competition/champions_league">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇪🇺 UEFA Champions League</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">UCL</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">European Champions League knockout matrix, match schedules, and stats.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+
+                        <!-- CARD 3 -->
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="Spain LaLiga" data-url="https://www.besoccer.com/competition/liga_santander">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇪🇸 Spain LaLiga</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">LALIGA</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">Spanish Primera División coverage, Real Madrid, Barcelona matchday streams.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+
+                        <!-- CARD 4 -->
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="Serie A / Ligue 1 / Bundesliga" data-url="https://www.besoccer.com/">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇮🇹 🇫🇷 🇩🇪 Serie A, Ligue 1 & Bundesliga</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">EURO</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">Combined stream covering Italian Serie A, French Ligue 1, and German Bundesliga.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // BIND CLICK EVENTS TO EACH CARD TO FIRE WEBHOOK
+            document.querySelectorAll('.league-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const leagueName = card.getAttribute('data-league');
+                    const leagueUrl = card.getAttribute('data-url');
+                    const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+
+                    executeScraperWorkflow({
+                        page: "sports",
+                        targetMatrix: "international_analytics",
+                        selectedLeague: leagueName,
+                        categories: ["international"],
+                        languages: selectedLangs,
+                        websites: [leagueUrl],
+                        query: `Fetch live fixtures, statistics, and headlines for ${leagueName}`,
+                        timestamp: new Date().toISOString()
+                    });
+                });
+            });
+        }
+
+        // --- WEBHOOK EXECUTOR PIPELINE ---
+        async function executeScraperWorkflow(payload) {
+            const output = document.getElementById('outputContainer');
+            const loader = document.getElementById('fullPageLoader');
+            const loaderTitle = document.getElementById('loaderTitle');
+            const loaderSubtext = document.getElementById('loaderSubtext');
+
+            loaderTitle.innerText = "// INITIALIZING PIPELINE CONNECTOR...";
+            loaderSubtext.innerText = `Fetching telemetry for: ${payload.selectedLeague || payload.query}...`;
+            loader.classList.remove('hidden');
+            loader.classList.add('flex');
 
             try {
                 const response = await fetch(N8N_GATEWAY_WEBHOOK, {
@@ -450,10 +547,7 @@
                 if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
                 const data = await response.json();
-                
-                // Cache state ONLY for primary list requests
                 lastScrapedData = data;
-                
                 renderFixtures(data, false);
 
             } catch (err) {
@@ -466,48 +560,15 @@
 
         async function getHotNews() {
             const queryVal = document.getElementById('hotNewsInput').value.trim();
-            const output = document.getElementById('outputContainer');
             if (!queryVal) return alert("Please enter a sports topic.");
 
-            const loader = document.getElementById('fullPageLoader');
-            const loaderTitle = document.getElementById('loaderTitle');
-            const loaderSubtext = document.getElementById('loaderSubtext');
-
-            loaderTitle.innerText = "// FAST HOT NEWS STREAM ACTIVE...";
-            loaderSubtext.innerText = `Querying global feeds for topic: [${queryVal.toUpperCase()}]`;
-            loader.classList.remove('hidden');
-            loader.classList.add('flex');
-
-            const payload = {
+            executeScraperWorkflow({
                 page: "sports",
                 targetMatrix: "hot_news",
                 query: queryVal,
                 websites: ["https://www.besoccer.com/competition/premier_league_ethiopia", "https://www.bbc.com/sport"],
                 timestamp: new Date().toISOString()
-            };
-
-            try {
-                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-                
-                // Cache primary search results
-                lastScrapedData = data;
-                
-                renderFixtures(data, false);
-            } catch (err) {
-                output.innerHTML = `<div class="text-rose-500 font-mono">// FAST HOT NEWS FAILED: ${err.message}</div>`;
-            } finally {
-                loader.classList.add('hidden');
-                loader.classList.remove('flex');
-            }
+            });
         }
 
         async function handleCardClick(matchData) {
@@ -543,8 +604,6 @@
                 if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
                 const data = await response.json();
-                
-                // CRITICAL: Render detail payload WITH isDetailView = true, without touching lastScrapedData!
                 renderFixtures(data, true);
 
             } catch (err) {
@@ -565,7 +624,6 @@
                 return;
             }
 
-            // Create top Back Button bar if rendering detail view
             if (isDetailView && lastScrapedData) {
                 const backBarTop = document.createElement('div');
                 backBarTop.className = 'mb-4 pb-3 border-b border-slate-800 flex justify-between items-center';
@@ -583,7 +641,6 @@
                 }, 0);
             }
 
-            // Unify nested array wrapper objects
             let dataList = null;
             if (Array.isArray(responseData)) {
                 dataList = responseData;
@@ -597,7 +654,6 @@
                 }
             }
 
-            // CASE 1: Array of Items
             if (dataList && dataList.length > 0) {
                 const gridContainer = document.createElement('div');
                 gridContainer.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 font-sans';
@@ -631,20 +687,7 @@
                             cardHTML += `<p class="text-slate-400 text-[11px] mt-2 line-clamp-2">${summary}</p>`;
                         }
 
-                        const knownKeys = ['homeTeam', 'awayTeam', 'title', 'news', 'headline', 'name', 'event', 'result', 'score', 'status', 'time', 'category', 'round', 'matchUrl', 'url', 'link', 'summary', 'description', 'body', 'text'];
-                        const extraKeys = Object.keys(item).filter(k => !knownKeys.includes(k));
-
-                        if (extraKeys.length > 0) {
-                            cardHTML += `<div class="mt-2 text-[10px] text-slate-400 font-mono space-y-0.5 border-t border-slate-800/80 pt-1.5">`;
-                            extraKeys.slice(0, 4).forEach(k => {
-                                const val = typeof item[k] === 'object' ? JSON.stringify(item[k]) : item[k];
-                                cardHTML += `<div class="truncate"><span class="text-emerald-500/80">${k}:</span> ${val}</div>`;
-                            });
-                            cardHTML += `</div>`;
-                        }
-
                         cardHTML += `</div>`;
-
                         cardHTML += `
                             <div class="mt-3 flex items-center justify-between border-t border-slate-800 pt-2 text-[10px] text-slate-400 font-mono">
                                 <span>📅 Ingested</span>
@@ -663,14 +706,13 @@
 
                 output.appendChild(gridContainer);
             } 
-            // CASE 2: Single Key-Value Object Response (Used for Match Details)
             else if (typeof responseData === 'object' && responseData !== null) {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'space-y-3 font-mono';
 
                 const header = document.createElement('div');
-                header.className = 'text-xs text-emerald-400 font-bold border-b border-emerald-500/30 pb-2 mb-3 flex items-center justify-between';
-                header.innerHTML = `<span>// MATCH DETAIL TELEMETRY MATRIX</span>`;
+                header.className = 'text-xs text-emerald-400 font-bold border-b border-emerald-500/30 pb-2 mb-3';
+                header.innerText = '// MATCH DETAIL TELEMETRY MATRIX';
                 wrapper.appendChild(header);
 
                 const grid = document.createElement('div');
@@ -692,7 +734,6 @@
                 wrapper.appendChild(grid);
                 output.appendChild(wrapper);
             } 
-            // CASE 3: Fallback Raw Output
             else {
                 const rawContainer = document.createElement('pre');
                 rawContainer.className = 'whitespace-pre-wrap text-slate-200 font-mono text-xs leading-relaxed bg-slate-900/60 p-3 rounded border border-slate-800';
@@ -700,7 +741,6 @@
                 output.appendChild(rawContainer);
             }
 
-            // Create bottom Back Button bar if rendering detail view
             if (isDetailView && lastScrapedData) {
                 const backBarBottom = document.createElement('div');
                 backBarBottom.className = 'mt-5 pt-4 border-t border-slate-800 flex justify-center';
