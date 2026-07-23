@@ -199,7 +199,7 @@
         import { N8N_GATEWAY_WEBHOOK } from './config.js';
 
         // --- GLOBAL MATRIX STATE MANAGEMENT ---
-        let lastScrapedData = null; // Caches the main grid dataset
+        let lastScrapedData = null; // Caches the main grid list dataset permanently until next scraper action
 
         // --- THREE.JS QUANTUM GLOBE ENGINE ---
         let scene, camera, renderer, globeParticles;
@@ -451,7 +451,7 @@
 
                 const data = await response.json();
                 
-                // Cache state for main grid back navigation
+                // Cache state ONLY for primary list requests
                 lastScrapedData = data;
                 
                 renderFixtures(data, false);
@@ -498,7 +498,7 @@
 
                 const data = await response.json();
                 
-                // Cache state
+                // Cache primary search results
                 lastScrapedData = data;
                 
                 renderFixtures(data, false);
@@ -544,7 +544,7 @@
 
                 const data = await response.json();
                 
-                // Render detail view with Back Button enabled
+                // CRITICAL: Render detail payload WITH isDetailView = true, without touching lastScrapedData!
                 renderFixtures(data, true);
 
             } catch (err) {
@@ -555,7 +555,7 @@
             }
         }
 
-        // --- UNIVERSAL DYNAMIC JSON RENDER ENGINE WITH BACK NAVIGATION ---
+        // --- UNIVERSAL DYNAMIC JSON RENDER ENGINE ---
         function renderFixtures(responseData, isDetailView = false) {
             const output = document.getElementById('outputContainer');
             output.innerHTML = '';
@@ -565,7 +565,7 @@
                 return;
             }
 
-            // Create top Back Button bar if we are in Detail View
+            // Create top Back Button bar if rendering detail view
             if (isDetailView && lastScrapedData) {
                 const backBarTop = document.createElement('div');
                 backBarTop.className = 'mb-4 pb-3 border-b border-slate-800 flex justify-between items-center';
@@ -573,7 +573,7 @@
                     <button id="btnBackToGridTop" class="bg-slate-900 hover:bg-emerald-950 text-emerald-400 hover:text-emerald-300 border border-emerald-500/50 hover:border-emerald-400 px-4 py-2 rounded-lg font-mono text-xs font-bold uppercase transition-all cursor-pointer flex items-center gap-2 shadow-md">
                         <span>←</span> BACK TO ALL MATCHES
                     </button>
-                    <span class="text-[10px] font-mono text-slate-500">// SINGLE RECORD DEEP DIVE</span>
+                    <span class="text-[10px] font-mono text-emerald-400 font-bold">// DEEP DIVE MATCH RECORD</span>
                 `;
                 output.appendChild(backBarTop);
 
@@ -587,7 +587,7 @@
             let dataList = null;
             if (Array.isArray(responseData)) {
                 dataList = responseData;
-            } else if (typeof responseData === 'object') {
+            } else if (typeof responseData === 'object' && responseData !== null) {
                 const possibleKeys = ['data', 'items', 'results', 'fixtures', 'articles', 'output', 'response'];
                 for (let key of possibleKeys) {
                     if (Array.isArray(responseData[key])) {
@@ -597,7 +597,7 @@
                 }
             }
 
-            // CASE 1: Response contains an Array of Items
+            // CASE 1: Array of Items
             if (dataList && dataList.length > 0) {
                 const gridContainer = document.createElement('div');
                 gridContainer.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 font-sans';
@@ -663,14 +663,14 @@
 
                 output.appendChild(gridContainer);
             } 
-            // CASE 2: Single Key-Value Object Response
+            // CASE 2: Single Key-Value Object Response (Used for Match Details)
             else if (typeof responseData === 'object' && responseData !== null) {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'space-y-3 font-mono';
 
                 const header = document.createElement('div');
-                header.className = 'text-xs text-emerald-400 font-bold border-b border-emerald-500/30 pb-2 mb-3';
-                header.innerText = '// SINGLE DATA INGESTION RECORD MATRIX';
+                header.className = 'text-xs text-emerald-400 font-bold border-b border-emerald-500/30 pb-2 mb-3 flex items-center justify-between';
+                header.innerHTML = `<span>// MATCH DETAIL TELEMETRY MATRIX</span>`;
                 wrapper.appendChild(header);
 
                 const grid = document.createElement('div');
@@ -685,7 +685,7 @@
                         ? `<pre class="text-[10px] text-slate-300 overflow-x-auto mt-1">${JSON.stringify(value, null, 2)}</pre>`
                         : `<span class="text-emerald-300 font-semibold">${value}</span>`;
 
-                    itemBox.innerHTML = `<div class="text-slate-400 text-[11px] uppercase">${key}</div><div>${valDisplay}</div>`;
+                    itemBox.innerHTML = `<div class="text-slate-400 text-[11px] uppercase font-bold text-emerald-500/80">${key}</div><div class="mt-1">${valDisplay}</div>`;
                     grid.appendChild(itemBox);
                 });
 
@@ -700,7 +700,7 @@
                 output.appendChild(rawContainer);
             }
 
-            // Create bottom Back Button bar if we are in Detail View
+            // Create bottom Back Button bar if rendering detail view
             if (isDetailView && lastScrapedData) {
                 const backBarBottom = document.createElement('div');
                 backBarBottom.className = 'mt-5 pt-4 border-t border-slate-800 flex justify-center';
