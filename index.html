@@ -198,6 +198,9 @@
     <script type="module">
         import { N8N_GATEWAY_WEBHOOK } from './config.js';
 
+        // --- GLOBAL MATRIX STATE MANAGEMENT ---
+        let lastScrapedData = null; // Caches the main grid dataset
+
         // --- THREE.JS QUANTUM GLOBE ENGINE ---
         let scene, camera, renderer, globeParticles;
         const clock = new THREE.Clock();
@@ -447,7 +450,11 @@
                 if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
                 const data = await response.json();
-                renderFixtures(data);
+                
+                // Cache state for main grid back navigation
+                lastScrapedData = data;
+                
+                renderFixtures(data, false);
 
             } catch (err) {
                 output.innerHTML = `<div class="text-rose-500 font-mono">// WORKFLOW EXECUTION FAILED: ${err.message}</div>`;
@@ -490,7 +497,11 @@
                 });
 
                 const data = await response.json();
-                renderFixtures(data);
+                
+                // Cache state
+                lastScrapedData = data;
+                
+                renderFixtures(data, false);
             } catch (err) {
                 output.innerHTML = `<div class="text-rose-500 font-mono">// FAST HOT NEWS FAILED: ${err.message}</div>`;
             } finally {
@@ -532,7 +543,9 @@
                 if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
                 const data = await response.json();
-                renderFixtures(data);
+                
+                // Render detail view with Back Button enabled
+                renderFixtures(data, true);
 
             } catch (err) {
                 output.innerHTML = `<div class="text-rose-500 font-mono">// MATCH DETAIL FETCH FAILED: ${err.message}</div>`;
@@ -542,8 +555,8 @@
             }
         }
 
-        // --- UNIVERSAL DYNAMIC JSON RENDER ENGINE ---
-        function renderFixtures(responseData) {
+        // --- UNIVERSAL DYNAMIC JSON RENDER ENGINE WITH BACK NAVIGATION ---
+        function renderFixtures(responseData, isDetailView = false) {
             const output = document.getElementById('outputContainer');
             output.innerHTML = '';
 
@@ -552,7 +565,25 @@
                 return;
             }
 
-            // Unify nested array wrapper objects (e.g. { data: [...] }, { items: [...] }, { results: [...] })
+            // Create top Back Button bar if we are in Detail View
+            if (isDetailView && lastScrapedData) {
+                const backBarTop = document.createElement('div');
+                backBarTop.className = 'mb-4 pb-3 border-b border-slate-800 flex justify-between items-center';
+                backBarTop.innerHTML = `
+                    <button id="btnBackToGridTop" class="bg-slate-900 hover:bg-emerald-950 text-emerald-400 hover:text-emerald-300 border border-emerald-500/50 hover:border-emerald-400 px-4 py-2 rounded-lg font-mono text-xs font-bold uppercase transition-all cursor-pointer flex items-center gap-2 shadow-md">
+                        <span>←</span> BACK TO ALL MATCHES
+                    </button>
+                    <span class="text-[10px] font-mono text-slate-500">// SINGLE RECORD DEEP DIVE</span>
+                `;
+                output.appendChild(backBarTop);
+
+                setTimeout(() => {
+                    const btn = document.getElementById('btnBackToGridTop');
+                    if(btn) btn.onclick = () => renderFixtures(lastScrapedData, false);
+                }, 0);
+            }
+
+            // Unify nested array wrapper objects
             let dataList = null;
             if (Array.isArray(responseData)) {
                 dataList = responseData;
@@ -566,7 +597,7 @@
                 }
             }
 
-            // CASE 1: Response contains an Array of Items (Matches, News, or Generic Objects)
+            // CASE 1: Response contains an Array of Items
             if (dataList && dataList.length > 0) {
                 const gridContainer = document.createElement('div');
                 gridContainer.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 font-sans';
@@ -576,7 +607,6 @@
                     card.className = 'p-3 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-lg shadow transition-all flex flex-col justify-between cursor-pointer hover:scale-[1.01]';
 
                     if (typeof item === 'object' && item !== null) {
-                        // Dynamic key extraction
                         const title = item.homeTeam && item.awayTeam 
                             ? `${item.homeTeam} vs ${item.awayTeam}`
                             : (item.title || item.news || item.headline || item.name || item.event || 'Data Node');
@@ -585,7 +615,6 @@
                         const url = item.matchUrl || item.url || item.link || '#';
                         const summary = item.summary || item.description || item.body || item.text || '';
 
-                        // Render main header
                         let cardHTML = `
                             <div>
                                 <div class="text-emerald-400 font-bold hover:underline text-xs flex items-center justify-between gap-2">
@@ -602,7 +631,6 @@
                             cardHTML += `<p class="text-slate-400 text-[11px] mt-2 line-clamp-2">${summary}</p>`;
                         }
 
-                        // Fallback key-value printer for unidentified custom keys
                         const knownKeys = ['homeTeam', 'awayTeam', 'title', 'news', 'headline', 'name', 'event', 'result', 'score', 'status', 'time', 'category', 'round', 'matchUrl', 'url', 'link', 'summary', 'description', 'body', 'text'];
                         const extraKeys = Object.keys(item).filter(k => !knownKeys.includes(k));
 
@@ -615,9 +643,8 @@
                             cardHTML += `</div>`;
                         }
 
-                        cardHTML += `</div>`; // Close upper div
+                        cardHTML += `</div>`;
 
-                        // Footer bar
                         cardHTML += `
                             <div class="mt-3 flex items-center justify-between border-t border-slate-800 pt-2 text-[10px] text-slate-400 font-mono">
                                 <span>📅 Ingested</span>
@@ -628,7 +655,6 @@
                         card.innerHTML = cardHTML;
                         card.addEventListener('click', () => handleCardClick(item));
                     } else {
-                        // Primitive array values (strings/numbers)
                         card.innerHTML = `<div class="text-emerald-300 font-mono text-xs">${String(item)}</div>`;
                     }
 
@@ -636,11 +662,9 @@
                 });
 
                 output.appendChild(gridContainer);
-                return;
-            }
-
+            } 
             // CASE 2: Single Key-Value Object Response
-            if (typeof responseData === 'object' && responseData !== null) {
+            else if (typeof responseData === 'object' && responseData !== null) {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'space-y-3 font-mono';
 
@@ -667,14 +691,31 @@
 
                 wrapper.appendChild(grid);
                 output.appendChild(wrapper);
-                return;
+            } 
+            // CASE 3: Fallback Raw Output
+            else {
+                const rawContainer = document.createElement('pre');
+                rawContainer.className = 'whitespace-pre-wrap text-slate-200 font-mono text-xs leading-relaxed bg-slate-900/60 p-3 rounded border border-slate-800';
+                rawContainer.innerText = String(responseData);
+                output.appendChild(rawContainer);
             }
 
-            // CASE 3: Fallback Raw Output (Plain Text / HTML / Markdown Response)
-            const rawContainer = document.createElement('pre');
-            rawContainer.className = 'whitespace-pre-wrap text-slate-200 font-mono text-xs leading-relaxed bg-slate-900/60 p-3 rounded border border-slate-800';
-            rawContainer.innerText = String(responseData);
-            output.appendChild(rawContainer);
+            // Create bottom Back Button bar if we are in Detail View
+            if (isDetailView && lastScrapedData) {
+                const backBarBottom = document.createElement('div');
+                backBarBottom.className = 'mt-5 pt-4 border-t border-slate-800 flex justify-center';
+                backBarBottom.innerHTML = `
+                    <button id="btnBackToGridBottom" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold border border-emerald-400 px-6 py-2.5 rounded-lg font-mono text-xs uppercase transition-all cursor-pointer flex items-center gap-2 shadow-lg hover:scale-[1.02]">
+                        <span>←</span> RETURN TO ALL MATCHES MATRIX
+                    </button>
+                `;
+                output.appendChild(backBarBottom);
+
+                setTimeout(() => {
+                    const btn = document.getElementById('btnBackToGridBottom');
+                    if(btn) btn.onclick = () => renderFixtures(lastScrapedData, false);
+                }, 0);
+            }
         }
 
         function downloadData() {
