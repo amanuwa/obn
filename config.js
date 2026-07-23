@@ -11,7 +11,7 @@ export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 export const N8N_CONTENT_URL = 'https://corsproxy.io/?https://terminal-n8n-gateway.onrender.com/webhook/register-journalist';
 
 //export const N8N_GATEWAY_WEBHOOK = 'https://unreached-oboe-evade.ngrok-free.dev/webhook/staritofhormuz';
- export const N8N_GATEWAY_WEBHOOK =  'https://unreached-oboe-evade.ngrok-free.dev/webhook-test/staritofhormuz';
+ export const N8N_GATEWAY_WEBHOOK =  'https://unreached-oboe-evade.ngrok-free.dev/webhook/staritofhormuz';
 //export const N8N_GATEWAY_WEBHOOK = 'https://unreached-oboe-evade.ngrok-free.dev/webhook/staritofhormuz';
 
 
