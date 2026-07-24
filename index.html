@@ -95,10 +95,8 @@
     <div id="backdropStage" class="cyber-backdrop-container">
         <div class="hud-overlay"></div>
         <div id="laserLine" class="scanline"></div>
-        <!-- 3D Globe Pipeline Container -->
         <div id="globeCanvasContainer"></div>
         
-        <!-- DYNAMIC LOOPING SPORT BIG TEXT DISPLAY -->
         <div id="quantumSportText" class="absolute inset-0 flex items-center justify-center pointer-events-none z-3 opacity-0 select-none will-change-transform transition-all ease-out duration-100">
             <h1 class="text-8xl md:text-[13rem] font-black tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 filter drop-shadow-[0_0_50px_rgba(6,182,212,0.6)] font-sans">
                 SPORT
@@ -109,7 +107,6 @@
     <!-- STEP 2: METRICS TELEMETRY PANELS DISPLAY -->
     <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full pointer-events-auto">
         
-        <!-- HEADER -->
         <header class="bg-slate-950/60 border-b-2 border-slate-800 px-6 py-4 flex items-center justify-between backdrop-blur-lg">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-400">AI</div>
@@ -118,7 +115,6 @@
             <div class="font-mono text-xs text-emerald-400 tracking-wider animate-pulse">// MULTI-SPORT STREAM INGESTION ACTIVE</div>
         </header>
 
-        <!-- DASHBOARD BODY PANEL MATRIX -->
         <main class="flex-1 grid grid-cols-4 gap-4 p-4 h-full overflow-hidden">
             
             <!-- CONTROLS SIDE PANEL -->
@@ -132,7 +128,6 @@
                         Select All Categories
                     </button>
 
-                    <!-- CHECKBOX TRIGGERS -->
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
@@ -194,14 +189,12 @@
         </main>
     </div>
 
-    <!-- LIFECYCLE CONTROLLER SCRIPTS -->
     <script type="module">
         import { N8N_GATEWAY_WEBHOOK } from './config.js';
 
-        // GLOBAL CACHE FOR RE-RENDERING
         window.fullMatchList = [];
 
-        // --- THREE.JS QUANTUM GLOBE ENGINE ---
+        // --- THREE.JS GLOBE ENGINE ---
         let scene, camera, renderer, globeParticles;
         const clock = new THREE.Clock();
         const baseRadius = 50;
@@ -308,7 +301,6 @@
                 } 
                 else if (timer >= 2.0 && timer < 3.5) {
                     const progress = (timer - 2.0) / 1.5;
-                    
                     if(sportTextEl) {
                         sportTextEl.style.opacity = progress;
                         sportTextEl.style.transform = `scale(${0.85 + (progress * 0.15)})`;
@@ -319,7 +311,6 @@
                         const vy = vectors[i * 3 + 1];
                         const vz = vectors[i * 3 + 2];
                         const speed = speeds[i];
-
                         const expansionDist = baseRadius + (progress * 380 * speed);
                         
                         positions[i * 3] = vx * expansionDist + Math.sin(elapsed * speed * 3) * 5;
@@ -329,10 +320,7 @@
                 } 
                 else {
                     const returnProgress = (timer - 3.5) / 2.5;
-                    
-                    if(sportTextEl) {
-                        sportTextEl.style.opacity = 1 - returnProgress;
-                    }
+                    if(sportTextEl) sportTextEl.style.opacity = 1 - returnProgress;
 
                     for (let i = 0; i < totalParticles; i++) {
                         const vx = vectors[i * 3];
@@ -365,7 +353,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // --- CORE LIFECYCLE CONTROLLERS ---
+        // --- CORE CONTROLLERS ---
         window.addEventListener('DOMContentLoaded', () => {
             initGlobeSystem();
             
@@ -386,14 +374,11 @@
         });
 
         function toggleAll(selector, isChecked) { 
-            document.querySelectorAll(selector).forEach(c => {
-                c.checked = isChecked;
-            }); 
+            document.querySelectorAll(selector).forEach(c => c.checked = isChecked); 
             const eplCheck = document.getElementById('epl-check');
             if (eplCheck && eplCheck.checked) handleCategoryTrigger(eplCheck);
         }
 
-        // --- CATEGORY SELECTION & INTERNATIONAL SUB-LEAGUES MATRIX ---
         async function handleCategoryTrigger(checkboxEl) {
             if (!checkboxEl.checked) return;
 
@@ -482,39 +467,54 @@
             });
         }
 
-        // --- UNIVERSAL N8N DATA NORMALIZER ---
+        // --- UNIVERSAL PAYLOAD NORMALIZER ---
         function normalizeN8nPayload(rawData) {
             let data = rawData;
             
-            // If response is wrapped in an array [ {...} ]
             if (Array.isArray(data) && data.length > 0) {
                 data = data[0];
             }
 
-            // If n8n wrapped it inside "json" or "body"
             if (data && typeof data === 'object') {
                 if (data.json) data = data.json;
                 if (data.body) data = data.body;
             }
 
-            // If stringified JSON returned, parse it
             if (typeof data === 'string') {
                 try {
                     data = JSON.parse(data);
                 } catch (e) {
-                    console.warn("Could not parse payload string as JSON", e);
+                    console.warn("Raw payload string parse error", e);
                 }
-            }
-
-            // Re-unwrap if nested inside data property
-            if (data && data.data) {
-                return data.data;
             }
 
             return data;
         }
 
-        // --- WEBHOOK EXECUTOR PIPELINE ---
+        // --- HELPER: SEARCH KEYS DEEPLY IN OBJECT ---
+        function getVal(obj, keys, defaultVal = '') {
+            if (!obj || typeof obj !== 'object') return defaultVal;
+            
+            // Check direct keys
+            for (let k of keys) {
+                if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
+            }
+            
+            // Check inside nested common wrappers (data, match, details, summary)
+            const subProps = ['data', 'match', 'details', 'telemetry', 'result', 'summary'];
+            for (let prop of subProps) {
+                if (obj[prop] && typeof obj[prop] === 'object') {
+                    for (let k of keys) {
+                        if (obj[prop][k] !== undefined && obj[prop][k] !== null && obj[prop][k] !== '') {
+                            return obj[prop][k];
+                        }
+                    }
+                }
+            }
+            return defaultVal;
+        }
+
+        // --- MAIN PIPELINE EXECUTOR ---
         async function executeScraperWorkflow(payload) {
             const loader = document.getElementById('fullPageLoader');
             const loaderTitle = document.getElementById('loaderTitle');
@@ -544,17 +544,22 @@
                 const rawData = await response.json();
                 console.log("📥 Raw Webhook Response:", rawData);
 
-                // UNWRAP ALL POSSIBLE N8N STRUCTURES
                 const cleanData = normalizeN8nPayload(rawData);
                 console.log("⚡ Normalized Payload:", cleanData);
 
-                // MATCH MATCHES ARRAY OR SINGLE OBJECT
+                // IF REQUEST WAS MATCH DETAILS (SECOND WEBHOOK)
+                if (payload.page === "sports_detail") {
+                    renderMatchTelemetryDetails(cleanData);
+                    return;
+                }
+
+                // IF REQUEST WAS LISTING (FIRST WEBHOOK)
                 if (cleanData && Array.isArray(cleanData.matches)) {
                     renderMatchOverviewCards(cleanData.matches);
                 } else if (cleanData && Array.isArray(cleanData)) {
                     renderMatchOverviewCards(cleanData);
-                } else if (cleanData && (cleanData.homeTeam || cleanData.matchUrl)) {
-                    renderMatchTelemetryDetails(cleanData);
+                } else if (cleanData && cleanData.data && Array.isArray(cleanData.data.matches)) {
+                    renderMatchOverviewCards(cleanData.data.matches);
                 } else {
                     renderFixtures(cleanData, false);
                 }
@@ -570,43 +575,51 @@
             }
         }
 
-        // --- RENDER MATCH OVERVIEW CARDS ---
+        // --- FIRST WEBHOOK: RENDER MATCH OVERVIEW CARDS ---
         window.renderMatchOverviewCards = function(matches) {
             const container = document.getElementById('outputContainer');
             window.fullMatchList = matches;
 
-            if (!matches || matches.length === 0) {
+            if (!matches || !Array.isArray(matches) || matches.length === 0) {
                 container.innerHTML = `<div class="p-4 text-slate-400 font-mono text-xs">// NO MATCHES FOUND IN RESPONSE PAYLOAD.</div>`;
                 return;
             }
 
-            const cardsHtml = matches.map((match) => `
-                <div class="match-card p-4 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.01] transition-all shadow-lg flex flex-col justify-between group"
-                     onclick="fetchMatchDetails('${match.matchUrl || match.url || ''}')">
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wide">
-                                ⚽ ${match.round || 'PREMIER LEAGUE'} • ${match.matchDate || match.date || 'TODAY'}
-                            </span>
-                            <span class="text-xs font-mono bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/50 font-bold">
-                                ${match.result || match.score || 'FT'}
-                            </span>
-                        </div>
-                        
-                        <div class="my-2">
-                            <h2 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
-                                ${match.homeTeam || match.home || 'Team A'} <span class="text-emerald-400 font-mono px-1">vs</span> ${match.awayTeam || match.away || 'Team B'}
-                            </h2>
-                            <p class="text-[11px] text-slate-400 mt-1 font-mono">⏰ Kickoff: ${match.kickOffTime || match.time || 'Completed'}</p>
-                        </div>
-                    </div>
+            const cardsHtml = matches.map((match) => {
+                const home = getVal(match, ['homeTeam', 'home', 'teamA', 'home_team'], 'Home Team');
+                const away = getVal(match, ['awayTeam', 'away', 'teamB', 'away_team'], 'Away Team');
+                const score = getVal(match, ['score', 'result', 'matchScore', 'status'], 'VS');
+                const date = getVal(match, ['matchDate', 'date', 'time', 'kickOffTime'], 'TODAY');
+                const round = getVal(match, ['round', 'league', 'competition'], 'MATCH');
+                const matchUrl = match.matchUrl || match.url || match.link || '';
 
-                    <div class="mt-3 pt-2 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-emerald-400 font-mono font-bold">
-                        <span>FETCH LIVE TELEMETRY</span>
-                        <span class="group-hover:translate-x-1 transition-transform">→</span>
+                return `
+                    <div class="match-card p-4 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.01] transition-all shadow-lg flex flex-col justify-between group"
+                         onclick="fetchMatchDetails('${matchUrl}')">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wide">
+                                    ⚽ ${round} • ${date}
+                                </span>
+                                <span class="text-xs font-mono bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/50 font-bold">
+                                    ${score}
+                                </span>
+                            </div>
+                            
+                            <div class="my-2">
+                                <h2 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
+                                    ${home} <span class="text-emerald-400 font-mono px-1">vs</span> ${away}
+                                </h2>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-2 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-emerald-400 font-mono font-bold">
+                            <span>FETCH LIVE TELEMETRY</span>
+                            <span class="group-hover:translate-x-1 transition-transform">→</span>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             container.innerHTML = `
                 <div class="space-y-4 font-sans">
@@ -632,33 +645,93 @@
             });
         }
 
-        window.renderMatchTelemetryDetails = function(match) {
+        // --- SECOND WEBHOOK: RENDER DETAILED MATCH TELEMETRY ---
+        window.renderMatchTelemetryDetails = function(payload) {
             const output = document.getElementById('outputContainer');
 
+            // Extract main fields regardless of how n8n formats the second webhook payload
+            const homeTeam = getVal(payload, ['homeTeam', 'home', 'teamA', 'home_team'], 'Home Team');
+            const awayTeam = getVal(payload, ['awayTeam', 'away', 'teamB', 'away_team'], 'Away Team');
+            const score = getVal(payload, ['score', 'result', 'matchScore', 'status', 'ftScore'], 'FT');
+            const matchDate = getVal(payload, ['matchDate', 'date', 'time', 'kickOffTime'], 'LIVE TELEMETRY');
+            const stadium = getVal(payload, ['stadium', 'venue', 'location'], '');
+            const referee = getVal(payload, ['referee', 'ref'], '');
+            
+            // Check for stats or extra nested telemetry arrays
+            const stats = getVal(payload, ['stats', 'statistics', 'matchStats', 'telemetryData'], null);
+            const goals = getVal(payload, ['goals', 'events', 'timeline', 'scorers'], null);
+
+            let statsHtml = '';
+            if (stats && Array.isArray(stats)) {
+                statsHtml = `
+                    <div class="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-4 my-3">
+                        <h4 class="text-xs font-bold font-mono text-emerald-400 uppercase mb-3">// MATCH STATISTICS MATRIX</h4>
+                        <div class="space-y-2">
+                            ${stats.map(s => `
+                                <div class="flex justify-between items-center text-xs border-b border-slate-800 pb-1.5">
+                                    <span class="text-emerald-300 font-mono font-bold">${s.home || s.homeValue || '0'}</span>
+                                    <span class="text-slate-400 font-mono text-[11px] uppercase">${s.name || s.label || s.title || 'Stat'}</span>
+                                    <span class="text-emerald-300 font-mono font-bold">${s.away || s.awayValue || '0'}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (stats && typeof stats === 'object') {
+                statsHtml = `
+                    <div class="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-4 my-3">
+                        <h4 class="text-xs font-bold font-mono text-emerald-400 uppercase mb-3">// TELEMETRY METRICS</h4>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            ${Object.entries(stats).map(([key, val]) => `
+                                <div class="p-2 bg-slate-950 rounded border border-slate-800">
+                                    <span class="text-slate-500 font-mono block text-[10px] uppercase">${key}</span>
+                                    <span class="text-emerald-300 font-mono font-bold">${typeof val === 'object' ? JSON.stringify(val) : val}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
             output.innerHTML = `
-                <div class="space-y-5 font-sans">
+                <div class="space-y-4 font-sans">
+                    <!-- HEADER BACK BUTTON -->
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                         <button id="navBackBtn" onclick="renderMatchOverviewCards(window.fullMatchList)" 
                                 class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-300 hover:text-white px-4 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 cursor-pointer transition-all shadow-lg hover:scale-105">
                             <span>←</span> BACK TO MATCHES
                         </button>
-                        <span class="text-[10px] bg-slate-900 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded font-mono">// LIVE TELEMETRY SCRAPED</span>
+                        <span class="text-[10px] bg-slate-900 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded font-mono">// TELEMETRY SCRAPED</span>
                     </div>
 
-                    <div class="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-6 text-center shadow-lg">
-                        <div class="text-[10px] font-mono text-emerald-400 tracking-widest uppercase mb-1">${match.matchDate || 'MATCH RESULT'}</div>
+                    <!-- SCOREBOARD HEADER PANEL -->
+                    <div class="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-6 text-center shadow-lg relative overflow-hidden">
+                        <div class="text-[10px] font-mono text-emerald-400 tracking-widest uppercase mb-1">${matchDate}</div>
                         <div class="flex items-center justify-between max-w-xl mx-auto my-2">
-                            <h2 class="text-lg md:text-xl font-bold text-white flex-1 text-right truncate">${match.homeTeam || 'Home'}</h2>
+                            <h2 class="text-base md:text-xl font-bold text-white flex-1 text-right truncate">${homeTeam}</h2>
                             <div class="px-5 py-2 bg-emerald-950 border border-emerald-500 text-emerald-300 font-mono font-extrabold text-lg rounded-xl mx-4 shrink-0 shadow-md">
-                                ${match.score || match.result || '0 - 0'}
+                                ${score}
                             </div>
-                            <h2 class="text-lg md:text-xl font-bold text-white flex-1 text-left truncate">${match.awayTeam || 'Away'}</h2>
+                            <h2 class="text-base md:text-xl font-bold text-white flex-1 text-left truncate">${awayTeam}</h2>
                         </div>
+                        ${stadium || referee ? `
+                            <div class="mt-3 text-[11px] text-slate-400 font-mono flex justify-center gap-4 border-t border-slate-800/80 pt-2">
+                                ${stadium ? `<span>🏟️ ${stadium}</span>` : ''}
+                                ${referee ? `<span>🏁 Ref: ${referee}</span>` : ''}
+                            </div>
+                        ` : ''}
                     </div>
-                    
+
+                    <!-- PARSED STATS / EVENTS MATRIX -->
+                    ${statsHtml}
+
+                    <!-- RAW JSON EXPANDER -->
                     <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md text-xs font-mono text-slate-300">
-                        <p class="text-emerald-400 font-bold mb-2">// RAW TELEMETRY JSON DATA</p>
-                        <pre class="bg-slate-950 p-3 rounded text-[11px] overflow-x-auto text-slate-400">${JSON.stringify(match, null, 2)}</pre>
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-emerald-400 font-bold">// RAW WEBHOOK 2 TELEMETRY PAYLOAD</p>
+                            <span class="text-[10px] text-slate-500">n8n Gateway Response</span>
+                        </div>
+                        <pre class="bg-slate-950 p-3 rounded text-[11px] overflow-x-auto text-emerald-300/80 max-h-64 scrollbar-thin">${JSON.stringify(payload, null, 2)}</pre>
                     </div>
                 </div>
             `;
