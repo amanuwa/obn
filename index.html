@@ -198,6 +198,8 @@
     <script type="module">
         import { N8N_GATEWAY_WEBHOOK } from './config.js';
 
+        // GLOBAL CACHE FOR RE-RENDERING
+        window.fullMatchList = [];
         let lastScrapedData = null;
 
         // --- THREE.JS QUANTUM GLOBE ENGINE ---
@@ -382,8 +384,6 @@
 
             document.getElementById('selectAllCatBtn').addEventListener('click', () => toggleAll('.cat-check', true));
             document.getElementById('selectAllLangBtn').addEventListener('click', () => toggleAll('.lang-check', true));
-            document.getElementById('hotNewsBtn').addEventListener('click', getHotNews);
-            document.getElementById('downloadBtn').addEventListener('click', downloadData);
         });
 
         function toggleAll(selector, isChecked) { 
@@ -523,15 +523,18 @@
 
         // --- WEBHOOK EXECUTOR PIPELINE ---
         async function executeScraperWorkflow(payload) {
-            const output = document.getElementById('outputContainer');
             const loader = document.getElementById('fullPageLoader');
             const loaderTitle = document.getElementById('loaderTitle');
             const loaderSubtext = document.getElementById('loaderSubtext');
 
-            loaderTitle.innerText = "// INITIALIZING PIPELINE CONNECTOR...";
-            loaderSubtext.innerText = `Fetching telemetry for: ${payload.selectedLeague || payload.query || payload.matchUrl || 'request'}...`;
-            loader.classList.remove('hidden');
-            loader.classList.add('flex');
+            if (loader) {
+                loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
+                loaderSubtext.innerText = payload.matchUrl 
+                    ? `Fetching live match stats for selected fixture...` 
+                    : `Fetching telemetry for: ${payload.selectedLeague || payload.query || 'request'}...`;
+                loader.classList.remove('hidden');
+                loader.classList.add('flex');
+            }
 
             try {
                 const response = await fetch(N8N_GATEWAY_WEBHOOK, {
@@ -545,19 +548,131 @@
 
                 if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
-                const data = await response.json();
-                lastScrapedData = data;
-                renderFixtures(data, false);
+                const rawData = await response.json();
+                console.log("📥 Webhook Response:", rawData);
+
+                lastScrapedData = rawData;
+                
+                // UNWRAP N8N RESPONSE ARRAY
+                const firstItem = Array.isArray(rawData) ? rawData[0] : rawData;
+
+                if (firstItem?.data?.matches) {
+                    // Match list payload returned
+                    renderMatchOverviewCards(firstItem.data.matches);
+                } else if (payload.matchUrl || firstItem?.homeTeam || firstItem?.data?.homeTeam) {
+                    // Single match telemetry payload returned (from card click)
+                    const telemetryData = firstItem.data || firstItem;
+                    renderMatchTelemetryDetails(telemetryData);
+                } else {
+                    renderFixtures(rawData, false);
+                }
 
             } catch (err) {
+                console.error("Pipeline Error:", err);
                 renderFixtures(err.message, true);
             } finally {
-                loader.classList.add('hidden');
-                loader.classList.remove('flex');
+                if (loader) {
+                    loader.classList.add('hidden');
+                    loader.classList.remove('flex');
+                }
             }
         }
 
-        // --- RENDER INGESTED WORKFLOW FIXTURES & TELEMETRY ---
+        // --- RENDER MATCH OVERVIEW CARDS (CLICKABLE WITH MATCH URL) ---
+        window.renderMatchOverviewCards = function(matches) {
+            const container = document.getElementById('outputContainer');
+            window.fullMatchList = matches;
+
+            const cardsHtml = matches.map((match, index) => `
+                <div class="match-card p-4 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.01] transition-all shadow-lg flex flex-col justify-between group"
+                     onclick="fetchMatchDetails('${match.matchUrl}')">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wide">
+                                ⚽ ${match.round || 'PREMIER LEAGUE'} • ${match.matchDate}
+                            </span>
+                            <span class="text-xs font-mono bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/50 font-bold">
+                                ${match.result || 'FT'}
+                            </span>
+                        </div>
+                        
+                        <div class="my-2">
+                            <h2 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
+                                ${match.homeTeam} <span class="text-emerald-400 font-mono px-1">vs</span> ${match.awayTeam}
+                            </h2>
+                            <p class="text-[11px] text-slate-400 mt-1 font-mono">⏰ Kickoff: ${match.kickOffTime || 'Completed'}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 pt-2 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-emerald-400 font-mono font-bold">
+                        <span>FETCH LIVE TELEMETRY</span>
+                        <span class="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="space-y-4 font-sans">
+                    <div class="border-b border-slate-800 pb-2 flex justify-between items-center font-mono">
+                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// ${matches.length} MATCHES RETRIEVED FROM N8N</h3>
+                        <span class="text-[10px] text-slate-500">CLICK ANY CARD TO SCRAPE DETAILED TELEMETRY</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${cardsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // TRIGGER WEBHOOK ON MATCH CARD CLICK
+        window.fetchMatchDetails = function(matchUrl) {
+            executeScraperWorkflow({
+                page: "sports_detail",
+                targetMatrix: "match_telemetry",
+                matchUrl: matchUrl,
+                query: "Fetch deep match stats, lineups, and goals",
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        // RENDER MATCH TELEMETRY DETAILS WITH BACK BUTTON
+        window.renderMatchTelemetryDetails = function(match) {
+            const output = document.getElementById('outputContainer');
+
+            output.innerHTML = `
+                <div class="space-y-5 font-sans">
+                    <!-- HEADER WITH BACK BUTTON -->
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <button id="navBackBtn" onclick="renderMatchOverviewCards(window.fullMatchList)" 
+                                class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-300 hover:text-white px-4 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 cursor-pointer transition-all shadow-lg hover:scale-105">
+                            <span>←</span> BACK TO MATCHES
+                        </button>
+                        <span class="text-[10px] bg-slate-900 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded font-mono">// LIVE TELEMETRY SCRAPED</span>
+                    </div>
+
+                    <!-- SCORE BOARD -->
+                    <div class="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-6 text-center shadow-lg">
+                        <div class="text-[10px] font-mono text-emerald-400 tracking-widest uppercase mb-1">${match.matchDate || 'MATCH RESULT'}</div>
+                        <div class="flex items-center justify-between max-w-xl mx-auto my-2">
+                            <h2 class="text-lg md:text-xl font-bold text-white flex-1 text-right truncate">${match.homeTeam || 'Home'}</h2>
+                            <div class="px-5 py-2 bg-emerald-950 border border-emerald-500 text-emerald-300 font-mono font-extrabold text-lg rounded-xl mx-4 shrink-0 shadow-md">
+                                ${match.score || match.result || '0 - 0'}
+                            </div>
+                            <h2 class="text-lg md:text-xl font-bold text-white flex-1 text-left truncate">${match.awayTeam || 'Away'}</h2>
+                        </div>
+                    </div>
+                    
+                    <!-- ADDITIONAL TELEMETRY METRICS -->
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md text-xs font-mono text-slate-300">
+                        <p class="text-emerald-400 font-bold mb-2">// SCRAPED MATCH DATA</p>
+                        <pre class="bg-slate-950 p-3 rounded text-[11px] overflow-x-auto text-slate-400">${JSON.stringify(match, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+        }
+
+        // FALLBACK GENERIC TELEMETRY RENDERER
         function renderFixtures(payload, isError = false) {
             const output = document.getElementById('outputContainer');
 
@@ -572,240 +687,12 @@
                 return;
             }
 
-            // Extract nested n8n response object if wrapped in data
-            const matchPayload = payload.data || payload;
-            const matchItems = Array.isArray(matchPayload) ? matchPayload : [matchPayload];
-
-            renderMatchOverviewCards(matchItems);
-        }
-
-        // RENDER MATCH OVERVIEW CARDS
-        function renderMatchOverviewCards(matchItems) {
-            const output = document.getElementById('outputContainer');
-
-            const cardsHtml = matchItems.map((match, idx) => `
-                <div class="match-card p-5 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.01] transition-all shadow-lg flex flex-col justify-between group" data-match-index="${idx}">
-                    <div>
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wide">⚽ MATCH DATA</span>
-                            <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2.5 py-0.5 rounded font-mono font-bold">
-                                ${match.score ? match.score : 'FT'}
-                            </span>
-                        </div>
-                        
-                        <div class="my-2">
-                            <h2 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
-                                ${match.homeTeam || 'Home Team'} <span class="text-emerald-400 font-mono px-1">vs</span> ${match.awayTeam || 'Away Team'}
-                            </h2>
-                            <p class="text-[11px] text-slate-400 mt-1 font-mono">📅 ${match.matchDate || 'Recently Completed'}</p>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 pt-3 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-emerald-400 font-mono font-bold">
-                        <span>VIEW MATCH TELEMETRY</span>
-                        <span class="group-hover:translate-x-1 transition-transform">→</span>
-                    </div>
-                </div>
-            `).join('');
-
             output.innerHTML = `
-                <div class="space-y-4 font-sans">
-                    <div class="border-b border-slate-800 pb-2 flex justify-between items-center font-mono">
-                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// MATCHES RETRIEVED FROM N8N</h3>
-                        <span class="text-[10px] text-slate-500">CLICK CARD TO OPEN DETAILED VIEW</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        ${cardsHtml}
-                    </div>
+                <div class="p-4 bg-slate-900/80 border border-emerald-500/30 rounded-xl text-emerald-300 font-mono text-xs">
+                    <p class="font-bold">// PIPELINE DATA RECEIVED</p>
+                    <pre class="mt-2 text-[11px] text-slate-300 overflow-x-auto">${JSON.stringify(payload, null, 2)}</pre>
                 </div>
             `;
-
-            document.querySelectorAll('.match-card').forEach(card => {
-                card.addEventListener('click', (e) => {
-                    const idx = e.currentTarget.getAttribute('data-match-index');
-                    renderMatchTelemetryDetails(matchItems[idx], matchItems);
-                });
-            });
-        }
-
-        // RENDER MATCH TELEMETRY DETAILS
-        function renderMatchTelemetryDetails(match, fullMatchList) {
-            const output = document.getElementById('outputContainer');
-
-            const goals = match.goals || [];
-            const substitutions = match.substitutions || [];
-            const homeRatings = match.playerRatings?.home || [];
-            const awayRatings = match.playerRatings?.away || [];
-
-            const goalsHtml = goals.length > 0 ? goals.map(g => `
-                <div class="flex justify-between items-center border-b border-slate-800/80 py-2.5">
-                    <div class="flex flex-col">
-                        <span class="text-slate-100 font-bold text-xs">${g.scorer || g.player || 'Goal'}</span>
-                        <span class="text-[10px] text-slate-400">${g.team || ''} ${g.assist ? `(Assist: ${g.assist})` : ''}</span>
-                    </div>
-                    <span class="text-emerald-400 font-mono font-bold text-xs bg-emerald-950 px-2 py-0.5 border border-emerald-500/30 rounded">${g.minute}'</span>
-                </div>
-            `).join('') : `<div class="text-slate-500 italic py-3 text-xs">No goals recorded in this match</div>`;
-
-            const subsHtml = substitutions.length > 0 ? substitutions.map(s => `
-                <div class="flex justify-between items-center border-b border-slate-800/80 py-2.5 text-xs">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] text-slate-400 font-mono uppercase">${s.team || ''}</span>
-                        <div class="flex items-center gap-2 mt-0.5">
-                            <span class="text-rose-400 font-medium">⬇ ${s.playerOut || s.out || 'Out'}</span>
-                            <span class="text-slate-500 text-[10px]">➔</span>
-                            <span class="text-emerald-400 font-medium">⬆ ${s.playerIn || s.in || 'In'}</span>
-                        </div>
-                    </div>
-                    <span class="text-cyan-400 font-mono font-bold shrink-0 bg-cyan-950 px-2 py-0.5 border border-cyan-500/30 rounded">${s.minute}'</span>
-                </div>
-            `).join('') : `<div class="text-slate-500 italic py-3 text-xs">No substitutions recorded</div>`;
-
-            const homeRatingsHtml = homeRatings.length > 0 ? homeRatings.map(p => `
-                <div class="flex justify-between items-center bg-slate-950/60 px-3 py-1.5 rounded border border-slate-800 text-xs">
-                    <span class="text-slate-200 truncate font-medium">${p.name}</span>
-                    <span class="font-mono font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[11px]">${p.rating}</span>
-                </div>
-            `).join('') : `<div class="text-slate-500 italic text-xs py-1">No ratings provided</div>`;
-
-            const awayRatingsHtml = awayRatings.length > 0 ? awayRatings.map(p => `
-                <div class="flex justify-between items-center bg-slate-950/60 px-3 py-1.5 rounded border border-slate-800 text-xs">
-                    <span class="text-slate-200 truncate font-medium">${p.name}</span>
-                    <span class="font-mono font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/40 text-[11px]">${p.rating}</span>
-                </div>
-            `).join('') : `<div class="text-slate-500 italic text-xs py-1">No ratings provided</div>`;
-
-            output.innerHTML = `
-                <div class="space-y-5 font-sans">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <button id="navBackBtn" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-300 hover:text-white px-4 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 cursor-pointer transition-all shadow-lg hover:scale-105">
-                            <span>←</span> BACK TO MATCHES
-                        </button>
-                        <span class="text-[10px] bg-slate-900 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded font-mono">// LIVE WORKFLOW TELEMETRY</span>
-                    </div>
-
-                    <div class="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-6 text-center shadow-lg">
-                        <div class="text-[10px] font-mono text-emerald-400 tracking-widest uppercase mb-1">${match.matchDate || 'FINAL RESULT'}</div>
-                        <div class="flex items-center justify-between max-w-xl mx-auto my-2">
-                            <h2 class="text-lg md:text-xl font-bold text-white flex-1 text-right truncate">${match.homeTeam || 'Home'}</h2>
-                            <div class="px-5 py-2 bg-emerald-950 border border-emerald-500 text-emerald-300 font-mono font-extrabold text-lg rounded-xl mx-4 shrink-0 shadow-md">
-                                ${match.score || '0 - 0'}
-                            </div>
-                            <h2 class="text-lg md:text-xl font-bold text-white flex-1 text-left truncate">${match.awayTeam || 'Away'}</h2>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md space-y-3">
-                        <div>
-                            <div class="flex justify-between text-xs font-mono font-bold text-slate-200 mb-1.5">
-                                <span class="text-emerald-400">${match.homeTeam || 'Home'}: ${match.possession?.home ?? 50}%</span>
-                                <span class="text-slate-400 font-normal uppercase text-[10px]">// BALL POSSESSION</span>
-                                <span class="text-cyan-400">${match.awayTeam || 'Away'}: ${match.possession?.away ?? 50}%</span>
-                            </div>
-                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden flex border border-slate-700">
-                                <div class="bg-emerald-500 h-full" style="width: ${match.possession?.home ?? 50}%"></div>
-                                <div class="bg-cyan-500 h-full" style="width: ${match.possession?.away ?? 50}%"></div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
-                            <div>
-                                <div class="flex justify-between text-[11px] font-mono mb-1">
-                                    <span class="text-emerald-400 font-bold">${match.shotsOnTarget?.home ?? 0}</span>
-                                    <span class="text-slate-400 uppercase text-[10px]">Shots On Target</span>
-                                    <span class="text-cyan-400 font-bold">${match.shotsOnTarget?.away ?? 0}</span>
-                                </div>
-                                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden flex">
-                                    <div class="bg-emerald-500 h-full" style="width: ${((match.shotsOnTarget?.home || 1) / ((match.shotsOnTarget?.home || 1) + (match.shotsOnTarget?.away || 1))) * 100}%"></div>
-                                    <div class="bg-cyan-500 h-full" style="width: ${((match.shotsOnTarget?.away || 1) / ((match.shotsOnTarget?.home || 1) + (match.shotsOnTarget?.away || 1))) * 100}%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between text-[11px] font-mono mb-1">
-                                    <span class="text-emerald-400 font-bold">${match.cornerKicks?.home ?? 0}</span>
-                                    <span class="text-slate-400 uppercase text-[10px]">Corner Kicks</span>
-                                    <span class="text-cyan-400 font-bold">${match.cornerKicks?.away ?? 0}</span>
-                                </div>
-                                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden flex">
-                                    <div class="bg-emerald-500 h-full" style="width: ${((match.cornerKicks?.home || 1) / ((match.cornerKicks?.home || 1) + (match.cornerKicks?.away || 1))) * 100}%"></div>
-                                    <div class="bg-cyan-500 h-full" style="width: ${((match.cornerKicks?.away || 1) / ((match.cornerKicks?.home || 1) + (match.cornerKicks?.away || 1))) * 100}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md">
-                            <h4 class="text-xs font-bold text-emerald-400 font-mono uppercase mb-3 flex items-center gap-2">
-                                ⚽ GOALS & TIMINGS
-                            </h4>
-                            <div class="space-y-1">
-                                ${goalsHtml}
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md">
-                            <h4 class="text-xs font-bold text-cyan-400 font-mono uppercase mb-3 flex items-center gap-2">
-                                🔄 SUBSTITUTIONS (OUT ➔ IN)
-                            </h4>
-                            <div class="space-y-1 max-h-[240px] overflow-y-auto pr-1">
-                                ${subsHtml}
-                            </div>
-                        </div>
-                    </div>
-
-                    ${(homeRatings.length > 0 || awayRatings.length > 0) ? `
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md">
-                        <h4 class="text-xs font-bold text-amber-400 font-mono uppercase mb-3 flex items-center gap-2">
-                            ⭐ PLAYER RATINGS
-                        </h4>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <div class="text-xs font-bold text-emerald-400 border-b border-slate-800 pb-1">${match.homeTeam || 'Home'}</div>
-                                <div class="space-y-1.5">${homeRatingsHtml}</div>
-                            </div>
-
-                            <div class="space-y-2">
-                                <div class="text-xs font-bold text-cyan-400 border-b border-slate-800 pb-1">${match.awayTeam || 'Away'}</div>
-                                <div class="space-y-1.5">${awayRatingsHtml}</div>
-                            </div>
-                        </div>
-                    </div>
-                    ` : ''}
-
-                </div>
-            `;
-
-            document.getElementById('navBackBtn')?.addEventListener('click', () => {
-                renderMatchOverviewCards(fullMatchList);
-            });
-        }
-
-        async function getHotNews() {
-            const queryVal = document.getElementById('hotNewsInput').value.trim();
-            if (!queryVal) return alert("Please enter a sports topic.");
-
-            executeScraperWorkflow({
-                page: "sports",
-                targetMatrix: "hot_news",
-                query: queryVal,
-                websites: ["https://www.besoccer.com/competition/premier_league_ethiopia", "https://www.bbc.com/sport"],
-                timestamp: new Date().toISOString()
-            });
-        }
-
-        function downloadData() {
-            if (!lastScrapedData) return alert("No scraped telemetry available to export.");
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(lastScrapedData, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `sports_analytics_${Date.now()}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
         }
     </script>
 </body>
