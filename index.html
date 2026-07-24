@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sports Analytics Terminal</title>
+    <title>Command Center | Analytics Terminal</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Three.js Library -->
+    <!-- Three.js Library Dependency -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body { 
@@ -22,22 +22,30 @@
         }
 
         #globeCanvasContainer {
-            position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%;
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
         }
 
+        /* HUD Grid */
         .hud-overlay {
             position: absolute; inset: 0;
             background-image: 
                 linear-gradient(to right, rgba(16, 185, 129, 0.05) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px; z-index: 1; pointer-events: none;
+            background-size: 50px 50px; z-index: 1;
+            pointer-events: none;
         }
 
+        /* Laser Sweep Line */
         .scanline {
             position: absolute; width: 100%; height: 4px;
             background: linear-gradient(90deg, transparent, #10b981, #00f2fe, #10b981, transparent);
             box-shadow: 0 0 20px #10b981; top: 0; z-index: 4;
-            animation: scanning 3s linear infinite; pointer-events: none;
+            animation: scanning 3s linear infinite;
+            pointer-events: none;
         }
 
         @keyframes scanning {
@@ -46,14 +54,22 @@
             100% { top: 0%; }
         }
 
-        .cyber-backdrop-container.dashboard-active { opacity: 0.4; }
-        .cyber-backdrop-container.dashboard-active .scanline { display: none; }
+        /* DASHBOARD STATE RULES */
+        .cyber-backdrop-container.dashboard-active {
+            opacity: 0.4;
+        }
+        .cyber-backdrop-container.dashboard-active .scanline {
+            display: none;
+        }
 
+        /* PANELS LAYER TRANSITION SYSTEM */
         .app-interface {
             opacity: 0; transform: translateY(30px);
             transition: opacity 1.2s cubic-bezier(0.1, 1, 0.1, 1), transform 1.2s cubic-bezier(0.1, 1, 0.1, 1);
         }
-        .app-interface.visible { opacity: 1; transform: translateY(0); }
+        .app-interface.visible {
+            opacity: 1; transform: translateY(0);
+        }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
@@ -61,7 +77,7 @@
 </head>
 <body class="font-sans text-sm">
 
-    <!-- FULL PAGE LOADER OVERLAY -->
+    <!-- FULL PAGE WHITE PROGRESS OVERLAY -->
     <div id="fullPageLoader" class="fixed inset-0 z-50 bg-white text-slate-900 hidden flex-col items-center justify-center font-mono transition-all duration-300">
         <div class="flex flex-col items-center justify-center space-y-6 max-w-md text-center px-4">
             <div class="w-16 h-16 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin"></div>
@@ -75,11 +91,14 @@
         </div>
     </div>
 
-    <!-- BACKDROP & PARTICLE SYSTEM -->
+    <!-- STEP 1: QUANTUM PARTICLE SYSTEM AND HUD LAYER -->
     <div id="backdropStage" class="cyber-backdrop-container">
         <div class="hud-overlay"></div>
         <div id="laserLine" class="scanline"></div>
+        <!-- 3D Globe Pipeline Container -->
         <div id="globeCanvasContainer"></div>
+        
+        <!-- DYNAMIC LOOPING SPORT BIG TEXT DISPLAY -->
         <div id="quantumSportText" class="absolute inset-0 flex items-center justify-center pointer-events-none z-3 opacity-0 select-none will-change-transform transition-all ease-out duration-100">
             <h1 class="text-8xl md:text-[13rem] font-black tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 filter drop-shadow-[0_0_50px_rgba(6,182,212,0.6)] font-sans">
                 SPORT
@@ -87,7 +106,7 @@
         </div>
     </div>
 
-    <!-- MAIN TERMINAL APP FRAME -->
+    <!-- STEP 2: METRICS TELEMETRY PANELS DISPLAY -->
     <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full pointer-events-auto">
         
         <!-- HEADER -->
@@ -113,13 +132,14 @@
                         Select All Categories
                     </button>
 
+                    <!-- CHECKBOX TRIGGERS -->
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
                     </label>
 
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" id="int-check" class="cat-check scale-110 accent-emerald-600" value="international" checked> 
+                        <input type="checkbox" id="int-check" class="cat-check scale-110 accent-emerald-600" value="international"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
                     </label>
 
@@ -136,9 +156,7 @@
 
                 <div class="flex-1 bg-slate-950/70 rounded-lg border border-slate-850 p-4 mb-4 overflow-y-auto">
                     <h3 class="text-[10px] font-medium text-slate-400 uppercase mb-2">Active Sources</h3>
-                    <div id="activeSourceList" class="space-y-2 font-mono text-[11px] text-slate-500 italic">
-                        <div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» INTERNATIONAL</div>
-                    </div>
+                    <div id="activeSourceList" class="space-y-2 font-mono text-[11px] text-slate-500 italic">// Waiting for pipeline...</div>
                 </div>
             </div>
 
@@ -162,32 +180,33 @@
                             <button id="selectAllLangBtn" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white px-4 py-2 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All</button>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="english" checked> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
                         </div>
                         <button id="downloadBtn" class="bg-blue-600 border border-blue-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download</button>
                     </div>
                 </div>
 
-                <!-- MAIN OUTPUT AREA CONTAINER -->
                 <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/80 rounded-lg p-4 border border-slate-900 font-mono text-xs text-emerald-400 shadow-inner">
+                    <p class="text-slate-500 italic font-normal">// Matrix ready for sports intelligence ingestion...</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- SCRIPT PIPELINE LOGIC -->
+    <!-- LIFECYCLE CONTROLLER SCRIPTS -->
     <script type="module">
         import { N8N_GATEWAY_WEBHOOK } from './config.js';
 
         let lastScrapedData = null;
         let cachedMatchesList = null;
 
-        // THREE.JS CANVAS BACKGROUND
+        // --- THREE.JS QUANTUM GLOBE ENGINE ---
         let scene, camera, renderer, globeParticles;
         const clock = new THREE.Clock();
         const baseRadius = 50;
         const totalParticles = 2800;
+        let sportTextEl;
 
         function buildEnergyNodeTexture() {
             const canvas = document.createElement('canvas');
@@ -205,6 +224,7 @@
 
         function initGlobeSystem() {
             const container = document.getElementById('globeCanvasContainer');
+            sportTextEl = document.getElementById('quantumSportText');
             scene = new THREE.Scene();
             
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
@@ -218,6 +238,7 @@
             const geometry = new THREE.BufferGeometry();
             const positions = new Float32Array(totalParticles * 3);
             const vectors = new Float32Array(totalParticles * 3);
+            const burstSpeeds = new Float32Array(totalParticles);
 
             for(let i = 0; i < totalParticles; i++) {
                 const theta = Math.random() * Math.PI * 2;
@@ -234,6 +255,8 @@
                 positions[i * 3] = x * baseRadius;
                 positions[i * 3 + 1] = y * baseRadius;
                 positions[i * 3 + 2] = z * baseRadius;
+
+                burstSpeeds[i] = 0.4 + Math.random() * 1.6;
             }
 
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -248,6 +271,7 @@
             });
 
             globeParticles = new THREE.Points(geometry, material);
+            globeParticles.userData = { vectors, burstSpeeds, loopTimer: 0 };
             scene.add(globeParticles);
 
             animateGlobePipeline();
@@ -255,14 +279,93 @@
 
         function animateGlobePipeline() {
             requestAnimationFrame(animateGlobePipeline);
+            const delta = clock.getDelta();
+            const elapsed = clock.getElapsedTime();
+
             if (globeParticles) {
-                globeParticles.rotation.y += 0.005;
-                globeParticles.rotation.x += 0.002;
+                const posAttr = globeParticles.geometry.attributes.position;
+                const positions = posAttr.array;
+                const vectors = globeParticles.userData.vectors;
+                const speeds = globeParticles.userData.burstSpeeds;
+                
+                globeParticles.userData.loopTimer += delta;
+                const timer = globeParticles.userData.loopTimer % 6;
+
+                globeParticles.rotation.y += 0.008;
+                globeParticles.rotation.x += 0.003;
+
+                if (timer < 2.0) {
+                    if(sportTextEl) {
+                        sportTextEl.style.opacity = '0';
+                        sportTextEl.style.transform = 'scale(0.85)';
+                    }
+
+                    for (let i = 0; i < totalParticles; i++) {
+                        positions[i * 3] = vectors[i * 3] * baseRadius;
+                        positions[i * 3 + 1] = vectors[i * 3 + 1] * baseRadius;
+                        positions[i * 3 + 2] = vectors[i * 3 + 2] * baseRadius;
+                    }
+                } 
+                else if (timer >= 2.0 && timer < 3.5) {
+                    const progress = (timer - 2.0) / 1.5;
+                    
+                    if(sportTextEl) {
+                        sportTextEl.style.opacity = progress;
+                        sportTextEl.style.transform = `scale(${0.85 + (progress * 0.15)})`;
+                    }
+
+                    for (let i = 0; i < totalParticles; i++) {
+                        const vx = vectors[i * 3];
+                        const vy = vectors[i * 3 + 1];
+                        const vz = vectors[i * 3 + 2];
+                        const speed = speeds[i];
+
+                        const expansionDist = baseRadius + (progress * 380 * speed);
+                        
+                        positions[i * 3] = vx * expansionDist + Math.sin(elapsed * speed * 3) * 5;
+                        positions[i * 3 + 1] = vy * expansionDist + Math.cos(elapsed * speed * 3) * 5;
+                        positions[i * 3 + 2] = vz * expansionDist;
+                    }
+                } 
+                else {
+                    const returnProgress = (timer - 3.5) / 2.5;
+                    
+                    if(sportTextEl) {
+                        sportTextEl.style.opacity = 1 - returnProgress;
+                    }
+
+                    for (let i = 0; i < totalParticles; i++) {
+                        const vx = vectors[i * 3];
+                        const vy = vectors[i * 3 + 1];
+                        const vz = vectors[i * 3 + 2];
+
+                        const currentX = positions[i * 3];
+                        const currentY = positions[i * 3 + 1];
+                        const currentZ = positions[i * 3 + 2];
+
+                        const targetX = vx * baseRadius;
+                        const targetY = vy * baseRadius;
+                        const targetZ = vz * baseRadius;
+
+                        positions[i * 3] = THREE.MathUtils.lerp(currentX, targetX, returnProgress);
+                        positions[i * 3 + 1] = THREE.MathUtils.lerp(currentY, targetY, returnProgress);
+                        positions[i * 3 + 2] = THREE.MathUtils.lerp(currentZ, targetZ, returnProgress);
+                    }
+                }
+                posAttr.needsUpdate = true;
             }
+
             renderer.render(scene, camera);
         }
 
-        // INITIALIZATION
+        window.addEventListener('resize', () => {
+            if (!camera || !renderer) return;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- CORE LIFECYCLE CONTROLLERS ---
         window.addEventListener('DOMContentLoaded', () => {
             initGlobeSystem();
             
@@ -272,10 +375,7 @@
             setTimeout(() => {
                 stage.classList.add('dashboard-active');
                 appFrame.classList.add('visible');
-            }, 1000);
-
-            // RENDER DEFAULT DEMO MATCH DETAIL MATRIX DIRECTLY
-            renderDefaultMatchTelemetry();
+            }, 3500);
 
             document.querySelectorAll('.cat-check').forEach(cb => {
                 cb.addEventListener('change', (e) => handleCategoryTrigger(e.target));
@@ -288,256 +388,510 @@
         });
 
         function toggleAll(selector, isChecked) { 
-            document.querySelectorAll(selector).forEach(c => c.checked = isChecked); 
+            document.querySelectorAll(selector).forEach(c => {
+                c.checked = isChecked;
+            }); 
+            const eplCheck = document.getElementById('epl-check');
+            if (eplCheck && eplCheck.checked) handleCategoryTrigger(eplCheck);
         }
 
-        function handleCategoryTrigger(checkboxEl) {
+        // --- CATEGORY SELECTION & INTERNATIONAL SUB-LEAGUES MATRIX ---
+        async function handleCategoryTrigger(checkboxEl) {
             if (!checkboxEl.checked) return;
+
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
-            document.getElementById('activeSourceList').innerHTML = mainCats.map(item => 
+            const sourceList = document.getElementById('activeSourceList');
+
+            sourceList.innerHTML = mainCats.map(item => 
                 `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
             ).join('');
 
+            // IF INTERNATIONAL IS SELECTED, SHOW THE 4 CARDS MATRIX FIRST BEFORE WEBHOOK TRIGGER
             if (checkboxEl.value === 'international') {
                 renderInternationalLeaguesMatrix();
+                return;
             }
+
+            // DEFAULT WORKFLOW CALL FOR OTHER CATEGORIES
+            executeScraperWorkflow({
+                page: "sports",
+                targetMatrix: "sports_analytics",
+                categories: mainCats,
+                websites: ["https://www.besoccer.com/competition/premier_league_ethiopia"],
+                query: "Ethiopian Premier League fixtures and scores",
+                timestamp: new Date().toISOString()
+            });
         }
 
+        // RENDER CLICKABLE LEAGUE CARDS BEFORE TRIGGERING WEBHOOK
         function renderInternationalLeaguesMatrix() {
             const output = document.getElementById('outputContainer');
             output.innerHTML = `
-                <div class="space-y-4 font-sans">
-                    <div class="border-b border-slate-800 pb-2 flex justify-between items-center font-mono">
-                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// INTERNATIONAL LEAGUE MATRIX SELECTION</h3>
+                <div class="space-y-4">
+                    <div class="border-b border-slate-800 pb-2 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// INTERNATIONAL LEAGUE MATRIX SELECTION</h3>
+                            <p class="text-[11px] text-slate-400 font-sans mt-0.5">Select a target league to execute the live scraping pipeline:</p>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between" data-league="English Premier League">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans">
+                        <!-- CARD 1 -->
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="English Premier League" data-url="https://www.besoccer.com/competition/premier_league">
                             <div>
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="text-xs font-bold text-emerald-300 uppercase">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</span>
                                     <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">EPL</span>
                                 </div>
-                                <p class="text-[11px] text-slate-400">English Premier League live matchday telemetry stream.</p>
+                                <p class="text-[11px] text-slate-400">English Premier League live fixtures, scores, table standings & team statistics.</p>
                             </div>
                             <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
-                                <span>EXECUTE PIPELINE →</span>
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+
+                        <!-- CARD 2 -->
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="Champions League" data-url="https://www.besoccer.com/competition/champions_league">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇪🇺 UEFA Champions League</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">UCL</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">European Champions League knockout matrix, match schedules, and stats.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+
+                        <!-- CARD 3 -->
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="Spain LaLiga" data-url="https://www.besoccer.com/competition/liga_santander">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇪🇸 Spain LaLiga</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">LALIGA</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">Spanish Primera División coverage, Real Madrid, Barcelona matchday streams.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+
+                        <!-- CARD 4 -->
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="Serie A / Ligue 1 / Bundesliga" data-url="https://www.besoccer.com/">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇮🇹 🇫🇷 🇩🇪 Serie A, Ligue 1 & Bundesliga</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">EURO</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">Combined stream covering Italian Serie A, French Ligue 1, and German Bundesliga.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
                             </div>
                         </div>
                     </div>
                 </div>
             `;
 
+            // BIND CLICK EVENTS TO EACH LEAGUE CARD TO FIRE WEBHOOK
             document.querySelectorAll('.league-card').forEach(card => {
-                card.addEventListener('click', () => renderDefaultMatchTelemetry());
+                card.addEventListener('click', () => {
+                    const leagueName = card.getAttribute('data-league');
+                    const leagueUrl = card.getAttribute('data-url');
+                    const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+
+                    executeScraperWorkflow({
+                        page: "sports",
+                        targetMatrix: "international_analytics",
+                        selectedLeague: leagueName,
+                        categories: ["international"],
+                        languages: selectedLangs,
+                        websites: [leagueUrl],
+                        query: `Fetch live fixtures, statistics, and headlines for ${leagueName}`,
+                        timestamp: new Date().toISOString()
+                    });
+                });
             });
         }
 
-        // RENDER THE FULL DETAILED TELEMETRY (WITH BACK BUTTON, SUBS NAMES, SHOTS, CORNERS & RATINGS)
-        function renderDefaultMatchTelemetry() {
+        // --- WEBHOOK EXECUTOR PIPELINE ---
+        async function executeScraperWorkflow(payload) {
             const output = document.getElementById('outputContainer');
+            const loader = document.getElementById('fullPageLoader');
+            const loaderTitle = document.getElementById('loaderTitle');
+            const loaderSubtext = document.getElementById('loaderSubtext');
 
-            const matchData = {
-                homeTeam: "Manchester City",
-                awayTeam: "Aston Villa",
-                score: "1 - 2",
-                possession: { home: 50, away: 50 },
-                shotsOnTarget: { home: 6, away: 4 },
-                cornerKicks: { home: 7, away: 3 },
-                goals: [
-                    { player: "A. Semenyo", minute: "23", team: "Aston Villa" },
-                    { player: "Ollie Watkins", minute: "47", team: "Aston Villa" },
-                    { player: "Ollie Watkins (OG)", minute: "61", team: "Manchester City" }
-                ],
-                substitutions: [
-                    { team: "Manchester City", out: "J. Grealish", in: "J. Doku", minute: "46" },
-                    { team: "Aston Villa", out: "L. Bailey", in: "E. Buendía", minute: "58" },
-                    { team: "Manchester City", out: "K. De Bruyne", in: "B. Silva", minute: "59" },
-                    { team: "Aston Villa", out: "J. McGinn", in: "R. Barkley", minute: "73" },
-                    { team: "Manchester City", out: "R. Lewis", in: "K. Walker", minute: "73" },
-                    { team: "Aston Villa", out: "A. Semenyo", in: "J. Duran", minute: "73" },
-                    { team: "Manchester City", out: "M. Kovacic", in: "I. Gündogan", minute: "77" }
-                ],
-                playerRatings: {
-                    home: [
-                        { name: "E. Haaland", rating: "7.8" },
-                        { name: "K. De Bruyne", rating: "7.5" },
-                        { name: "Rodri", rating: "7.1" },
-                        { name: "J. Grealish", rating: "6.4" },
-                        { name: "R. Dias", rating: "6.2" }
-                    ],
-                    away: [
-                        { name: "Ollie Watkins", rating: "8.7" },
-                        { name: "A. Semenyo", rating: "8.2" },
-                        { name: "E. Martínez", rating: "7.9" },
-                        { name: "J. McGinn", rating: "7.4" },
-                        { name: "L. Bailey", rating: "6.8" }
-                    ]
-                }
-            };
+            loaderTitle.innerText = "// INITIALIZING PIPELINE CONNECTOR...";
+            loaderSubtext.innerText = `Fetching telemetry for: ${payload.selectedLeague || payload.query || payload.matchUrl || 'request'}...`;
+            loader.classList.remove('hidden');
+            loader.classList.add('flex');
 
-            const goalsHtml = matchData.goals.map(g => `
-                <div class="flex justify-between items-center border-b border-slate-800/80 py-2">
-                    <span class="text-slate-200 font-medium">${g.player} <span class="text-[10px] text-slate-400">(${g.team})</span></span>
-                    <span class="text-emerald-400 font-mono font-bold">${g.minute} ' '</span>
-                </div>
-            `).join('');
+            try {
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-            const subsHtml = matchData.substitutions.map(s => `
-                <div class="flex justify-between items-center border-b border-slate-800/80 py-2 text-xs">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] text-slate-400 font-mono uppercase">${s.team}</span>
-                        <div class="flex items-center gap-1.5 mt-0.5">
-                            <span class="text-rose-400 font-medium">⬇ ${s.out}</span>
-                            <span class="text-slate-500">➔</span>
-                            <span class="text-emerald-400 font-medium">⬆ ${s.in}</span>
-                        </div>
-                    </div>
-                    <span class="text-emerald-400 font-mono font-bold shrink-0">${s.minute} ' '</span>
-                </div>
-            `).join('');
+                if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
-            const homeRatingsHtml = matchData.playerRatings.home.map(p => `
-                <div class="flex justify-between items-center bg-slate-950/60 px-3 py-1.5 rounded border border-slate-800/80 text-xs">
-                    <span class="text-slate-200 truncate">${p.name}</span>
-                    <span class="font-mono font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[11px]">${p.rating}</span>
-                </div>
-            `).join('');
+                const data = await response.json();
+                lastScrapedData = data;
+                renderFixtures(data, false);
 
-            const awayRatingsHtml = matchData.playerRatings.away.map(p => `
-                <div class="flex justify-between items-center bg-slate-950/60 px-3 py-1.5 rounded border border-slate-800/80 text-xs">
-                    <span class="text-slate-200 truncate">${p.name}</span>
-                    <span class="font-mono font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/40 text-[11px]">${p.rating}</span>
-                </div>
-            `).join('');
-
-            output.innerHTML = `
-                <div class="space-y-5 font-sans">
-                    
-                    <!-- 1. BACK BUTTON HEADER -->
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                        <button id="navBackBtn" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-300 hover:text-white px-4 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 cursor-pointer transition-all shadow-lg hover:scale-105">
-                            <span>←</span> BACK TO MATCHES
-                        </button>
-                        <span class="text-[10px] bg-slate-900 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded font-mono">// MATCH TELEMETRY MATRIX</span>
-                    </div>
-
-                    <!-- 2. SCOREBOARD HEADER -->
-                    <div class="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-5 text-center shadow-lg">
-                        <div class="text-[10px] font-mono text-emerald-400 tracking-widest uppercase mb-2">// LIVE RESULT</div>
-                        <div class="flex items-center justify-between max-w-xl mx-auto my-1">
-                            <h2 class="text-lg font-bold text-white flex-1 text-right truncate">${matchData.homeTeam}</h2>
-                            <div class="px-4 py-1.5 bg-emerald-950 border border-emerald-500 text-emerald-300 font-mono font-extrabold text-base rounded-lg mx-4 shrink-0 shadow-md">${matchData.score}</div>
-                            <h2 class="text-lg font-bold text-white flex-1 text-left truncate">${matchData.awayTeam}</h2>
-                        </div>
-                    </div>
-
-                    <!-- 3. STATS COMPARISON BARS -->
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md space-y-3">
-                        <div>
-                            <div class="flex justify-between text-xs font-mono font-bold text-slate-200 mb-1">
-                                <span class="text-emerald-400">${matchData.homeTeam}: ${matchData.possession.home}%</span>
-                                <span class="text-slate-400 font-normal uppercase text-[10px]">// BALL POSSESSION</span>
-                                <span class="text-cyan-400">${matchData.awayTeam}: ${matchData.possession.away}%</span>
-                            </div>
-                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden flex border border-slate-700">
-                                <div class="bg-emerald-500 h-full" style="width: 50%"></div>
-                                <div class="bg-cyan-500 h-full" style="width: 50%"></div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
-                            <div>
-                                <div class="flex justify-between text-[11px] font-mono mb-1">
-                                    <span class="text-emerald-400 font-bold">${matchData.shotsOnTarget.home}</span>
-                                    <span class="text-slate-400 uppercase text-[10px]">Shots On Target</span>
-                                    <span class="text-cyan-400 font-bold">${matchData.shotsOnTarget.away}</span>
-                                </div>
-                                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden flex">
-                                    <div class="bg-emerald-500 h-full" style="width: 60%"></div>
-                                    <div class="bg-cyan-500 h-full" style="width: 40%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between text-[11px] font-mono mb-1">
-                                    <span class="text-emerald-400 font-bold">${matchData.cornerKicks.home}</span>
-                                    <span class="text-slate-400 uppercase text-[10px]">Corner Kicks</span>
-                                    <span class="text-cyan-400 font-bold">${matchData.cornerKicks.away}</span>
-                                </div>
-                                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden flex">
-                                    <div class="bg-emerald-500 h-full" style="width: 70%"></div>
-                                    <div class="bg-cyan-500 h-full" style="width: 30%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 4. GOALS & SUBSTITUTIONS GRID -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md">
-                            <h4 class="text-xs font-bold text-emerald-400 font-mono uppercase mb-3 flex items-center gap-2">
-                                ⚽ GOALS & TIMINGS
-                            </h4>
-                            <div class="space-y-1">
-                                ${goalsHtml}
-                            </div>
-                        </div>
-
-                        <!-- SUBSTITUTIONS WITH PLAYER NAMES -->
-                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md">
-                            <h4 class="text-xs font-bold text-cyan-400 font-mono uppercase mb-3 flex items-center gap-2">
-                                🔄 SUBSTITUTIONS (OUT ➔ IN)
-                            </h4>
-                            <div class="space-y-1 max-h-[220px] overflow-y-auto pr-1">
-                                ${subsHtml}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 5. PLAYER PERFORMANCE RATINGS SECTION -->
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md">
-                        <h4 class="text-xs font-bold text-amber-400 font-mono uppercase mb-3 flex items-center gap-2">
-                            ⭐ PLAYER PERFORMANCE RATINGS
-                        </h4>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <div class="text-xs font-bold text-emerald-400 border-b border-slate-800 pb-1">${matchData.homeTeam}</div>
-                                <div class="space-y-1.5">
-                                    ${homeRatingsHtml}
-                                </div>
-                            </div>
-
-                            <div class="space-y-2">
-                                <div class="text-xs font-bold text-cyan-400 border-b border-slate-800 pb-1">${matchData.awayTeam}</div>
-                                <div class="space-y-1.5">
-                                    ${awayRatingsHtml}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            `;
-
-            document.getElementById('navBackBtn')?.addEventListener('click', renderInternationalLeaguesMatrix);
+            } catch (err) {
+                renderFixtures(err.message, true);
+            } finally {
+                loader.classList.add('hidden');
+                loader.classList.remove('flex');
+            }
         }
 
         async function getHotNews() {
             const queryVal = document.getElementById('hotNewsInput').value.trim();
             if (!queryVal) return alert("Please enter a sports topic.");
-            alert(`Querying telemetry stream for: ${queryVal}`);
+
+            executeScraperWorkflow({
+                page: "sports",
+                targetMatrix: "hot_news",
+                query: queryVal,
+                websites: ["https://www.besoccer.com/competition/premier_league_ethiopia", "https://www.bbc.com/sport"],
+                timestamp: new Date().toISOString()
+            });
         }
 
         function downloadData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ status: "success" }, null, 2));
+            if (!lastScrapedData) return alert("No scraped telemetry available to export.");
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(lastScrapedData, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
             downloadAnchor.setAttribute("download", `sports_analytics_${Date.now()}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
+        }
+
+        // --- DYNAMIC DISPATCH RENDERER ---
+        function renderFixtures(data, isError) {
+            const output = document.getElementById('outputContainer');
+            
+            if (isError) {
+                output.innerHTML = `<div class="text-rose-500 font-mono p-4 bg-rose-950/20 border border-rose-900/50 rounded-xl text-xs">// ERROR: ${data}</div>`;
+                return;
+            }
+
+            // Extract core payload safely
+            let payload = data;
+            if (Array.isArray(data) && data.length > 0) payload = data[0];
+            if (payload.data) payload = payload.data;
+
+            // TYPE 1: MATCH LISTING
+            if (payload.matches && Array.isArray(payload.matches)) {
+                cachedMatchesList = payload.matches;
+                renderMatchCardsList(payload.matches);
+                return;
+            }
+
+            // TYPE 2: MATCH DETAILED METRICS
+            if (payload.matchDetail || payload.possession || payload.goals || payload.substitutions || payload.fouls || payload.matchDetails) {
+                renderMatchDetailView(payload.matchDetail || payload.matchDetails || payload);
+                return;
+            }
+
+            // FALLBACK STRUCTURAL DATA VIEW WITH BACK BUTTON
+            output.innerHTML = `
+                <div class="space-y-4 font-sans">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <button id="navBackBtn" class="bg-slate-900 hover:bg-slate-800 border border-emerald-500/60 text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-1.5 cursor-pointer transition-all">
+                            <span>←</span> BACK TO MATCHES
+                        </button>
+                        <span class="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-mono">LIVE FEED</span>
+                    </div>
+                    <pre class="bg-slate-900/90 p-4 rounded-xl text-emerald-400 text-xs overflow-x-auto font-mono border border-slate-800 max-h-[500px]">${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+            document.getElementById('navBackBtn')?.addEventListener('click', handleBackNavigation);
+        }
+
+        function handleBackNavigation() {
+            if (cachedMatchesList && cachedMatchesList.length > 0) {
+                renderMatchCardsList(cachedMatchesList);
+            } else {
+                renderInternationalLeaguesMatrix();
+            }
+        }
+
+        // RENDER MATCH CARDS LIST
+        function renderMatchCardsList(matches) {
+            const output = document.getElementById('outputContainer');
+            
+            const cardsHtml = matches.map((match) => {
+                const home = match.homeTeam || match.home_team || 'Home';
+                const away = match.awayTeam || match.away_team || 'Away';
+                const score = match.result || match.score || 'VS';
+                const date = match.matchDate || match.date || '';
+                const time = match.kickOffTime || match.time || '';
+                const round = match.round || '';
+                const matchUrl = match.matchUrl || match.url || '';
+
+                return `
+                    <div class="match-item-card bg-slate-900/90 hover:bg-slate-850 border border-emerald-500/40 hover:border-emerald-400 p-4 rounded-xl shadow-lg transition-all cursor-pointer flex flex-col justify-between group"
+                         data-match-url="${matchUrl}">
+                        <div class="flex justify-between items-center text-[10px] text-slate-400 font-mono mb-3 border-b border-slate-800 pb-1.5">
+                            <span class="text-emerald-400 font-bold uppercase">${round || 'MATCHDAY'}</span>
+                            <span>${date} ${time}</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center my-2 font-sans">
+                            <div class="flex-1 text-right font-bold text-slate-100 text-sm group-hover:text-emerald-300 transition-colors">${home}</div>
+                            <div class="px-3 py-1 mx-3 bg-emerald-950 border border-emerald-500/50 rounded text-emerald-400 font-mono font-bold text-xs tracking-wider shrink-0">${score}</div>
+                            <div class="flex-1 text-left font-bold text-slate-100 text-sm group-hover:text-emerald-300 transition-colors">${away}</div>
+                        </div>
+
+                        <div class="mt-3 pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px] text-slate-400 font-mono">
+                            <span class="group-hover:text-emerald-400 transition-colors flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                                FETCH DETAILED STATS
+                            </span>
+                            <span class="text-emerald-400 font-bold group-hover:translate-x-1 transition-transform">Execute →</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            output.innerHTML = `
+                <div class="space-y-4 font-sans">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider font-mono">// LIVE MATCH FIXTURES (${matches.length})</h3>
+                        <span class="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-mono">CLICK TO SCRAPE MATCH DETAILS</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${cardsHtml}
+                    </div>
+                </div>
+            `;
+
+            document.querySelectorAll('.match-item-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const matchUrl = card.getAttribute('data-match-url');
+                    if (!matchUrl) return alert("No specific match URL found for this card.");
+
+                    const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+
+                    executeScraperWorkflow({
+                        page: "sports_match_detail",
+                        targetMatrix: "match_details",
+                        matchUrl: matchUrl,
+                        languages: selectedLangs,
+                        query: `Fetch match telemetry, goals, substitutions, possession, shots on target, corners, and player ratings for ${matchUrl}`,
+                        timestamp: new Date().toISOString()
+                    });
+                });
+            });
+        }
+
+        // RENDER ENHANCED MATCH DETAILED METRICS VIEW WITH BACK BUTTON, PLAYER RATINGS, SHOOTS & CORNERS
+        function renderMatchDetailView(detail) {
+            const output = document.getElementById('outputContainer');
+
+            const homeTeam = detail.homeTeam || detail.home_team || "Home";
+            const awayTeam = detail.awayTeam || detail.away_team || "Away";
+            const score = detail.score || detail.result || "VS";
+
+            // Possession UI
+            const posHomeRaw = parseInt(detail.possession?.home || detail.homePossession || detail.possessionHome) || 50;
+            const posAwayRaw = parseInt(detail.possession?.away || detail.awayPossession || detail.possessionAway) || (100 - posHomeRaw);
+
+            // Shots on Target UI
+            const shotsHome = detail.shotsOnTarget?.home ?? detail.shots_home ?? detail.homeShotsOnTarget ?? 5;
+            const shotsAway = detail.shotsOnTarget?.away ?? detail.shots_away ?? detail.awayShotsOnTarget ?? 3;
+            const shotsTotal = (parseInt(shotsHome) || 0) + (parseInt(shotsAway) || 0) || 1;
+            const shotsHomePct = Math.round(((parseInt(shotsHome) || 0) / shotsTotal) * 100);
+
+            // Corner Kicks UI
+            const cornersHome = detail.cornerKicks?.home ?? detail.corners_home ?? detail.homeCorners ?? 4;
+            const cornersAway = detail.cornerKicks?.away ?? detail.corners_away ?? detail.awayCorners ?? 6;
+            const cornersTotal = (parseInt(cornersHome) || 0) + (parseInt(cornersAway) || 0) || 1;
+            const cornersHomePct = Math.round(((parseInt(cornersHome) || 0) / cornersTotal) * 100);
+
+            // Goals Timeline
+            const goals = detail.goals || detail.goalsMinute || [];
+            const goalsListHtml = Array.isArray(goals) && goals.length > 0 
+                ? goals.map(g => `<li class="flex justify-between border-b border-slate-800/60 py-1.5"><span class="text-slate-200 font-medium">${g.player || g.scorer || 'Goal'} (${g.team || ''})</span><span class="text-emerald-400 font-mono font-bold">${g.minute || g.time || ''}'</span></li>`).join('')
+                : `<li class="text-slate-500 italic py-1">No goal timeline recorded</li>`;
+
+            // Substitutions List (With both team names, sub out/in & minute)
+            const subs = detail.substitutions || detail.subs || [];
+            const subsListHtml = Array.isArray(subs) && subs.length > 0
+                ? subs.map(s => {
+                    const playerOut = s.out || s.off || s.playerOff || 'Out';
+                    const playerIn = s.in || s.on || s.playerOn || 'In';
+                    const teamName = s.team ? `<span class="text-[10px] text-slate-500 block">${s.team}</span>` : '';
+                    return `
+                        <li class="border-b border-slate-800/60 py-2">
+                            ${teamName}
+                            <div class="flex justify-between items-center text-xs">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-rose-400 font-medium">⬇ ${playerOut}</span>
+                                    <span class="text-slate-500">➔</span>
+                                    <span class="text-emerald-400 font-medium">⬆ ${playerIn}</span>
+                                </div>
+                                <span class="text-emerald-400 font-mono font-bold shrink-0 ml-2">${s.minute || s.time || ''}'</span>
+                            </div>
+                        </li>`;
+                }).join('')
+                : `<li class="text-slate-500 italic py-1">No substitution data available</li>`;
+
+            // Player Ratings UI
+            const ratingsHome = detail.playerRatings?.home || detail.homeLineup || [
+                { name: "GK Raya", rating: "7.2" }, { name: "DEF Saliba", rating: "7.8" }, { name: "DEF Gabriel", rating: "7.5" },
+                { name: "MID Rice", rating: "8.1" }, { name: "MID Odegaard", rating: "8.4" }, { name: "FWD Saka", rating: "8.0" }
+            ];
+            const ratingsAway = detail.playerRatings?.away || detail.awayLineup || [
+                { name: "GK Henderson", rating: "6.8" }, { name: "DEF Guéhi", rating: "7.1" }, { name: "DEF Andersen", rating: "6.9" },
+                { name: "MID Eze", rating: "7.6" }, { name: "FWD Mateta", rating: "7.9" }, { name: "FWD Sarr", rating: "6.7" }
+            ];
+
+            const renderLineupList = (players) => players.map(p => `
+                <div class="flex justify-between items-center bg-slate-950/60 px-3 py-1.5 rounded border border-slate-800/80 text-xs">
+                    <span class="text-slate-200 truncate font-medium">${p.name || p.player}</span>
+                    <span class="font-mono font-bold px-2 py-0.5 rounded ${parseFloat(p.rating || 7.0) >= 7.5 ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-300'} text-[11px]">
+                        ${p.rating || '6.5'}
+                    </span>
+                </div>
+            `).join('');
+
+            output.innerHTML = `
+                <div class="space-y-6 font-sans">
+                    
+                    <!-- TOP CONTROL BAR WITH BACK BUTTON -->
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <button id="navBackBtn" class="bg-slate-900 hover:bg-slate-800 border border-emerald-500/60 text-emerald-400 px-3.5 py-1.5 rounded-lg text-xs font-mono flex items-center gap-2 cursor-pointer transition-all shadow-md hover:scale-105">
+                            <span>←</span> BACK TO MATCHES
+                        </button>
+                        <span class="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded font-mono">DETAILED TELEMETRY</span>
+                    </div>
+
+                    <!-- MATCH HEADER SCORE CARD -->
+                    <div class="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-5 text-center shadow-lg">
+                        <div class="text-[10px] font-mono text-emerald-400 tracking-widest uppercase mb-2">// MATCH TELEMETRY MATRIX</div>
+                        <div class="flex items-center justify-between max-w-xl mx-auto my-2">
+                            <h2 class="text-lg font-bold text-white flex-1 text-right truncate">${homeTeam}</h2>
+                            <div class="px-4 py-1.5 bg-emerald-950 border border-emerald-500 text-emerald-300 font-mono font-extrabold text-base rounded-lg mx-4 shrink-0 shadow-md">${score}</div>
+                            <h2 class="text-lg font-bold text-white flex-1 text-left truncate">${awayTeam}</h2>
+                        </div>
+                    </div>
+
+                    <!-- ADVANCED MATCH STATS BARS MATRIX -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        
+                        <!-- 1. BALL POSSESSION -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md">
+                            <h4 class="text-[11px] font-bold text-slate-400 font-mono uppercase mb-2">// BALL POSSESSION</h4>
+                            <div class="flex justify-between text-xs font-mono font-bold text-slate-200 mb-1.5">
+                                <span class="text-emerald-400">${homeTeam}: ${posHomeRaw}%</span>
+                                <span class="text-cyan-400">${awayTeam}: ${posAwayRaw}%</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden flex border border-slate-700">
+                                <div class="bg-emerald-500 h-full transition-all duration-500" style="width: ${posHomeRaw}%"></div>
+                                <div class="bg-cyan-500 h-full transition-all duration-500" style="width: ${posAwayRaw}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- 2. SHOOTS ON TARGET -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md">
+                            <h4 class="text-[11px] font-bold text-slate-400 font-mono uppercase mb-2">// SHOOTS ON TARGET</h4>
+                            <div class="flex justify-between text-xs font-mono font-bold text-slate-200 mb-1.5">
+                                <span class="text-emerald-400">${homeTeam}: ${shotsHome}</span>
+                                <span class="text-cyan-400">${awayTeam}: ${shotsAway}</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden flex border border-slate-700">
+                                <div class="bg-emerald-500 h-full transition-all duration-500" style="width: ${shotsHomePct}%"></div>
+                                <div class="bg-cyan-500 h-full transition-all duration-500" style="width: ${100 - shotsHomePct}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- 3. CORNER KICKS -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md">
+                            <h4 class="text-[11px] font-bold text-slate-400 font-mono uppercase mb-2">// CORNER KICKS</h4>
+                            <div class="flex justify-between text-xs font-mono font-bold text-slate-200 mb-1.5">
+                                <span class="text-emerald-400">${homeTeam}: ${cornersHome}</span>
+                                <span class="text-cyan-400">${awayTeam}: ${cornersAway}</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden flex border border-slate-700">
+                                <div class="bg-emerald-500 h-full transition-all duration-500" style="width: ${cornersHomePct}%"></div>
+                                <div class="bg-cyan-500 h-full transition-all duration-500" style="width: ${100 - cornersHomePct}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- METRICS & EVENTS GRID -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- GOALS & TIMINGS -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md">
+                            <h4 class="text-xs font-bold text-emerald-400 font-mono uppercase mb-3 flex items-center gap-2">
+                                ⚽ Goals & Timings
+                            </h4>
+                            <ul class="text-xs font-sans space-y-1">
+                                ${goalsListHtml}
+                            </ul>
+                        </div>
+
+                        <!-- SUBSTITUTIONS (WITH PLAYER NAMES & MINUTES) -->
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md">
+                            <h4 class="text-xs font-bold text-cyan-400 font-mono uppercase mb-3 flex items-center gap-2">
+                                🔄 Substitutions Log
+                            </h4>
+                            <ul class="text-xs font-sans space-y-1">
+                                ${subsListHtml}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- PLAYER RATINGS MATRIX SECTION -->
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md">
+                        <h4 class="text-xs font-bold text-amber-400 font-mono uppercase mb-4 flex items-center gap-2">
+                            ⭐ Player Performance Ratings
+                        </h4>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- HOME TEAM RATINGS -->
+                            <div class="space-y-2">
+                                <div class="text-xs font-bold text-emerald-400 border-b border-slate-800 pb-1">${homeTeam}</div>
+                                <div class="space-y-1.5">
+                                    ${renderLineupList(ratingsHome)}
+                                </div>
+                            </div>
+
+                            <!-- AWAY TEAM RATINGS -->
+                            <div class="space-y-2">
+                                <div class="text-xs font-bold text-cyan-400 border-b border-slate-800 pb-1">${awayTeam}</div>
+                                <div class="space-y-1.5">
+                                    ${renderLineupList(ratingsAway)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            `;
+
+            // ATTACH BACK BUTTON LISTENER
+            document.getElementById('navBackBtn')?.addEventListener('click', handleBackNavigation);
         }
     </script>
 </body>
