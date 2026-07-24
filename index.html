@@ -200,7 +200,6 @@
 
         // GLOBAL CACHE FOR RE-RENDERING
         window.fullMatchList = [];
-        let lastScrapedData = null;
 
         // --- THREE.JS QUANTUM GLOBE ENGINE ---
         let scene, camera, renderer, globeParticles;
@@ -405,13 +404,11 @@
                 `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
             ).join('');
 
-            // IF INTERNATIONAL IS SELECTED, SHOW THE 4 CARDS MATRIX FIRST BEFORE WEBHOOK TRIGGER
             if (checkboxEl.value === 'international') {
                 renderInternationalLeaguesMatrix();
                 return;
             }
 
-            // DEFAULT WORKFLOW CALL FOR OTHER CATEGORIES
             executeScraperWorkflow({
                 page: "sports",
                 targetMatrix: "sports_analytics",
@@ -422,18 +419,16 @@
             });
         }
 
-        // RENDER 4 CLICKABLE LEAGUE CARDS BEFORE TRIGGERING WEBHOOK
         function renderInternationalLeaguesMatrix() {
             const output = document.getElementById('outputContainer');
             output.innerHTML = `
-                <div class="space-y-4">
+                <div class="space-y-4 font-sans">
                     <div class="border-b border-slate-800 pb-2">
                         <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// INTERNATIONAL LEAGUE MATRIX SELECTION</h3>
-                        <p class="text-[11px] text-slate-400 font-sans mt-0.5">Select a target league to execute the live scraping pipeline:</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Select a target league to execute the live scraping pipeline:</p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans">
-                        <!-- CARD 1 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
                              data-league="English Premier League" data-url="https://www.besoccer.com/competition/premier_league">
                             <div>
@@ -449,7 +444,6 @@
                             </div>
                         </div>
 
-                        <!-- CARD 2 -->
                         <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
                              data-league="Champions League" data-url="https://www.besoccer.com/competition/champions_league">
                             <div>
@@ -464,43 +458,10 @@
                                 <span>EXECUTE pipeline →</span>
                             </div>
                         </div>
-
-                        <!-- CARD 3 -->
-                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
-                             data-league="Spain LaLiga" data-url="https://www.besoccer.com/competition/liga_santander">
-                            <div>
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇪🇸 Spain LaLiga</span>
-                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">LALIGA</span>
-                                </div>
-                                <p class="text-[11px] text-slate-400">Spanish Primera División coverage, Real Madrid, Barcelona matchday streams.</p>
-                            </div>
-                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
-                                <span>SELECT LEAGUE</span>
-                                <span>EXECUTE pipeline →</span>
-                            </div>
-                        </div>
-
-                        <!-- CARD 4 -->
-                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
-                             data-league="Serie A / Ligue 1 / Bundesliga" data-url="https://www.besoccer.com/">
-                            <div>
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇮🇹 🇫🇷 🇩🇪 Serie A, Ligue 1 & Bundesliga</span>
-                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">EURO</span>
-                                </div>
-                                <p class="text-[11px] text-slate-400">Combined stream covering Italian Serie A, French Ligue 1, and German Bundesliga.</p>
-                            </div>
-                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
-                                <span>SELECT LEAGUE</span>
-                                <span>EXECUTE pipeline →</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
             `;
 
-            // BIND CLICK EVENTS TO EACH LEAGUE CARD TO FIRE WEBHOOK
             document.querySelectorAll('.league-card').forEach(card => {
                 card.addEventListener('click', () => {
                     const leagueName = card.getAttribute('data-league');
@@ -519,6 +480,38 @@
                     });
                 });
             });
+        }
+
+        // --- UNIVERSAL N8N DATA NORMALIZER ---
+        function normalizeN8nPayload(rawData) {
+            let data = rawData;
+            
+            // If response is wrapped in an array [ {...} ]
+            if (Array.isArray(data) && data.length > 0) {
+                data = data[0];
+            }
+
+            // If n8n wrapped it inside "json" or "body"
+            if (data && typeof data === 'object') {
+                if (data.json) data = data.json;
+                if (data.body) data = data.body;
+            }
+
+            // If stringified JSON returned, parse it
+            if (typeof data === 'string') {
+                try {
+                    data = JSON.parse(data);
+                } catch (e) {
+                    console.warn("Could not parse payload string as JSON", e);
+                }
+            }
+
+            // Re-unwrap if nested inside data property
+            if (data && data.data) {
+                return data.data;
+            }
+
+            return data;
         }
 
         // --- WEBHOOK EXECUTOR PIPELINE ---
@@ -549,22 +542,21 @@
                 if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
                 const rawData = await response.json();
-                console.log("📥 Webhook Response:", rawData);
+                console.log("📥 Raw Webhook Response:", rawData);
 
-                lastScrapedData = rawData;
-                
-                // UNWRAP N8N RESPONSE ARRAY
-                const firstItem = Array.isArray(rawData) ? rawData[0] : rawData;
+                // UNWRAP ALL POSSIBLE N8N STRUCTURES
+                const cleanData = normalizeN8nPayload(rawData);
+                console.log("⚡ Normalized Payload:", cleanData);
 
-                if (firstItem?.data?.matches) {
-                    // Match list payload returned
-                    renderMatchOverviewCards(firstItem.data.matches);
-                } else if (payload.matchUrl || firstItem?.homeTeam || firstItem?.data?.homeTeam) {
-                    // Single match telemetry payload returned (from card click)
-                    const telemetryData = firstItem.data || firstItem;
-                    renderMatchTelemetryDetails(telemetryData);
+                // MATCH MATCHES ARRAY OR SINGLE OBJECT
+                if (cleanData && Array.isArray(cleanData.matches)) {
+                    renderMatchOverviewCards(cleanData.matches);
+                } else if (cleanData && Array.isArray(cleanData)) {
+                    renderMatchOverviewCards(cleanData);
+                } else if (cleanData && (cleanData.homeTeam || cleanData.matchUrl)) {
+                    renderMatchTelemetryDetails(cleanData);
                 } else {
-                    renderFixtures(rawData, false);
+                    renderFixtures(cleanData, false);
                 }
 
             } catch (err) {
@@ -578,29 +570,34 @@
             }
         }
 
-        // --- RENDER MATCH OVERVIEW CARDS (CLICKABLE WITH MATCH URL) ---
+        // --- RENDER MATCH OVERVIEW CARDS ---
         window.renderMatchOverviewCards = function(matches) {
             const container = document.getElementById('outputContainer');
             window.fullMatchList = matches;
 
-            const cardsHtml = matches.map((match, index) => `
+            if (!matches || matches.length === 0) {
+                container.innerHTML = `<div class="p-4 text-slate-400 font-mono text-xs">// NO MATCHES FOUND IN RESPONSE PAYLOAD.</div>`;
+                return;
+            }
+
+            const cardsHtml = matches.map((match) => `
                 <div class="match-card p-4 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.01] transition-all shadow-lg flex flex-col justify-between group"
-                     onclick="fetchMatchDetails('${match.matchUrl}')">
+                     onclick="fetchMatchDetails('${match.matchUrl || match.url || ''}')">
                     <div>
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wide">
-                                ⚽ ${match.round || 'PREMIER LEAGUE'} • ${match.matchDate}
+                                ⚽ ${match.round || 'PREMIER LEAGUE'} • ${match.matchDate || match.date || 'TODAY'}
                             </span>
                             <span class="text-xs font-mono bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/50 font-bold">
-                                ${match.result || 'FT'}
+                                ${match.result || match.score || 'FT'}
                             </span>
                         </div>
                         
                         <div class="my-2">
                             <h2 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
-                                ${match.homeTeam} <span class="text-emerald-400 font-mono px-1">vs</span> ${match.awayTeam}
+                                ${match.homeTeam || match.home || 'Team A'} <span class="text-emerald-400 font-mono px-1">vs</span> ${match.awayTeam || match.away || 'Team B'}
                             </h2>
-                            <p class="text-[11px] text-slate-400 mt-1 font-mono">⏰ Kickoff: ${match.kickOffTime || 'Completed'}</p>
+                            <p class="text-[11px] text-slate-400 mt-1 font-mono">⏰ Kickoff: ${match.kickOffTime || match.time || 'Completed'}</p>
                         </div>
                     </div>
 
@@ -625,7 +622,6 @@
             `;
         }
 
-        // TRIGGER WEBHOOK ON MATCH CARD CLICK
         window.fetchMatchDetails = function(matchUrl) {
             executeScraperWorkflow({
                 page: "sports_detail",
@@ -636,13 +632,11 @@
             });
         }
 
-        // RENDER MATCH TELEMETRY DETAILS WITH BACK BUTTON
         window.renderMatchTelemetryDetails = function(match) {
             const output = document.getElementById('outputContainer');
 
             output.innerHTML = `
                 <div class="space-y-5 font-sans">
-                    <!-- HEADER WITH BACK BUTTON -->
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                         <button id="navBackBtn" onclick="renderMatchOverviewCards(window.fullMatchList)" 
                                 class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-300 hover:text-white px-4 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 cursor-pointer transition-all shadow-lg hover:scale-105">
@@ -651,7 +645,6 @@
                         <span class="text-[10px] bg-slate-900 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded font-mono">// LIVE TELEMETRY SCRAPED</span>
                     </div>
 
-                    <!-- SCORE BOARD -->
                     <div class="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-6 text-center shadow-lg">
                         <div class="text-[10px] font-mono text-emerald-400 tracking-widest uppercase mb-1">${match.matchDate || 'MATCH RESULT'}</div>
                         <div class="flex items-center justify-between max-w-xl mx-auto my-2">
@@ -663,16 +656,14 @@
                         </div>
                     </div>
                     
-                    <!-- ADDITIONAL TELEMETRY METRICS -->
                     <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md text-xs font-mono text-slate-300">
-                        <p class="text-emerald-400 font-bold mb-2">// SCRAPED MATCH DATA</p>
+                        <p class="text-emerald-400 font-bold mb-2">// RAW TELEMETRY JSON DATA</p>
                         <pre class="bg-slate-950 p-3 rounded text-[11px] overflow-x-auto text-slate-400">${JSON.stringify(match, null, 2)}</pre>
                     </div>
                 </div>
             `;
         }
 
-        // FALLBACK GENERIC TELEMETRY RENDERER
         function renderFixtures(payload, isError = false) {
             const output = document.getElementById('outputContainer');
 
@@ -681,7 +672,6 @@
                     <div class="p-4 bg-rose-950/40 border border-rose-500/50 rounded-xl text-rose-300 font-mono text-xs">
                         <p class="font-bold">// PIPELINE CONNECTION ERROR</p>
                         <p class="mt-1 text-[11px] text-rose-400">${payload}</p>
-                        <p class="mt-2 text-[10px] text-slate-400">Verify n8n URL in config.js and check CORS/Tunnel settings.</p>
                     </div>
                 `;
                 return;
