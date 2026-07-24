@@ -71,20 +71,32 @@
             opacity: 1; transform: translateY(0);
         }
 
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
     </style>
 </head>
 <body class="font-sans text-sm">
 
+    <!-- FULL PAGE WHITE PROGRESS OVERLAY -->
+    <div id="fullPageLoader" class="fixed inset-0 z-50 bg-white text-slate-900 hidden flex-col items-center justify-center font-mono transition-all duration-300">
+        <div class="flex flex-col items-center justify-center space-y-6 max-w-md text-center px-4">
+            <div class="w-16 h-16 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin"></div>
+            <div>
+                <h2 id="loaderTitle" class="font-bold text-lg tracking-widest uppercase text-slate-900">// INITIALIZING PIPELINE CONNECTOR...</h2>
+                <p id="loaderSubtext" class="text-slate-500 text-xs mt-2 animate-pulse">Waiting for sports agent response...</p>
+            </div>
+            <div class="w-48 bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200">
+                <div class="bg-emerald-600 h-full w-full animate-pulse"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- STEP 1: QUANTUM PARTICLE SYSTEM AND HUD LAYER -->
     <div id="backdropStage" class="cyber-backdrop-container">
         <div class="hud-overlay"></div>
         <div id="laserLine" class="scanline"></div>
-        <!-- 3D Globe Pipeline Container -->
         <div id="globeCanvasContainer"></div>
         
-        <!-- DYNAMIC LOOPING SPORT BIG TEXT DISPLAY -->
         <div id="quantumSportText" class="absolute inset-0 flex items-center justify-center pointer-events-none z-3 opacity-0 select-none will-change-transform transition-all ease-out duration-100">
             <h1 class="text-8xl md:text-[13rem] font-black tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 filter drop-shadow-[0_0_50px_rgba(6,182,212,0.6)] font-sans">
                 SPORT
@@ -95,7 +107,6 @@
     <!-- STEP 2: METRICS TELEMETRY PANELS DISPLAY -->
     <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full pointer-events-auto">
         
-        <!-- HEADER -->
         <header class="bg-slate-950/60 border-b-2 border-slate-800 px-6 py-4 flex items-center justify-between backdrop-blur-lg">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-400">AI</div>
@@ -104,7 +115,6 @@
             <div class="font-mono text-xs text-emerald-400 tracking-wider animate-pulse">// MULTI-SPORT STREAM INGESTION ACTIVE</div>
         </header>
 
-        <!-- DASHBOARD BODY PANEL MATRIX -->
         <main class="flex-1 grid grid-cols-4 gap-4 p-4 h-full overflow-hidden">
             
             <!-- CONTROLS SIDE PANEL -->
@@ -114,21 +124,28 @@
                 </h3>
                 
                 <div id="categoryContainer" class="space-y-2 mb-4">
-                    <button onclick="toggleAll('.cat-check', true)" class="w-full bg-emerald-950/40 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white py-2 px-3 rounded-lg font-medium text-xs uppercase transition-all cursor-pointer tracking-wider">
+                    <button id="selectAllCatBtn" class="w-full bg-emerald-950/40 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white py-2 px-3 rounded-lg font-medium text-xs uppercase transition-all cursor-pointer tracking-wider">
                         Select All Categories
                     </button>
 
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="epl"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
+                        <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl"> 
+                        <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
                     </label>
+
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="international"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
+                        <input type="checkbox" id="int-check" class="cat-check scale-110 accent-emerald-600" value="international"> 
+                        <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
                     </label>
+
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="athletics"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Athletics</span>
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="athletics"> 
+                        <span class="text-xs font-normal uppercase ml-3 text-slate-300">Athletics</span>
                     </label>
+
                     <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
-                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="others"> <span class="text-xs font-normal uppercase ml-3 text-slate-300">Others</span>
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="others"> 
+                        <span class="text-xs font-normal uppercase ml-3 text-slate-300">Others</span>
                     </label>
                 </div>
 
@@ -136,8 +153,6 @@
                     <h3 class="text-[10px] font-medium text-slate-400 uppercase mb-2">Active Sources</h3>
                     <div id="activeSourceList" class="space-y-2 font-mono text-[11px] text-slate-500 italic">// Waiting for pipeline...</div>
                 </div>
-
-                <button id="runBtn" class="w-full bg-emerald-600 border border-emerald-400 py-3 rounded-lg font-semibold text-xs uppercase hover:bg-emerald-500 transition-all cursor-pointer shadow-md tracking-wider">Fire Pipeline</button>
             </div>
 
             <!-- TERMINAL MAIN DATA MONITOR -->
@@ -151,19 +166,19 @@
                         </h3>
                         <div class="flex gap-2">
                             <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:border-rose-500 outline-none">
-                            <button onclick="getHotNews()" class="bg-rose-600 border border-rose-400 px-5 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>
+                            <button id="hotNewsBtn" class="bg-rose-600 border border-rose-400 px-5 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>
                         </div>
                     </div>
                     
                     <div class="bg-slate-950/50 border border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-3">
                         <div class="flex gap-2 flex-wrap">
-                            <button onclick="toggleAll('.lang-check', true)" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white px-4 py-2 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All</button>
+                            <button id="selectAllLangBtn" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white px-4 py-2 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All</button>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
                         </div>
-                        <button onclick="downloadData()" class="bg-blue-600 border border-blue-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download</button>
+                        <button id="downloadBtn" class="bg-blue-600 border border-blue-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download</button>
                     </div>
                 </div>
 
@@ -174,9 +189,12 @@
         </main>
     </div>
 
-    <!-- LIFECYCLE CONTROLLER SCRIPTS -->
-    <script>
-        // --- THREE.JS QUANTUM GLOBE ENGINE ---
+    <script type="module">
+        import { N8N_GATEWAY_WEBHOOK } from './config.js';
+
+        window.fullMatchList = [];
+
+        // --- THREE.JS GLOBE ENGINE ---
         let scene, camera, renderer, globeParticles;
         const clock = new THREE.Clock();
         const baseRadius = 50;
@@ -264,14 +282,12 @@
                 const speeds = globeParticles.userData.burstSpeeds;
                 
                 globeParticles.userData.loopTimer += delta;
-                const timer = globeParticles.userData.loopTimer % 6; // Strict 6-second total loop duration
+                const timer = globeParticles.userData.loopTimer % 6;
 
-                // Rotation metrics applied onto geometry axis
                 globeParticles.rotation.y += 0.008;
                 globeParticles.rotation.x += 0.003;
 
                 if (timer < 2.0) {
-                    // --- PHASE 1: STABLE ROTATING MODE (0s to 2s) ---
                     if(sportTextEl) {
                         sportTextEl.style.opacity = '0';
                         sportTextEl.style.transform = 'scale(0.85)';
@@ -284,10 +300,7 @@
                     }
                 } 
                 else if (timer >= 2.0 && timer < 3.5) {
-                    // --- PHASE 2: DETACH AND SCATTER EXPLOSION (2s to 3.5s) ---
-                    const progress = (timer - 2.0) / 1.5; // Normalized progress window (0.0 to 1.0)
-                    
-                    // Reveal and dynamically expand the text panel alongside the explosion progress
+                    const progress = (timer - 2.0) / 1.5;
                     if(sportTextEl) {
                         sportTextEl.style.opacity = progress;
                         sportTextEl.style.transform = `scale(${0.85 + (progress * 0.15)})`;
@@ -298,7 +311,6 @@
                         const vy = vectors[i * 3 + 1];
                         const vz = vectors[i * 3 + 2];
                         const speed = speeds[i];
-
                         const expansionDist = baseRadius + (progress * 380 * speed);
                         
                         positions[i * 3] = vx * expansionDist + Math.sin(elapsed * speed * 3) * 5;
@@ -307,13 +319,8 @@
                     }
                 } 
                 else {
-                    // --- PHASE 3: COMPRESSION BACK TO ORIGINAL STATE (3.5s to 6s) ---
-                    const returnProgress = (timer - 3.5) / 2.5; // Smooth interpolation progress (0.0 to 1.0)
-                    
-                    // Elegantly fade out the word matrix as globe pieces assemble back
-                    if(sportTextEl) {
-                        sportTextEl.style.opacity = 1 - returnProgress;
-                    }
+                    const returnProgress = (timer - 3.5) / 2.5;
+                    if(sportTextEl) sportTextEl.style.opacity = 1 - returnProgress;
 
                     for (let i = 0; i < totalParticles; i++) {
                         const vx = vectors[i * 3];
@@ -346,43 +353,409 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // --- CORE LIFECYCLE CONTROLLERS ---
+        // --- CORE CONTROLLERS ---
         window.addEventListener('DOMContentLoaded', () => {
             initGlobeSystem();
             
             const stage = document.getElementById('backdropStage');
             const appFrame = document.getElementById('mainAppFrame');
 
-            // Dashboard panels appear smoothly after the first structural scatter sequence
             setTimeout(() => {
                 stage.classList.add('dashboard-active');
                 appFrame.classList.add('visible');
             }, 3500);
+
+            document.querySelectorAll('.cat-check').forEach(cb => {
+                cb.addEventListener('change', (e) => handleCategoryTrigger(e.target));
+            });
+
+            document.getElementById('selectAllCatBtn').addEventListener('click', () => toggleAll('.cat-check', true));
+            document.getElementById('selectAllLangBtn').addEventListener('click', () => toggleAll('.lang-check', true));
         });
 
-        function toggleAll(selector, isChecked) { document.querySelectorAll(selector).forEach(c => c.checked = isChecked); }
-        function getHotNews() { document.getElementById('outputContainer').innerHTML = `<div class="text-rose-500 font-mono">// Querying global sports wire feeds...</div>`; }
-        
-        document.getElementById('runBtn').onclick = () => {
+        function toggleAll(selector, isChecked) { 
+            document.querySelectorAll(selector).forEach(c => c.checked = isChecked); 
+            const eplCheck = document.getElementById('epl-check');
+            if (eplCheck && eplCheck.checked) handleCategoryTrigger(eplCheck);
+        }
+
+        async function handleCategoryTrigger(checkboxEl) {
+            if (!checkboxEl.checked) return;
+
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
             const sourceList = document.getElementById('activeSourceList');
-            const output = document.getElementById('outputContainer');
-
-            if (mainCats.length === 0) return alert("Select at least one active intelligence sector category.");
 
             sourceList.innerHTML = mainCats.map(item => 
                 `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
             ).join('');
 
-            output.innerHTML = `<div class="text-emerald-400 font-mono">// SYSTEM INTELLIGENCE STREAM COUPLING COMPLETED<br>// CAPTURING ACTIVE NODES: ${mainCats.join(', ').toUpperCase()}</div>`;
-        };
+            if (checkboxEl.value === 'international') {
+                renderInternationalLeaguesMatrix();
+                return;
+            }
 
-        function downloadData() {
-            const data = document.getElementById('outputContainer').innerText;
-            const blob = new Blob([data], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'sports-scrapped-intel.txt'; a.click();
+            executeScraperWorkflow({
+                page: "sports",
+                targetMatrix: "sports_analytics",
+                categories: mainCats,
+                websites: ["https://www.besoccer.com/competition/premier_league_ethiopia"],
+                query: "Ethiopian Premier League fixtures and scores",
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        function renderInternationalLeaguesMatrix() {
+            const output = document.getElementById('outputContainer');
+            output.innerHTML = `
+                <div class="space-y-4 font-sans">
+                    <div class="border-b border-slate-800 pb-2">
+                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// INTERNATIONAL LEAGUE MATRIX SELECTION</h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Select a target league to execute the live scraping pipeline:</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="English Premier League" data-url="https://www.besoccer.com/competition/premier_league">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">EPL</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">English Premier League live fixtures, scores, table standings & team statistics.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="Champions League" data-url="https://www.besoccer.com/competition/champions_league">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇪🇺 UEFA Champions League</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">UCL</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">European Champions League knockout matrix, match schedules, and stats.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.querySelectorAll('.league-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const leagueName = card.getAttribute('data-league');
+                    const leagueUrl = card.getAttribute('data-url');
+                    const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+
+                    executeScraperWorkflow({
+                        page: "sports",
+                        targetMatrix: "international_analytics",
+                        selectedLeague: leagueName,
+                        categories: ["international"],
+                        languages: selectedLangs,
+                        websites: [leagueUrl],
+                        query: `Fetch live fixtures, statistics, and headlines for ${leagueName}`,
+                        timestamp: new Date().toISOString()
+                    });
+                });
+            });
+        }
+
+        // --- UNIVERSAL PAYLOAD NORMALIZER ---
+        function normalizeN8nPayload(rawData) {
+            let data = rawData;
+            
+            if (Array.isArray(data) && data.length > 0) {
+                data = data[0];
+            }
+
+            if (data && typeof data === 'object') {
+                if (data.json) data = data.json;
+                if (data.body) data = data.body;
+            }
+
+            if (typeof data === 'string') {
+                try {
+                    data = JSON.parse(data);
+                } catch (e) {
+                    console.warn("Raw payload string parse error", e);
+                }
+            }
+
+            return data;
+        }
+
+        // --- HELPER: SEARCH KEYS DEEPLY IN OBJECT ---
+        function getVal(obj, keys, defaultVal = '') {
+            if (!obj || typeof obj !== 'object') return defaultVal;
+            
+            // Check direct keys
+            for (let k of keys) {
+                if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
+            }
+            
+            // Check inside nested common wrappers (data, match, details, summary)
+            const subProps = ['data', 'match', 'details', 'telemetry', 'result', 'summary'];
+            for (let prop of subProps) {
+                if (obj[prop] && typeof obj[prop] === 'object') {
+                    for (let k of keys) {
+                        if (obj[prop][k] !== undefined && obj[prop][k] !== null && obj[prop][k] !== '') {
+                            return obj[prop][k];
+                        }
+                    }
+                }
+            }
+            return defaultVal;
+        }
+
+        // --- MAIN PIPELINE EXECUTOR ---
+        async function executeScraperWorkflow(payload) {
+            const loader = document.getElementById('fullPageLoader');
+            const loaderTitle = document.getElementById('loaderTitle');
+            const loaderSubtext = document.getElementById('loaderSubtext');
+
+            if (loader) {
+                loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
+                loaderSubtext.innerText = payload.matchUrl 
+                    ? `Fetching live match stats for selected fixture...` 
+                    : `Fetching telemetry for: ${payload.selectedLeague || payload.query || 'request'}...`;
+                loader.classList.remove('hidden');
+                loader.classList.add('flex');
+            }
+
+            try {
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
+
+                const rawData = await response.json();
+                console.log("📥 Raw Webhook Response:", rawData);
+
+                const cleanData = normalizeN8nPayload(rawData);
+                console.log("⚡ Normalized Payload:", cleanData);
+
+                // IF REQUEST WAS MATCH DETAILS (SECOND WEBHOOK)
+                if (payload.page === "sports_detail") {
+                    renderMatchTelemetryDetails(cleanData);
+                    return;
+                }
+
+                // IF REQUEST WAS LISTING (FIRST WEBHOOK)
+                if (cleanData && Array.isArray(cleanData.matches)) {
+                    renderMatchOverviewCards(cleanData.matches);
+                } else if (cleanData && Array.isArray(cleanData)) {
+                    renderMatchOverviewCards(cleanData);
+                } else if (cleanData && cleanData.data && Array.isArray(cleanData.data.matches)) {
+                    renderMatchOverviewCards(cleanData.data.matches);
+                } else {
+                    renderFixtures(cleanData, false);
+                }
+
+            } catch (err) {
+                console.error("Pipeline Error:", err);
+                renderFixtures(err.message, true);
+            } finally {
+                if (loader) {
+                    loader.classList.add('hidden');
+                    loader.classList.remove('flex');
+                }
+            }
+        }
+
+        // --- FIRST WEBHOOK: RENDER MATCH OVERVIEW CARDS ---
+        window.renderMatchOverviewCards = function(matches) {
+            const container = document.getElementById('outputContainer');
+            window.fullMatchList = matches;
+
+            if (!matches || !Array.isArray(matches) || matches.length === 0) {
+                container.innerHTML = `<div class="p-4 text-slate-400 font-mono text-xs">// NO MATCHES FOUND IN RESPONSE PAYLOAD.</div>`;
+                return;
+            }
+
+            const cardsHtml = matches.map((match) => {
+                const home = getVal(match, ['homeTeam', 'home', 'teamA', 'home_team'], 'Home Team');
+                const away = getVal(match, ['awayTeam', 'away', 'teamB', 'away_team'], 'Away Team');
+                const score = getVal(match, ['score', 'result', 'matchScore', 'status'], 'VS');
+                const date = getVal(match, ['matchDate', 'date', 'time', 'kickOffTime'], 'TODAY');
+                const round = getVal(match, ['round', 'league', 'competition'], 'MATCH');
+                const matchUrl = match.matchUrl || match.url || match.link || '';
+
+                return `
+                    <div class="match-card p-4 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.01] transition-all shadow-lg flex flex-col justify-between group"
+                         onclick="fetchMatchDetails('${matchUrl}')">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wide">
+                                    ⚽ ${round} • ${date}
+                                </span>
+                                <span class="text-xs font-mono bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/50 font-bold">
+                                    ${score}
+                                </span>
+                            </div>
+                            
+                            <div class="my-2">
+                                <h2 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
+                                    ${home} <span class="text-emerald-400 font-mono px-1">vs</span> ${away}
+                                </h2>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-2 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-emerald-400 font-mono font-bold">
+                            <span>FETCH LIVE TELEMETRY</span>
+                            <span class="group-hover:translate-x-1 transition-transform">→</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="space-y-4 font-sans">
+                    <div class="border-b border-slate-800 pb-2 flex justify-between items-center font-mono">
+                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// ${matches.length} MATCHES RETRIEVED FROM N8N</h3>
+                        <span class="text-[10px] text-slate-500">CLICK ANY CARD TO SCRAPE DETAILED TELEMETRY</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${cardsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        window.fetchMatchDetails = function(matchUrl) {
+            executeScraperWorkflow({
+                page: "sports_detail",
+                targetMatrix: "match_telemetry",
+                matchUrl: matchUrl,
+                query: "Fetch deep match stats, lineups, and goals",
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        // --- SECOND WEBHOOK: RENDER DETAILED MATCH TELEMETRY ---
+        window.renderMatchTelemetryDetails = function(payload) {
+            const output = document.getElementById('outputContainer');
+
+            // Extract main fields regardless of how n8n formats the second webhook payload
+            const homeTeam = getVal(payload, ['homeTeam', 'home', 'teamA', 'home_team'], 'Home Team');
+            const awayTeam = getVal(payload, ['awayTeam', 'away', 'teamB', 'away_team'], 'Away Team');
+            const score = getVal(payload, ['score', 'result', 'matchScore', 'status', 'ftScore'], 'FT');
+            const matchDate = getVal(payload, ['matchDate', 'date', 'time', 'kickOffTime'], 'LIVE TELEMETRY');
+            const stadium = getVal(payload, ['stadium', 'venue', 'location'], '');
+            const referee = getVal(payload, ['referee', 'ref'], '');
+            
+            // Check for stats or extra nested telemetry arrays
+            const stats = getVal(payload, ['stats', 'statistics', 'matchStats', 'telemetryData'], null);
+            const goals = getVal(payload, ['goals', 'events', 'timeline', 'scorers'], null);
+
+            let statsHtml = '';
+            if (stats && Array.isArray(stats)) {
+                statsHtml = `
+                    <div class="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-4 my-3">
+                        <h4 class="text-xs font-bold font-mono text-emerald-400 uppercase mb-3">// MATCH STATISTICS MATRIX</h4>
+                        <div class="space-y-2">
+                            ${stats.map(s => `
+                                <div class="flex justify-between items-center text-xs border-b border-slate-800 pb-1.5">
+                                    <span class="text-emerald-300 font-mono font-bold">${s.home || s.homeValue || '0'}</span>
+                                    <span class="text-slate-400 font-mono text-[11px] uppercase">${s.name || s.label || s.title || 'Stat'}</span>
+                                    <span class="text-emerald-300 font-mono font-bold">${s.away || s.awayValue || '0'}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (stats && typeof stats === 'object') {
+                statsHtml = `
+                    <div class="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-4 my-3">
+                        <h4 class="text-xs font-bold font-mono text-emerald-400 uppercase mb-3">// TELEMETRY METRICS</h4>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            ${Object.entries(stats).map(([key, val]) => `
+                                <div class="p-2 bg-slate-950 rounded border border-slate-800">
+                                    <span class="text-slate-500 font-mono block text-[10px] uppercase">${key}</span>
+                                    <span class="text-emerald-300 font-mono font-bold">${typeof val === 'object' ? JSON.stringify(val) : val}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            output.innerHTML = `
+                <div class="space-y-4 font-sans">
+                    <!-- HEADER BACK BUTTON -->
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <button id="navBackBtn" onclick="renderMatchOverviewCards(window.fullMatchList)" 
+                                class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-300 hover:text-white px-4 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 cursor-pointer transition-all shadow-lg hover:scale-105">
+                            <span>←</span> BACK TO MATCHES
+                        </button>
+                        <span class="text-[10px] bg-slate-900 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded font-mono">// TELEMETRY SCRAPED</span>
+                    </div>
+
+                    <!-- SCOREBOARD HEADER PANEL -->
+                    <div class="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-6 text-center shadow-lg relative overflow-hidden">
+                        <div class="text-[10px] font-mono text-emerald-400 tracking-widest uppercase mb-1">${matchDate}</div>
+                        <div class="flex items-center justify-between max-w-xl mx-auto my-2">
+                            <h2 class="text-base md:text-xl font-bold text-white flex-1 text-right truncate">${homeTeam}</h2>
+                            <div class="px-5 py-2 bg-emerald-950 border border-emerald-500 text-emerald-300 font-mono font-extrabold text-lg rounded-xl mx-4 shrink-0 shadow-md">
+                                ${score}
+                            </div>
+                            <h2 class="text-base md:text-xl font-bold text-white flex-1 text-left truncate">${awayTeam}</h2>
+                        </div>
+                        ${stadium || referee ? `
+                            <div class="mt-3 text-[11px] text-slate-400 font-mono flex justify-center gap-4 border-t border-slate-800/80 pt-2">
+                                ${stadium ? `<span>🏟️ ${stadium}</span>` : ''}
+                                ${referee ? `<span>🏁 Ref: ${referee}</span>` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- PARSED STATS / EVENTS MATRIX -->
+                    ${statsHtml}
+
+                    <!-- RAW JSON EXPANDER -->
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md text-xs font-mono text-slate-300">
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-emerald-400 font-bold">// RAW WEBHOOK 2 TELEMETRY PAYLOAD</p>
+                            <span class="text-[10px] text-slate-500">n8n Gateway Response</span>
+                        </div>
+                        <pre class="bg-slate-950 p-3 rounded text-[11px] overflow-x-auto text-emerald-300/80 max-h-64 scrollbar-thin">${JSON.stringify(payload, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFixtures(payload, isError = false) {
+            const output = document.getElementById('outputContainer');
+
+            if (isError) {
+                output.innerHTML = `
+                    <div class="p-4 bg-rose-950/40 border border-rose-500/50 rounded-xl text-rose-300 font-mono text-xs">
+                        <p class="font-bold">// PIPELINE CONNECTION ERROR</p>
+                        <p class="mt-1 text-[11px] text-rose-400">${payload}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            output.innerHTML = `
+                <div class="p-4 bg-slate-900/80 border border-emerald-500/30 rounded-xl text-emerald-300 font-mono text-xs">
+                    <p class="font-bold">// PIPELINE DATA RECEIVED</p>
+                    <pre class="mt-2 text-[11px] text-slate-300 overflow-x-auto">${JSON.stringify(payload, null, 2)}</pre>
+                </div>
+            `;
         }
     </script>
 </body>
