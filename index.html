@@ -1,118 +1,549 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sports Analytics Telemetry Monitor</title>
+    <title>Command Center | Analytics Terminal</title>
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            500: '#10b981',
-                            600: '#059669',
-                        }
-                    }
-                }
-            }
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Three.js Library Dependency -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { 
+            margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column;
+            background-color: #02040e; position: relative; overflow: hidden;
         }
-    </script>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased p-4 sm:p-8">
 
-    <div class="max-w-6xl mx-auto space-y-6">
-        <!-- Header -->
-        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6">
+        /* CYBER MATRIX CANVAS STAGE */
+        .cyber-backdrop-container {
+            position: absolute; inset: 0; z-index: 0;
+            background: radial-gradient(circle at center, #071235 0%, #02040e 100%);
+            transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        #globeCanvasContainer {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* HUD Grid */
+        .hud-overlay {
+            position: absolute; inset: 0;
+            background-image: 
+                linear-gradient(to right, rgba(16, 185, 129, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px; z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Laser Sweep Line */
+        .scanline {
+            position: absolute; width: 100%; height: 4px;
+            background: linear-gradient(90deg, transparent, #10b981, #00f2fe, #10b981, transparent);
+            box-shadow: 0 0 20px #10b981; top: 0; z-index: 4;
+            animation: scanning 3s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanning {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+
+        /* DASHBOARD STATE RULES */
+        .cyber-backdrop-container.dashboard-active {
+            opacity: 0.4;
+        }
+        .cyber-backdrop-container.dashboard-active .scanline {
+            display: none;
+        }
+
+        /* PANELS LAYER TRANSITION SYSTEM */
+        .app-interface {
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 1.2s cubic-bezier(0.1, 1, 0.1, 1), transform 1.2s cubic-bezier(0.1, 1, 0.1, 1);
+        }
+        .app-interface.visible {
+            opacity: 1; transform: translateY(0);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
+    </style>
+</head>
+<body class="font-sans text-sm">
+
+    <!-- FULL PAGE WHITE PROGRESS OVERLAY -->
+    <div id="fullPageLoader" class="fixed inset-0 z-50 bg-white text-slate-900 hidden flex-col items-center justify-center font-mono transition-all duration-300">
+        <div class="flex flex-col items-center justify-center space-y-6 max-w-md text-center px-4">
+            <div class="w-16 h-16 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin"></div>
             <div>
-                <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                    <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Sports Analytics Telemetry
-                </h1>
-                <p class="text-slate-400 text-xs sm:text-sm mt-1">Real-time webhook trigger & stream data ingestion dashboard</p>
+                <h2 id="loaderTitle" class="font-bold text-lg tracking-widest uppercase text-slate-900">// INITIALIZING PIPELINE CONNECTOR...</h2>
+                <p id="loaderSubtext" class="text-slate-500 text-xs mt-2 animate-pulse">Waiting for sports agent response...</p>
             </div>
-            
+            <div class="w-48 bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200">
+                <div class="bg-emerald-600 h-full w-full animate-pulse"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 1: QUANTUM PARTICLE SYSTEM AND HUD LAYER -->
+    <div id="backdropStage" class="cyber-backdrop-container">
+        <div class="hud-overlay"></div>
+        <div id="laserLine" class="scanline"></div>
+        <!-- 3D Globe Pipeline Container -->
+        <div id="globeCanvasContainer"></div>
+        
+        <!-- DYNAMIC LOOPING SPORT BIG TEXT DISPLAY -->
+        <div id="quantumSportText" class="absolute inset-0 flex items-center justify-center pointer-events-none z-3 opacity-0 select-none will-change-transform transition-all ease-out duration-100">
+            <h1 class="text-8xl md:text-[13rem] font-black tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 filter drop-shadow-[0_0_50px_rgba(6,182,212,0.6)] font-sans">
+                SPORT
+            </h1>
+        </div>
+    </div>
+
+    <!-- STEP 2: METRICS TELEMETRY PANELS DISPLAY -->
+    <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full pointer-events-auto">
+        
+        <!-- HEADER -->
+        <header class="bg-slate-950/60 border-b-2 border-slate-800 px-6 py-4 flex items-center justify-between backdrop-blur-lg">
             <div class="flex items-center gap-3">
-                <button onclick="downloadData()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono font-medium rounded-lg border border-slate-700 transition flex items-center gap-2">
-                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
-                    Export JSON
-                </button>
+                <div class="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-400">AI</div>
+                <span class="font-semibold text-slate-100 tracking-tight text-base">Sports Analytics Terminal</span>
             </div>
+            <div class="font-mono text-xs text-emerald-400 tracking-wider animate-pulse">// MULTI-SPORT STREAM INGESTION ACTIVE</div>
         </header>
 
-        <!-- Controls Section -->
-        <section class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 sm:p-6 shadow-xl backdrop-blur-sm">
-            <h2 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-400 mb-4">// TELEMETRY CONTROLS</h2>
+        <!-- DASHBOARD BODY PANEL MATRIX -->
+        <main class="flex-1 grid grid-cols-4 gap-4 p-4 h-full overflow-hidden">
             
-            <div class="flex flex-col md:flex-row gap-3">
-                <div class="flex-1">
-                    <input type="text" id="webhookUrl" 
-                        placeholder="https://your-n8n-instance.com/webhook/sports-scraper" 
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-slate-200 font-mono focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition placeholder:text-slate-600" />
-                </div>
-                <button onclick="executeScraperWorkflow()" id="triggerBtn" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-lg shadow-lg shadow-emerald-950/50 transition duration-150 flex items-center justify-center gap-2 shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Run Workflow
-                </button>
-            </div>
-        </section>
+            <!-- CONTROLS SIDE PANEL -->
+            <div class="col-span-1 bg-slate-950/45 p-5 border-2 border-slate-800 flex flex-col h-full overflow-y-auto rounded-xl shadow-2xl backdrop-blur-lg">
+                <h3 class="text-[11px] font-bold text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Select Categories
+                </h3>
+                
+                <div id="categoryContainer" class="space-y-2 mb-4">
+                    <button id="selectAllCatBtn" class="w-full bg-emerald-950/40 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white py-2 px-3 rounded-lg font-medium text-xs uppercase transition-all cursor-pointer tracking-wider">
+                        Select All Categories
+                    </button>
 
-        <!-- Output / Stream Monitor -->
-        <main class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 sm:p-6 shadow-xl">
-            <div id="outputContainer" class="min-h-[280px]">
-                <div class="flex flex-col items-center justify-center h-64 text-center text-slate-500 font-mono">
-                    <svg class="w-10 h-10 mb-3 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    <p class="text-sm">Awaiting workflow execution...</p>
-                    <p class="text-xs text-slate-600 mt-1">Enter a webhook URL above and trigger the scraper payload.</p>
+                    <!-- CHECKBOX TRIGGERS -->
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl"> 
+                        <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
+                    </label>
+
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" id="int-check" class="cat-check scale-110 accent-emerald-600" value="international"> 
+                        <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
+                    </label>
+
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="athletics"> 
+                        <span class="text-xs font-normal uppercase ml-3 text-slate-300">Athletics</span>
+                    </label>
+
+                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                        <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="others"> 
+                        <span class="text-xs font-normal uppercase ml-3 text-slate-300">Others</span>
+                    </label>
+                </div>
+
+                <div class="flex-1 bg-slate-950/70 rounded-lg border border-slate-850 p-4 mb-4 overflow-y-auto">
+                    <h3 class="text-[10px] font-medium text-slate-400 uppercase mb-2">Active Sources</h3>
+                    <div id="activeSourceList" class="space-y-2 font-mono text-[11px] text-slate-500 italic">// Waiting for pipeline...</div>
+                </div>
+            </div>
+
+            <!-- TERMINAL MAIN DATA MONITOR -->
+            <div class="col-span-3 bg-slate-950/40 p-5 border-2 border-slate-800 flex flex-col h-full overflow-y-auto rounded-xl shadow-2xl backdrop-blur-lg">
+                <div class="mb-4">
+                    <h3 class="font-semibold text-xs uppercase text-slate-400 tracking-wider mb-3">Scraped Intelligence Matrix</h3>
+                    
+                    <div class="bg-slate-950/50 border border-slate-800 p-4 rounded-xl w-full mb-4">
+                        <h3 class="text-[10px] font-bold text-rose-500 uppercase mb-2 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Fast Hot News
+                        </h3>
+                        <div class="flex gap-2">
+                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:border-rose-500 outline-none">
+                            <button id="hotNewsBtn" class="bg-rose-600 border border-rose-400 px-5 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-950/50 border border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-3">
+                        <div class="flex gap-2 flex-wrap">
+                            <button id="selectAllLangBtn" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white px-4 py-2 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All</button>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
+                        </div>
+                        <button id="downloadBtn" class="bg-blue-600 border border-blue-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download</button>
+                    </div>
+                </div>
+
+                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/80 rounded-lg p-4 border border-slate-900 font-mono text-xs text-emerald-400 shadow-inner">
+                    <p class="text-slate-500 italic font-normal">// Matrix ready for sports intelligence ingestion...</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Application Script -->
-    <script>
+    <!-- LIFECYCLE CONTROLLER SCRIPTS -->
+    <script type="module">
+        import { N8N_GATEWAY_WEBHOOK } from './config.js';
+
         let lastScrapedData = null;
 
-        async function executeScraperWorkflow() {
-            const webhookUrl = document.getElementById('webhookUrl').value.trim();
-            const triggerBtn = document.getElementById('triggerBtn');
-            const outputContainer = document.getElementById('outputContainer');
+        // --- THREE.JS QUANTUM GLOBE ENGINE ---
+        let scene, camera, renderer, globeParticles;
+        const clock = new THREE.Clock();
+        const baseRadius = 50;
+        const totalParticles = 2800;
+        let sportTextEl;
 
-            if (!webhookUrl) {
-                alert("Please enter a valid Webhook URL.");
+        function buildEnergyNodeTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64; canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(0.2, '#00f2fe');
+            gradient.addColorStop(0.5, '#10b981');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 64, 64);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function initGlobeSystem() {
+            const container = document.getElementById('globeCanvasContainer');
+            sportTextEl = document.getElementById('quantumSportText');
+            scene = new THREE.Scene();
+            
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.z = 180;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(totalParticles * 3);
+            const vectors = new Float32Array(totalParticles * 3);
+            const burstSpeeds = new Float32Array(totalParticles);
+
+            for(let i = 0; i < totalParticles; i++) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+
+                const x = Math.sin(phi) * Math.cos(theta);
+                const y = Math.sin(phi) * Math.sin(theta);
+                const z = Math.cos(phi);
+
+                vectors[i * 3] = x;
+                vectors[i * 3 + 1] = y;
+                vectors[i * 3 + 2] = z;
+
+                positions[i * 3] = x * baseRadius;
+                positions[i * 3 + 1] = y * baseRadius;
+                positions[i * 3 + 2] = z * baseRadius;
+
+                burstSpeeds[i] = 0.4 + Math.random() * 1.6;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 2.2,
+                transparent: true,
+                opacity: 0.9,
+                map: buildEnergyNodeTexture(),
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            globeParticles = new THREE.Points(geometry, material);
+            globeParticles.userData = { vectors, burstSpeeds, loopTimer: 0 };
+            scene.add(globeParticles);
+
+            animateGlobePipeline();
+        }
+
+        function animateGlobePipeline() {
+            requestAnimationFrame(animateGlobePipeline);
+            const delta = clock.getDelta();
+            const elapsed = clock.getElapsedTime();
+
+            if (globeParticles) {
+                const posAttr = globeParticles.geometry.attributes.position;
+                const positions = posAttr.array;
+                const vectors = globeParticles.userData.vectors;
+                const speeds = globeParticles.userData.burstSpeeds;
+                
+                globeParticles.userData.loopTimer += delta;
+                const timer = globeParticles.userData.loopTimer % 6;
+
+                globeParticles.rotation.y += 0.008;
+                globeParticles.rotation.x += 0.003;
+
+                if (timer < 2.0) {
+                    if(sportTextEl) {
+                        sportTextEl.style.opacity = '0';
+                        sportTextEl.style.transform = 'scale(0.85)';
+                    }
+
+                    for (let i = 0; i < totalParticles; i++) {
+                        positions[i * 3] = vectors[i * 3] * baseRadius;
+                        positions[i * 3 + 1] = vectors[i * 3 + 1] * baseRadius;
+                        positions[i * 3 + 2] = vectors[i * 3 + 2] * baseRadius;
+                    }
+                } 
+                else if (timer >= 2.0 && timer < 3.5) {
+                    const progress = (timer - 2.0) / 1.5;
+                    
+                    if(sportTextEl) {
+                        sportTextEl.style.opacity = progress;
+                        sportTextEl.style.transform = `scale(${0.85 + (progress * 0.15)})`;
+                    }
+
+                    for (let i = 0; i < totalParticles; i++) {
+                        const vx = vectors[i * 3];
+                        const vy = vectors[i * 3 + 1];
+                        const vz = vectors[i * 3 + 2];
+                        const speed = speeds[i];
+
+                        const expansionDist = baseRadius + (progress * 380 * speed);
+                        
+                        positions[i * 3] = vx * expansionDist + Math.sin(elapsed * speed * 3) * 5;
+                        positions[i * 3 + 1] = vy * expansionDist + Math.cos(elapsed * speed * 3) * 5;
+                        positions[i * 3 + 2] = vz * expansionDist;
+                    }
+                } 
+                else {
+                    const returnProgress = (timer - 3.5) / 2.5;
+                    
+                    if(sportTextEl) {
+                        sportTextEl.style.opacity = 1 - returnProgress;
+                    }
+
+                    for (let i = 0; i < totalParticles; i++) {
+                        const vx = vectors[i * 3];
+                        const vy = vectors[i * 3 + 1];
+                        const vz = vectors[i * 3 + 2];
+
+                        const currentX = positions[i * 3];
+                        const currentY = positions[i * 3 + 1];
+                        const currentZ = positions[i * 3 + 2];
+
+                        const targetX = vx * baseRadius;
+                        const targetY = vy * baseRadius;
+                        const targetZ = vz * baseRadius;
+
+                        positions[i * 3] = THREE.MathUtils.lerp(currentX, targetX, returnProgress);
+                        positions[i * 3 + 1] = THREE.MathUtils.lerp(currentY, targetY, returnProgress);
+                        positions[i * 3 + 2] = THREE.MathUtils.lerp(currentZ, targetZ, returnProgress);
+                    }
+                }
+                posAttr.needsUpdate = true;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            if (!camera || !renderer) return;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- CORE LIFECYCLE CONTROLLERS ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initGlobeSystem();
+            
+            const stage = document.getElementById('backdropStage');
+            const appFrame = document.getElementById('mainAppFrame');
+
+            setTimeout(() => {
+                stage.classList.add('dashboard-active');
+                appFrame.classList.add('visible');
+            }, 3500);
+
+            document.querySelectorAll('.cat-check').forEach(cb => {
+                cb.addEventListener('change', (e) => handleCategoryTrigger(e.target));
+            });
+
+            document.getElementById('selectAllCatBtn').addEventListener('click', () => toggleAll('.cat-check', true));
+            document.getElementById('selectAllLangBtn').addEventListener('click', () => toggleAll('.lang-check', true));
+            document.getElementById('hotNewsBtn').addEventListener('click', getHotNews);
+            document.getElementById('downloadBtn').addEventListener('click', downloadData);
+        });
+
+        function toggleAll(selector, isChecked) { 
+            document.querySelectorAll(selector).forEach(c => {
+                c.checked = isChecked;
+            }); 
+            const eplCheck = document.getElementById('epl-check');
+            if (eplCheck && eplCheck.checked) handleCategoryTrigger(eplCheck);
+        }
+
+        // --- CATEGORY SELECTION & INTERNATIONAL SUB-LEAGUES MATRIX ---
+        async function handleCategoryTrigger(checkboxEl) {
+            if (!checkboxEl.checked) return;
+
+            const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
+            const sourceList = document.getElementById('activeSourceList');
+
+            sourceList.innerHTML = mainCats.map(item => 
+                `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
+            ).join('');
+
+            // IF INTERNATIONAL IS SELECTED, SHOW THE 4 CARDS MATRIX FIRST BEFORE WEBHOOK TRIGGER
+            if (checkboxEl.value === 'international') {
+                renderInternationalLeaguesMatrix();
                 return;
             }
 
-            // Update UI State
-            triggerBtn.disabled = true;
-            triggerBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            outputContainer.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-64 font-mono text-emerald-400">
-                    <div class="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-                    <p class="text-xs uppercase tracking-wider">// INGESTING TELEMETRY STREAM...</p>
+            // DEFAULT WORKFLOW CALL FOR OTHER CATEGORIES
+            executeScraperWorkflow({
+                page: "sports",
+                targetMatrix: "sports_analytics",
+                categories: mainCats,
+                websites: ["https://www.besoccer.com/competition/premier_league_ethiopia"],
+                query: "Ethiopian Premier League fixtures and scores",
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        // RENDER 4 CLICKABLE LEAGUE CARDS BEFORE TRIGGERING WEBHOOK
+        function renderInternationalLeaguesMatrix() {
+            const output = document.getElementById('outputContainer');
+            output.innerHTML = `
+                <div class="space-y-4">
+                    <div class="border-b border-slate-800 pb-2">
+                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// INTERNATIONAL LEAGUE MATRIX SELECTION</h3>
+                        <p class="text-[11px] text-slate-400 font-sans mt-0.5">Select a target league to execute the live scraping pipeline:</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans">
+                        <!-- CARD 1 -->
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="English Premier League" data-url="https://www.besoccer.com/competition/premier_league">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">EPL</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">English Premier League live fixtures, scores, table standings & team statistics.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+
+                        <!-- CARD 2 -->
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="Champions League" data-url="https://www.besoccer.com/competition/champions_league">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇪🇺 UEFA Champions League</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">UCL</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">European Champions League knockout matrix, match schedules, and stats.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+
+                        <!-- CARD 3 -->
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="Spain LaLiga" data-url="https://www.besoccer.com/competition/liga_santander">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇪🇸 Spain LaLiga</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">LALIGA</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">Spanish Primera División coverage, Real Madrid, Barcelona matchday streams.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+
+                        <!-- CARD 4 -->
+                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
+                             data-league="Serie A / Ligue 1 / Bundesliga" data-url="https://www.besoccer.com/">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇮🇹 🇫🇷 🇩🇪 Serie A, Ligue 1 & Bundesliga</span>
+                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">EURO</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">Combined stream covering Italian Serie A, French Ligue 1, and German Bundesliga.</p>
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
+                                <span>SELECT LEAGUE</span>
+                                <span>EXECUTE pipeline →</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
 
+            // BIND CLICK EVENTS TO EACH LEAGUE CARD TO FIRE WEBHOOK
+            document.querySelectorAll('.league-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const leagueName = card.getAttribute('data-league');
+                    const leagueUrl = card.getAttribute('data-url');
+                    const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+
+                    executeScraperWorkflow({
+                        page: "sports",
+                        targetMatrix: "international_analytics",
+                        selectedLeague: leagueName,
+                        categories: ["international"],
+                        languages: selectedLangs,
+                        websites: [leagueUrl],
+                        query: `Fetch live fixtures, statistics, and headlines for ${leagueName}`,
+                        timestamp: new Date().toISOString()
+                    });
+                });
+            });
+        }
+
+        // --- WEBHOOK EXECUTOR PIPELINE ---
+        async function executeScraperWorkflow(payload) {
+            const output = document.getElementById('outputContainer');
+            const loader = document.getElementById('fullPageLoader');
+            const loaderTitle = document.getElementById('loaderTitle');
+            const loaderSubtext = document.getElementById('loaderSubtext');
+
+            loaderTitle.innerText = "// INITIALIZING PIPELINE CONNECTOR...";
+            loaderSubtext.innerText = `Fetching telemetry for: ${payload.selectedLeague || payload.query}...`;
+            loader.classList.remove('hidden');
+            loader.classList.add('flex');
+
             try {
-                const response = await fetch(webhookUrl, {
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ timestamp: new Date().toISOString(), source: 'dashboard_client' })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
-                }
+                if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
                 const data = await response.json();
                 lastScrapedData = data;
@@ -121,9 +552,22 @@
             } catch (err) {
                 renderFixtures(err.message, true);
             } finally {
-                triggerBtn.disabled = false;
-                triggerBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                loader.classList.add('hidden');
+                loader.classList.remove('flex');
             }
+        }
+
+        async function getHotNews() {
+            const queryVal = document.getElementById('hotNewsInput').value.trim();
+            if (!queryVal) return alert("Please enter a sports topic.");
+
+            executeScraperWorkflow({
+                page: "sports",
+                targetMatrix: "hot_news",
+                query: queryVal,
+                websites: ["https://www.besoccer.com/competition/premier_league_ethiopia", "https://www.bbc.com/sport"],
+                timestamp: new Date().toISOString()
+            });
         }
 
         function downloadData() {
@@ -140,7 +584,7 @@
         function renderFixtures(data, isError) {
             const output = document.getElementById('outputContainer');
             if (isError) {
-                output.innerHTML = `<div class="text-rose-500 font-mono p-4 bg-rose-950/20 border border-rose-900/50 rounded-xl text-xs">// ERROR: ${data}</div>`;
+                output.innerHTML = `<div class="text-rose-500 font-mono">// ERROR: ${data}</div>`;
                 return;
             }
 
