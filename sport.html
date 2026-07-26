@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Gateway | Terminal Hub</title>
+    <title>Custom Gateway | Sport Terminal Hub</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Supabase CDN Script -->
@@ -14,7 +14,7 @@
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
 
-        /* Crisp Fullscreen Background Canvas */
+        /* Background Canvas */
         .governance-bg-canvas {
             position: absolute;
             top: 0;
@@ -53,10 +53,11 @@
             transition: all 0.2s ease;
             cursor: pointer;
         }
-        .domain-btn:hover {
+        .domain-btn:hover, .domain-btn.active-domain {
             border-color: #38bdf8;
             color: #ffffff;
             box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+            background-color: #07152e;
         }
 
         /* Left Control Tiles */
@@ -84,7 +85,7 @@
             box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
         }
 
-        /* Language Filter Buttons Layout */
+        /* Language/Filter Buttons Layout */
         .ensemble-btn {
             background-color: #16224f;
             border: 2.5px solid #2563eb;
@@ -166,7 +167,7 @@
             animation: terminalPulse 1.4s infinite;
         }
 
-        /* High Visibility Progress Track */
+        /* Progress Track */
         .tactical-track {
             width: 280px;
             height: 6px;
@@ -246,7 +247,6 @@
             100% { left: 310px; }
         }
 
-        /* Universal Disabled Styling */
         button:disabled, 
         input:disabled, 
         a.domain-btn.disabled-link {
@@ -260,14 +260,14 @@
 
     <!-- FIXED FULLSCREEN LOADING OVERLAY -->
     <div id="terminalLoader" class="terminal-loading-overlay">
-        <div class="text-[12px] text-slate-900 font-bold tracking-wider" id="loaderHeader">// INITIALIZING INTERCEPT SEQUENCES...</div>
-        <div class="loading-alert-text text-[11px] mt-1.5" id="loaderSubheader">SYSTEM STATE: PROCESSING - PLEASE WAIT...</div>
+        <div class="text-[12px] text-slate-900 font-bold tracking-wider" id="loaderHeader">// INITIALIZING SPORT TELEMETRY FETCH...</div>
+        <div class="loading-alert-text text-[11px] mt-1.5" id="loaderSubheader">SYSTEM STATE: SCANNING LEAGUE MATRICES - PLEASE WAIT...</div>
         
         <div class="tactical-track">
             <div class="tactical-scanner"></div>
         </div>
         
-        <div class="text-[9px] text-slate-400 uppercase tracking-widest font-bold">// SECURE NETWORK GATEWAY PIPELINE IN OPERATION</div>
+        <div class="text-[9px] text-slate-400 uppercase tracking-widest font-bold">// SPORT INTELLIGENCE GATEWAY IN OPERATION</div>
     </div>
 
     <canvas class="governance-bg-canvas" id="governanceCanvas"></canvas>
@@ -277,22 +277,22 @@
         <!-- HEADER -->
         <header class="bg-slate-950/80 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none backdrop-blur-sm">
             <div class="flex items-center gap-3">
-                <div class="w-7 h-7 rounded bg-cyan-600 flex items-center justify-center font-bold text-[10px] border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]">TG</div>
+                <div class="w-7 h-7 rounded bg-emerald-600 flex items-center justify-center font-bold text-[10px] border border-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.3)]">SP</div>
                 <div>
-                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Custom Terminal Gateway</span>
+                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Sports Intelligence Gateway</span>
                 </div>
             </div>
 
             <div class="flex items-center gap-2" id="topDomainNav">
                 <a href="business and finance.html" class="domain-btn">Business & Finance</a>
-                <a href="sport.html" class="domain-btn">Sport</a>
+                <a href="sport.html" class="domain-btn active-domain">Sport</a>
                 <a href="World Politics and Governance.html" class="domain-btn">Politics & Governance</a>
             </div>
 
             <div class="flex items-center gap-4 border-l border-slate-800 pl-4">
                 <div class="text-right">
                     <span class="block text-[11px] font-mono font-semibold text-slate-300">Amanuel Bekele Woldesenbet</span>
-                    <span class="block text-[9px] font-mono text-cyan-500 uppercase tracking-wider">// Operator Profile</span>
+                    <span class="block text-[9px] font-mono text-emerald-500 uppercase tracking-wider">// Sports Operator</span>
                 </div>
                 <button id="btn-sign-out" onclick="location.reload();" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5 py-1.5 rounded transition-all uppercase cursor-pointer">
                     Sign Out
@@ -303,79 +303,81 @@
         <!-- DASHBOARD GRID -->
         <main class="flex-1 flex gap-3 p-3 h-full overflow-hidden">
             
-            <!-- LEFT COLUMN: CONTROL TARGETS -->
+            <!-- LEFT COLUMN: SPORT SECTOR TARGETS -->
             <div class="w-1/4 flex flex-col gap-3.5 overflow-y-auto pr-1 select-none shrink-0">
+                
                 <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Strait of Hormuz</h2>
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Premier League Matrix</h2>
                     <div class="flex items-center gap-1.5">
-                        <input type="text" id="input-hormuz" placeholder="Maritime query..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button id="btn-hormuz-go" onclick="triggerUnifiedSearch('Strait of Hormuz', 'input-hormuz')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                        <input type="text" id="input-epl" placeholder="Team/Match query..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button id="btn-epl-go" onclick="triggerUnifiedSearch('Premier League', 'input-epl')" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
                     </div>
-                    <button id="btn-hormuz-new" onclick="triggerAnythingNew('Strait of Hormuz')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
-                        ✨ Anything New
+                    <button id="btn-epl-new" onclick="triggerAnythingNew('Premier League')" class="w-full py-1.5 border border-slate-800 hover:border-emerald-900/50 bg-slate-950/60 hover:bg-emerald-950/20 text-slate-400 hover:text-emerald-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Fixtures & News
                     </button>
                 </section>
 
                 <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Trump Watch Matrix</h2>
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">UEFA Champions League</h2>
                     <div class="flex items-center gap-1.5">
-                        <input type="text" id="input-trump" placeholder="Policy matrix..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button id="btn-trump-go" onclick="triggerUnifiedSearch('Trump Watch', 'input-trump')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                        <input type="text" id="input-ucl" placeholder="UCL Match stats..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button id="btn-ucl-go" onclick="triggerUnifiedSearch('Champions League', 'input-ucl')" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
                     </div>
-                    <button id="btn-trump-new" onclick="triggerAnythingNew('Trump Watch')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
-                        ✨ Anything New
+                    <button id="btn-ucl-new" onclick="triggerAnythingNew('Champions League')" class="w-full py-1.5 border border-slate-800 hover:border-emerald-900/50 bg-slate-950/60 hover:bg-emerald-950/20 text-slate-400 hover:text-emerald-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ UCL Standings & Logs
                     </button>
                 </section>
 
                 <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Grand Ethiopian Dam (GERD)</h2>
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">La Liga Dynamics</h2>
                     <div class="flex items-center gap-1.5">
-                        <input type="text" id="input-gerd" placeholder="Riparian terms..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button id="btn-gerd-go" onclick="triggerUnifiedSearch('GERD', 'input-gerd')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                        <input type="text" id="input-laliga" placeholder="Clubs & Transfers..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button id="btn-laliga-go" onclick="triggerUnifiedSearch('La Liga', 'input-laliga')" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
                     </div>
-                    <button id="btn-gerd-new" onclick="triggerAnythingNew('GERD')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
-                        ✨ Anything New
+                    <button id="btn-laliga-new" onclick="triggerAnythingNew('La Liga')" class="w-full py-1.5 border border-slate-800 hover:border-emerald-900/50 bg-slate-950/60 hover:bg-emerald-950/20 text-slate-400 hover:text-emerald-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Spanish Football Intel
                     </button>
                 </section>
 
                 <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Ethiopia Sovereign Core</h2>
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">International Football Core</h2>
                     <div class="flex items-center gap-1.5">
-                        <input type="text" id="input-ethiopia" placeholder="National filters..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button id="btn-ethiopia-go" onclick="triggerUnifiedSearch('Ethiopia Core', 'input-ethiopia')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                        <input type="text" id="input-international" placeholder="National teams..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button id="btn-international-go" onclick="triggerUnifiedSearch('International Football', 'input-international')" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
                     </div>
-                    <button id="btn-ethiopia-new" onclick="triggerAnythingNew('Ethiopia Core')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
-                        ✨ Anything New
+                    <button id="btn-international-new" onclick="triggerAnythingNew('International Football')" class="w-full py-1.5 border border-slate-800 hover:border-emerald-900/50 bg-slate-950/60 hover:bg-emerald-950/20 text-slate-400 hover:text-emerald-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ World Tournament Intel
                     </button>
                 </section>
+
             </div>
 
             <!-- RIGHT COLUMN: CENTRAL MONITOR (RESULTS) -->
-            <div class="flex-1 flex flex-col justify-between bg-slate-950/70 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden backdrop-blur-xs relative">
+            <div class="flex-1 flex flex-col justify-between bg-slate-950/70 rounded-xl p-4 border border-emerald-900/40 h-full overflow-hidden backdrop-blur-xs relative">
 
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
                     <div class="flex items-center gap-2 shrink-0">
-                        <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></div>
-                        <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">Central Stream Monitor</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></div>
+                        <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">Live Sport Stream Monitor</span>
                     </div>
 
                     <div class="flex items-center gap-3 justify-center flex-1 mx-4" id="languageContainer">
-                        <button onclick="toggleSelectAllEnsembles()" id="btn-select-all" class="ensemble-btn uppercase">Select All Ensembles</button>
+                        <button onclick="toggleSelectAllEnsembles()" id="btn-select-all" class="ensemble-btn uppercase">Select All Feeds</button>
                         <button onclick="toggleLangCheckbox('OROMIFFA')" id="lang-OROMIFFA" class="lang-checkbox-btn"><span class="custom-box"></span> OROMIFFA</button>
                         <button onclick="toggleLangCheckbox('AMHARIC')" id="lang-AMHARIC" class="lang-checkbox-btn"><span class="custom-box"></span> AMHARIC</button>
                         <button onclick="toggleLangCheckbox('ENGLISH')" id="lang-ENGLISH" class="lang-checkbox-btn"><span class="custom-box"></span> ENGLISH</button>
                         <button onclick="toggleLangCheckbox('ARABIC')" id="lang-ARABIC" class="lang-checkbox-btn"><span class="custom-box"></span> ARABIC</button>
                     </div>
 
-                    <div class="text-right text-[10px] font-mono text-slate-600 select-none shrink-0">// CAPTURE MATRICES</div>
+                    <div class="text-right text-[10px] font-mono text-slate-600 select-none shrink-0">// MATCH TELEMETRY</div>
                 </div>
 
                 <div id="unifiedResultsConsole" class="flex-1 overflow-y-auto font-mono text-xs text-slate-400 bg-slate-950/40 border border-slate-900/60 rounded-md p-3 space-y-3">
-                    <div class="text-slate-500 tracking-wide">// System online. Terminal metrics initialized. Run an inquiry lookup via sidebar modules to display intercept logs...</div>
+                    <div class="text-slate-500 tracking-wide">// Sports telemetry online. Select a league or search term to fetch intercept feeds...</div>
                 </div>
 
                 <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
+                    <span class="text-[9px] text-slate-500 font-mono">// MULTI-LEAGUE SPORT PIPELINE</span>
                     <div class="flex gap-2">
                         <button id="btn-restore-log" onclick="restoreLastDeleted()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md cursor-pointer transition-all tracking-wide uppercase hidden">
                             ⟲ Restore Deleted
@@ -389,17 +391,15 @@
         </main>
 
         <!-- FOOTER -->
-        <footer class="bg-slate-950 border-t border-slate-800 px-4 py-1.5 font-mono text-[10px] text-cyan-500 flex items-center justify-between shrink-0">
-            <div id="statusConsole">// MONITOR HUB ACTIVE: System initialized.</div>
-            <div class="text-slate-600 select-none text-[9px]">GATEWAY INTERFACE v5.5</div>
+        <footer class="bg-slate-950 border-t border-slate-800 px-4 py-1.5 font-mono text-[10px] text-emerald-500 flex items-center justify-between shrink-0">
+            <div id="statusConsole">// SPORT HUB ACTIVE: Monitoring initialized.</div>
+            <div class="text-slate-600 select-none text-[9px]">GATEWAY INTERFACE v5.5 (SPORT)</div>
         </footer>
     </div>
 
     <!-- ENGINE SCRIPTS -->
     <script type="module">
         import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.js';
-        
-        console.log("// TERMINAL HUB: Modules loaded successfully. Gateway configured.");
 
         const canvas = document.getElementById('governanceCanvas');
         const ctx = canvas.getContext('2d');
@@ -410,7 +410,7 @@
             initMatrixGrid();
         }
 
-        const tokenChars = ['0', '1', 'X', 'A', 'F', '9', '4', 'C', '2', 'E', 'B', '7', 'Z', 'M', 'V', 'K'];
+        const tokenChars = ['0', '1', '⚽', 'G', 'A', '7', '10', '9', 'C', '8', 'E', 'B', 'V', 'K'];
         let particles = [];
 
         function initMatrixGrid() {
@@ -445,8 +445,8 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             ctx.shadowBlur = 10;
-            ctx.shadowColor = '#06b6d4';
-            ctx.fillStyle = 'rgba(34, 211, 238, 0.75)';
+            ctx.shadowColor = '#10b981';
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.75)';
 
             particles.forEach(p => {
                 ctx.font = `bold ${p.size}px monospace`;
@@ -482,7 +482,7 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let cachedDataStream = [];
         let deletedItemsStack = [];
-        let lastTriggeredMatrix = "strait_of_hormuz"; 
+        let lastTriggeredMatrix = "premier_league"; 
 
         const activeLanguages = { OROMIFFA: false, AMHARIC: false, ENGLISH: false, ARABIC: false };
 
@@ -508,10 +508,10 @@
             if (overlay) {
                 if (isProcessing) {
                     if (processingType === "language") {
-                        loaderHeader.innerText = "// RE-CONFIGURING ENSEMBLES & RE-GENERATING DATASET...";
-                        loaderSubheader.innerText = "SYSTEM STATE: TRANSLATING FEED RECORDS - PLEASE WAIT...";
+                        loaderHeader.innerText = "// RE-CONFIGURING SPORT ENSEMBLES...";
+                        loaderSubheader.innerText = "SYSTEM STATE: TRANSLATING SPORT FEED - PLEASE WAIT...";
                     } else {
-                        loaderHeader.innerText = "// INITIALIZING INTERCEPT SEQUENCES...";
+                        loaderHeader.innerText = "// FETCHING LIVE SPORT TELEMETRY...";
                         loaderSubheader.innerText = "SYSTEM STATE: PROCESSING - PLEASE WAIT...";
                     }
                     overlay.style.display = 'flex';
@@ -595,6 +595,7 @@
                 executionType: 'translate_curated_feed',
                 curatedFeed: curatedFeedData,
                 languages: activeEnsembles,
+                domain: 'sport',
                 timestamp: new Date().toISOString()
             };
 
@@ -619,17 +620,14 @@
 
             const outputPanel = document.getElementById('unifiedResultsConsole');
             const statusLog = document.getElementById('statusConsole');
-            statusLog.innerText = `// TRACKING RECENT CHRONO ENTRIES FOR: [${sectorContext.toUpperCase()}]`;
-            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying database metrics...</div>`;
+            statusLog.innerText = `// SCANNING RECENT SPORT ENTRIES FOR: [${sectorContext.toUpperCase()}]`;
+            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying sport metrics...</div>`;
 
             const formattedMatrixKey = sectorContext.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
             lastTriggeredMatrix = formattedMatrixKey;
 
             try {
-                let tableTarget = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
-                    ? 'Ethiopian -Politics and governance websites' : 'politics and governance -websites';
-
-                const { data, error } = await supabaseClient.from(tableTarget).select('*').order('id', { ascending: false }).limit(4);
+                const { data, error } = await supabaseClient.from('sport_headlines').select('*').order('id', { ascending: false }).limit(4);
                 if (error) throw error;
                 
                 cachedDataStream = data || [];
@@ -637,13 +635,14 @@
                 document.getElementById('btn-restore-log').classList.add('hidden');
 
                 renderResultsCards(cachedDataStream);
-                statusLog.innerText = `// DELTA CAPTURE FINISHED.`;
+                statusLog.innerText = `// SPORT DELTA CAPTURE COMPLETE.`;
             } catch (err) {
                 const fallbackPayload = {
                     targetMatrix: formattedMatrixKey,
                     executionType: 'anything_new',
-                    query: `latest operational updates tracking for ${sectorContext}`,
+                    query: `latest sport updates tracking for ${sectorContext}`,
                     languages: getSelectedDashboardLanguages(),
+                    domain: 'sport',
                     timestamp: new Date().toISOString()
                 };
                 await transmitPayloadToN8n(fallbackPayload);
@@ -671,17 +670,14 @@
             const startTime = Date.now();
             window.setGlobalProcessingState(true);
 
-            statusLog.innerText = `// INTERROGATING ROW INDICES FOR: "${queryValue}"...`;
-            outputPanel.innerHTML = `<div class="text-cyan-400 animate-pulse">// SCANNING INDEX SCHEMAS...</div>`;
+            statusLog.innerText = `// INTERROGATING SPORT RECORDS FOR: "${queryValue}"...`;
+            outputPanel.innerHTML = `<div class="text-emerald-400 animate-pulse">// SCANNING INDEX SCHEMAS...</div>`;
 
             const formattedMatrixKey = sectorContext.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
             lastTriggeredMatrix = formattedMatrixKey;
 
             try {
-                let currentTable = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
-                    ? 'Ethiopian -Politics and governance websites' : 'politics and governance -websites';
-
-                const { data, error } = await supabaseClient.from(currentTable).select('*').ilike('title', `%${queryValue}%`).limit(6);
+                const { data, error } = await supabaseClient.from('sport_headlines').select('*').ilike('title', `%${queryValue}%`).limit(6);
                 if (error) throw error;
 
                 cachedDataStream = data || [];
@@ -695,12 +691,13 @@
                         executionType: 'unified_search',
                         query: queryValue,
                         languages: getSelectedDashboardLanguages(),
+                        domain: 'sport',
                         timestamp: new Date().toISOString()
                     };
                     await transmitPayloadToN8n(fallbackPayload);
                 } else {
                     renderResultsCards(cachedDataStream);
-                    statusLog.innerText = `// DIRECT INDEX MATCH FETCHED: ${cachedDataStream.length} RECORD(S).`;
+                    statusLog.innerText = `// MATCH RECORD FOUND: ${cachedDataStream.length} ITEM(S).`;
                 }
             } catch (err) {
                 const fallbackPayload = {
@@ -708,6 +705,7 @@
                     executionType: 'unified_search',
                     query: queryValue,
                     languages: getSelectedDashboardLanguages(),
+                    domain: 'sport',
                     timestamp: new Date().toISOString()
                 };
                 await transmitPayloadToN8n(fallbackPayload);
@@ -732,23 +730,23 @@
             dataArray.forEach((item, index) => {
                 if (!item) return;
 
-                const imageSrc = item.image_url || item.image || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&q=80';
-                const title = item.title || 'Intercept Payload Node';
-                const snippet = item.snippet || item.description || 'No descriptive excerpt payload attached to terminal record stream.';
+                const imageSrc = item.image_url || item.image || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=300&q=80';
+                const title = item.title || 'Sport Intercept Node';
+                const snippet = item.snippet || item.description || 'No match statistics or summary available.';
                 const url = item.url || item.link || '#';
                 const langTag = item.language || 'ENGLISH';
 
                 html += `
                 <div class="result-card" id="card-node-${index}">
                     <div class="result-image-wrapper">
-                        <img src="${imageSrc}" alt="Intercept Graphic" class="result-image" onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&q=80'">
+                        <img src="${imageSrc}" alt="Sport Graphic" class="result-image" onerror="this.src='https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=300&q=80'">
                     </div>
                     <div class="result-text-content">
                         <div class="flex items-center justify-between">
-                            <span class="badge-meta text-cyan-400">[${langTag}]</span>
+                            <span class="badge-meta text-emerald-400">[${langTag}]</span>
                             <button onclick="deleteCardNode(${index})" class="text-slate-600 hover:text-red-400 text-xs font-bold px-1 transition-colors uppercase cursor-pointer" title="Purge Record">✕</button>
                         </div>
-                        <a href="${url}" target="_blank" class="text-slate-100 hover:text-cyan-400 font-bold text-xs truncate transition-colors">${title}</a>
+                        <a href="${url}" target="_blank" class="text-slate-100 hover:text-emerald-400 font-bold text-xs truncate transition-colors">${title}</a>
                         <p class="text-[11px] text-slate-400 font-mono leading-relaxed line-clamp-2">${snippet}</p>
                     </div>
                 </div>`;
@@ -799,7 +797,7 @@
             <!DOCTYPE html>
             <html>
             <head>
-                <title>A4 Terminal Intercept Report</title>
+                <title>A4 Sports Intelligence Report</title>
                 <style>
                     @page { size: A4; margin: 20mm; }
                     body { font-family: monospace; color: #000; background: #fff; padding: 0; margin: 0; }
@@ -817,7 +815,7 @@
             <body>
                 <div class="header">
                     <div>
-                        <div class="title">TERMINAL INTERCEPT REPORT</div>
+                        <div class="title">SPORTS INTELLIGENCE REPORT</div>
                         <div style="font-size: 10px;">OPERATOR: Amanuel Bekele Woldesenbet</div>
                     </div>
                     <div class="meta">
@@ -827,8 +825,8 @@
                 </div>`;
 
             activeCards.forEach((item) => {
-                const title = item.title || 'Untitled Stream Node';
-                const snippet = item.snippet || item.description || 'No descriptive excerpt on record.';
+                const title = item.title || 'Untitled Sport Node';
+                const snippet = item.snippet || item.description || 'No match statistics available.';
                 const imageSrc = item.image_url || item.image || '';
 
                 printContent += `
@@ -842,7 +840,7 @@
             });
 
             printContent += `
-                <div class="footer">// CONFIDENTIAL SYSTEM GENERATED LOG DUMP — CENTRAL STREAM MONITOR HUB</div>
+                <div class="footer">// CONFIDENTIAL SYSTEM GENERATED LOG DUMP — CENTRAL SPORT STREAM MONITOR HUB</div>
             </body>
             </html>`;
 
