@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Command Center | Analytics Terminal</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Stable Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Three.js Library Dependency -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -189,8 +189,9 @@
         </main>
     </div>
 
-<script type="module">
-        import { N8N_GATEWAY_WEBHOOK } from './config.js';
+<script>
+        // CONFIGURATION: Set your n8n Webhook Endpoint directly here
+        const N8N_GATEWAY_WEBHOOK = window.N8N_GATEWAY_WEBHOOK || 'https://YOUR-N8N-INSTANCE.com/webhook/sports-gateway';
 
         window.fullMatchList = [];
 
@@ -502,7 +503,6 @@
             `;
         }
 
-        // Attach handler to window for inline onclick execution
         window.executeLeaguePipeline = function(leagueName, targetUrl) {
             const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
 
@@ -518,7 +518,6 @@
             });
         };
 
-        // --- EXPORT SCRAPER WORKFLOW TO GLOBAL SCOPE ---
         window.executeScraperWorkflow = async function(payload) {
             const loader = document.getElementById('fullPageLoader');
             const loaderTitle = document.getElementById('loaderTitle');
@@ -546,10 +545,7 @@
                 if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
                 const rawData = await response.json();
-                console.log("📥 Raw Webhook Response:", rawData);
-
                 const cleanData = normalizeN8nPayload(rawData);
-                console.log("⚡ Normalized Payload Array:", cleanData);
 
                 if (loader) {
                     loader.classList.remove('flex');
@@ -567,33 +563,23 @@
                 
                 const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
                 if (targetEl) {
-                    targetEl.innerHTML = `<div class="p-3 text-rose-500 font-mono text-xs border border-rose-900/50 bg-rose-950/30 rounded-lg">❌ Execution Error: ${err.message}</div>`;
+                    targetEl.innerHTML = `<div class="p-3 text-rose-500 font-mono text-xs border border-rose-900/50 bg-rose-950/30 rounded-lg">❌ Execution Error: ${err.message}<br><span class="text-slate-400 font-sans text-[11px] mt-1 block">Ensure N8N_GATEWAY_WEBHOOK is pointing to your active webhook URL at line 143.</span></div>`;
                 }
             }
         };
 
-        // --- UNIVERSAL PAYLOAD NORMALIZER ---
         function normalizeN8nPayload(rawData) {
             let root = Array.isArray(rawData) ? rawData[0] : rawData;
-            
             if (!root) return [];
+            if (root.data && Array.isArray(root.data.matches)) return root.data.matches;
 
-            // 1. Direct match array check inside workflow format
-            if (root.data && Array.isArray(root.data.matches)) {
-                return root.data.matches;
-            }
-
-            // 2. Un-nest common n8n wrapper keys
             let data = root.data || root.json || root.body || root.items || root.results || root;
-
             if (Array.isArray(data)) return data;
             if (data && Array.isArray(data.matches)) return data.matches;
 
-            // 3. Fallback single object wrap
             return typeof data === 'object' ? [data] : [];
         }
 
-        // --- MATCH & SPORTS CARD RENDERER ---
         function renderSportsOutput(items) {
             let targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
             if (!targetEl) return;
@@ -621,14 +607,11 @@
 
                             return `
                                 <div class="bg-slate-900/90 border border-emerald-800/50 hover:border-emerald-400 p-3.5 rounded-xl transition-all shadow-lg flex flex-col justify-between group">
-                                    
-                                    <!-- HEADER: ROUND & KICK OFF -->
                                     <div class="flex justify-between items-center text-[10px] font-mono text-slate-400 mb-2 border-b border-slate-800/80 pb-1.5">
                                         <span class="text-emerald-400 font-bold">${round.toUpperCase()}</span>
                                         <span class="bg-slate-800 px-2 py-0.5 rounded text-slate-300">⏱ ${time}</span>
                                     </div>
 
-                                    <!-- SCOREBOARD DISPLAY -->
                                     <div class="flex items-center justify-between my-2 px-1">
                                         <div class="w-2/5 text-right font-bold text-xs text-slate-100 truncate">${home}</div>
                                         <div class="px-2.5 py-1 bg-emerald-950/80 border border-emerald-500/40 rounded-lg text-emerald-300 font-mono text-xs font-bold tracking-wider shadow-inner">
@@ -637,7 +620,6 @@
                                         <div class="w-2/5 text-left font-bold text-xs text-slate-100 truncate">${away}</div>
                                     </div>
 
-                                    <!-- ACTION FOOTER -->
                                     ${matchUrl !== '#' ? `
                                         <div class="mt-2 pt-2 border-t border-slate-800/60 flex justify-end">
                                             <button onclick="executeScraperWorkflow({ page: 'sports_detail', matchUrl: '${matchUrl}' })" 
@@ -646,7 +628,6 @@
                                             </button>
                                         </div>
                                     ` : ''}
-
                                 </div>
                             `;
                         }).join('')}
