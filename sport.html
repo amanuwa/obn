@@ -550,21 +550,22 @@
         }
 
         // --- MAIN PIPELINE EXECUTOR ---
-      async function executeScraperWorkflow(payload) {
+  async function executeScraperWorkflow(payload) {
     const loader = document.getElementById('fullPageLoader');
     const loaderTitle = document.getElementById('loaderTitle');
     const loaderSubtext = document.getElementById('loaderSubtext');
 
     if (loader) {
         loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// EXECUTING LIVE AI SCRAPER...";
-        loaderSubtext.innerText = "Waiting for n8n workflow to complete (this may take up to 2 minutes)...";
+        loaderSubtext.innerText = "Waiting for n8n AI workflow to process (up to 10 minutes max)...";
         loader.classList.remove('hidden');
         loader.classList.add('flex');
     }
 
-    // 180-second timeout window (3 minutes) to allow deep AI scraping
+    // 600-second timeout window (10 minutes)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 180000);
+    const TEN_MINUTES_MS = 10 * 60 * 1000;
+    const timeoutId = setTimeout(() => controller.abort(), TEN_MINUTES_MS);
 
     try {
         const response = await fetch(N8N_GATEWAY_WEBHOOK, {
@@ -574,7 +575,7 @@
                 'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify(payload),
-            signal: controller.signal // Attaches extended timeout
+            signal: controller.signal // Attaches 10-minute timeout signal
         });
 
         clearTimeout(timeoutId);
@@ -613,7 +614,7 @@
         let message = err.message;
         
         if (err.name === 'AbortError') {
-            message = "Workflow execution timed out after 3 minutes. The AI scraper took too long to complete.";
+            message = "Workflow execution timed out after 10 minutes. The AI scraper took longer than expected to complete.";
         }
 
         output.innerHTML = `
