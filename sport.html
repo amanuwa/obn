@@ -550,60 +550,80 @@
         }
 
         // --- MAIN PIPELINE EXECUTOR ---
-        async function executeScraperWorkflow(payload) {
-            const loader = document.getElementById('fullPageLoader');
-            const loaderTitle = document.getElementById('loaderTitle');
-            const loaderSubtext = document.getElementById('loaderSubtext');
+      async function executeScraperWorkflow(payload) {
+    const loader = document.getElementById('fullPageLoader');
+    const loaderTitle = document.getElementById('loaderTitle');
+    const loaderSubtext = document.getElementById('loaderSubtext');
 
-            if (loader) {
-                loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
-                loaderSubtext.innerText = payload.matchUrl 
-                    ? `Fetching live match stats for selected fixture...` 
-                    : `Fetching telemetry for: ${payload.selectedLeague || payload.query || 'request'}...`;
-                loader.classList.remove('hidden');
-                loader.classList.add('flex');
-            }
+    if (loader) {
+        loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// EXECUTING LIVE AI SCRAPER...";
+        loaderSubtext.innerText = "Waiting for n8n workflow to complete (this may take up to 2 minutes)...";
+        loader.classList.remove('hidden');
+        loader.classList.add('flex');
+    }
 
-            try {
-                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                    body: JSON.stringify(payload)
-                });
+    // 180-second timeout window (3 minutes) to allow deep AI scraping
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 180000);
 
-                if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
+    try {
+        const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal // Attaches extended timeout
+        });
 
-                const rawData = await response.json();
-                console.log("📥 Raw Webhook Response:", rawData);
+        clearTimeout(timeoutId);
 
-                const cleanData = normalizeN8nPayload(rawData);
-                console.log("⚡ Normalized Payload:", cleanData);
-
-                if (loader) {
-                    loader.classList.remove('flex');
-                    loader.classList.add('hidden');
-                }
-
-                // ROUTE TO RENDERER ACCORDING TO PAYLOAD PAGE
-                if (payload.page === "sports_detail") {
-                    renderMatchTelemetryDetails(cleanData);
-                } else {
-                    renderSportsOutput(cleanData);
-                }
-
-            } catch (err) {
-                console.error("Pipeline Fetch Error:", err);
-                if (loader) {
-                    loader.classList.remove('flex');
-                    loader.classList.add('hidden');
-                }
-                const output = document.getElementById('outputContainer');
-                output.innerHTML = `<div class="p-3 text-rose-500 font-mono">❌ Execution Error: ${err.message}</div>`;
-            }
+        if (!response.ok) {
+            throw new Error(`Server returned status ${response.status}: ${response.statusText}`);
         }
+
+        const rawData = await response.json();
+        console.log("📥 Workflow Complete - Response Received:", rawData);
+
+        const cleanData = normalizeN8nPayload(rawData);
+
+        if (loader) {
+            loader.classList.remove('flex');
+            loader.classList.add('hidden');
+        }
+
+        // Route normalized data to DOM
+        if (payload.page === "sports_detail") {
+            renderMatchTelemetryDetails(cleanData);
+        } else {
+            renderSportsOutput(cleanData);
+        }
+
+    } catch (err) {
+        clearTimeout(timeoutId);
+        console.error("Pipeline Execution Error:", err);
+
+        if (loader) {
+            loader.classList.remove('flex');
+            loader.classList.add('hidden');
+        }
+
+        const output = document.getElementById('outputContainer');
+        let message = err.message;
+        
+        if (err.name === 'AbortError') {
+            message = "Workflow execution timed out after 3 minutes. The AI scraper took too long to complete.";
+        }
+
+        output.innerHTML = `
+            <div class="p-4 bg-rose-950/40 border border-rose-500/50 rounded-xl text-rose-300 font-mono text-xs">
+                <div class="font-bold text-sm mb-1">❌ Pipeline Failed</div>
+                <div>${message}</div>
+            </div>
+        `;
+    }
+}
 
         function renderMatchTelemetryDetails(data) {
             const output = document.getElementById('outputContainer');
