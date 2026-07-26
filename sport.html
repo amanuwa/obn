@@ -419,68 +419,90 @@
             });
         }
 
-        function renderInternationalLeaguesMatrix() {
+      function renderInternationalLeaguesMatrix() {
             const output = document.getElementById('outputContainer');
             output.innerHTML = `
-                <div class="space-y-4 font-sans">
+                <div class="mt-2 font-sans space-y-4">
                     <div class="border-b border-slate-800 pb-2">
-                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// INTERNATIONAL LEAGUE MATRIX SELECTION</h3>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Select a target league to execute the live scraping pipeline:</p>
+                        <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">// INTERNATIONAL LEAGUE SELECTION</div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">Click a league button below to trigger the live scraping pipeline:</div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
-                             data-league="English Premier League" data-url="https://www.besoccer.com/competition/premier_league">
-                            <div>
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-xs font-bold text-emerald-300 uppercase">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</span>
-                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">EPL</span>
+                    <!-- 4 LEAGUE BUTTONS GRID -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        
+                        <!-- BUTTON 1: PREMIER LEAGUE -->
+                        <button onclick="executeLeaguePipeline('Premier League', 'https://www.besoccer.com/competition/premier_league')" 
+                                class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
+                            <div class="flex items-center gap-3">
+                                <span class="text-base">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-200 group-hover:text-emerald-400 transition-colors uppercase">Premier League</div>
+                                    <div class="text-[10px] text-slate-400 font-mono">EPL Intelligence</div>
                                 </div>
-                                <p class="text-[11px] text-slate-400">English Premier League live fixtures, scores, table standings & team statistics.</p>
                             </div>
-                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
-                                <span>SELECT LEAGUE</span>
-                                <span>EXECUTE pipeline →</span>
-                            </div>
-                        </div>
+                            <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
+                        </button>
 
-                        <div class="league-card p-4 bg-slate-900/90 border border-emerald-500/50 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.02] transition-all shadow-lg flex flex-col justify-between"
-                             data-league="Champions League" data-url="https://www.besoccer.com/competition/champions_league">
-                            <div>
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-xs font-bold text-emerald-300 uppercase">🇪🇺 UEFA Champions League</span>
-                                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded font-mono">UCL</span>
+                        <!-- BUTTON 2: UEFA CHAMPIONS LEAGUE -->
+                        <button onclick="executeLeaguePipeline('UEFA Champions League', 'https://www.besoccer.com/competition/champions_league')" 
+                                class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
+                            <div class="flex items-center gap-3">
+                                <span class="text-base">🇪🇺</span>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-200 group-hover:text-emerald-400 transition-colors uppercase">Champions League</div>
+                                    <div class="text-[10px] text-slate-400 font-mono">UCL Knockouts & Stats</div>
                                 </div>
-                                <p class="text-[11px] text-slate-400">European Champions League knockout matrix, match schedules, and stats.</p>
                             </div>
-                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] text-emerald-400 font-mono">
-                                <span>SELECT LEAGUE</span>
-                                <span>EXECUTE pipeline →</span>
+                            <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
+                        </button>
+
+                        <!-- BUTTON 3: SPAIN LALIGA -->
+                        <button onclick="executeLeaguePipeline('Spain LaLiga', 'https://www.besoccer.com/competition/primera_division')" 
+                                class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
+                            <div class="flex items-center gap-3">
+                                <span class="text-base">🇪🇸</span>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-200 group-hover:text-emerald-400 transition-colors uppercase">Spain LaLiga</div>
+                                    <div class="text-[10px] text-slate-400 font-mono">LaLiga Standings & Matches</div>
+                                </div>
                             </div>
-                        </div>
+                            <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
+                        </button>
+
+                        <!-- BUTTON 4: OTHER EUROPEAN LEAGUES -->
+                        <button onclick="executeLeaguePipeline('Ligue 1, Bundesliga, Serie A', 'https://www.besoccer.com/competition/serie_a')" 
+                                class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
+                            <div class="flex items-center gap-3">
+                                <span class="text-base">🌍</span>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-200 group-hover:text-emerald-400 transition-colors uppercase">EU Combined Leagues</div>
+                                    <div class="text-[10px] text-slate-400 font-mono">Serie A, Ligue 1 & Bundesliga</div>
+                                </div>
+                            </div>
+                            <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
+                        </button>
+
                     </div>
                 </div>
             `;
-
-            document.querySelectorAll('.league-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const leagueName = card.getAttribute('data-league');
-                    const leagueUrl = card.getAttribute('data-url');
-                    const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
-
-                    executeScraperWorkflow({
-                        page: "sports",
-                        targetMatrix: "international_analytics",
-                        selectedLeague: leagueName,
-                        categories: ["international"],
-                        languages: selectedLangs,
-                        websites: [leagueUrl],
-                        query: `Fetch live fixtures, statistics, and headlines for ${leagueName}`,
-                        timestamp: new Date().toISOString()
-                    });
-                });
-            });
         }
+
+        // Attach click handler to window so inline onclick="" attributes can trigger it
+        window.executeLeaguePipeline = function(leagueName, targetUrl) {
+            const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+
+            executeScraperWorkflow({
+                page: "sports",
+                targetMatrix: "international_analytics",
+                selectedLeague: leagueName,
+                categories: ["international"],
+                languages: selectedLangs,
+                websites: [targetUrl],
+                query: `Fetch live fixtures, statistics, and headlines for ${leagueName}`,
+                timestamp: new Date().toISOString()
+            });
+        };
 
         // --- UNIVERSAL PAYLOAD NORMALIZER ---
         function normalizeN8nPayload(rawData) {
