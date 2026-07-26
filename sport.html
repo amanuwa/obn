@@ -515,42 +515,87 @@
         };
 
         // --- FIXED UNIVERSAL PAYLOAD NORMALIZER ---
+    // --- UPDATED UNIVERSAL PAYLOAD NORMALIZER ---
         function normalizeN8nPayload(rawData) {
-            let items = [];
+            let root = Array.isArray(rawData) ? rawData[0] : rawData;
+            
+            if (!root) return [];
 
-            if (Array.isArray(rawData)) {
-                items = rawData;
-            } else if (rawData && typeof rawData === 'object') {
-                if (rawData.json && Array.isArray(rawData.json)) {
-                    items = rawData.json;
-                } else if (rawData.body && Array.isArray(rawData.body)) {
-                    items = rawData.body;
-                } else if (rawData.data && Array.isArray(rawData.data)) {
-                    items = rawData.data;
-                } else if (rawData.items && Array.isArray(rawData.items)) {
-                    items = rawData.items;
-                } else if (rawData.output && Array.isArray(rawData.output)) {
-                    items = rawData.output;
-                } else if (rawData.results && Array.isArray(rawData.results)) {
-                    items = rawData.results;
-                } else {
-                    items = [rawData.json || rawData.body || rawData];
-                }
-            } else if (typeof rawData === 'string') {
-                try {
-                    const parsed = JSON.parse(rawData);
-                    return normalizeN8nPayload(parsed);
-                } catch (e) {
-                    console.warn("Raw payload string parse error", e);
-                }
+            // 1. Direct match array check inside workflow format
+            if (root.data && Array.isArray(root.data.matches)) {
+                return root.data.matches;
             }
 
-            // Map each item to clean un-nested properties
-            return items.map(item => {
-                if (item && item.json) item = item.json;
-                if (item && item.body) item = item.body;
-                return item;
-            });
+            // 2. Un-nest common n8n wrapper keys
+            let data = root.data || root.json || root.body || root.items || root.results || root;
+
+            if (Array.isArray(data)) return data;
+            if (data && Array.isArray(data.matches)) return data.matches;
+
+            // 3. Fallback single object wrap
+            return typeof data === 'object' ? [data] : [];
+        }
+
+        // --- UPDATED MATCH & SPORTS CARD RENDERER ---
+        function renderSportsOutput(items) {
+            const output = document.getElementById('outputContainer');
+            if (!output) return;
+
+            if (!Array.isArray(items) || items.length === 0) {
+                output.innerHTML = `<div class="p-4 text-amber-400 font-mono text-xs">// Workflow returned empty match data.</div>`;
+                return;
+            }
+
+            output.innerHTML = `
+                <div class="space-y-3 mt-2">
+                    <div class="flex justify-between items-center px-1 border-b border-slate-800 pb-2">
+                        <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-bold">// SCRAPED MATCH FIXTURES (${items.length})</span>
+                        <span class="text-[10px] font-mono text-slate-400">${items[0]?.matchDate || 'LIVE DATA'}</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        ${items.map(m => {
+                            const home = m.homeTeam || m.title || 'Home Team';
+                            const away = m.awayTeam || 'Away Team';
+                            const score = m.result || 'VS';
+                            const round = m.round || 'Fixture';
+                            const time = m.kickOffTime || '--:--';
+                            const matchUrl = m.matchUrl || '#';
+
+                            return `
+                                <div class="bg-slate-900/90 border border-emerald-800/50 hover:border-emerald-400 p-3.5 rounded-xl transition-all shadow-lg flex flex-col justify-between group">
+                                    
+                                    <!-- HEADER: ROUND & KICK OFF -->
+                                    <div class="flex justify-between items-center text-[10px] font-mono text-slate-400 mb-2 border-b border-slate-800/80 pb-1.5">
+                                        <span class="text-emerald-400 font-bold">${round.toUpperCase()}</span>
+                                        <span class="bg-slate-800 px-2 py-0.5 rounded text-slate-300">⏱ ${time}</span>
+                                    </div>
+
+                                    <!-- SCOREBOARD DISPLAY -->
+                                    <div class="flex items-center justify-between my-2 px-1">
+                                        <div class="w-2/5 text-right font-bold text-xs text-slate-100 truncate">${home}</div>
+                                        <div class="px-2.5 py-1 bg-emerald-950/80 border border-emerald-500/40 rounded-lg text-emerald-300 font-mono text-xs font-bold tracking-wider shadow-inner">
+                                            ${score}
+                                        </div>
+                                        <div class="w-2/5 text-left font-bold text-xs text-slate-100 truncate">${away}</div>
+                                    </div>
+
+                                    <!-- ACTION FOOTER -->
+                                    ${matchUrl !== '#' ? `
+                                        <div class="mt-2 pt-2 border-t border-slate-800/60 flex justify-end">
+                                            <button onclick="executeScraperWorkflow({ page: 'sports_detail', matchUrl: '${matchUrl}' })" 
+                                                    class="text-[10px] font-mono font-bold text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 hover:underline cursor-pointer">
+                                                TELEMETRY STATS ↗
+                                            </button>
+                                        </div>
+                                    ` : ''}
+
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
         }
 
         // --- HELPER: SEARCH KEYS DEEPLY IN OBJECT ---
