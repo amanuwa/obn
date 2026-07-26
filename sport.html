@@ -505,28 +505,106 @@
         };
 
         // --- UNIVERSAL PAYLOAD NORMALIZER ---
-        function normalizeN8nPayload(rawData) {
-            let data = rawData;
-            
-            if (Array.isArray(data) && data.length > 0) {
-                data = data[0];
-            }
+    function normalizeN8nPayload(rawData) {
+    let data = rawData;
 
-            if (data && typeof data === 'object') {
-                if (data.json) data = data.json;
-                if (data.body) data = data.body;
-            }
+    // Unwrap array wrappers from n8n
+    if (Array.isArray(data) && data.length > 0) {
+        data = data[0];
+    }
 
-            if (typeof data === 'string') {
-                try {
-                    data = JSON.parse(data);
-                } catch (e) {
-                    console.warn("Raw payload string parse error", e);
-                }
-            }
+    // Unwrap n8n standard webhook keys
+    if (data && typeof data === 'object') {
+        if (data.json) data = data.json;
+        if (data.body) data = data.body;
+        if (data.data) data = data.data;
+    }
 
-            return data;
+    // If the data is double-stringified JSON (common in n8n Respond nodes)
+    if (typeof data === 'string') {
+        try {
+            data = JSON.parse(data);
+        } catch (e) {
+            console.warn("Could not parse payload string:", e);
         }
+    }
+
+    // Secondary check if inside stringified nested news/matches key
+    if (data && typeof data.news === 'string') {
+        try { data.news = JSON.parse(data.news); } catch (e) {}
+    }
+    if (data && typeof data.matches === 'string') {
+        try { data.matches = JSON.parse(data.matches); } catch (e) {}
+    }
+
+    return data;
+}function normalizeN8nPayload(rawData) {
+    let data = rawData;
+
+    // Unwrap array wrappers from n8n
+    if (Array.isArray(data) && data.length > 0) {
+        data = data[0];
+    }
+
+    // Unwrap n8n standard webhook keys
+    if (data && typeof data === 'object') {
+        if (data.json) data = data.json;
+        if (data.body) data = data.body;
+        if (data.data) data = data.data;
+    }
+
+    // If the data is double-stringified JSON (common in n8n Respond nodes)
+    if (typeof data === 'string') {
+        try {
+            data = JSON.parse(data);
+        } catch (e) {
+            console.warn("Could not parse payload string:", e);
+        }
+    }
+
+    // Secondary check if inside stringified nested news/matches key
+    if (data && typeof data.news === 'string') {
+        try { data.news = JSON.parse(data.news); } catch (e) {}
+    }
+    if (data && typeof data.matches === 'string') {
+        try { data.matches = JSON.parse(data.matches); } catch (e) {}
+    }
+
+    return data;
+}function normalizeN8nPayload(rawData) {
+    let data = rawData;
+
+    // Unwrap array wrappers from n8n
+    if (Array.isArray(data) && data.length > 0) {
+        data = data[0];
+    }
+
+    // Unwrap n8n standard webhook keys
+    if (data && typeof data === 'object') {
+        if (data.json) data = data.json;
+        if (data.body) data = data.body;
+        if (data.data) data = data.data;
+    }
+
+    // If the data is double-stringified JSON (common in n8n Respond nodes)
+    if (typeof data === 'string') {
+        try {
+            data = JSON.parse(data);
+        } catch (e) {
+            console.warn("Could not parse payload string:", e);
+        }
+    }
+
+    // Secondary check if inside stringified nested news/matches key
+    if (data && typeof data.news === 'string') {
+        try { data.news = JSON.parse(data.news); } catch (e) {}
+    }
+    if (data && typeof data.matches === 'string') {
+        try { data.matches = JSON.parse(data.matches); } catch (e) {}
+    }
+
+    return data;
+}
 
         // --- HELPER: SEARCH KEYS DEEPLY IN OBJECT ---
         function getVal(obj, keys, defaultVal = '') {
@@ -632,9 +710,78 @@
         }
 
         function renderSportsOutput(data) {
-            const output = document.getElementById('outputContainer');
-            output.innerHTML = `<pre class="text-xs text-emerald-300 font-mono overflow-auto">${JSON.stringify(data, null, 2)}</pre>`;
-        }
+    const output = document.getElementById('outputContainer');
+    if (!output) return;
+
+    // Extract match or news array regardless of key structure
+    const matches = data.matches || data.data?.matches || (Array.isArray(data) ? data : null);
+    const news = data.news || data.data?.news || null;
+
+    let htmlContent = '';
+
+    // 1. RENDER MATCH CARDS IF MATCHES EXIST
+    if (matches && Array.isArray(matches) && matches.length > 0) {
+        htmlContent += `
+            <div class="space-y-3 mb-6">
+                <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">// SCRAPED MATCH INTELLIGENCE (${matches.length} FIXTURES)</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    ${matches.map(m => `
+                        <div class="p-3.5 bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 rounded-xl transition-all shadow-md">
+                            <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-2 border-b border-slate-800/80 pb-1.5">
+                                <span class="text-emerald-400 font-semibold">${m.round || 'MATCH DAY'}</span>
+                                <span>${m.matchDate || ''} ${m.kickOffTime || ''}</span>
+                            </div>
+                            <div class="flex items-center justify-between my-2">
+                                <div class="text-xs font-bold text-slate-100">${m.homeTeam || 'Home Team'}</div>
+                                <div class="px-2 py-0.5 bg-emerald-950/80 text-emerald-400 font-mono font-bold text-xs rounded border border-emerald-800/50">
+                                    ${m.result || 'vs'}
+                                </div>
+                                <div class="text-xs font-bold text-slate-100 text-right">${m.awayTeam || 'Away Team'}</div>
+                            </div>
+                            ${m.matchUrl ? `
+                                <div class="mt-2 pt-1.5 border-t border-slate-800/50 text-right">
+                                    <button onclick="executeScraperWorkflow({page: 'sports_detail', matchUrl: '${m.matchUrl}'})" 
+                                            class="text-[10px] font-mono text-emerald-400 hover:underline inline-flex items-center gap-1">
+                                        VIEW TELEMETRY →
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // 2. RENDER NEWS CARDS IF NEWS EXISTS
+    if (news && Array.isArray(news) && news.length > 0) {
+        htmlContent += `
+            <div class="space-y-3 mb-6">
+                <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">// HEADLINE INTELLIGENCE (${news.length} ARTICLES)</div>
+                <div class="space-y-2">
+                    ${news.map(item => `
+                        <div class="p-3 bg-slate-900/80 border border-slate-800 rounded-lg">
+                            <div class="text-xs font-bold text-slate-200 mb-1">${item.title || item.headline || 'Headline'}</div>
+                            <div class="text-[11px] text-slate-400 leading-relaxed">${item.snippet || item.summary || ''}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // 3. FALLBACK / RAW JSON INSPECTOR
+    htmlContent += `
+        <details class="mt-4 pt-3 border-t border-slate-800/80">
+            <summary class="text-[10px] font-mono text-slate-500 cursor-pointer hover:text-slate-300 transition-colors">
+                🔍 [TOGGLE RAW JSON PAYLOAD]
+            </summary>
+            <pre class="mt-2 p-3 bg-slate-950 text-[11px] text-emerald-300 font-mono rounded-lg overflow-x-auto max-h-96 border border-slate-800">${JSON.stringify(data, null, 2)}</pre>
+        </details>
+    `;
+
+    output.innerHTML = htmlContent;
+}
     </script>
 </body>
 </html>
