@@ -149,7 +149,7 @@
                     </label>
                 </div>
 
-                <div class="flex-1 bg-slate-950/70 rounded-lg border border-slate-850 p-4 mb-4 overflow-y-auto">
+                <div class="flex-1 bg-slate-950/70 rounded-lg border border-slate-800 p-4 mb-4 overflow-y-auto">
                     <h3 class="text-[10px] font-medium text-slate-400 uppercase mb-2">Active Sources</h3>
                     <div id="activeSourceList" class="space-y-2 font-mono text-[11px] text-slate-500 italic">// Waiting for pipeline...</div>
                 </div>
@@ -419,7 +419,7 @@
             });
         }
 
-      function renderInternationalLeaguesMatrix() {
+        function renderInternationalLeaguesMatrix() {
             const output = document.getElementById('outputContainer');
             output.innerHTML = `
                 <div class="mt-2 font-sans space-y-4">
@@ -584,6 +584,11 @@
                 const cleanData = normalizeN8nPayload(rawData);
                 console.log("⚡ Normalized Payload:", cleanData);
 
+                if (loader) {
+                    loader.classList.remove('flex');
+                    loader.classList.add('hidden');
+                }
+
                 // IF REQUEST WAS MATCH DETAILS (SECOND WEBHOOK)
                 if (payload.page === "sports_detail") {
                     renderMatchTelemetryDetails(cleanData);
@@ -591,96 +596,95 @@
                 }
 
                 // IF REQUEST WAS LISTING (FIRST WEBHOOK)
-                if (cleanData && Array.isArray(cleanData.matches)) {
-                    renderMatchOverviewCards(cleanData.matches);
-                } else if (cleanData && Array.isArray(cleanData)) {
-                    renderMatchOverviewCards(cleanData);
-                } else if (cleanData && cleanData.data && Array.isArray(cleanData.data.matches)) {
-                    renderMatchOverviewCards(cleanData.data.matches);
-                } else {
-                    renderFixtures(cleanData, false);
-                }
+                renderSportsPayloadMatrix(cleanData);
 
             } catch (err) {
-                console.error("Pipeline Error:", err);
-                renderFixtures(err.message, true);
-            } finally {
+                console.error("❌ Pipeline Exception:", err);
                 if (loader) {
-                    loader.classList.add('hidden');
                     loader.classList.remove('flex');
+                    loader.classList.add('hidden');
                 }
+                const output = document.getElementById('outputContainer');
+                output.innerHTML = `<div class="p-3 bg-rose-950/60 border border-rose-800 rounded text-rose-300 font-mono text-xs">
+                    [PIPELINE_ERROR]: Failed to connect to Gateway Webhook. Check console or n8n status.
+                </div>`;
             }
         }
 
-        // --- FIRST WEBHOOK: RENDER MATCH OVERVIEW CARDS ---
-        window.renderMatchOverviewCards = function(matches) {
-            const container = document.getElementById('outputContainer');
-            window.fullMatchList = matches;
+        // --- DISPLAY MATRIX LISTINGS ---
+        function renderSportsPayloadMatrix(payloadData) {
+            const output = document.getElementById('outputContainer');
+            let items = [];
 
-            if (!matches || !Array.isArray(matches) || matches.length === 0) {
-                container.innerHTML = `<div class="p-4 text-slate-400 font-mono text-xs">// NO MATCHES FOUND IN RESPONSE PAYLOAD.</div>`;
+            if (Array.isArray(payloadData)) {
+                items = payloadData;
+            } else if (payloadData && typeof payloadData === 'object') {
+                items = payloadData.matches || payloadData.results || payloadData.articles || payloadData.data || [payloadData];
+            }
+
+            if (!items || items.length === 0) {
+                output.innerHTML = `<p class="text-amber-400 font-mono">// No sports telemetry data returned for this query.</p>`;
                 return;
             }
 
-            const cardsHtml = matches.map((match) => {
-                const home = getVal(match, ['homeTeam', 'home', 'teamA', 'home_team'], 'Home Team');
-                const away = getVal(match, ['awayTeam', 'away', 'teamB', 'away_team'], 'Away Team');
-                const score = getVal(match, ['score', 'result', 'matchScore', 'status'], 'VS');
-                const date = getVal(match, ['matchDate', 'date', 'time', 'kickOffTime'], 'TODAY');
-                const round = getVal(match, ['round', 'league', 'competition'], 'MATCH');
-                const matchUrl = match.matchUrl || match.url || match.link || '';
+            let html = `<div class="space-y-3 font-sans">
+                <div class="text-[10px] font-mono text-emerald-400 uppercase font-bold tracking-wider">// INGESTED TELEMETRY STREAM (${items.length} RECORDS)</div>
+                <div class="grid grid-cols-1 gap-2.5">`;
 
-                return `
-                    <div class="match-card p-4 bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400 rounded-xl cursor-pointer hover:scale-[1.01] transition-all shadow-lg flex flex-col justify-between group"
-                         onclick="fetchMatchDetails('${matchUrl}')">
+            items.forEach((item, index) => {
+                const title = getVal(item, ['title', 'match', 'name', 'headline'], `Telemetry Entry #${index + 1}`);
+                const homeTeam = getVal(item, ['homeTeam', 'home_team', 'home'], '');
+                const awayTeam = getVal(item, ['awayTeam', 'away_team', 'away'], '');
+                const score = getVal(item, ['score', 'result', 'status'], '');
+                const matchUrl = getVal(item, ['url', 'link', 'matchUrl', 'match_url'], '');
+
+                const label = (homeTeam && awayTeam) ? `${homeTeam} vs ${awayTeam}` : title;
+
+                html += `
+                    <div class="p-3 bg-slate-900/80 border border-slate-800 hover:border-emerald-500/50 rounded-lg flex items-center justify-between transition-all">
                         <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wide">
-                                    ⚽ ${round} • ${date}
-                                </span>
-                                <span class="text-[10px] bg-slate-950 text-slate-400 border border-slate-800 px-2 py-0.5 rounded font-mono group-hover:border-emerald-500/50 transition-colors">DETAILS →</span>
-                            </div>
-                            <div class="flex justify-between items-center py-2">
-                                <span class="text-xs font-bold text-slate-200">${home}</span>
-                                <span class="text-xs font-mono font-bold text-emerald-400 px-2 bg-emerald-950/60 rounded border border-emerald-500/30">${score}</span>
-                                <span class="text-xs font-bold text-slate-200">${away}</span>
-                            </div>
+                            <div class="text-xs font-semibold text-slate-100">${label}</div>
+                            ${score ? `<div class="text-[11px] font-mono text-emerald-400 mt-0.5">${score}</div>` : ''}
                         </div>
+                        ${matchUrl ? `
+                            <button onclick="fetchMatchTelemetryDetails('${matchUrl}')" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500/50 text-emerald-300 hover:text-white px-3 py-1.5 rounded font-mono text-[10px] uppercase transition-all cursor-pointer">
+                                Inspect →
+                            </button>
+                        ` : ''}
                     </div>
                 `;
-            }).join('');
+            });
 
-            container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans">${cardsHtml}</div>`;
-        };
+            html += `</div></div>`;
+            output.innerHTML = html;
+        }
 
-        window.fetchMatchDetails = function(matchUrl) {
+        // --- FETCH MATCH DETAILS HANDLER ---
+        window.fetchMatchTelemetryDetails = function(url) {
             executeScraperWorkflow({
                 page: "sports_detail",
-                matchUrl: matchUrl,
+                targetMatrix: "match_telemetry",
+                matchUrl: url,
                 timestamp: new Date().toISOString()
             });
         };
 
-        function renderMatchTelemetryDetails(details) {
-            const container = document.getElementById('outputContainer');
-            container.innerHTML = `
-                <div class="p-4 bg-slate-900/90 border border-emerald-500/60 rounded-xl space-y-4 font-sans">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// DETAILED MATCH TELEMETRY</h3>
-                        <button onclick="renderMatchOverviewCards(window.fullMatchList)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1 rounded font-mono cursor-pointer">← BACK TO LIST</button>
+        // --- DISPLAY MATCH TELEMETRY DETAILS ---
+        function renderMatchTelemetryDetails(detailData) {
+            const output = document.getElementById('outputContainer');
+            const summary = getVal(detailData, ['summary', 'text', 'analysis', 'details'], JSON.stringify(detailData, null, 2));
+
+            output.innerHTML = `
+                <div class="font-sans space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">// DEEP MATCH TELEMETRY REPORT</span>
+                        <button onclick="renderInternationalLeaguesMatrix()" class="text-[10px] font-mono text-slate-400 hover:text-slate-200 underline cursor-pointer">← Back to Leagues</button>
                     </div>
-                    <pre class="bg-slate-950 p-4 rounded-lg font-mono text-emerald-400 text-[11px] overflow-x-auto">${JSON.stringify(details, null, 2)}</pre>
+                    <div class="p-4 bg-slate-900/90 border border-slate-800 rounded-xl font-mono text-xs text-slate-300 leading-relaxed overflow-x-auto whitespace-pre-wrap">
+                        ${summary}
+                    </div>
                 </div>
             `;
-        }
-
-        function renderFixtures(data, isError = false) {
-            const container = document.getElementById('outputContainer');
-            if (isError) {
-                container.innerHTML = `<div class="p-4 bg-rose-950/40 border border-rose-500/50 rounded-lg text-rose-400 font-mono text-xs">// PIPELINE EXECUTION ERROR: ${data}</div>`;
-            } else {
-                container.innerHTML = `<pre class="bg-slate-950 p-4 rounded-lg font-mono text-emerald-400 text-[11px] overflow-x-auto">${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}</pre>`;
-            }
         }
     </script>
 </body>
