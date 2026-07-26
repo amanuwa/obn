@@ -189,7 +189,7 @@
         </main>
     </div>
 
-  <script type="module">
+<script type="module">
         import { N8N_GATEWAY_WEBHOOK } from './config.js';
 
         window.fullMatchList = [];
@@ -361,31 +361,38 @@
             const appFrame = document.getElementById('mainAppFrame');
 
             setTimeout(() => {
-                stage.classList.add('dashboard-active');
-                appFrame.classList.add('visible');
+                if (stage) stage.classList.add('dashboard-active');
+                if (appFrame) appFrame.classList.add('visible');
             }, 3500);
 
             document.querySelectorAll('.cat-check').forEach(cb => {
                 cb.addEventListener('change', (e) => handleCategoryTrigger(e.target));
             });
 
-            document.getElementById('selectAllCatBtn').addEventListener('click', () => toggleAll('.cat-check', true));
-            document.getElementById('selectAllLangBtn').addEventListener('click', () => toggleAll('.lang-check', true));
+            const selectAllCat = document.getElementById('selectAllCatBtn');
+            if (selectAllCat) selectAllCat.addEventListener('click', () => toggleAll('.cat-check', true));
 
-            document.getElementById('hotNewsBtn').addEventListener('click', () => {
-                const topic = document.getElementById('hotNewsInput').value;
-                if (!topic) return;
-                const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
-                executeScraperWorkflow({
-                    page: "sports",
-                    targetMatrix: "hot_news",
-                    query: topic,
-                    languages: selectedLangs,
-                    timestamp: new Date().toISOString()
+            const selectAllLang = document.getElementById('selectAllLangBtn');
+            if (selectAllLang) selectAllLang.addEventListener('click', () => toggleAll('.lang-check', true));
+
+            const hotNewsBtn = document.getElementById('hotNewsBtn');
+            if (hotNewsBtn) {
+                hotNewsBtn.addEventListener('click', () => {
+                    const topic = document.getElementById('hotNewsInput').value;
+                    if (!topic) return;
+                    const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+                    executeScraperWorkflow({
+                        page: "sports",
+                        targetMatrix: "hot_news",
+                        query: topic,
+                        languages: selectedLangs,
+                        timestamp: new Date().toISOString()
+                    });
                 });
-            });
+            }
 
-            document.getElementById('downloadBtn').addEventListener('click', () => window.print());
+            const downloadBtn = document.getElementById('downloadBtn');
+            if (downloadBtn) downloadBtn.addEventListener('click', () => window.print());
         });
 
         function toggleAll(selector, isChecked) { 
@@ -400,9 +407,11 @@
             const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
             const sourceList = document.getElementById('activeSourceList');
 
-            sourceList.innerHTML = mainCats.map(item => 
-                `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
-            ).join('');
+            if (sourceList) {
+                sourceList.innerHTML = mainCats.map(item => 
+                    `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
+                ).join('');
+            }
 
             if (checkboxEl.value === 'international') {
                 renderInternationalLeaguesMatrix();
@@ -421,6 +430,7 @@
 
         function renderInternationalLeaguesMatrix() {
             const output = document.getElementById('outputContainer');
+            if (!output) return;
             output.innerHTML = `
                 <div class="mt-2 font-sans space-y-4">
                     <div class="border-b border-slate-800 pb-2">
@@ -504,28 +514,43 @@
             });
         };
 
-        // --- UNIVERSAL PAYLOAD NORMALIZER ---
+        // --- FIXED UNIVERSAL PAYLOAD NORMALIZER ---
         function normalizeN8nPayload(rawData) {
-            let data = rawData;
-            
-            if (Array.isArray(data) && data.length > 0) {
-                data = data[0];
-            }
+            let items = [];
 
-            if (data && typeof data === 'object') {
-                if (data.json) data = data.json;
-                if (data.body) data = data.body;
-            }
-
-            if (typeof data === 'string') {
+            if (Array.isArray(rawData)) {
+                items = rawData;
+            } else if (rawData && typeof rawData === 'object') {
+                if (rawData.json && Array.isArray(rawData.json)) {
+                    items = rawData.json;
+                } else if (rawData.body && Array.isArray(rawData.body)) {
+                    items = rawData.body;
+                } else if (rawData.data && Array.isArray(rawData.data)) {
+                    items = rawData.data;
+                } else if (rawData.items && Array.isArray(rawData.items)) {
+                    items = rawData.items;
+                } else if (rawData.output && Array.isArray(rawData.output)) {
+                    items = rawData.output;
+                } else if (rawData.results && Array.isArray(rawData.results)) {
+                    items = rawData.results;
+                } else {
+                    items = [rawData.json || rawData.body || rawData];
+                }
+            } else if (typeof rawData === 'string') {
                 try {
-                    data = JSON.parse(data);
+                    const parsed = JSON.parse(rawData);
+                    return normalizeN8nPayload(parsed);
                 } catch (e) {
                     console.warn("Raw payload string parse error", e);
                 }
             }
 
-            return data;
+            // Map each item to clean un-nested properties
+            return items.map(item => {
+                if (item && item.json) item = item.json;
+                if (item && item.body) item = item.body;
+                return item;
+            });
         }
 
         // --- HELPER: SEARCH KEYS DEEPLY IN OBJECT ---
@@ -556,8 +581,8 @@
             const loaderSubtext = document.getElementById('loaderSubtext');
 
             if (loader) {
-                loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
-                loaderSubtext.innerText = payload.matchUrl 
+                if (loaderTitle) loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
+                if (loaderSubtext) loaderSubtext.innerText = payload.matchUrl 
                     ? `Fetching live match stats for selected fixture...` 
                     : `Fetching telemetry for: ${payload.selectedLeague || payload.query || 'request'}...`;
                 loader.classList.remove('hidden');
@@ -580,7 +605,7 @@
                 console.log("📥 Raw Webhook Response:", rawData);
 
                 const cleanData = normalizeN8nPayload(rawData);
-                console.log("⚡ Normalized Payload:", cleanData);
+                console.log("⚡ Normalized Payload Array:", cleanData);
 
                 if (loader) {
                     loader.classList.remove('flex');
@@ -601,19 +626,59 @@
                     loader.classList.add('hidden');
                 }
                 const output = document.getElementById('outputContainer');
-                output.innerHTML = `<div class="p-3 text-rose-500 font-mono">❌ Execution Error: ${err.message}</div>`;
+                if (output) {
+                    output.innerHTML = `<div class="p-3 text-rose-500 font-mono">❌ Execution Error: ${err.message}</div>`;
+                }
             }
         }
 
-        function renderMatchTelemetryDetails(data) {
+        function renderMatchTelemetryDetails(dataArray) {
             const output = document.getElementById('outputContainer');
-            output.innerHTML = `<pre class="text-xs text-emerald-300 font-mono overflow-auto">${JSON.stringify(data, null, 2)}</pre>`;
+            if (!output) return;
+            output.innerHTML = `<pre class="text-xs text-emerald-300 font-mono overflow-auto p-4 bg-slate-950 rounded-xl border border-emerald-800/50">${JSON.stringify(dataArray, null, 2)}</pre>`;
         }
 
-        function renderSportsOutput(data) {
+        // --- RENDER SPORTS CARDS PIPELINE ---
+        function renderSportsOutput(items) {
             const output = document.getElementById('outputContainer');
-            output.innerHTML = `<pre class="text-xs text-emerald-300 font-mono overflow-auto">${JSON.stringify(data, null, 2)}</pre>`;
+            if (!output) return;
+
+            if (!Array.isArray(items) || items.length === 0) {
+                output.innerHTML = `<div class="p-4 text-amber-400 font-mono text-xs">// Pipeline returned no records. Check n8n workflow logs.</div>`;
+                return;
+            }
+
+            output.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    ${items.map(item => {
+                        const title = getVal(item, ['title', 'headline', 'name', 'match_name'], 'Sports Telemetry Feed');
+                        const snippet = getVal(item, ['snippet', 'description', 'summary', 'details', 'text'], 'No detailed metrics recorded.');
+                        const link = getVal(item, ['url', 'link', 'source_url', 'href'], '#');
+                        const source = getVal(item, ['source', 'publisher', 'league'], 'LIVE FEED');
+                        const time = getVal(item, ['timestamp', 'date', 'publishedAt'], new Date().toLocaleTimeString());
+
+                        return `
+                            <div class="p-4 bg-slate-900/90 border border-emerald-800/60 rounded-xl hover:border-emerald-400 transition-all shadow-lg flex flex-col justify-between">
+                                <div>
+                                    <div class="flex justify-between items-center text-[10px] font-mono text-emerald-400 mb-2 border-b border-emerald-900/50 pb-1">
+                                        <span class="uppercase font-bold tracking-wider">[ ${source} ]</span>
+                                        <span class="text-slate-400">${time}</span>
+                                    </div>
+                                    <h3 class="text-xs font-bold text-slate-100 uppercase tracking-wide mb-2">${title}</h3>
+                                    <p class="text-xs text-slate-300 font-mono line-clamp-3 leading-relaxed">${snippet}</p>
+                                </div>
+                                ${link !== '#' ? `
+                                    <div class="mt-4 pt-2 border-t border-slate-800 flex justify-end">
+                                        <a href="${link}" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono font-bold text-emerald-400 hover:underline flex items-center gap-1">
+                                            VIEW SOURCE ↗
+                                        </a>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
         }
-    </script>
-</body>
+    </script></body>
 </html>
