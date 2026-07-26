@@ -178,7 +178,7 @@
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
                         </div>
-                        <button id="downloadBtn" class="bg-blue-600 border border-blue-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download</button>
+                        <button id="downloadBtn" class="bg-blue-600 border border-blue-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download PDF</button>
                     </div>
                 </div>
 
@@ -371,6 +371,21 @@
 
             document.getElementById('selectAllCatBtn').addEventListener('click', () => toggleAll('.cat-check', true));
             document.getElementById('selectAllLangBtn').addEventListener('click', () => toggleAll('.lang-check', true));
+
+            document.getElementById('hotNewsBtn').addEventListener('click', () => {
+                const topic = document.getElementById('hotNewsInput').value;
+                if (!topic) return;
+                const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+                executeScraperWorkflow({
+                    page: "sports",
+                    targetMatrix: "hot_news",
+                    query: topic,
+                    languages: selectedLangs,
+                    timestamp: new Date().toISOString()
+                });
+            });
+
+            document.getElementById('downloadBtn').addEventListener('click', () => window.print());
         });
 
         function toggleAll(selector, isChecked) { 
@@ -500,7 +515,7 @@
                 if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
             }
             
-            // Check inside nested common wrappers (data, match, details, summary)
+            // Check inside nested common wrappers
             const subProps = ['data', 'match', 'details', 'telemetry', 'result', 'summary'];
             for (let prop of subProps) {
                 if (obj[prop] && typeof obj[prop] === 'object') {
@@ -601,161 +616,49 @@
                                 <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wide">
                                     ⚽ ${round} • ${date}
                                 </span>
-                                <span class="text-xs font-mono bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/50 font-bold">
-                                    ${score}
-                                </span>
+                                <span class="text-[10px] bg-slate-950 text-slate-400 border border-slate-800 px-2 py-0.5 rounded font-mono group-hover:border-emerald-500/50 transition-colors">DETAILS →</span>
                             </div>
-                            
-                            <div class="my-2">
-                                <h2 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
-                                    ${home} <span class="text-emerald-400 font-mono px-1">vs</span> ${away}
-                                </h2>
+                            <div class="flex justify-between items-center py-2">
+                                <span class="text-xs font-bold text-slate-200">${home}</span>
+                                <span class="text-xs font-mono font-bold text-emerald-400 px-2 bg-emerald-950/60 rounded border border-emerald-500/30">${score}</span>
+                                <span class="text-xs font-bold text-slate-200">${away}</span>
                             </div>
-                        </div>
-
-                        <div class="mt-3 pt-2 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-emerald-400 font-mono font-bold">
-                            <span>FETCH LIVE TELEMETRY</span>
-                            <span class="group-hover:translate-x-1 transition-transform">→</span>
                         </div>
                     </div>
                 `;
             }).join('');
 
-            container.innerHTML = `
-                <div class="space-y-4 font-sans">
-                    <div class="border-b border-slate-800 pb-2 flex justify-between items-center font-mono">
-                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// ${matches.length} MATCHES RETRIEVED FROM N8N</h3>
-                        <span class="text-[10px] text-slate-500">CLICK ANY CARD TO SCRAPE DETAILED TELEMETRY</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        ${cardsHtml}
-                    </div>
-                </div>
-            `;
-        }
+            container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans">${cardsHtml}</div>`;
+        };
 
         window.fetchMatchDetails = function(matchUrl) {
             executeScraperWorkflow({
                 page: "sports_detail",
-                targetMatrix: "match_telemetry",
                 matchUrl: matchUrl,
-                query: "Fetch deep match stats, lineups, and goals",
                 timestamp: new Date().toISOString()
             });
-        }
+        };
 
-        // --- SECOND WEBHOOK: RENDER DETAILED MATCH TELEMETRY ---
-        window.renderMatchTelemetryDetails = function(payload) {
-            const output = document.getElementById('outputContainer');
-
-            // Extract main fields regardless of how n8n formats the second webhook payload
-            const homeTeam = getVal(payload, ['homeTeam', 'home', 'teamA', 'home_team'], 'Home Team');
-            const awayTeam = getVal(payload, ['awayTeam', 'away', 'teamB', 'away_team'], 'Away Team');
-            const score = getVal(payload, ['score', 'result', 'matchScore', 'status', 'ftScore'], 'FT');
-            const matchDate = getVal(payload, ['matchDate', 'date', 'time', 'kickOffTime'], 'LIVE TELEMETRY');
-            const stadium = getVal(payload, ['stadium', 'venue', 'location'], '');
-            const referee = getVal(payload, ['referee', 'ref'], '');
-            
-            // Check for stats or extra nested telemetry arrays
-            const stats = getVal(payload, ['stats', 'statistics', 'matchStats', 'telemetryData'], null);
-            const goals = getVal(payload, ['goals', 'events', 'timeline', 'scorers'], null);
-
-            let statsHtml = '';
-            if (stats && Array.isArray(stats)) {
-                statsHtml = `
-                    <div class="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-4 my-3">
-                        <h4 class="text-xs font-bold font-mono text-emerald-400 uppercase mb-3">// MATCH STATISTICS MATRIX</h4>
-                        <div class="space-y-2">
-                            ${stats.map(s => `
-                                <div class="flex justify-between items-center text-xs border-b border-slate-800 pb-1.5">
-                                    <span class="text-emerald-300 font-mono font-bold">${s.home || s.homeValue || '0'}</span>
-                                    <span class="text-slate-400 font-mono text-[11px] uppercase">${s.name || s.label || s.title || 'Stat'}</span>
-                                    <span class="text-emerald-300 font-mono font-bold">${s.away || s.awayValue || '0'}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            } else if (stats && typeof stats === 'object') {
-                statsHtml = `
-                    <div class="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-4 my-3">
-                        <h4 class="text-xs font-bold font-mono text-emerald-400 uppercase mb-3">// TELEMETRY METRICS</h4>
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            ${Object.entries(stats).map(([key, val]) => `
-                                <div class="p-2 bg-slate-950 rounded border border-slate-800">
-                                    <span class="text-slate-500 font-mono block text-[10px] uppercase">${key}</span>
-                                    <span class="text-emerald-300 font-mono font-bold">${typeof val === 'object' ? JSON.stringify(val) : val}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-
-            output.innerHTML = `
-                <div class="space-y-4 font-sans">
-                    <!-- HEADER BACK BUTTON -->
+        function renderMatchTelemetryDetails(details) {
+            const container = document.getElementById('outputContainer');
+            container.innerHTML = `
+                <div class="p-4 bg-slate-900/90 border border-emerald-500/60 rounded-xl space-y-4 font-sans">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <button id="navBackBtn" onclick="renderMatchOverviewCards(window.fullMatchList)" 
-                                class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-300 hover:text-white px-4 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 cursor-pointer transition-all shadow-lg hover:scale-105">
-                            <span>←</span> BACK TO MATCHES
-                        </button>
-                        <span class="text-[10px] bg-slate-900 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded font-mono">// TELEMETRY SCRAPED</span>
+                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">// DETAILED MATCH TELEMETRY</h3>
+                        <button onclick="renderMatchOverviewCards(window.fullMatchList)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1 rounded font-mono cursor-pointer">← BACK TO LIST</button>
                     </div>
-
-                    <!-- SCOREBOARD HEADER PANEL -->
-                    <div class="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-6 text-center shadow-lg relative overflow-hidden">
-                        <div class="text-[10px] font-mono text-emerald-400 tracking-widest uppercase mb-1">${matchDate}</div>
-                        <div class="flex items-center justify-between max-w-xl mx-auto my-2">
-                            <h2 class="text-base md:text-xl font-bold text-white flex-1 text-right truncate">${homeTeam}</h2>
-                            <div class="px-5 py-2 bg-emerald-950 border border-emerald-500 text-emerald-300 font-mono font-extrabold text-lg rounded-xl mx-4 shrink-0 shadow-md">
-                                ${score}
-                            </div>
-                            <h2 class="text-base md:text-xl font-bold text-white flex-1 text-left truncate">${awayTeam}</h2>
-                        </div>
-                        ${stadium || referee ? `
-                            <div class="mt-3 text-[11px] text-slate-400 font-mono flex justify-center gap-4 border-t border-slate-800/80 pt-2">
-                                ${stadium ? `<span>🏟️ ${stadium}</span>` : ''}
-                                ${referee ? `<span>🏁 Ref: ${referee}</span>` : ''}
-                            </div>
-                        ` : ''}
-                    </div>
-
-                    <!-- PARSED STATS / EVENTS MATRIX -->
-                    ${statsHtml}
-
-                    <!-- RAW JSON EXPANDER -->
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-md text-xs font-mono text-slate-300">
-                        <div class="flex justify-between items-center mb-2">
-                            <p class="text-emerald-400 font-bold">// RAW WEBHOOK 2 TELEMETRY PAYLOAD</p>
-                            <span class="text-[10px] text-slate-500">n8n Gateway Response</span>
-                        </div>
-                        <pre class="bg-slate-950 p-3 rounded text-[11px] overflow-x-auto text-emerald-300/80 max-h-64 scrollbar-thin">${JSON.stringify(payload, null, 2)}</pre>
-                    </div>
+                    <pre class="bg-slate-950 p-4 rounded-lg font-mono text-emerald-400 text-[11px] overflow-x-auto">${JSON.stringify(details, null, 2)}</pre>
                 </div>
             `;
         }
 
-        function renderFixtures(payload, isError = false) {
-            const output = document.getElementById('outputContainer');
-
+        function renderFixtures(data, isError = false) {
+            const container = document.getElementById('outputContainer');
             if (isError) {
-                output.innerHTML = `
-                    <div class="p-4 bg-rose-950/40 border border-rose-500/50 rounded-xl text-rose-300 font-mono text-xs">
-                        <p class="font-bold">// PIPELINE CONNECTION ERROR</p>
-                        <p class="mt-1 text-[11px] text-rose-400">${payload}</p>
-                    </div>
-                `;
-                return;
+                container.innerHTML = `<div class="p-4 bg-rose-950/40 border border-rose-500/50 rounded-lg text-rose-400 font-mono text-xs">// PIPELINE EXECUTION ERROR: ${data}</div>`;
+            } else {
+                container.innerHTML = `<pre class="bg-slate-950 p-4 rounded-lg font-mono text-emerald-400 text-[11px] overflow-x-auto">${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}</pre>`;
             }
-
-            output.innerHTML = `
-                <div class="p-4 bg-slate-900/80 border border-emerald-500/30 rounded-xl text-emerald-300 font-mono text-xs">
-                    <p class="font-bold">// PIPELINE DATA RECEIVED</p>
-                    <pre class="mt-2 text-[11px] text-slate-300 overflow-x-auto">${JSON.stringify(payload, null, 2)}</pre>
-                </div>
-            `;
         }
     </script>
 </body>
