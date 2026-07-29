@@ -102,6 +102,25 @@
             color: #60a5fa;
         }
 
+        /* Single Central Analysis Button */
+        .analysis-btn {
+            background-color: #042f2e;
+            border: 2px solid #0d9488;
+            color: #2dd4bf;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+        }
+        .analysis-btn:hover:not(:disabled) {
+            border-color: #5eead4;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(45, 212, 191, 0.3);
+        }
+
         .lang-checkbox-btn {
             background-color: #030712;
             border: 1.5px solid #1e293b;
@@ -203,37 +222,6 @@
             border-color: #06b6d4;
             background: rgba(15, 23, 42, 0.7);
             box-shadow: 0 4px 12px rgba(6, 182, 212, 0.05);
-        }
-        .result-image-wrapper {
-            width: 110px;
-            height: 75px;
-            flex-shrink: 0;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #334155;
-            background-color: #02050c;
-        }
-        .result-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-        .result-card:hover .result-image {
-            transform: scale(1.05);
-        }
-        .result-text-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            min-width: 0;
-        }
-        .badge-meta {
-            font-size: 9px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
         @keyframes terminalPulse {
@@ -358,11 +346,16 @@
                         <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">Central Stream Monitor</span>
                     </div>
 
-                    <div class="flex items-center gap-3 justify-center flex-1 mx-4" id="languageContainer">
+                    <!-- CONTROL PANEL WITH SINGLE ANALYSIS BUTTON -->
+                    <div class="flex items-center gap-2 justify-center flex-1 mx-4" id="languageContainer">
                         <button onclick="toggleSelectAllEnsembles()" id="btn-select-all" class="ensemble-btn uppercase">Select All Ensembles</button>
-                        <button onclick="toggleLangCheckbox('OROMIFFA')" id="lang-OROMIFFA" class="lang-checkbox-btn"><span class="custom-box"></span> OROMIFFA</button>
-                        <button onclick="toggleLangCheckbox('AMHARIC')" id="lang-AMHARIC" class="lang-checkbox-btn"><span class="custom-box"></span> AMHARIC</button>
-                        <button onclick="toggleLangCheckbox('ENGLISH')" id="lang-ENGLISH" class="lang-checkbox-btn"><span class="custom-box"></span> ENGLISH</button>
+                        
+                        <!-- SINGLE DO ANALYSIS BUTTON FOR ALL CARDS -->
+                        <button onclick="runBatchAnalysis()" id="btn-do-analysis" class="analysis-btn uppercase">✨ DO ANALYSIS</button>
+
+                        <button onclick="toggleLangCheckbox('OROMIFFA')" id="lang-OROMIFFA" class="lang-checkbox-btn active"><span class="custom-box"></span> OROMIFFA</button>
+                        <button onclick="toggleLangCheckbox('AMHARIC')" id="lang-AMHARIC" class="lang-checkbox-btn active"><span class="custom-box"></span> AMHARIC</button>
+                        <button onclick="toggleLangCheckbox('ENGLISH')" id="lang-ENGLISH" class="lang-checkbox-btn active"><span class="custom-box"></span> ENGLISH</button>
                         <button onclick="toggleLangCheckbox('ARABIC')" id="lang-ARABIC" class="lang-checkbox-btn"><span class="custom-box"></span> ARABIC</button>
                     </div>
 
@@ -592,6 +585,59 @@
             }
         }
 
+        // --- NEW CENTRAL BATCH ANALYSIS FUNCTION ---
+        window.runBatchAnalysis = function() {
+            const selectedCheckboxes = document.querySelectorAll('.card-select-checkbox:checked');
+
+            if (selectedCheckboxes.length === 0) {
+                alert("Please select at least one card to analyze.");
+                return;
+            }
+
+            selectedCheckboxes.forEach(checkbox => {
+                const cardIndex = checkbox.value;
+                const cardContainer = document.getElementById(`card-body-${cardIndex}`);
+                const row = cachedDataStream[cardIndex];
+
+                if (cardContainer && row) {
+                    cardContainer.innerHTML = `
+                        <div class="space-y-2.5">
+                            <div>
+                                <div class="text-[9px] text-cyan-400 font-mono">// [1. VERIFIED SOURCE & URL]</div>
+                                <a href="${row.url || '#'}" target="_blank" class="text-xs text-cyan-300 hover:underline break-all font-mono">${row.url || 'N/A'}</a>
+                            </div>
+
+                            <div>
+                                <div class="text-[9px] text-cyan-400 font-mono">// [2. FEATURED IMAGE]</div>
+                                <div class="w-full h-24 bg-slate-900 border border-slate-800 rounded-md overflow-hidden flex items-center justify-center">
+                                    <img src="${row.image_url || 'https://via.placeholder.com/400x150?text=No+Asset'}" class="w-full h-full object-cover">
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="text-[9px] text-cyan-400 font-mono">// [3. ANALYZED NARRATIVE PARAGRAPH]</div>
+                                <p contenteditable="true" class="text-xs text-slate-200 bg-slate-900/80 border border-slate-800 p-2.5 rounded-md leading-relaxed font-sans">
+                                    ${row.paragraph || row.title || 'No narrative snippet available.'}
+                                </p>
+                            </div>
+
+                            <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+                                <select class="bg-slate-950 text-cyan-400 border border-slate-800 text-[10px] px-2 py-1 rounded">
+                                    <option>POLITICS & GOVERNANCE</option>
+                                    <option>BUSINESS & FINANCE</option>
+                                    <option>SPORT</option>
+                                </select>
+                                <button onclick="sendToEditorial(${cardIndex})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] px-3 py-1 rounded uppercase cursor-pointer">
+                                    📩 SEND TO EDITORIAL PAGE
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            document.getElementById('statusConsole').innerText = `// BATCH ANALYSIS COMPLETED FOR ${selectedCheckboxes.length} ITEMS.`;
+        };
+
         window.triggerAnythingNew = async function(sectorContext) {
             const startTime = Date.now();
             window.setGlobalProcessingState(true);
@@ -609,22 +655,30 @@
                     ? 'Ethiopian -Politics and governance websites' : 'politics and governance -websites';
 
                 const { data, error } = await supabaseClient.from(tableTarget).select('*').order('id', { ascending: false }).limit(4);
-                if (error || !data || data.length === 0) throw error || new Error("No entries found");
-                
-                cachedDataStream = data;
+                if (error) throw error;
+                cachedDataStream = data || [];
                 deletedItemsStack = [];
                 document.getElementById('btn-restore-log').classList.add('hidden');
-                renderResultsCards(cachedDataStream);
+
+                let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// DELTA RECONNAISSANCE SEARCH: [${sectorContext.toUpperCase()}]</div>`;
+                cachedDataStream.forEach((row, idx) => {
+                    html += `
+                        <div class="result-card" id="card-${idx}">
+                            <input type="checkbox" class="card-select-checkbox accent-cyan-500 mt-1 cursor-pointer" value="${idx}">
+                            <div class="result-text-content flex-1" id="card-body-${idx}">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-amber-400 font-bold">[NEW-${idx+1}]</span>
+                                    <span class="text-[10px] text-slate-500">// RAW LOG ITEM</span>
+                                </div>
+                                <span class="text-slate-200 font-bold">${row.title || 'Untitled Element'}</span>
+                                <p class="text-[11px] text-slate-400 mt-0.5 truncate">${row.url || ''}</p>
+                            </div>
+                        </div>`;
+                });
+                outputPanel.innerHTML = html;
                 statusLog.innerText = `// DELTA CAPTURE FINISHED.`;
             } catch (err) {
-                const fallbackPayload = {
-                    targetMatrix: formattedMatrixKey,
-                    executionType: 'anything_new',
-                    query: `latest operational updates tracking for ${sectorContext}`,
-                    languages: getSelectedDashboardLanguages(),
-                    timestamp: new Date().toISOString()
-                };
-                await transmitPayloadToN8n(fallbackPayload);
+                outputPanel.innerHTML = `<div class="text-red-400">// ERROR FETCHING DATA.</div>`;
             } finally {
                 const elapsedTime = Date.now() - startTime;
                 const visualBuffer = 1200 - elapsedTime;
@@ -660,22 +714,28 @@
                     ? 'Ethiopian -Politics and governance websites' : 'politics and governance -websites';
 
                 const { data, error } = await supabaseClient.from(currentTable).select('*').ilike('title', `%${queryValue}%`).limit(6);
-                if (error || !data || data.length === 0) throw error || new Error("Query lookup yielded 0 rows");
-
-                cachedDataStream = data;
-                deletedItemsStack = [];
-                document.getElementById('btn-restore-log').classList.add('hidden');
-                renderResultsCards(cachedDataStream);
-                statusLog.innerText = `// QUERY SEARCH COMPLETE.`;
+                if (error) throw error;
+                
+                cachedDataStream = data || [];
+                let html = `<div class="text-cyan-400 border-b border-slate-900 pb-1.5 mb-2">// QUERY MATCHES FOR: "${queryValue.toUpperCase()}"</div>`;
+                
+                cachedDataStream.forEach((row, idx) => {
+                    html += `
+                        <div class="result-card" id="card-${idx}">
+                            <input type="checkbox" class="card-select-checkbox accent-cyan-500 mt-1 cursor-pointer" value="${idx}">
+                            <div class="result-text-content flex-1" id="card-body-${idx}">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-cyan-400 font-bold">[LOG-${idx+1}]</span>
+                                </div>
+                                <span class="text-slate-200 font-bold">${row.title || 'Untitled Element'}</span>
+                                <p class="text-[11px] text-slate-400 mt-0.5 truncate">${row.url || ''}</p>
+                            </div>
+                        </div>`;
+                });
+                outputPanel.innerHTML = html;
+                statusLog.innerText = `// SEARCH FINISHED.`;
             } catch (err) {
-                const fallbackPayload = {
-                    targetMatrix: formattedMatrixKey,
-                    executionType: 'standard_search',
-                    query: queryValue,
-                    languages: getSelectedDashboardLanguages(),
-                    timestamp: new Date().toISOString()
-                };
-                await transmitPayloadToN8n(fallbackPayload);
+                outputPanel.innerHTML = `<div class="text-red-400">// QUERY ERROR OCCURRED.</div>`;
             } finally {
                 const elapsedTime = Date.now() - startTime;
                 const visualBuffer = 1200 - elapsedTime;
@@ -684,170 +744,6 @@
                 }
                 window.setGlobalProcessingState(false);
             }
-        };
-
-        async function transmitPayloadToN8n(payload) {
-            const outputPanel = document.getElementById('unifiedResultsConsole');
-            const statusLog = document.getElementById('statusConsole');
-
-            try {
-                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) throw new Error(`Gateway returned HTTP ${response.status}`);
-                
-                const responseData = await response.json();
-                
-                // --- PAYLOAD PARSING FIX ---
-                // Extracts objects from the root array, nested 'news' key, or 'data' key
-                let extractedList = [];
-                if (Array.isArray(responseData)) {
-                    extractedList = responseData;
-                } else if (responseData && typeof responseData === 'object') {
-                    extractedList = responseData.news || responseData.data || [responseData];
-                }
-
-                cachedDataStream = extractedList;
-                deletedItemsStack = [];
-                document.getElementById('btn-restore-log').classList.add('hidden');
-                renderResultsCards(cachedDataStream);
-                statusLog.innerText = `// N8N INTERCEPT COMPLETE.`;
-            } catch (err) {
-                console.error("N8N Transmission Error:", err);
-                outputPanel.innerHTML = `<div class="text-red-400">// PIPELINE ERROR: Unable to process request through external gateway node.</div>`;
-                statusLog.innerText = `// GATEWAY TRANSMISSION FAILED.`;
-            }
-        }
-
-        function renderResultsCards(dataItems) {
-            const outputPanel = document.getElementById('unifiedResultsConsole');
-            outputPanel.innerHTML = '';
-
-            const activeItems = dataItems.filter(item => item !== null);
-
-            if (activeItems.length === 0) {
-                outputPanel.innerHTML = `<div class="text-slate-500 tracking-wide">// WEBHOOK RESPONSE CAPTURES (0 records)</div>`;
-                return;
-            }
-
-            activeItems.forEach((item) => {
-                const originalIndex = dataItems.indexOf(item);
-                const card = document.createElement('div');
-                card.className = 'result-card relative group';
-
-                // Robust field extraction mapping to support n8n news output and Supabase rows
-                const imageSrc = item.imageUrl || item.image || item.image_url || 'https://via.placeholder.com/110x75/02050c/06b6d4?text=INTERCEPT';
-                const titleText = item.news || item.title || item.headline || 'Untitled Terminal Record';
-                const sourceBadge = item.sourceName || item.source || `RECORD #${originalIndex + 1}`;
-                const linkUrl = item.url || item.link || '#';
-
-                card.innerHTML = `
-                    <div class="result-image-wrapper">
-                        <img src="${imageSrc}" alt="Intercept Media" class="result-image" onerror="this.src='https://via.placeholder.com/110x75/02050c/06b6d4?text=NA';">
-                    </div>
-                    <div class="result-text-content">
-                        <div class="flex items-center justify-between">
-                            <span class="badge-meta text-cyan-400">// [${sourceBadge}]</span>
-                            <button onclick="removeCardItem(${originalIndex})" class="text-slate-600 hover:text-red-400 text-xs font-bold px-1 transition-colors cursor-pointer" title="Purge Record">✕</button>
-                        </div>
-                        <a href="${linkUrl}" target="_blank" class="font-bold text-slate-200 hover:text-cyan-400 transition-colors block text-xs leading-snug">
-                            ${titleText}
-                        </a>
-                        ${item.url ? `
-                            <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="text-[10px] text-cyan-500 hover:underline font-mono inline-flex items-center gap-1 mt-1">
-                                OPEN SOURCE URL →
-                            </a>
-                        ` : ''}
-                    </div>
-                `;
-                outputPanel.appendChild(card);
-            });
-        }
-
-        window.removeCardItem = function(index) {
-            if (index >= 0 && index < cachedDataStream.length) {
-                const removedItem = cachedDataStream[index];
-                deletedItemsStack.push({ item: removedItem, index: index });
-                cachedDataStream[index] = null;
-                
-                document.getElementById('btn-restore-log').classList.remove('hidden');
-                renderResultsCards(cachedDataStream);
-                document.getElementById('statusConsole').innerText = `// RECORD #${index + 1} PURGED FROM ACTIVE SCREEN`;
-            }
-        };
-
-        window.restoreLastDeleted = function() {
-            if (deletedItemsStack.length > 0) {
-                const lastDeleted = deletedItemsStack.pop();
-                cachedDataStream[lastDeleted.index] = lastDeleted.item;
-
-                if (deletedItemsStack.length === 0) {
-                    document.getElementById('btn-restore-log').classList.add('hidden');
-                }
-
-                renderResultsCards(cachedDataStream);
-                document.getElementById('statusConsole').innerText = `// RESTORED RECORD #${lastDeleted.index + 1}`;
-            }
-        };
-
-        window.downloadAsPdf = function() {
-            const activeItems = cachedDataStream.filter(item => item !== null);
-            if (activeItems.length === 0) {
-                alert("No active log records to export.");
-                return;
-            }
-
-            const printWindow = window.open('', '_blank');
-            let printContent = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Terminal Intercept Report</title>
-                    <style>
-                        @page { size: A4; margin: 20mm; }
-                        body { font-family: monospace; color: #1e293b; padding: 10px; }
-                        h1 { font-size: 16px; border-bottom: 2px solid #0284c7; padding-bottom: 5px; margin-bottom: 5px; }
-                        .meta { font-size: 10px; color: #64748b; margin-bottom: 20px; }
-                        .card { border: 1px solid #cbd5e1; padding: 10px; margin-bottom: 12px; border-radius: 4px; display: flex; gap: 12px; }
-                        .card img { width: 90px; height: 60px; object-fit: cover; border-radius: 2px; }
-                        .content { flex: 1; }
-                        .title { font-size: 12px; font-weight: bold; color: #0f172a; text-decoration: none; }
-                        .url { font-size: 8px; color: #0284c7; word-break: break-all; margin-top: 4px; }
-                    </style>
-                </head>
-                <body>
-                    <h1>CENTRAL STREAM MONITOR REPORT</h1>
-                    <div class="meta">OPERATOR: Amanuel Bekele Woldesenbet | MATRIX: ${lastTriggeredMatrix.toUpperCase()} | DATE: ${new Date().toLocaleString()}</div>
-            `;
-
-            activeItems.forEach((item, idx) => {
-                const img = item.imageUrl || item.image || item.image_url || '';
-                const title = item.news || item.title || item.headline || 'Untitled Record';
-                const url = item.url || item.link || '';
-
-                printContent += `
-                    <div class="card">
-                        ${img ? `<img src="${img}">` : ''}
-                        <div class="content">
-                            <div class="title">[#${idx + 1}] ${title}</div>
-                            <div class="url">${url}</div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            printContent += `</body></html>`;
-
-            printWindow.document.write(printContent);
-            printWindow.document.close();
-            printWindow.focus();
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
-            }, 500);
         };
     </script>
 </body>
