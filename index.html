@@ -102,20 +102,20 @@
             color: #60a5fa;
         }
 
-        /* Single Central Analysis Button */
-        .analysis-btn {
+        /* Bottom-Left Analysis Button Styling */
+        .analysis-btn-bottom {
             background-color: #042f2e;
-            border: 2px solid #0d9488;
+            border: 1.5px solid #0d9488;
             color: #2dd4bf;
             font-size: 10px;
             font-weight: bold;
-            padding: 6px 14px;
-            border-radius: 10px;
+            padding: 5px 12px;
+            border-radius: 6px;
             transition: all 0.2s ease;
             letter-spacing: 0.02em;
             cursor: pointer;
         }
-        .analysis-btn:hover:not(:disabled) {
+        .analysis-btn-bottom:hover:not(:disabled) {
             border-color: #5eead4;
             color: #ffffff;
             box-shadow: 0 0 10px rgba(45, 212, 191, 0.3);
@@ -346,13 +346,10 @@
                         <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">Central Stream Monitor</span>
                     </div>
 
-                    <!-- CONTROL PANEL WITH SINGLE ANALYSIS BUTTON -->
+                    <!-- CONTROL PANEL FOR ENSEMBLES -->
                     <div class="flex items-center gap-2 justify-center flex-1 mx-4" id="languageContainer">
                         <button onclick="toggleSelectAllEnsembles()" id="btn-select-all" class="ensemble-btn uppercase">Select All Ensembles</button>
                         
-                        <!-- SINGLE DO ANALYSIS BUTTON FOR ALL CARDS -->
-                        <button onclick="runBatchAnalysis()" id="btn-do-analysis" class="analysis-btn uppercase">✨ DO ANALYSIS</button>
-
                         <button onclick="toggleLangCheckbox('OROMIFFA')" id="lang-OROMIFFA" class="lang-checkbox-btn active"><span class="custom-box"></span> OROMIFFA</button>
                         <button onclick="toggleLangCheckbox('AMHARIC')" id="lang-AMHARIC" class="lang-checkbox-btn active"><span class="custom-box"></span> AMHARIC</button>
                         <button onclick="toggleLangCheckbox('ENGLISH')" id="lang-ENGLISH" class="lang-checkbox-btn active"><span class="custom-box"></span> ENGLISH</button>
@@ -366,8 +363,13 @@
                     <div class="text-slate-500 tracking-wide">// System online. Terminal metrics initialized. Run an inquiry lookup via sidebar modules to display intercept logs...</div>
                 </div>
 
+                <!-- BOTTOM FOOTER OF MONITOR WITH ANALYSIS BUTTON AT MOST BOTTOM LEFT -->
                 <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
+                    <div class="flex items-center gap-3">
+                        <button onclick="runBatchAnalysis()" id="btn-do-analysis" class="analysis-btn-bottom uppercase">✨ DO ANALYSIS</button>
+                        <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
+                    </div>
+                    
                     <div class="flex gap-2">
                         <button id="btn-restore-log" onclick="restoreLastDeleted()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md cursor-pointer transition-all tracking-wide uppercase hidden">
                             ⟲ Restore Deleted
@@ -585,7 +587,7 @@
             }
         }
 
-        // --- NEW CENTRAL BATCH ANALYSIS FUNCTION ---
+        // --- BATCH ANALYSIS FUNCTION ---
         window.runBatchAnalysis = function() {
             const selectedCheckboxes = document.querySelectorAll('.card-select-checkbox:checked');
 
