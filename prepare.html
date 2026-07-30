@@ -1,1 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prep Workspace | Terminal Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom scrollbar styling for terminal vibe */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
 
+        /* MS Word editor area formatting */
+        .editor-page {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+        }
+        [contenteditable]:focus { outline: none; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 font-mono h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Navigation Header -->
+    <header class="h-14 border-b border-slate-800 bg-slate-900/80 px-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center space-x-3">
+            <span class="h-3 w-3 rounded-full bg-cyan-500 animate-pulse"></span>
+            <h1 class="text-sm font-bold tracking-wider text-cyan-400">// EDITORIAL PREPARATION STUDIO</h1>
+        </div>
+        <div id="statusConsole" class="text-xs text-slate-400 font-mono">
+            // STATUS: SYSTEM READY
+        </div>
+    </header>
+
+    <!-- Main Workspace Split Container -->
+    <main class="flex-1 flex overflow-hidden">
+
+        <!-- LEFT PANEL: Scrapped Analysis Data Stream (40% width) -->
+        <section class="w-5/12 border-r border-slate-800 bg-slate-900/40 flex flex-col h-full">
+            <div class="p-3 border-b border-slate-800 bg-slate-900/60 flex justify-between items-center">
+                <span class="text-xs font-bold text-amber-400">// SCRAPED ANALYSIS STREAM</span>
+                <span class="text-[10px] text-slate-500">CLICK TO TRANSFER TO EDITOR</span>
+            </div>
+            
+            <!-- Dynamic Feed Stream -->
+            <div id="scrapedDataFeed" class="flex-1 overflow-y-auto p-4 space-y-3">
+                
+                <!-- Sample Card Item (Populated dynamically from your n8n payload) -->
+                <div class="p-3 bg-slate-900 border border-slate-800 rounded-lg hover:border-cyan-500/50 transition cursor-pointer group" onclick="transferToEditor(0)">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-800">POLITICS & GOVERNANCE</span>
+                        <button class="text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 transition flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-right"></i> Inject
+                        </button>
+                    </div>
+                    <h3 id="feed-title-0" class="text-xs font-bold text-slate-200 mb-1">Strait of Hormuz Security Protocol Updates</h3>
+                    <p id="feed-body-0" class="text-[11px] font-sans text-slate-400 line-clamp-3">
+                        Naval maritime surveillance monitors increased activity across commercial shipping lanes. Intelligence reports suggest multi-ensemble tracking parameters are active.
+                    </p>
+                    <div class="mt-2 text-[9px] text-slate-500 flex justify-between">
+                        <span>Source: Verified Stream</span>
+                        <span>2 mins ago</span>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-900 border border-slate-800 rounded-lg hover:border-cyan-500/50 transition cursor-pointer group" onclick="transferToEditor(1)">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800">BUSINESS & FINANCE</span>
+                        <button class="text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 transition flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-right"></i> Inject
+                        </button>
+                    </div>
+                    <h3 id="feed-title-1" class="text-xs font-bold text-slate-200 mb-1">Global Trade Yield Shifts</h3>
+                    <p id="feed-body-1" class="text-[11px] font-sans text-slate-400 line-clamp-3">
+                        Quarterly index indicates standard fluctuations across commodity supply routes. Data points collected via automated webhooks.
+                    </p>
+                    <div class="mt-2 text-[9px] text-slate-500 flex justify-between">
+                        <span>Source: n8n Extraction Node</span>
+                        <span>14 mins ago</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- RIGHT PANEL: MS Word Editing Area (60% width) -->
+        <section class="w-7/12 bg-slate-950 flex flex-col h-full relative">
+            
+            <!-- MS Word Formatting Toolbar -->
+            <div class="p-2 border-b border-slate-800 bg-slate-900 flex items-center space-x-2 shrink-0">
+                <button onclick="formatDoc('bold')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                <button onclick="formatDoc('italic')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7" title="Italic"><i class="fa-solid fa-italic"></i></button>
+                <button onclick="formatDoc('underline')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7" title="Underline"><i class="fa-solid fa-underline"></i></button>
+                <div class="h-4 w-[1px] bg-slate-700"></div>
+                <button onclick="formatDoc('justifyLeft')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7"><i class="fa-solid fa-align-left"></i></button>
+                <button onclick="formatDoc('justifyCenter')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7"><i class="fa-solid fa-align-center"></i></button>
+                <button onclick="formatDoc('justifyRight')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7"><i class="fa-solid fa-align-right"></i></button>
+                <div class="h-4 w-[1px] bg-slate-700"></div>
+                <button onclick="formatDoc('insertUnorderedList')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7"><i class="fa-solid fa-list-ul"></i></button>
+                <button onclick="formatDoc('insertOrderedList')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7"><i class="fa-solid fa-list-ol"></i></button>
+            </div>
+
+            <!-- Page Container (Paper Effect) -->
+            <div class="flex-1 overflow-y-auto p-8 flex justify-center bg-slate-950">
+                <div class="editor-page w-full max-w-2xl bg-white text-slate-900 rounded shadow-2xl p-10 min-h-[700px] font-sans flex flex-col">
+                    
+                    <!-- Article Headline -->
+                    <h1 id="editorTitle" contenteditable="true" class="text-2xl font-bold mb-4 outline-none text-slate-900 border-b pb-2 placeholder-title">
+                        Draft Title Here...
+                    </h1>
+                    
+                    <!-- Editable Article Body -->
+                    <div id="editorBody" contenteditable="true" class="flex-1 text-sm leading-relaxed text-slate-800 space-y-4 outline-none">
+                        <p class="text-slate-400 italic">Select card from the left panel or start typing your story draft here...</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- BOTTOM RIGHT ACTION PANEL: Send to Editorial -->
+            <div class="absolute bottom-6 right-8 flex items-center space-x-3">
+                <select id="editorialCategory" class="bg-slate-900 border border-slate-700 text-cyan-400 text-xs rounded px-3 py-2.5 focus:outline-none">
+                    <option>POLITICS & GOVERNANCE</option>
+                    <option>BUSINESS & FINANCE</option>
+                    <option>SPORT</option>
+                    <option>WORLD NEWS</option>
+                </select>
+
+                <button onclick="sendToEditorial()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-5 py-2.5 rounded shadow-lg flex items-center space-x-2 transition cursor-pointer">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>SEND TO EDITORIAL PAGE</span>
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        // Formatting options for MS Word text editing
+        function formatDoc(cmd, value = null) {
+            document.execCommand(cmd, false, value);
+        }
+
+        // Transfer clicked scrapped item from Left Feed into Right Editor
+        function transferToEditor(index) {
+            const titleEl = document.getElementById(`feed-title-${index}`);
+            const bodyEl = document.getElementById(`feed-body-${index}`);
+
+            if (titleEl && bodyEl) {
+                document.getElementById('editorTitle').innerText = titleEl.innerText;
+                document.getElementById('editorBody').innerHTML = `<p>${bodyEl.innerText}</p><p><br></p>`;
+                
+                document.getElementById('statusConsole').innerText = `// INJECTED FEED ENTRY [${index}] INTO EDITOR`;
+            }
+        }
+
+        // Action: Submit compiled story draft to your Editorial Node / Webhook
+        async function sendToEditorial() {
+            const title = document.getElementById('editorTitle').innerText;
+            const content = document.getElementById('editorBody').innerHTML;
+            const category = document.getElementById('editorialCategory').value;
+
+            if (!title || title === "Draft Title Here...") {
+                alert("Please add a title before submitting to editorial.");
+                return;
+            }
+
+            const editorialPayload = {
+                title: title,
+                body: content,
+                category: category,
+                timestamp: new Date().toISOString()
+            };
+
+            console.log("// SENDING TO EDITORIAL NODE:", editorialPayload);
+            document.getElementById('statusConsole').innerText = `// TRANSMITTING STORY TO EDITORIAL PAGE...`;
+
+            // Replace with your actual n8n Editorial endpoint or function trigger:
+            try {
+                // await fetch('YOUR_EDITORIAL_WEBHOOK_URL', { method: 'POST', body: JSON.stringify(editorialPayload) });
+                alert("Story successfully sent to Editorial!");
+                document.getElementById('statusConsole').innerText = `// SUCCESS: DISPATCHED TO EDITORIAL`;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('statusConsole').innerText = `// ERROR DISPATCHING TO EDITORIAL`;
+            }
+        }
+    </script>
+</body>
+</html>
