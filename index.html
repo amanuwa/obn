@@ -3,231 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editorial Preparation Studio</title>
+    <title>Editorial Review Studio</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #030712; overflow: hidden; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        body { 
+            margin: 0; 
+            color: #f1f5f9; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            background-color: #030712; 
+            overflow: hidden; 
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; 
+        }
+        
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
 
-        /* Rich Text Editor Styling */
+        /* White Document Paper */
         .editor-paper {
             background-color: #ffffff;
             color: #0f172a;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 900px;
         }
 
-        .editor-paper:focus {
-            outline: none;
+        /* Custom Selection Highlight Colors */
+        .hl-red {
+            background-color: #fecaca;
+            color: #991b1b;
+            border-bottom: 2px solid #ef4444;
+            padding: 0 2px;
+            border-radius: 2px;
         }
 
-        /* Custom Scrollable Stream Container */
-        .stream-scroll-panel {
-            background: rgba(3, 7, 18, 0.6);
-            border: 1px solid #1e293b;
+        .hl-yellow {
+            background-color: #fef08a;
+            color: #854d0e;
+            border-bottom: 2px solid #eab308;
+            padding: 0 2px;
+            border-radius: 2px;
         }
 
-        /* Stream Cards (Rendered dynamically) */
-        .stream-card {
+        .directive-card {
             background: #090d16;
             border: 1px solid #1e293b;
             border-radius: 6px;
-            padding: 12px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        .stream-card:hover {
-            border-color: #06b6d4;
-            background: #0f172a;
+            padding: 10px;
+            font-size: 11px;
         }
 
-        /* Personnel Select Styling */
-        .personnel-select {
+        .comment-area {
             background-color: #090d16;
-            border: 1px solid #06b6d4;
-            color: #38bdf8;
+            border: 1px solid #1e293b;
+            color: #f1f5f9;
             font-family: monospace;
             font-size: 11px;
-            border-radius: 6px;
-            padding: 6px 10px;
-            outline: none;
         }
-        .personnel-select:focus {
-            border-color: #38bdf8;
-            box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+        .comment-area:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
         }
     </style>
 </head>
 <body class="bg-[#030712]">
 
-    <!-- TOP BAR / HEADER -->
+    <!-- HEADER WITH NOTIFICATION BUTTON -->
     <header class="bg-slate-950 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none">
         <div class="flex items-center gap-3">
-            <div class="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></div>
-            <span class="font-bold text-slate-100 text-xs tracking-wider uppercase">// EDITORIAL PREPARATION STUDIO</span>
+            <div class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></div>
+            <span class="font-bold text-slate-100 text-xs tracking-wider uppercase">// EDITORIAL REVIEW STUDIO</span>
         </div>
 
-        <div id="statusHeader" class="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">
-            // READY FOR INCOMING MULTI-SOURCE DATA STREAM
+        <div class="flex items-center gap-4">
+            <!-- STATUS DISPLAY -->
+            <div id="statusHeader" class="text-[10px] font-mono text-cyan-500 uppercase tracking-widest hidden md:block">
+                // AWAITING INCOMING DRAFT DISPATCH
+            </div>
+
+            <!-- NOTIFICATION BUTTON -->
+            <button 
+                id="notificationBtn" 
+                onclick="loadJournalistMessage()" 
+                class="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/50 text-amber-400 font-mono text-xs px-3 py-1.5 rounded-md flex items-center gap-2 transition-all cursor-pointer shadow-lg animate-pulse"
+            >
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span>You have a message</span>
+                <span class="bg-amber-500 text-slate-950 text-[10px] font-bold px-1.5 py-0.2 rounded-full">1</span>
+            </button>
         </div>
     </header>
 
     <!-- MAIN WORKSPACE LAYOUT -->
     <main class="flex-1 flex gap-4 p-4 h-full overflow-hidden">
         
-        <!-- LEFT COLUMN: DYNAMIC STREAM PANEL -->
-        <div class="w-1/3 flex flex-col gap-3 h-full overflow-hidden shrink-0">
+        <!-- LEFT COLUMN: ARTICLE DOCUMENT CANVAS -->
+        <div class="w-7/12 flex flex-col h-full bg-slate-950/60 border border-slate-800 rounded-xl overflow-hidden relative">
             
-            <!-- OPERATOR PROFILE HEADER -->
-            <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-3 flex items-center justify-between">
-                <div>
-                    <span class="text-[9px] text-slate-500 uppercase tracking-widest block font-bold">// ACTIVE OPERATOR</span>
-                    <span class="text-xs font-bold text-slate-200">Amanuel Bekele Woldesenbet</span>
-                </div>
-                <div class="text-right">
-                    <span class="text-[9px] text-cyan-500 font-mono block uppercase">CONNECTED</span>
-                    <span class="text-[9px] text-slate-500">Live Hub Sync</span>
+            <!-- TOOLBAR FOR HIGHLIGHTING -->
+            <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-slate-300 select-none shrink-0">
+                <span class="text-[10px] text-slate-400 font-mono uppercase tracking-wider">// Highlight tools: Select text then click</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="applyHighlight('red')" class="bg-red-950/60 hover:bg-red-900/80 border border-red-800 text-red-300 text-[10px] font-bold px-3 py-1 rounded transition-all cursor-pointer flex items-center gap-1.5 uppercase">
+                        <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span> Highlight to Remove
+                    </button>
+                    <button onclick="applyHighlight('yellow')" class="bg-yellow-950/60 hover:bg-yellow-900/80 border border-yellow-800 text-yellow-300 text-[10px] font-bold px-3 py-1 rounded transition-all cursor-pointer flex items-center gap-1.5 uppercase">
+                        <span class="w-2.5 h-2.5 rounded-full bg-yellow-500 inline-block"></span> Highlight to Edit
+                    </button>
                 </div>
             </div>
 
-            <!-- SCRAPED ANALYSIS STREAM HEADER -->
-            <div class="flex items-center justify-between px-1">
-                <span class="text-xs font-bold text-amber-500 tracking-wider uppercase">// SCRAPED ANALYSIS STREAM</span>
-                <span class="text-[9px] text-slate-500 uppercase">Click item to transfer to editor</span>
-            </div>
-
-            <!-- EMPTY SCROLLABLE DATA CONTAINER -->
-            <div id="streamDataContainer" class="flex-1 stream-scroll-panel rounded-xl p-3 overflow-y-auto space-y-3">
-                <!-- Data populated dynamically from Custom, Sport, Business, and Politics pages -->
-                <div class="text-slate-600 text-xs text-center py-10 font-mono">
-                    // Awaiting stream data transfers...<br>
-                    <span class="text-[10px] text-slate-700">Incoming payloads from domain modules will render here.</span>
+            <!-- SCROLLABLE WHITE PAPER CANVAS -->
+            <div class="flex-1 bg-slate-950 p-6 overflow-y-auto flex justify-center">
+                <div 
+                    id="documentCanvas" 
+                    contenteditable="true" 
+                    class="editor-paper w-full max-w-3xl p-10 rounded-md shadow-2xl focus:outline-none flex flex-col items-center justify-center"
+                >
+                    <!-- EMPTY BLANK STATE INITIALLY -->
+                    <div id="blankCanvasPlaceholder" class="text-center py-20 select-none">
+                        <svg class="w-12 h-12 text-slate-300 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <p class="text-slate-400 font-mono text-xs">No article loaded yet.</p>
+                        <p class="text-slate-400 font-mono text-[10px] mt-1">Click the top "You have a message" notification to open incoming journalist draft.</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: EXPANDED EDITOR WORKSPACE -->
-        <div class="flex-1 flex flex-col h-full bg-slate-950/60 border border-slate-800 rounded-xl overflow-hidden relative">
+        <!-- RIGHT COLUMN: LEGEND, DIRECTIVES, COMMENTS & ACTIONS -->
+        <div class="w-5/12 flex flex-col gap-3 h-full overflow-hidden shrink-0">
             
-            <!-- TOOLBAR -->
-            <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center gap-3 text-slate-300 select-none">
-                <button onclick="formatDoc('bold')" class="hover:text-cyan-400 font-bold px-2 py-1 rounded border border-transparent hover:border-slate-700 transition-all cursor-pointer">B</button>
-                <button onclick="formatDoc('italic')" class="hover:text-cyan-400 italic px-2 py-1 rounded border border-transparent hover:border-slate-700 transition-all cursor-pointer">I</button>
-                <button onclick="formatDoc('underline')" class="hover:text-cyan-400 underline px-2 py-1 rounded border border-transparent hover:border-slate-700 transition-all cursor-pointer">U</button>
-                <div class="h-4 w-px bg-slate-800 my-auto"></div>
-                <button onclick="formatDoc('justifyLeft')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">⯇</button>
-                <button onclick="formatDoc('justifyCenter')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">⯀</button>
-                <button onclick="formatDoc('justifyRight')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">⯈</button>
-                <div class="h-4 w-px bg-slate-800 my-auto"></div>
-                <button onclick="formatDoc('insertUnorderedList')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">• List</button>
-                <button onclick="formatDoc('insertOrderedList')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">1. List</button>
-            </div>
-
-            <!-- EXPANDED WHITE CANVAS AREA -->
-            <div class="flex-1 bg-slate-950 p-6 overflow-y-auto flex justify-center">
-                <div 
-                    id="editorialCanvas" 
-                    contenteditable="true" 
-                    class="editor-paper w-full max-w-4xl min-h-[850px] p-10 rounded-md shadow-2xl focus:outline-none"
-                >
-                    <h1 class="text-2xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Global Trade Yield Shifts</h1>
-                    <p class="text-slate-700 leading-relaxed text-sm">
-                        Quarterly index indicates standard fluctuations across commodity supply routes. Data points collected via automated webhooks.
-                    </p>
+            <!-- LEGEND PANEL -->
+            <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-col gap-2 shrink-0">
+                <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">// ANNOTATION GUIDE</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-red-950/40 border border-red-900/60 p-2 rounded flex items-center gap-2">
+                        <span class="w-3 h-3 rounded bg-red-500 shrink-0"></span>
+                        <span class="text-[10px] text-red-200 font-bold uppercase">Red = Completely Remove</span>
+                    </div>
+                    <div class="bg-yellow-950/40 border border-yellow-900/60 p-2 rounded flex items-center gap-2">
+                        <span class="w-3 h-3 rounded bg-yellow-500 shrink-0"></span>
+                        <span class="text-[10px] text-yellow-200 font-bold uppercase">Yellow = Needs Editing</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- BOTTOM RIGHT CONTROLS: EDITORIAL PERSONNEL DISPATCH -->
-            <div class="absolute bottom-6 right-8 flex items-center gap-2 bg-slate-950/90 border border-slate-800 p-2 rounded-lg shadow-xl backdrop-blur-md">
-                <span class="text-[10px] text-slate-400 font-mono uppercase px-1">Assign to:</span>
+            <!-- RECORDED HIGHLIGHT DIRECTIVES LIST -->
+            <div class="flex-1 bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex flex-col overflow-hidden">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+                    <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">// ANNOTATION DIRECTIVES</span>
+                    <span id="directiveCount" class="text-[9px] font-mono text-cyan-500">0 Items Marked</span>
+                </div>
                 
-                <!-- EDITORIAL PERSONNEL DROPDOWN -->
-                <select id="editorialPersonnelSelect" class="personnel-select cursor-pointer">
-                    <option value="" disabled selected>Select Editorial Personnel</option>
-                    <option value="editor_chief">Senior Chief Editor</option>
-                    <option value="editor_politics">Politics Desk Lead</option>
-                    <option value="editor_finance">Finance & Markets Editor</option>
-                    <option value="editor_sports">Sports Desk Lead</option>
-                    <option value="copy_editor">Copy Editing Desk</option>
-                </select>
+                <div id="directivesContainer" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                    <div class="text-slate-600 text-xs text-center py-6 font-mono">
+                        // Highlight text on the left canvas to log edit directives...
+                    </div>
+                </div>
+            </div>
 
-                <!-- SEND BUTTON -->
+            <!-- SCROLLABLE COMMENT BOX -->
+            <div class="h-36 bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-col shrink-0">
+                <label for="editorialComments" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">
+                    // General Editorial Feedback & Instructions
+                </label>
+                <textarea 
+                    id="editorialComments" 
+                    placeholder="Type detailed feedback for the journalist preparing studio..." 
+                    class="comment-area flex-1 w-full p-2.5 rounded-md resize-none"
+                ></textarea>
+            </div>
+
+            <!-- ACTION BUTTONS FOOTER -->
+            <div class="flex items-center gap-3 pt-1 shrink-0">
+                <!-- SEND BACK TO PREPARING STUDIO BUTTON -->
                 <button 
-                    onclick="dispatchToEditorial()" 
-                    class="bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider"
+                    onclick="sendBackToStudio()" 
+                    class="flex-1 bg-slate-950 hover:bg-red-950/30 border-2 border-red-600/80 hover:border-red-500 text-red-400 font-bold font-mono text-xs py-2.5 rounded-lg transition-all cursor-pointer uppercase tracking-wide flex items-center justify-center gap-2 shadow-lg"
                 >
-                    <span>Send</span>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                     </svg>
+                    <span>Send Back to Prep Studio</span>
+                </button>
+
+                <!-- CHECKED / APPROVED BUTTON (GREEN) -->
+                <button 
+                    onclick="approveArticle()" 
+                    class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold font-mono text-xs px-5 py-2.5 rounded-lg shadow-lg cursor-pointer transition-all uppercase tracking-wide flex items-center gap-1.5"
+                >
+                    <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Checked</span>
                 </button>
             </div>
+
         </div>
     </main>
 
-    <!-- SCRIPTS -->
+    <!-- LOGIC SCRIPTS -->
     <script>
-        // Formatting commands for Rich Text Editor
-        function formatDoc(cmd, value = null) {
-            document.execCommand(cmd, false, value);
+        let directives = [];
+
+        // Sample message payload coming from the Journalist Preparation Studio
+        const incomingDraftMessage = {
+            title: "Global Trade Yield Shifts & Supply Chain Routes",
+            sender: "Journalist Desk (Scraped Data Stream)",
+            timestamp: "Just now",
+            paragraphs: [
+                "Quarterly index indicates standard fluctuations across commodity supply routes. Data points collected via automated webhooks show steady output across key European corridors.",
+                "Unverified maritime surveillance metrics suggested brief friction near coastal hubs, but these telemetry data points remain unconfirmed by local sector leads.",
+                "Recommended adjustments should focus on refining real-time log outputs before final broadcast dispatch."
+            ]
+        };
+
+        // Load Journalist Message payload onto the left page
+        function loadJournalistMessage() {
+            const canvas = document.getElementById('documentCanvas');
+            const statusHeader = document.getElementById('statusHeader');
+            const notifBtn = document.getElementById('notificationBtn');
+
+            if (!canvas) return;
+
+            // Render message content onto the white document page
+            canvas.classList.remove('flex', 'items-center', 'justify-center');
+            canvas.innerHTML = `
+                <div class="mb-4 pb-2 border-b border-slate-200">
+                    <div class="flex items-center justify-between text-xs text-slate-400 font-mono mb-1">
+                        <span>FROM: ${incomingDraftMessage.sender}</span>
+                        <span>RECEIVED: ${incomingDraftMessage.timestamp}</span>
+                    </div>
+                    <h1 class="text-2xl font-bold text-slate-900">${incomingDraftMessage.title}</h1>
+                </div>
+                ${incomingDraftMessage.paragraphs.map(p => `<p class="text-slate-700 leading-relaxed text-sm mb-4">${p}</p>`).join('')}
+            `;
+
+            // Update status & notification button state
+            if (statusHeader) {
+                statusHeader.innerText = "// STATUS: DRAFT LOADED & READY FOR EDITING";
+                statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
+            }
+
+            if (notifBtn) {
+                notifBtn.classList.remove('animate-pulse');
+                notifBtn.innerHTML = `
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Message Loaded</span>
+                `;
+                notifBtn.className = "bg-slate-900 border border-slate-800 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md flex items-center gap-2 cursor-default";
+            }
         }
 
-        // Dispatch logic to selected Editorial Personnel
-        function dispatchToEditorial() {
-            const select = document.getElementById('editorialPersonnelSelect');
-            const personnel = select.options[select.selectedIndex]?.text;
-            const statusHeader = document.getElementById('statusHeader');
-
-            if (!select.value) {
-                alert("Please select an editorial personnel before sending.");
+        // Apply Red or Yellow Highlight to Selected Text
+        function applyHighlight(color) {
+            const selection = window.getSelection();
+            if (!selection.rangeCount || selection.isCollapsed) {
+                alert("Please highlight text inside the document canvas first.");
                 return;
             }
 
-            if (statusHeader) {
-                statusHeader.innerText = `// SUCCESS: DISPATCHED TO ${personnel.toUpperCase()}`;
-                statusHeader.classList.remove('text-cyan-500');
-                statusHeader.classList.add('text-emerald-400');
-            }
+            const range = selection.getRangeAt(0);
+            const selectedText = range.toString().trim();
+            if (!selectedText) return;
 
-            alert(`Article successfully dispatched to ${personnel}.`);
+            const span = document.createElement('span');
+            span.className = color === 'red' ? 'hl-red' : 'hl-yellow';
+            span.innerText = selectedText;
+
+            range.deleteContents();
+            range.insertNode(span);
+            selection.removeAllRanges();
+
+            // Log item in directive tracking panel
+            directives.push({
+                type: color,
+                text: selectedText,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+
+            renderDirectives();
         }
 
-        // Helper function to append incoming items from other domain pages
-        window.receiveStreamPayload = function(dataArray) {
-            const container = document.getElementById('streamDataContainer');
-            if (!container || !dataArray.length) return;
+        // Render recorded highlight directives
+        function renderDirectives() {
+            const container = document.getElementById('directivesContainer');
+            const countLabel = document.getElementById('directiveCount');
+            
+            if (countLabel) countLabel.innerText = `${directives.length} Items Marked`;
+            if (!container) return;
+
+            if (directives.length === 0) {
+                container.innerHTML = `<div class="text-slate-600 text-xs text-center py-6 font-mono">// Highlight text on the left canvas to log edit directives...</div>`;
+                return;
+            }
 
             let html = '';
-            dataArray.forEach(item => {
+            directives.forEach((item, index) => {
+                const isRed = item.type === 'red';
+                const tagColor = isRed ? 'bg-red-950 text-red-400 border-red-800' : 'bg-yellow-950 text-yellow-400 border-yellow-800';
+                const actionLabel = isRed ? 'REMOVE' : 'EDIT';
+
                 html += `
-                    <div class="stream-card" onclick="transferToEditor('${escapeHtml(item.title)}', '${escapeHtml(item.content)}')">
-                        <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 uppercase inline-block mb-2">
-                            ${item.category || 'STREAM DATA'}
-                        </span>
-                        <h4 class="text-xs font-bold text-slate-200 mb-1">${item.title}</h4>
-                        <p class="text-[11px] text-slate-400 line-clamp-2">${item.content}</p>
-                        <span class="text-[9px] text-slate-600 block mt-2 text-right">${item.time || 'Just now'}</span>
+                    <div class="directive-card flex items-start justify-between gap-2">
+                        <div class="space-y-1 flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border ${tagColor}">
+                                    ${actionLabel}
+                                </span>
+                                <span class="text-[9px] text-slate-500 font-mono">${item.timestamp}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300 font-sans italic">"${item.text}"</p>
+                        </div>
+                        <button onclick="removeDirective(${index})" class="text-slate-600 hover:text-red-400 text-xs px-1 cursor-pointer">✕</button>
                     </div>
                 `;
             });
             container.innerHTML = html;
-        };
-
-        function transferToEditor(title, content) {
-            const editor = document.getElementById('editorialCanvas');
-            if (editor) {
-                editor.innerHTML += `
-                    <h2 class="text-xl font-bold text-slate-900 mt-6 mb-2">${title}</h2>
-                    <p class="text-slate-700 leading-relaxed text-sm">${content}</p>
-                `;
-            }
         }
 
-        function escapeHtml(text) {
-            return String(text).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        function removeDirective(index) {
+            directives.splice(index, 1);
+            renderDirectives();
+        }
+
+        // Action Trigger: Send Back
+        function sendBackToStudio() {
+            const comments = document.getElementById('editorialComments').value;
+            const statusHeader = document.getElementById('statusHeader');
+
+            if (directives.length === 0 && !comments.trim()) {
+                if (!confirm("No edits or comments recorded. Send back anyway?")) return;
+            }
+
+            if (statusHeader) {
+                statusHeader.innerText = "// STATUS: REVISED DRAFT DISPATCHED TO PREPARATION STUDIO";
+                statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
+            }
+
+            alert("Article revision directives and comments sent back to Journalist Preparation Studio.");
+        }
+
+        // Action Trigger: Checked / Approved
+        function approveArticle() {
+            const statusHeader = document.getElementById('statusHeader');
+            if (statusHeader) {
+                statusHeader.innerText = "// STATUS: ARTICLE CHECKED & PASSED EDITORIAL REVIEW";
+                statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
+            }
+
+            alert("Article checked and approved for publication.");
         }
     </script>
 </body>
