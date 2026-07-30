@@ -400,6 +400,15 @@
                 alert(`Initial draft dispatched to ${personnel}.`);
             }
         }
+        document.addEventListener('DOMContentLoaded', () => {
+      const rawData = sessionStorage.getItem('scrapedStreamData');
+      if (rawData) {
+          const streamData = JSON.parse(rawData);
+          console.log('Scraped stream payload received:', streamData);
+          
+          // Render the streamData array directly into your A4 template
+      }
+  });
     </script>
 </body>
 </html>
