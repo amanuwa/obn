@@ -3,34 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editorial Preparation Studio</title>
+    <title>Journalist Preparation Studio</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #030712; overflow: hidden; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        body { 
+            margin: 0; 
+            color: #f1f5f9; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            background-color: #030712; 
+            overflow: hidden; 
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; 
+        }
+        
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
 
-        /* Rich Text Editor Styling */
+        /* Rich Text Editor Paper */
         .editor-paper {
             background-color: #ffffff;
             color: #0f172a;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 850px;
         }
 
-        .editor-paper:focus {
-            outline: none;
-        }
-
-        /* Custom Scrollable Stream Container */
-        .stream-scroll-panel {
-            background: rgba(3, 7, 18, 0.6);
-            border: 1px solid #1e293b;
-        }
-
-        /* Stream Cards (Rendered dynamically) */
+        /* Stream Cards */
         .stream-card {
             background: #090d16;
             border: 1px solid #1e293b;
@@ -44,7 +45,31 @@
             background: #0f172a;
         }
 
-        /* Personnel Select Styling */
+        /* Editor Highlight Styles in Canvas */
+        .hl-red {
+            background-color: #fecaca;
+            color: #991b1b;
+            border-bottom: 2px solid #ef4444;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .hl-yellow {
+            background-color: #fef08a;
+            color: #854d0e;
+            border-bottom: 2px solid #eab308;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .directive-card {
+            background: #090d16;
+            border: 1px solid #1e293b;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 11px;
+        }
+
         .personnel-select {
             background-color: #090d16;
             border: 1px solid #06b6d4;
@@ -55,10 +80,6 @@
             padding: 6px 10px;
             outline: none;
         }
-        .personnel-select:focus {
-            border-color: #38bdf8;
-            box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
-        }
     </style>
 </head>
 <body class="bg-[#030712]">
@@ -66,20 +87,38 @@
     <!-- TOP BAR / HEADER -->
     <header class="bg-slate-950 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none">
         <div class="flex items-center gap-3">
-            <div class="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></div>
-            <span class="font-bold text-slate-100 text-xs tracking-wider uppercase">// EDITORIAL PREPARATION STUDIO</span>
+            <div id="modeIndicatorDot" class="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></div>
+            <span id="studioTitle" class="font-bold text-slate-100 text-xs tracking-wider uppercase">// JOURNALIST PREPARATION STUDIO</span>
         </div>
 
-        <div id="statusHeader" class="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">
-            // READY FOR INCOMING MULTI-SOURCE DATA STREAM
+        <div class="flex items-center gap-4">
+            <!-- STATUS HEADER -->
+            <div id="statusHeader" class="text-[10px] font-mono text-cyan-500 uppercase tracking-widest hidden md:block">
+                // READY FOR INCOMING MULTI-SOURCE DATA STREAM
+            </div>
+
+            <!-- NOTIFICATION BUTTON (EDITOR FEEDBACK ALERT) -->
+            <button 
+                id="notificationBtn" 
+                onclick="switchToRevisionMode()" 
+                class="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/50 text-amber-400 font-mono text-xs px-3 py-1.5 rounded-md flex items-center gap-2 transition-all cursor-pointer shadow-lg animate-pulse"
+            >
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span>Editor sent feedback</span>
+                <span class="bg-amber-500 text-slate-950 text-[10px] font-bold px-1.5 py-0.2 rounded-full">1</span>
+            </button>
         </div>
     </header>
 
     <!-- MAIN WORKSPACE LAYOUT -->
     <main class="flex-1 flex gap-4 p-4 h-full overflow-hidden">
         
-        <!-- LEFT COLUMN: DYNAMIC STREAM PANEL -->
-        <div class="w-1/3 flex flex-col gap-3 h-full overflow-hidden shrink-0">
+        <!-- ========================================================= -->
+        <!-- LEFT COLUMN MODE 1: SCRAPED ANALYSIS STREAM (INITIAL MODE) -->
+        <!-- ========================================================= -->
+        <div id="scrapedStreamPanel" class="w-1/3 flex flex-col gap-3 h-full overflow-hidden shrink-0">
             
             <!-- OPERATOR PROFILE HEADER -->
             <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-3 flex items-center justify-between">
@@ -93,15 +132,14 @@
                 </div>
             </div>
 
-            <!-- SCRAPED ANALYSIS STREAM HEADER -->
+            <!-- SCRAPED STREAM HEADER -->
             <div class="flex items-center justify-between px-1">
                 <span class="text-xs font-bold text-amber-500 tracking-wider uppercase">// SCRAPED ANALYSIS STREAM</span>
                 <span class="text-[9px] text-slate-500 uppercase">Click item to transfer to editor</span>
             </div>
 
-            <!-- EMPTY SCROLLABLE DATA CONTAINER -->
-            <div id="streamDataContainer" class="flex-1 stream-scroll-panel rounded-xl p-3 overflow-y-auto space-y-3">
-                <!-- Data populated dynamically from Custom, Sport, Business, and Politics pages -->
+            <!-- SCROLLABLE DATA CONTAINER -->
+            <div id="streamDataContainer" class="flex-1 bg-slate-950/60 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-3">
                 <div class="text-slate-600 text-xs text-center py-10 font-mono">
                     // Awaiting stream data transfers...<br>
                     <span class="text-[10px] text-slate-700">Incoming payloads from domain modules will render here.</span>
@@ -109,29 +147,94 @@
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: EXPANDED EDITOR WORKSPACE -->
+
+        <!-- ========================================================= -->
+        <!-- LEFT COLUMN MODE 2: EDITOR FEEDBACK PANEL (REVISION MODE) -->
+        <!-- ========================================================= -->
+        <div id="editorFeedbackPanel" class="w-1/3 flex flex-col gap-3 h-full overflow-hidden shrink-0 hidden">
+            
+            <!-- OPERATOR INFO -->
+            <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-3 flex items-center justify-between">
+                <div>
+                    <span class="text-[9px] text-slate-500 uppercase tracking-widest block font-bold">// PREPARING JOURNALIST</span>
+                    <span class="text-xs font-bold text-slate-200">Amanuel Bekele Woldesenbet</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-[9px] text-red-400 font-mono block uppercase">REVISION DRAFT</span>
+                    <span class="text-[9px] text-slate-500">Editor Review V1</span>
+                </div>
+            </div>
+
+            <!-- READ-ONLY EDITOR GENERAL COMMENTS -->
+            <div class="bg-red-950/20 border border-red-900/40 rounded-xl p-3 flex flex-col gap-1.5 shrink-0">
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] text-red-400 uppercase tracking-widest font-bold flex items-center gap-1">
+                        💬 EDITOR GENERAL INSTRUCTIONS
+                    </span>
+                    <span class="text-[9px] text-slate-500">Just now</span>
+                </div>
+                <div id="editorCommentText" class="bg-slate-950/80 border border-slate-800 p-2.5 rounded text-xs text-slate-300 font-mono leading-relaxed">
+                    "Please remove the unverified maritime claim in paragraph 2. Also rephrase the final paragraph for clarity before resubmitting."
+                </div>
+            </div>
+
+            <!-- FLAGGED DIRECTIVES TRACKER -->
+            <div class="flex-1 bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex flex-col overflow-hidden">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+                    <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">// FLAGGED EDIT DIRECTIVES</span>
+                    <span id="pendingCount" class="text-[9px] font-mono text-red-400">2 Pending</span>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto space-y-2 pr-1">
+                    <!-- DIRECTIVE ITEM 1 (RED) -->
+                    <div id="card-directive-1" class="directive-card border-red-900/50">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 uppercase">
+                                REMOVE (RED)
+                            </span>
+                            <button onclick="resolveDirective('directive-1', true)" class="text-[10px] text-red-400 hover:underline cursor-pointer">Delete Text</button>
+                        </div>
+                        <p class="text-[11px] text-slate-300 italic mb-1">"Unverified maritime surveillance metrics suggested brief friction..."</p>
+                    </div>
+
+                    <!-- DIRECTIVE ITEM 2 (YELLOW) -->
+                    <div id="card-directive-2" class="directive-card border-yellow-900/50">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-yellow-950 text-yellow-400 border border-yellow-800 uppercase">
+                                REVISE EDIT (YELLOW)
+                            </span>
+                            <button onclick="resolveDirective('directive-2', false)" class="text-[10px] text-yellow-400 hover:underline cursor-pointer">Clear Highlight</button>
+                        </div>
+                        <p class="text-[11px] text-slate-300 italic mb-1">"Recommended adjustments should focus on refining real-time log outputs..."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETURN TO DRAFT VIEW BUTTON -->
+            <button onclick="switchToDraftMode()" class="text-[10px] text-slate-500 hover:text-slate-300 font-mono uppercase text-center py-1">
+                ← Back to Scraped Stream View
+            </button>
+        </div>
+
+        <!-- RIGHT COLUMN: EXPANDED EDITOR WORKSPACE (SHARED CANVAS) -->
         <div class="flex-1 flex flex-col h-full bg-slate-950/60 border border-slate-800 rounded-xl overflow-hidden relative">
             
             <!-- TOOLBAR -->
-            <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center gap-3 text-slate-300 select-none">
-                <button onclick="formatDoc('bold')" class="hover:text-cyan-400 font-bold px-2 py-1 rounded border border-transparent hover:border-slate-700 transition-all cursor-pointer">B</button>
-                <button onclick="formatDoc('italic')" class="hover:text-cyan-400 italic px-2 py-1 rounded border border-transparent hover:border-slate-700 transition-all cursor-pointer">I</button>
-                <button onclick="formatDoc('underline')" class="hover:text-cyan-400 underline px-2 py-1 rounded border border-transparent hover:border-slate-700 transition-all cursor-pointer">U</button>
-                <div class="h-4 w-px bg-slate-800 my-auto"></div>
-                <button onclick="formatDoc('justifyLeft')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">⯇</button>
-                <button onclick="formatDoc('justifyCenter')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">⯀</button>
-                <button onclick="formatDoc('justifyRight')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">⯈</button>
-                <div class="h-4 w-px bg-slate-800 my-auto"></div>
-                <button onclick="formatDoc('insertUnorderedList')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">• List</button>
-                <button onclick="formatDoc('insertOrderedList')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">1. List</button>
+            <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-slate-300 select-none">
+                <div class="flex items-center gap-3">
+                    <button onclick="document.execCommand('bold', false, null)" class="hover:text-cyan-400 font-bold px-2 py-1 rounded cursor-pointer">B</button>
+                    <button onclick="document.execCommand('italic', false, null)" class="hover:text-cyan-400 italic px-2 py-1 rounded cursor-pointer">I</button>
+                    <button onclick="document.execCommand('underline', false, null)" class="hover:text-cyan-400 underline px-2 py-1 rounded cursor-pointer">U</button>
+                </div>
+                <span id="toolbarNote" class="text-[10px] font-mono text-slate-400">// Draft Workspace</span>
             </div>
 
-            <!-- EXPANDED WHITE CANVAS AREA -->
+            <!-- WHITE PAPER CANVAS -->
             <div class="flex-1 bg-slate-950 p-6 overflow-y-auto flex justify-center">
                 <div 
                     id="editorialCanvas" 
                     contenteditable="true" 
-                    class="editor-paper w-full max-w-4xl min-h-[850px] p-10 rounded-md shadow-2xl focus:outline-none"
+                    class="editor-paper w-full max-w-4xl p-10 rounded-md shadow-2xl focus:outline-none"
                 >
                     <h1 class="text-2xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Global Trade Yield Shifts</h1>
                     <p class="text-slate-700 leading-relaxed text-sm">
@@ -140,26 +243,24 @@
                 </div>
             </div>
 
-            <!-- BOTTOM RIGHT CONTROLS: EDITORIAL PERSONNEL DISPATCH -->
+            <!-- BOTTOM RIGHT DYNAMIC DISPATCH CONTROLS -->
             <div class="absolute bottom-6 right-8 flex items-center gap-2 bg-slate-950/90 border border-slate-800 p-2 rounded-lg shadow-xl backdrop-blur-md">
                 <span class="text-[10px] text-slate-400 font-mono uppercase px-1">Assign to:</span>
                 
-                <!-- EDITORIAL PERSONNEL DROPDOWN -->
                 <select id="editorialPersonnelSelect" class="personnel-select cursor-pointer">
-                    <option value="" disabled selected>Select Editorial Personnel</option>
+                    <option value="" disabled selected>Select Personnel</option>
                     <option value="editor_chief">Senior Chief Editor</option>
                     <option value="editor_politics">Politics Desk Lead</option>
-                    <option value="editor_finance">Finance & Markets Editor</option>
-                    <option value="editor_sports">Sports Desk Lead</option>
-                    <option value="copy_editor">Copy Editing Desk</option>
+                    <option value="editor_finance">Finance Desk Lead</option>
                 </select>
 
-                <!-- SEND BUTTON -->
+                <!-- MAIN DYNAMIC BUTTON -->
                 <button 
-                    onclick="dispatchToEditorial()" 
+                    id="mainActionButton"
+                    onclick="dispatchAction()" 
                     class="bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider"
                 >
-                    <span>Send</span>
+                    <span id="actionBtnText">Send to Editorial Page</span>
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                     </svg>
@@ -168,66 +269,136 @@
         </div>
     </main>
 
-    <!-- SCRIPTS -->
+    <!-- LOGIC SCRIPTS -->
     <script>
-        // Formatting commands for Rich Text Editor
-        function formatDoc(cmd, value = null) {
-            document.execCommand(cmd, false, value);
+        let currentMode = 'PREPARATION'; // 'PREPARATION' or 'REVISION'
+        let pendingDirectives = 2;
+
+        // SWITCH TO REVISION MODE (Triggered by Notification Click)
+        function switchToRevisionMode() {
+            currentMode = 'REVISION';
+
+            // 1. Update Layout Panels
+            document.getElementById('scrapedStreamPanel').classList.add('hidden');
+            document.getElementById('editorFeedbackPanel').classList.remove('hidden');
+
+            // 2. Update Header & Indicators
+            document.getElementById('studioTitle').innerText = "// JOURNALIST STUDIO: REVISION MODE";
+            document.getElementById('modeIndicatorDot').className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
+            
+            const statusHeader = document.getElementById('statusHeader');
+            statusHeader.innerText = "// ACTION REQUIRED: EDITORIAL DIRECTIVES RETURNED";
+            statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
+
+            document.getElementById('toolbarNote').innerText = "// Clean highlighted text after resolving directives";
+
+            // 3. Mark Notification as Read
+            const notifBtn = document.getElementById('notificationBtn');
+            notifBtn.classList.remove('animate-pulse');
+            notifBtn.className = "bg-slate-900 border border-slate-800 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md flex items-center gap-2 cursor-default";
+            notifBtn.innerHTML = `
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>Revision Active</span>
+            `;
+
+            // 4. Update Main Dispatch Button for Resubmission
+            const mainBtn = document.getElementById('mainActionButton');
+            const btnText = document.getElementById('actionBtnText');
+            mainBtn.className = "bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
+            btnText.innerText = "Resubmit Draft";
+
+            // 5. Load Document with Editor Highlights onto Canvas
+            const canvas = document.getElementById('editorialCanvas');
+            canvas.innerHTML = `
+                <h1 class="text-2xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Global Trade Yield Shifts</h1>
+                
+                <p class="text-slate-700 leading-relaxed text-sm mb-4">
+                    Quarterly index indicates standard fluctuations across commodity supply routes. Data points collected via automated webhooks show steady output across key European corridors.
+                </p>
+
+                <p class="text-slate-700 leading-relaxed text-sm mb-4">
+                    <span id="directive-1" class="hl-red">Unverified maritime surveillance metrics suggested brief friction near coastal hubs, but these telemetry data points remain unconfirmed by local sector leads.</span>
+                </p>
+
+                <p class="text-slate-700 leading-relaxed text-sm">
+                    <span id="directive-2" class="hl-yellow">Recommended adjustments should focus on refining real-time log outputs before final broadcast dispatch.</span>
+                </p>
+            `;
         }
 
-        // Dispatch logic to selected Editorial Personnel
-        function dispatchToEditorial() {
+        // SWITCH BACK TO INITIAL PREPARATION DRAFT MODE
+        function switchToDraftMode() {
+            currentMode = 'PREPARATION';
+
+            document.getElementById('scrapedStreamPanel').classList.remove('hidden');
+            document.getElementById('editorFeedbackPanel').classList.add('hidden');
+
+            document.getElementById('studioTitle').innerText = "// JOURNALIST PREPARATION STUDIO";
+            document.getElementById('modeIndicatorDot').className = "w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse";
+            
+            const statusHeader = document.getElementById('statusHeader');
+            statusHeader.innerText = "// READY FOR INCOMING MULTI-SOURCE DATA STREAM";
+            statusHeader.className = "text-[10px] font-mono text-cyan-500 uppercase tracking-widest";
+
+            document.getElementById('toolbarNote').innerText = "// Draft Workspace";
+
+            const mainBtn = document.getElementById('mainActionButton');
+            const btnText = document.getElementById('actionBtnText');
+            mainBtn.className = "bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
+            btnText.innerText = "Send to Editorial Page";
+        }
+
+        // RESOLVE FLAGGED DIRECTIVES
+        function resolveDirective(id, isDelete) {
+            const target = document.getElementById(id);
+            const card = document.getElementById(`card-${id}`);
+
+            if (target) {
+                if (isDelete) {
+                    target.remove();
+                } else {
+                    const parent = target.parentNode;
+                    while (target.firstChild) {
+                        parent.insertBefore(target.firstChild, target);
+                    }
+                    parent.removeChild(target);
+                }
+            }
+
+            if (card) {
+                card.style.opacity = '0.3';
+                card.style.pointerEvents = 'none';
+                card.querySelector('p').innerHTML += ' <span class="text-emerald-400 font-bold font-mono">(RESOLVED)</span>';
+            }
+
+            pendingDirectives = Math.max(0, pendingDirectives - 1);
+            const label = document.getElementById('pendingCount');
+            if (label) {
+                label.innerText = `${pendingDirectives} Pending`;
+                if (pendingDirectives === 0) {
+                    label.className = "text-[9px] font-mono text-emerald-400";
+                    label.innerText = "All Resolved";
+                }
+            }
+        }
+
+        // MAIN BUTTON DISPATCH ACTION
+        function dispatchAction() {
             const select = document.getElementById('editorialPersonnelSelect');
             const personnel = select.options[select.selectedIndex]?.text;
-            const statusHeader = document.getElementById('statusHeader');
 
             if (!select.value) {
-                alert("Please select an editorial personnel before sending.");
+                alert("Please select an editorial personnel target.");
                 return;
             }
 
-            if (statusHeader) {
-                statusHeader.innerText = `// SUCCESS: DISPATCHED TO ${personnel.toUpperCase()}`;
-                statusHeader.classList.remove('text-cyan-500');
-                statusHeader.classList.add('text-emerald-400');
+            if (currentMode === 'REVISION') {
+                alert(`Revised draft successfully sent back to ${personnel}.`);
+            } else {
+                alert(`Initial draft dispatched to ${personnel}.`);
             }
-
-            alert(`Article successfully dispatched to ${personnel}.`);
-        }
-
-        // Helper function to append incoming items from other domain pages
-        window.receiveStreamPayload = function(dataArray) {
-            const container = document.getElementById('streamDataContainer');
-            if (!container || !dataArray.length) return;
-
-            let html = '';
-            dataArray.forEach(item => {
-                html += `
-                    <div class="stream-card" onclick="transferToEditor('${escapeHtml(item.title)}', '${escapeHtml(item.content)}')">
-                        <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 uppercase inline-block mb-2">
-                            ${item.category || 'STREAM DATA'}
-                        </span>
-                        <h4 class="text-xs font-bold text-slate-200 mb-1">${item.title}</h4>
-                        <p class="text-[11px] text-slate-400 line-clamp-2">${item.content}</p>
-                        <span class="text-[9px] text-slate-600 block mt-2 text-right">${item.time || 'Just now'}</span>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        };
-
-        function transferToEditor(title, content) {
-            const editor = document.getElementById('editorialCanvas');
-            if (editor) {
-                editor.innerHTML += `
-                    <h2 class="text-xl font-bold text-slate-900 mt-6 mb-2">${title}</h2>
-                    <p class="text-slate-700 leading-relaxed text-sm">${content}</p>
-                `;
-            }
-        }
-
-        function escapeHtml(text) {
-            return String(text).replace(/'/g, "\\'").replace(/"/g, '&quot;');
         }
     </script>
 </body>
