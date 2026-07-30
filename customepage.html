@@ -727,9 +727,47 @@
             if (statusLog) statusLog.innerText = `// RESTORED PURGED RECORD #${last.index}`;
         };
 
-        window.downloadAsPdf = function() {
-            window.print();
-        };
+       window.downloadAsPdf = function() {
+    let scrapedPayload = [];
+
+    // 1. Try in-memory cached stream first
+    if (typeof cachedDataStream !== 'undefined' && Array.isArray(cachedDataStream) && cachedDataStream.length > 0) {
+        scrapedPayload = cachedDataStream;
+    } else {
+        // 2. Fallback: Parse visible result cards directly from DOM
+        const cards = document.querySelectorAll('#unifiedResultsConsole .result-card');
+        cards.forEach((card, idx) => {
+            const badge = card.querySelector('span');
+            const img = card.querySelector('img');
+            const paragraphs = card.querySelectorAll('p');
+            const titleEl = card.querySelector('.text-cyan-300');
+            const link = card.querySelector('a');
+
+            let contentText = '';
+            paragraphs.forEach(p => contentText += p.innerText + ' ');
+
+            scrapedPayload.push({
+                id: idx,
+                sourceName: badge ? badge.innerText.trim() : 'SCRAPED SOURCE',
+                title: titleEl ? titleEl.innerText.trim() : '',
+                news: contentText.trim(),
+                imageUrl: img ? img.src : null,
+                url: link ? link.href : null
+            });
+        });
+    }
+
+    if (scrapedPayload.length === 0) {
+        alert('No scraped data found to send to Preparation Studio!');
+        return;
+    }
+
+    // 3. Store payload into sessionStorage
+    sessionStorage.setItem('scrapedStreamData', JSON.stringify(scrapedPayload));
+
+    // 4. Redirect to prepare.html
+    window.location.href = 'prepare.html';
+};
     </script>
 </body>
 </html>
