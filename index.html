@@ -3,403 +3,677 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Journalist Preparation Studio</title>
+    <title>Custom Gateway | Terminal Hub</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body { 
-            margin: 0; 
-            color: #f1f5f9; 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            background-color: #030712; 
-            overflow: hidden; 
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; 
-        }
-        
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #010206; position: relative; overflow: hidden; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
 
-        /* Rich Text Editor Paper */
-        .editor-paper {
-            background-color: #ffffff;
-            color: #0f172a;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            min-height: 850px;
+        /* Crisp Fullscreen Background Canvas */
+        .governance-bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-out;
         }
 
-        /* Stream Cards */
-        .stream-card {
-            background: #090d16;
-            border: 1px solid #1e293b;
-            border-radius: 6px;
-            padding: 12px;
+        /* Smooth UI entry fade */
+        #dashboardContent {
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            pointer-events: none;
+        }
+        #dashboardContent.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Routing Domain Buttons */
+        .domain-btn {
+            display: inline-block;
+            text-align: center;
+            background-color: #050b18;
+            border: 1px solid #06b6d4;
+            color: #22d3ee;
+            border-radius: 0.5rem;
+            padding: 0.4rem 1rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             transition: all 0.2s ease;
             cursor: pointer;
         }
-        .stream-card:hover {
-            border-color: #06b6d4;
-            background: #0f172a;
+        .domain-btn:hover {
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
         }
 
-        /* Editor Highlight Styles in Canvas */
-        .hl-red {
-            background-color: #fecaca;
-            color: #991b1b;
-            border-bottom: 2px solid #ef4444;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-
-        .hl-yellow {
-            background-color: #fef08a;
-            color: #854d0e;
-            border-bottom: 2px solid #eab308;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-
-        .directive-card {
-            background: #090d16;
+        /* Left Control Tiles */
+        .compact-tile {
+            background: linear-gradient(180deg, #060b18 0%, #02040a 100%);
             border: 1px solid #1e293b;
-            border-radius: 6px;
-            padding: 10px;
-            font-size: 11px;
+            transition: border-color 0.2s ease;
+        }
+        .compact-tile:hover {
+            border-color: #334155;
         }
 
-        .personnel-select {
-            background-color: #090d16;
-            border: 1px solid #06b6d4;
-            color: #38bdf8;
+        /* Input Styling */
+        .terminal-input {
+            background-color: #02050c;
+            border: 1px solid #334155;
+            color: #f1f5f9;
             font-family: monospace;
             font-size: 11px;
-            border-radius: 6px;
-            padding: 6px 10px;
+            transition: all 0.2s ease;
+        }
+        .terminal-input:focus {
             outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+        }
+
+        /* Language Filter Buttons Layout */
+        .ensemble-btn {
+            background-color: #16224f;
+            border: 2.5px solid #2563eb;
+            color: #3b82f6;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+        }
+        .ensemble-btn:hover:not(:disabled) {
+            border-color: #60a5fa;
+            color: #60a5fa;
+        }
+
+        .lang-checkbox-btn {
+            background-color: #030712;
+            border: 1.5px solid #1e293b;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            letter-spacing: 0.05em;
+        }
+        .lang-checkbox-btn:hover:not(:disabled) {
+            border-color: #334155;
+            color: #cbd5e1;
+        }
+        .lang-checkbox-btn.active {
+            border-color: #1d4ed8;
+            color: #3b82f6;
+            background-color: #070f2e;
+        }
+        .custom-box {
+            width: 11px;
+            height: 11px;
+            border-radius: 2px;
+            background-color: #0f172a;
+            border: 1px solid #475569;
+            transition: all 0.15s ease;
+            display: inline-block;
+        }
+        .lang-checkbox-btn.active .custom-box {
+            background-color: #ffffff;
+            border-color: #ffffff;
+        }
+
+        /* FULLSCREEN LOADING OVERLAY */
+        .terminal-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            font-family: monospace;
+            border: 4px solid #2563eb; 
+            display: none; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading-alert-text {
+            color: #dc2626; 
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            animation: terminalPulse 1.4s infinite;
+        }
+
+        .tactical-track {
+            width: 280px;
+            height: 6px;
+            background: #e2e8f0; 
+            margin-top: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 3px;
+        }
+        .tactical-scanner {
+            width: 100px;
+            height: 100%;
+            background: #2563eb; 
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.6);
+            position: absolute;
+            top: 0;
+            animation: radarSweep 1.3s linear infinite;
+        }
+
+        /* RESULTS CARD SYSTEM */
+        .result-card {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            padding: 14px;
+            background: rgba(15, 23, 42, 0.45);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+            margin-bottom: 12px;
+        }
+        .result-card:hover {
+            border-color: #06b6d4;
+            background: rgba(15, 23, 42, 0.7);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.05);
+        }
+
+        @keyframes terminalPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        @keyframes radarSweep {
+            0% { left: -110px; }
+            100% { left: 310px; }
+        }
+
+        button:disabled, 
+        input:disabled, 
+        a.domain-btn.disabled-link {
+            opacity: 0.35 !important;
+            cursor: not-allowed !important;
+            pointer-events: none !important;
         }
     </style>
 </head>
-<body class="bg-[#030712]">
+<body class="font-sans bg-[#010206]">
 
-    <!-- TOP BAR / HEADER -->
-    <header class="bg-slate-950 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none">
-        <div class="flex items-center gap-3">
-            <div id="modeIndicatorDot" class="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></div>
-            <span id="studioTitle" class="font-bold text-slate-100 text-xs tracking-wider uppercase">// JOURNALIST PREPARATION STUDIO</span>
-        </div>
-
-        <div class="flex items-center gap-4">
-            <!-- STATUS HEADER -->
-            <div id="statusHeader" class="text-[10px] font-mono text-cyan-500 uppercase tracking-widest hidden md:block">
-                // READY FOR INCOMING MULTI-SOURCE DATA STREAM
-            </div>
-
-            <!-- NOTIFICATION BUTTON (EDITOR FEEDBACK ALERT) -->
-            <button 
-                id="notificationBtn" 
-                onclick="switchToRevisionMode()" 
-                class="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/50 text-amber-400 font-mono text-xs px-3 py-1.5 rounded-md flex items-center gap-2 transition-all cursor-pointer shadow-lg animate-pulse"
-            >
-                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-                <span>Editor sent feedback</span>
-                <span class="bg-amber-500 text-slate-950 text-[10px] font-bold px-1.5 py-0.2 rounded-full">1</span>
-            </button>
-        </div>
-    </header>
-
-    <!-- MAIN WORKSPACE LAYOUT -->
-    <main class="flex-1 flex gap-4 p-4 h-full overflow-hidden">
+    <!-- FIXED FULLSCREEN LOADING OVERLAY -->
+    <div id="terminalLoader" class="terminal-loading-overlay">
+        <div class="text-[12px] text-slate-900 font-bold tracking-wider" id="loaderHeader">// INITIALIZING INTERCEPT SEQUENCES...</div>
+        <div class="loading-alert-text text-[11px] mt-1.5" id="loaderSubheader">SYSTEM STATE: WAITING FOR N8N WEBHOOK RESPONSE...</div>
         
-        <!-- ========================================================= -->
-        <!-- LEFT COLUMN MODE 1: SCRAPED ANALYSIS STREAM (INITIAL MODE) -->
-        <!-- ========================================================= -->
-        <div id="scrapedStreamPanel" class="w-1/3 flex flex-col gap-3 h-full overflow-hidden shrink-0">
-            
-            <!-- OPERATOR PROFILE HEADER -->
-            <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-3 flex items-center justify-between">
-                <div>
-                    <span class="text-[9px] text-slate-500 uppercase tracking-widest block font-bold">// ACTIVE OPERATOR</span>
-                    <span class="text-xs font-bold text-slate-200">Amanuel Bekele Woldesenbet</span>
-                </div>
-                <div class="text-right">
-                    <span class="text-[9px] text-cyan-500 font-mono block uppercase">CONNECTED</span>
-                    <span class="text-[9px] text-slate-500">Live Hub Sync</span>
-                </div>
-            </div>
-
-            <!-- SCRAPED STREAM HEADER -->
-            <div class="flex items-center justify-between px-1">
-                <span class="text-xs font-bold text-amber-500 tracking-wider uppercase">// SCRAPED ANALYSIS STREAM</span>
-                <span class="text-[9px] text-slate-500 uppercase">Click item to transfer to editor</span>
-            </div>
-
-            <!-- SCROLLABLE DATA CONTAINER -->
-            <div id="streamDataContainer" class="flex-1 bg-slate-950/60 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-3">
-                <div class="text-slate-600 text-xs text-center py-10 font-mono">
-                    // Awaiting stream data transfers...<br>
-                    <span class="text-[10px] text-slate-700">Incoming payloads from domain modules will render here.</span>
-                </div>
-            </div>
+        <div class="tactical-track">
+            <div class="tactical-scanner"></div>
         </div>
+        
+        <div class="text-[9px] text-slate-400 uppercase tracking-widest font-bold">// SECURE NETWORK GATEWAY PIPELINE IN OPERATION</div>
+    </div>
 
+    <canvas class="governance-bg-canvas" id="governanceCanvas"></canvas>
 
-        <!-- ========================================================= -->
-        <!-- LEFT COLUMN MODE 2: EDITOR FEEDBACK PANEL (REVISION MODE) -->
-        <!-- ========================================================= -->
-        <div id="editorFeedbackPanel" class="w-1/3 flex flex-col gap-3 h-full overflow-hidden shrink-0 hidden">
-            
-            <!-- OPERATOR INFO -->
-            <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-3 flex items-center justify-between">
+    <div id="dashboardContent" class="relative z-10 flex flex-col h-full w-full">
+        
+        <!-- HEADER -->
+        <header class="bg-slate-950/80 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none backdrop-blur-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded bg-cyan-600 flex items-center justify-center font-bold text-[10px] border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]">TG</div>
                 <div>
-                    <span class="text-[9px] text-slate-500 uppercase tracking-widest block font-bold">// PREPARING JOURNALIST</span>
-                    <span class="text-xs font-bold text-slate-200">Amanuel Bekele Woldesenbet</span>
+                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Custom Terminal Gateway</span>
                 </div>
+            </div>
+
+            <div class="flex items-center gap-2" id="topDomainNav">
+                <a href="business and finance.html" class="domain-btn">Business & Finance</a>
+                <a href="sport.html" class="domain-btn">Sport</a>
+                <a href="World Politics and Governance.html" class="domain-btn">Politics & Governance</a>
+            </div>
+
+            <div class="flex items-center gap-4 border-l border-slate-800 pl-4">
                 <div class="text-right">
-                    <span class="text-[9px] text-red-400 font-mono block uppercase">REVISION DRAFT</span>
-                    <span class="text-[9px] text-slate-500">Editor Review V1</span>
+                    <span class="block text-[11px] font-mono font-semibold text-slate-300">Amanuel Bekele Woldesenbet</span>
+                    <span class="block text-[9px] font-mono text-cyan-500 uppercase tracking-wider">// Operator Profile</span>
                 </div>
-            </div>
-
-            <!-- READ-ONLY EDITOR GENERAL COMMENTS -->
-            <div class="bg-red-950/20 border border-red-900/40 rounded-xl p-3 flex flex-col gap-1.5 shrink-0">
-                <div class="flex items-center justify-between">
-                    <span class="text-[9px] text-red-400 uppercase tracking-widest font-bold flex items-center gap-1">
-                        💬 EDITOR GENERAL INSTRUCTIONS
-                    </span>
-                    <span class="text-[9px] text-slate-500">Just now</span>
-                </div>
-                <div id="editorCommentText" class="bg-slate-950/80 border border-slate-800 p-2.5 rounded text-xs text-slate-300 font-mono leading-relaxed">
-                    "Please remove the unverified maritime claim in paragraph 2. Also rephrase the final paragraph for clarity before resubmitting."
-                </div>
-            </div>
-
-            <!-- FLAGGED DIRECTIVES TRACKER -->
-            <div class="flex-1 bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex flex-col overflow-hidden">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
-                    <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">// FLAGGED EDIT DIRECTIVES</span>
-                    <span id="pendingCount" class="text-[9px] font-mono text-red-400">2 Pending</span>
-                </div>
-                
-                <div class="flex-1 overflow-y-auto space-y-2 pr-1">
-                    <!-- DIRECTIVE ITEM 1 (RED) -->
-                    <div id="card-directive-1" class="directive-card border-red-900/50">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 uppercase">
-                                REMOVE (RED)
-                            </span>
-                            <button onclick="resolveDirective('directive-1', true)" class="text-[10px] text-red-400 hover:underline cursor-pointer">Delete Text</button>
-                        </div>
-                        <p class="text-[11px] text-slate-300 italic mb-1">"Unverified maritime surveillance metrics suggested brief friction..."</p>
-                    </div>
-
-                    <!-- DIRECTIVE ITEM 2 (YELLOW) -->
-                    <div id="card-directive-2" class="directive-card border-yellow-900/50">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-yellow-950 text-yellow-400 border border-yellow-800 uppercase">
-                                REVISE EDIT (YELLOW)
-                            </span>
-                            <button onclick="resolveDirective('directive-2', false)" class="text-[10px] text-yellow-400 hover:underline cursor-pointer">Clear Highlight</button>
-                        </div>
-                        <p class="text-[11px] text-slate-300 italic mb-1">"Recommended adjustments should focus on refining real-time log outputs..."</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RETURN TO DRAFT VIEW BUTTON -->
-            <button onclick="switchToDraftMode()" class="text-[10px] text-slate-500 hover:text-slate-300 font-mono uppercase text-center py-1">
-                ← Back to Scraped Stream View
-            </button>
-        </div>
-
-        <!-- RIGHT COLUMN: EXPANDED EDITOR WORKSPACE (SHARED CANVAS) -->
-        <div class="flex-1 flex flex-col h-full bg-slate-950/60 border border-slate-800 rounded-xl overflow-hidden relative">
-            
-            <!-- TOOLBAR -->
-            <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-slate-300 select-none">
-                <div class="flex items-center gap-3">
-                    <button onclick="document.execCommand('bold', false, null)" class="hover:text-cyan-400 font-bold px-2 py-1 rounded cursor-pointer">B</button>
-                    <button onclick="document.execCommand('italic', false, null)" class="hover:text-cyan-400 italic px-2 py-1 rounded cursor-pointer">I</button>
-                    <button onclick="document.execCommand('underline', false, null)" class="hover:text-cyan-400 underline px-2 py-1 rounded cursor-pointer">U</button>
-                </div>
-                <span id="toolbarNote" class="text-[10px] font-mono text-slate-400">// Draft Workspace</span>
-            </div>
-
-            <!-- WHITE PAPER CANVAS -->
-            <div class="flex-1 bg-slate-950 p-6 overflow-y-auto flex justify-center">
-                <div 
-                    id="editorialCanvas" 
-                    contenteditable="true" 
-                    class="editor-paper w-full max-w-4xl p-10 rounded-md shadow-2xl focus:outline-none"
-                >
-                    <h1 class="text-2xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Global Trade Yield Shifts</h1>
-                    <p class="text-slate-700 leading-relaxed text-sm">
-                        Quarterly index indicates standard fluctuations across commodity supply routes. Data points collected via automated webhooks.
-                    </p>
-                </div>
-            </div>
-
-            <!-- BOTTOM RIGHT DYNAMIC DISPATCH CONTROLS -->
-            <div class="absolute bottom-6 right-8 flex items-center gap-2 bg-slate-950/90 border border-slate-800 p-2 rounded-lg shadow-xl backdrop-blur-md">
-                <span class="text-[10px] text-slate-400 font-mono uppercase px-1">Assign to:</span>
-                
-                <select id="editorialPersonnelSelect" class="personnel-select cursor-pointer">
-                    <option value="" disabled selected>Select Personnel</option>
-                    <option value="editor_chief">Senior Chief Editor</option>
-                    <option value="editor_politics">Politics Desk Lead</option>
-                    <option value="editor_finance">Finance Desk Lead</option>
-                </select>
-
-                <!-- MAIN DYNAMIC BUTTON -->
-                <button 
-                    id="mainActionButton"
-                    onclick="dispatchAction()" 
-                    class="bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider"
-                >
-                    <span id="actionBtnText">Send to Editorial Page</span>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                    </svg>
+                <button id="btn-sign-out" onclick="location.reload();" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5 py-1.5 rounded transition-all uppercase cursor-pointer">
+                    Sign Out
                 </button>
             </div>
-        </div>
-    </main>
+        </header>
 
-    <!-- LOGIC SCRIPTS -->
-    <script>
-        let currentMode = 'PREPARATION'; // 'PREPARATION' or 'REVISION'
-        let pendingDirectives = 2;
-
-        // SWITCH TO REVISION MODE (Triggered by Notification Click)
-        function switchToRevisionMode() {
-            currentMode = 'REVISION';
-
-            // 1. Update Layout Panels
-            document.getElementById('scrapedStreamPanel').classList.add('hidden');
-            document.getElementById('editorFeedbackPanel').classList.remove('hidden');
-
-            // 2. Update Header & Indicators
-            document.getElementById('studioTitle').innerText = "// JOURNALIST STUDIO: REVISION MODE";
-            document.getElementById('modeIndicatorDot').className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
+        <!-- DASHBOARD GRID -->
+        <main class="flex-1 flex gap-3 p-3 h-full overflow-hidden">
             
-            const statusHeader = document.getElementById('statusHeader');
-            statusHeader.innerText = "// ACTION REQUIRED: EDITORIAL DIRECTIVES RETURNED";
-            statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
+            <!-- LEFT COLUMN: CONTROL TARGETS -->
+            <div class="w-1/4 flex flex-col gap-3.5 overflow-y-auto pr-1 select-none shrink-0">
+                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Strait of Hormuz</h2>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="input-hormuz" placeholder="Maritime query..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button id="btn-hormuz-go" onclick="triggerUnifiedSearch('Strait of Hormuz', 'input-hormuz')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                    </div>
+                    <button id="btn-hormuz-new" onclick="triggerAnythingNew('Strait of Hormuz')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Anything New
+                    </button>
+                </section>
 
-            document.getElementById('toolbarNote').innerText = "// Clean highlighted text after resolving directives";
+                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Trump Watch Matrix</h2>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="input-trump" placeholder="Policy matrix..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button id="btn-trump-go" onclick="triggerUnifiedSearch('Trump Watch', 'input-trump')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                    </div>
+                    <button id="btn-trump-new" onclick="triggerAnythingNew('Trump Watch')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Anything New
+                    </button>
+                </section>
 
-            // 3. Mark Notification as Read
-            const notifBtn = document.getElementById('notificationBtn');
-            notifBtn.classList.remove('animate-pulse');
-            notifBtn.className = "bg-slate-900 border border-slate-800 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md flex items-center gap-2 cursor-default";
-            notifBtn.innerHTML = `
-                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                <span>Revision Active</span>
-            `;
+                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Grand Ethiopian Dam (GERD)</h2>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="input-gerd" placeholder="Riparian terms..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button id="btn-gerd-go" onclick="triggerUnifiedSearch('GERD', 'input-gerd')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                    </div>
+                    <button id="btn-gerd-new" onclick="triggerAnythingNew('GERD')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Anything New
+                    </button>
+                </section>
 
-            // 4. Update Main Dispatch Button for Resubmission
-            const mainBtn = document.getElementById('mainActionButton');
-            const btnText = document.getElementById('actionBtnText');
-            mainBtn.className = "bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
-            btnText.innerText = "Resubmit Draft";
+                <section class="compact-tile rounded-xl p-4 flex flex-col gap-3">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Ethiopia Sovereign Core</h2>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="input-ethiopia" placeholder="National filters..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
+                        <button id="btn-ethiopia-go" onclick="triggerUnifiedSearch('Ethiopia Core', 'input-ethiopia')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                    </div>
+                    <button id="btn-ethiopia-new" onclick="triggerAnythingNew('Ethiopia Core')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                        ✨ Anything New
+                    </button>
+                </section>
+            </div>
 
-            // 5. Load Document with Editor Highlights onto Canvas
-            const canvas = document.getElementById('editorialCanvas');
-            canvas.innerHTML = `
-                <h1 class="text-2xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Global Trade Yield Shifts</h1>
-                
-                <p class="text-slate-700 leading-relaxed text-sm mb-4">
-                    Quarterly index indicates standard fluctuations across commodity supply routes. Data points collected via automated webhooks show steady output across key European corridors.
-                </p>
+            <!-- RIGHT COLUMN: CENTRAL MONITOR (RESULTS) -->
+            <div class="flex-1 flex flex-col justify-between bg-slate-950/70 rounded-xl p-4 border border-cyan-900/40 h-full overflow-hidden backdrop-blur-xs relative">
 
-                <p class="text-slate-700 leading-relaxed text-sm mb-4">
-                    <span id="directive-1" class="hl-red">Unverified maritime surveillance metrics suggested brief friction near coastal hubs, but these telemetry data points remain unconfirmed by local sector leads.</span>
-                </p>
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
+                    <div class="flex items-center gap-2 shrink-0">
+                        <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></div>
+                        <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">Central Stream Monitor</span>
+                    </div>
 
-                <p class="text-slate-700 leading-relaxed text-sm">
-                    <span id="directive-2" class="hl-yellow">Recommended adjustments should focus on refining real-time log outputs before final broadcast dispatch.</span>
-                </p>
-            `;
-        }
+                    <!-- CONTROL PANEL FOR ENSEMBLES -->
+                    <div class="flex items-center gap-2 justify-center flex-1 mx-4" id="languageContainer">
+                        <button onclick="toggleSelectAllEnsembles()" id="btn-select-all" class="ensemble-btn uppercase">Select All Ensembles</button>
+                        
+                        <button onclick="toggleLangCheckbox('OROMIFFA')" id="lang-OROMIFFA" class="lang-checkbox-btn active"><span class="custom-box"></span> OROMIFFA</button>
+                        <button onclick="toggleLangCheckbox('AMHARIC')" id="lang-AMHARIC" class="lang-checkbox-btn active"><span class="custom-box"></span> AMHARIC</button>
+                        <button onclick="toggleLangCheckbox('ENGLISH')" id="lang-ENGLISH" class="lang-checkbox-btn active"><span class="custom-box"></span> ENGLISH</button>
+                        <button onclick="toggleLangCheckbox('ARABIC')" id="lang-ARABIC" class="lang-checkbox-btn"><span class="custom-box"></span> ARABIC</button>
+                    </div>
 
-        // SWITCH BACK TO INITIAL PREPARATION DRAFT MODE
-        function switchToDraftMode() {
-            currentMode = 'PREPARATION';
+                    <div class="text-right text-[10px] font-mono text-slate-600 select-none shrink-0">// CAPTURE MATRICES</div>
+                </div>
 
-            document.getElementById('scrapedStreamPanel').classList.remove('hidden');
-            document.getElementById('editorFeedbackPanel').classList.add('hidden');
+                <div id="unifiedResultsConsole" class="flex-1 overflow-y-auto font-mono text-xs text-slate-400 bg-slate-950/40 border border-slate-900/60 rounded-md p-3 space-y-3">
+                    <div class="text-slate-500 tracking-wide">// System online. Direct n8n webhook listener ready. Trigger any module to fetch live stream...</div>
+                </div>
 
-            document.getElementById('studioTitle').innerText = "// JOURNALIST PREPARATION STUDIO";
-            document.getElementById('modeIndicatorDot').className = "w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse";
+                <!-- BOTTOM FOOTER -->
+                <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
+                    
+                    <div class="flex gap-2">
+                        <button id="btn-restore-log" onclick="restoreLastDeleted()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md cursor-pointer transition-all tracking-wide uppercase hidden">
+                            ⟲ Restore Deleted
+                        </button>
+                        <button id="btn-download-logs" onclick="downloadAsPdf()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
+                            Download A4 PDF Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="bg-slate-950 border-t border-slate-800 px-4 py-1.5 font-mono text-[10px] text-cyan-500 flex items-center justify-between shrink-0">
+            <div id="statusConsole">// MONITOR HUB ACTIVE: System initialized.</div>
+            <div class="text-slate-600 select-none text-[9px]">GATEWAY INTERFACE v5.5</div>
+        </footer>
+    </div>
+
+    <!-- ENGINE SCRIPTS -->
+    <script type="module">
+        import { N8N_GATEWAY_WEBHOOK } from './config.js';
+        
+        console.log("// TERMINAL HUB: Webhook configured:", N8N_GATEWAY_WEBHOOK);
+
+        // Dynamic state management
+        let cachedDataStream = [];
+        let deletedCardsHistory = [];
+        const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
+
+        // Initialize Canvas matrix effect safely after DOM ready
+        function setupCanvasAnimation() {
+            const canvas = document.getElementById('governanceCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
             
-            const statusHeader = document.getElementById('statusHeader');
-            statusHeader.innerText = "// READY FOR INCOMING MULTI-SOURCE DATA STREAM";
-            statusHeader.className = "text-[10px] font-mono text-cyan-500 uppercase tracking-widest";
+            function sizeCanvas() { 
+                canvas.width = window.innerWidth; 
+                canvas.height = window.innerHeight; 
+                initMatrixGrid();
+            }
 
-            document.getElementById('toolbarNote').innerText = "// Draft Workspace";
+            const tokenChars = ['0', '1', 'X', 'A', 'F', '9', '4', 'C', '2', 'E', 'B', '7', 'Z', 'M', 'V', 'K'];
+            let particles = [];
 
-            const mainBtn = document.getElementById('mainActionButton');
-            const btnText = document.getElementById('actionBtnText');
-            mainBtn.className = "bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
-            btnText.innerText = "Send to Editorial Page";
-        }
+            function initMatrixGrid() {
+                particles = [];
+                const columns = Math.ceil(canvas.width / 22);
+                const rows = Math.ceil(canvas.height / 22);
 
-        // RESOLVE FLAGGED DIRECTIVES
-        function resolveDirective(id, isDelete) {
-            const target = document.getElementById(id);
-            const card = document.getElementById(`card-${id}`);
-
-            if (target) {
-                if (isDelete) {
-                    target.remove();
-                } else {
-                    const parent = target.parentNode;
-                    while (target.firstChild) {
-                        parent.insertBefore(target.firstChild, target);
+                for (let c = 0; c < columns; c++) {
+                    for (let r = 0; r < rows; r++) {
+                        particles.push({
+                            x: c * 22 + 8,
+                            y: r * 22 + 14,
+                            char: tokenChars[Math.floor(Math.random() * tokenChars.length)],
+                            size: Math.random() > 0.5 ? 9 : 10
+                        });
                     }
-                    parent.removeChild(target);
                 }
             }
 
-            if (card) {
-                card.style.opacity = '0.3';
-                card.style.pointerEvents = 'none';
-                card.querySelector('p').innerHTML += ' <span class="text-emerald-400 font-bold font-mono">(RESOLVED)</span>';
-            }
+            sizeCanvas(); 
+            window.addEventListener('resize', sizeCanvas);
 
-            pendingDirectives = Math.max(0, pendingDirectives - 1);
-            const label = document.getElementById('pendingCount');
-            if (label) {
-                label.innerText = `${pendingDirectives} Pending`;
-                if (pendingDirectives === 0) {
-                    label.className = "text-[9px] font-mono text-emerald-400";
-                    label.innerText = "All Resolved";
+            let animationFrameId;
+            let startTimestamp = null;
+            let panelsRevealed = false;
+            let canvasCleanedUp = false;
+
+            function runStaticGlitchField(timestamp) {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const elapsed = timestamp - startTimestamp;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#06b6d4';
+                ctx.fillStyle = 'rgba(34, 211, 238, 0.75)';
+
+                particles.forEach(p => {
+                    ctx.font = `bold ${p.size}px monospace`;
+                    if (Math.random() < 0.08) {
+                        p.char = tokenChars[Math.floor(Math.random() * tokenChars.length)];
+                    }
+                    ctx.fillText(p.char, p.x, p.y);
+                });
+
+                if (!panelsRevealed && elapsed >= 2000) {
+                    panelsRevealed = true;
+                    const dashContent = document.getElementById('dashboardContent');
+                    if (dashContent) dashContent.classList.add('visible');
                 }
+
+                if (elapsed >= 4000) {
+                    if (!canvasCleanedUp) {
+                        canvasCleanedUp = true;
+                        canvas.style.opacity = '0';
+                        setTimeout(() => {
+                            canvas.style.display = 'none';
+                            cancelAnimationFrame(animationFrameId);
+                        }, 500); 
+                    }
+                    return;
+                }
+
+                animationFrameId = requestAnimationFrame(runStaticGlitchField);
             }
+            
+            animationFrameId = requestAnimationFrame(runStaticGlitchField);
         }
 
-        // MAIN BUTTON DISPATCH ACTION
-        function dispatchAction() {
-            const select = document.getElementById('editorialPersonnelSelect');
-            const personnel = select.options[select.selectedIndex]?.text;
+        // Run animation setup on DOM load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupCanvasAnimation);
+        } else {
+            setupCanvasAnimation();
+        }
 
-            if (!select.value) {
-                alert("Please select an editorial personnel target.");
-                return;
+        // Helper functions
+        function getSelectedDashboardLanguages() {
+            return Object.keys(activeLanguages).filter(langKey => activeLanguages[langKey]);
+        }
+
+        // Processing status handler
+        window.setGlobalProcessingState = function(isProcessing, processingType = "standard") {
+            const overlay = document.getElementById('terminalLoader');
+            const loaderHeader = document.getElementById('loaderHeader');
+            const loaderSubheader = document.getElementById('loaderSubheader');
+
+            if (overlay) {
+                if (isProcessing) {
+                    if (processingType === "language") {
+                        if (loaderHeader) loaderHeader.innerText = "// RE-CONFIGURING ENSEMBLES & RE-GENERATING DATASET...";
+                        if (loaderSubheader) loaderSubheader.innerText = "SYSTEM STATE: TRANSLATING FEED RECORDS - PLEASE WAIT...";
+                    } else {
+                        if (loaderHeader) loaderHeader.innerText = "// INITIALIZING INTERCEPT SEQUENCES...";
+                        if (loaderSubheader) loaderSubheader.innerText = "SYSTEM STATE: WAITING FOR N8N RESPONSE...";
+                    }
+                    overlay.style.display = 'flex';
+                } else {
+                    overlay.style.display = 'none';
+                }
             }
 
-            if (currentMode === 'REVISION') {
-                alert(`Revised draft successfully sent back to ${personnel}.`);
+            const inputs = document.querySelectorAll('input');
+            const buttons = document.querySelectorAll('button');
+            const domainLinks = document.querySelectorAll('#topDomainNav a');
+
+            inputs.forEach(el => el.disabled = isProcessing);
+            buttons.forEach(el => el.disabled = isProcessing);
+            domainLinks.forEach(el => {
+                if (isProcessing) {
+                    el.classList.add('disabled-link');
+                } else {
+                    el.classList.remove('disabled-link');
+                }
+            });
+        };
+
+        // Render incoming n8n Webhook response into UI
+        function renderN8nResults(data, sectorContext) {
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+            if (!outputPanel) return;
+
+            let resultsArray = Array.isArray(data) ? data : (data.data || data.items || [data]);
+            cachedDataStream = resultsArray;
+
+            let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}]</div>`;
+
+            if (!resultsArray || resultsArray.length === 0) {
+                html += `<div class="text-slate-500">// Webhook returned empty payload.</div>`;
             } else {
-                alert(`Initial draft dispatched to ${personnel}.`);
+                resultsArray.forEach((row, idx) => {
+                    html += `
+                        <div class="result-card" id="card-${idx}">
+                            <div class="flex-1 space-y-1" id="card-body-${idx}">
+                                <div class="text-cyan-400 font-bold text-xs">${row.title || row.name || 'Untitled Entry'}</div>
+                                <div class="text-slate-400 text-[11px] font-sans">${row.paragraph || row.description || row.snippet || row.content || JSON.stringify(row)}</div>
+                                ${row.url ? `<a href="${row.url}" target="_blank" class="text-[10px] text-cyan-600 hover:underline break-all block">${row.url}</a>` : ''}
+                            </div>
+                            <button onclick="deleteCard(${idx})" class="text-slate-600 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">✕</button>
+                        </div>
+                    `;
+                });
+            }
+            outputPanel.innerHTML = html;
+        }
+
+        // Direct fetch caller to n8n Webhook Node
+        async function transmitPayloadToN8n(payload) {
+            try {
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`n8n Gateway responded with status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (err) {
+                console.error("// GATEWAY WEBHOOK ERROR:", err);
+                throw err;
             }
         }
+
+        // Global Action: "✨ Anything New" button trigger
+        window.triggerAnythingNew = async function(sectorContext) {
+            window.setGlobalProcessingState(true);
+            const statusLog = document.getElementById('statusConsole');
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+            
+            if (statusLog) statusLog.innerText = `// TRIGGERING N8N WEBHOOK FOR ANYTHING NEW: [${sectorContext.toUpperCase()}]`;
+            if (outputPanel) outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Awaiting response from n8n webhook node...</div>`;
+
+            const payload = {
+                action: 'anything_new',
+                targetMatrix: sectorContext,
+                languages: getSelectedDashboardLanguages(),
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const webhookResponse = await transmitPayloadToN8n(payload);
+                renderN8nResults(webhookResponse, sectorContext);
+                if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FROM N8N FOR [${sectorContext.toUpperCase()}]`;
+            } catch (err) {
+                if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
+                if (statusLog) statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
+            } finally {
+                window.setGlobalProcessingState(false);
+            }
+        };
+
+        // Global Action: "GO" Search button trigger
+        window.triggerUnifiedSearch = async function(sectorContext, inputId) {
+            const inputEl = document.getElementById(inputId);
+            const inputVal = inputEl ? inputEl.value : '';
+            if (!inputVal) return;
+
+            window.setGlobalProcessingState(true);
+            const statusLog = document.getElementById('statusConsole');
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+
+            if (statusLog) statusLog.innerText = `// TRANSMITTING SEARCH QUERY TO N8N WEBHOOK: [${inputVal}]`;
+            if (outputPanel) outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Awaiting response from n8n webhook node...</div>`;
+
+            const payload = {
+                action: 'unified_search',
+                targetMatrix: sectorContext,
+                query: inputVal,
+                languages: getSelectedDashboardLanguages(),
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const webhookResponse = await transmitPayloadToN8n(payload);
+                renderN8nResults(webhookResponse, sectorContext);
+                if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FOR SEARCH [${inputVal}]`;
+            } catch (err) {
+                if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
+                if (statusLog) statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
+            } finally {
+                window.setGlobalProcessingState(false);
+            }
+        };
+
+        window.toggleLangCheckbox = async function(langKey) {
+            const btn = document.getElementById(`lang-${langKey}`);
+            activeLanguages[langKey] = !activeLanguages[langKey];
+            if (btn) btn.classList.toggle('active', activeLanguages[langKey]);
+            
+            const activeList = getSelectedDashboardLanguages();
+            const statusLog = document.getElementById('statusConsole');
+            if (statusLog) statusLog.innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
+        };
+
+        window.toggleSelectAllEnsembles = async function() {
+            const keys = Object.keys(activeLanguages);
+            const allTrue = keys.every(k => activeLanguages[k]);
+            keys.forEach(k => {
+                activeLanguages[k] = !allTrue;
+                const btn = document.getElementById(`lang-${k}`);
+                if (btn) btn.classList.toggle('active', !allTrue);
+            });
+            const statusLog = document.getElementById('statusConsole');
+            if (statusLog) statusLog.innerText = allTrue ? `// ENSEMBLES DE-SELECTED` : `// ALL ENSEMBLES ACTIVE`;
+        };
+
+        window.deleteCard = function(idx) {
+            const card = document.getElementById(`card-${idx}`);
+            if (card) {
+                deletedCardsHistory.push({ index: idx, element: card, parent: card.parentNode, nextSibling: card.nextSibling });
+                card.remove();
+                
+                const restoreBtn = document.getElementById('btn-restore-log');
+                if (restoreBtn) restoreBtn.classList.remove('hidden');
+
+                const statusLog = document.getElementById('statusConsole');
+                if (statusLog) statusLog.innerText = `// RECORD #${idx} PURGED FROM STREAM`;
+            }
+        };
+
+        window.restoreLastDeleted = function() {
+            if (deletedCardsHistory.length === 0) return;
+            
+            const last = deletedCardsHistory.pop();
+            if (last.nextSibling) {
+                last.parent.insertBefore(last.element, last.nextSibling);
+            } else {
+                last.parent.appendChild(last.element);
+            }
+
+            if (deletedCardsHistory.length === 0) {
+                const restoreBtn = document.getElementById('btn-restore-log');
+                if (restoreBtn) restoreBtn.classList.add('hidden');
+            }
+
+            const statusLog = document.getElementById('statusConsole');
+            if (statusLog) statusLog.innerText = `// RESTORED PURGED RECORD #${last.index}`;
+        };
+
+        window.downloadAsPdf = function() {
+            window.print();
+        };
     </script>
 </body>
 </html>
