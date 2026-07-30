@@ -100,25 +100,6 @@
             color: #60a5fa;
         }
 
-        /* Bottom-Left Analysis Button Styling */
-        .analysis-btn-bottom {
-            background-color: #042f2e;
-            border: 1.5px solid #0d9488;
-            color: #2dd4bf;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 5px 12px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            letter-spacing: 0.02em;
-            cursor: pointer;
-        }
-        .analysis-btn-bottom:hover:not(:disabled) {
-            border-color: #5eead4;
-            color: #ffffff;
-            box-shadow: 0 0 10px rgba(45, 212, 191, 0.3);
-        }
-
         .lang-checkbox-btn {
             background-color: #030712;
             border: 1.5px solid #1e293b;
@@ -361,10 +342,7 @@
 
                 <!-- BOTTOM FOOTER -->
                 <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <button onclick="runBatchAnalysis()" id="btn-do-analysis" class="analysis-btn-bottom uppercase">✨ DO ANALYSIS</button>
-                        <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
-                    </div>
+                    <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
                     
                     <div class="flex gap-2">
                         <button id="btn-restore-log" onclick="restoreLastDeleted()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md cursor-pointer transition-all tracking-wide uppercase hidden">
@@ -386,343 +364,316 @@
     </div>
 
     <!-- ENGINE SCRIPTS -->
-  <script type="module">
-    import { N8N_GATEWAY_WEBHOOK } from './config.js';
-    
-    console.log("// TERMINAL HUB: Webhook configured:", N8N_GATEWAY_WEBHOOK);
-
-    // Dynamic state management
-    let cachedDataStream = [];
-    let lastTriggeredMatrix = "strait_of_hormuz";
-    const activeLanguages = { OROMIFFA: false, AMHARIC: false, ENGLISH: false, ARABIC: false };
-
-    // Initialize Canvas matrix effect safely after DOM ready
-    function setupCanvasAnimation() {
-        const canvas = document.getElementById('governanceCanvas');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
+    <script type="module">
+        import { N8N_GATEWAY_WEBHOOK } from './config.js';
         
-        function sizeCanvas() { 
-            canvas.width = window.innerWidth; 
-            canvas.height = window.innerHeight; 
-            initMatrixGrid();
-        }
+        console.log("// TERMINAL HUB: Webhook configured:", N8N_GATEWAY_WEBHOOK);
 
-        const tokenChars = ['0', '1', 'X', 'A', 'F', '9', '4', 'C', '2', 'E', 'B', '7', 'Z', 'M', 'V', 'K'];
-        let particles = [];
+        // Dynamic state management
+        let cachedDataStream = [];
+        let deletedCardsHistory = [];
+        const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
 
-        function initMatrixGrid() {
-            particles = [];
-            const columns = Math.ceil(canvas.width / 22);
-            const rows = Math.ceil(canvas.height / 22);
-
-            for (let c = 0; c < columns; c++) {
-                for (let r = 0; r < rows; r++) {
-                    particles.push({
-                        x: c * 22 + 8,
-                        y: r * 22 + 14,
-                        char: tokenChars[Math.floor(Math.random() * tokenChars.length)],
-                        size: Math.random() > 0.5 ? 9 : 10
-                    });
-                }
-            }
-        }
-
-        sizeCanvas(); 
-        window.addEventListener('resize', sizeCanvas);
-
-        let animationFrameId;
-        let startTimestamp = null;
-        let panelsRevealed = false;
-        let canvasCleanedUp = false;
-
-        function runStaticGlitchField(timestamp) {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const elapsed = timestamp - startTimestamp;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#06b6d4';
-            ctx.fillStyle = 'rgba(34, 211, 238, 0.75)';
-
-            particles.forEach(p => {
-                ctx.font = `bold ${p.size}px monospace`;
-                if (Math.random() < 0.08) {
-                    p.char = tokenChars[Math.floor(Math.random() * tokenChars.length)];
-                }
-                ctx.fillText(p.char, p.x, p.y);
-            });
-
-            if (!panelsRevealed && elapsed >= 2000) {
-                panelsRevealed = true;
-                const dashContent = document.getElementById('dashboardContent');
-                if (dashContent) dashContent.classList.add('visible');
+        // Initialize Canvas matrix effect safely after DOM ready
+        function setupCanvasAnimation() {
+            const canvas = document.getElementById('governanceCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            function sizeCanvas() { 
+                canvas.width = window.innerWidth; 
+                canvas.height = window.innerHeight; 
+                initMatrixGrid();
             }
 
-            if (elapsed >= 4000) {
-                if (!canvasCleanedUp) {
-                    canvasCleanedUp = true;
-                    canvas.style.opacity = '0';
-                    setTimeout(() => {
-                        canvas.style.display = 'none';
-                        cancelAnimationFrame(animationFrameId);
-                    }, 500); 
+            const tokenChars = ['0', '1', 'X', 'A', 'F', '9', '4', 'C', '2', 'E', 'B', '7', 'Z', 'M', 'V', 'K'];
+            let particles = [];
+
+            function initMatrixGrid() {
+                particles = [];
+                const columns = Math.ceil(canvas.width / 22);
+                const rows = Math.ceil(canvas.height / 22);
+
+                for (let c = 0; c < columns; c++) {
+                    for (let r = 0; r < rows; r++) {
+                        particles.push({
+                            x: c * 22 + 8,
+                            y: r * 22 + 14,
+                            char: tokenChars[Math.floor(Math.random() * tokenChars.length)],
+                            size: Math.random() > 0.5 ? 9 : 10
+                        });
+                    }
                 }
-                return;
             }
 
+            sizeCanvas(); 
+            window.addEventListener('resize', sizeCanvas);
+
+            let animationFrameId;
+            let startTimestamp = null;
+            let panelsRevealed = false;
+            let canvasCleanedUp = false;
+
+            function runStaticGlitchField(timestamp) {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const elapsed = timestamp - startTimestamp;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#06b6d4';
+                ctx.fillStyle = 'rgba(34, 211, 238, 0.75)';
+
+                particles.forEach(p => {
+                    ctx.font = `bold ${p.size}px monospace`;
+                    if (Math.random() < 0.08) {
+                        p.char = tokenChars[Math.floor(Math.random() * tokenChars.length)];
+                    }
+                    ctx.fillText(p.char, p.x, p.y);
+                });
+
+                if (!panelsRevealed && elapsed >= 2000) {
+                    panelsRevealed = true;
+                    const dashContent = document.getElementById('dashboardContent');
+                    if (dashContent) dashContent.classList.add('visible');
+                }
+
+                if (elapsed >= 4000) {
+                    if (!canvasCleanedUp) {
+                        canvasCleanedUp = true;
+                        canvas.style.opacity = '0';
+                        setTimeout(() => {
+                            canvas.style.display = 'none';
+                            cancelAnimationFrame(animationFrameId);
+                        }, 500); 
+                    }
+                    return;
+                }
+
+                animationFrameId = requestAnimationFrame(runStaticGlitchField);
+            }
+            
             animationFrameId = requestAnimationFrame(runStaticGlitchField);
         }
-        
-        animationFrameId = requestAnimationFrame(runStaticGlitchField);
-    }
 
-    // Helper functions
-    function initLanguageUI() {
-        Object.keys(activeLanguages).forEach(langKey => {
-            const btn = document.getElementById(`lang-${langKey}`);
-            if (btn) btn.classList.remove('active');
-        });
-    }
-
-    function getSelectedDashboardLanguages() {
-        return Object.keys(activeLanguages).filter(langKey => activeLanguages[langKey]);
-    }
-
-    // Processing status handler
-    window.setGlobalProcessingState = function(isProcessing, processingType = "standard") {
-        const overlay = document.getElementById('terminalLoader');
-        const loaderHeader = document.getElementById('loaderHeader');
-        const loaderSubheader = document.getElementById('loaderSubheader');
-
-        if (overlay) {
-            if (isProcessing) {
-                if (processingType === "language") {
-                    if (loaderHeader) loaderHeader.innerText = "// RE-CONFIGURING ENSEMBLES & RE-GENERATING DATASET...";
-                    if (loaderSubheader) loaderSubheader.innerText = "SYSTEM STATE: TRANSLATING FEED RECORDS - PLEASE WAIT...";
-                } else {
-                    if (loaderHeader) loaderHeader.innerText = "// INITIALIZING INTERCEPT SEQUENCES...";
-                    if (loaderSubheader) loaderSubheader.innerText = "SYSTEM STATE: WAITING FOR N8N RESPONSE...";
-                }
-                overlay.style.display = 'flex';
-            } else {
-                overlay.style.display = 'none';
-            }
-        }
-
-        const inputs = document.querySelectorAll('input');
-        const buttons = document.querySelectorAll('button');
-        const domainLinks = document.querySelectorAll('#topDomainNav a');
-
-        inputs.forEach(el => el.disabled = isProcessing);
-        buttons.forEach(el => el.disabled = isProcessing);
-        domainLinks.forEach(el => {
-            if (isProcessing) {
-                el.classList.add('disabled-link');
-            } else {
-                el.classList.remove('disabled-link');
-            }
-        });
-    };
-
-    // Render incoming n8n Webhook response into UI
-    function renderN8nResults(data, sectorContext) {
-        const outputPanel = document.getElementById('unifiedResultsConsole');
-        if (!outputPanel) return;
-
-        let resultsArray = Array.isArray(data) ? data : (data.data || data.items || [data]);
-        cachedDataStream = resultsArray;
-
-        let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}]</div>`;
-
-        if (!resultsArray || resultsArray.length === 0) {
-            html += `<div class="text-slate-500">// Webhook returned empty payload.</div>`;
+        // Run animation setup on DOM load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupCanvasAnimation);
         } else {
-            resultsArray.forEach((row, idx) => {
-                html += `
-                    <div class="result-card" id="card-${idx}">
-                        <input type="checkbox" class="card-select-checkbox accent-cyan-500 mt-1 cursor-pointer" value="${idx}">
-                        <div class="flex-1 space-y-1" id="card-body-${idx}">
-                            <div class="text-cyan-400 font-bold text-xs">${row.title || row.name || 'Untitled Entry'}</div>
-                            <div class="text-slate-400 text-[11px] font-sans">${row.paragraph || row.description || row.snippet || row.content || JSON.stringify(row)}</div>
-                            ${row.url ? `<a href="${row.url}" target="_blank" class="text-[10px] text-cyan-600 hover:underline break-all block">${row.url}</a>` : ''}
-                        </div>
-                    </div>
-                `;
-            });
+            setupCanvasAnimation();
         }
-        outputPanel.innerHTML = html;
-    }
 
-    // Direct fetch caller to n8n Webhook Node
-    async function transmitPayloadToN8n(payload) {
-        try {
-            const response = await fetch(N8N_GATEWAY_WEBHOOK, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
+        // Helper functions
+        function getSelectedDashboardLanguages() {
+            return Object.keys(activeLanguages).filter(langKey => activeLanguages[langKey]);
+        }
 
-            if (!response.ok) {
-                throw new Error(`n8n Gateway responded with status: ${response.status}`);
+        // Processing status handler
+        window.setGlobalProcessingState = function(isProcessing, processingType = "standard") {
+            const overlay = document.getElementById('terminalLoader');
+            const loaderHeader = document.getElementById('loaderHeader');
+            const loaderSubheader = document.getElementById('loaderSubheader');
+
+            if (overlay) {
+                if (isProcessing) {
+                    if (processingType === "language") {
+                        if (loaderHeader) loaderHeader.innerText = "// RE-CONFIGURING ENSEMBLES & RE-GENERATING DATASET...";
+                        if (loaderSubheader) loaderSubheader.innerText = "SYSTEM STATE: TRANSLATING FEED RECORDS - PLEASE WAIT...";
+                    } else {
+                        if (loaderHeader) loaderHeader.innerText = "// INITIALIZING INTERCEPT SEQUENCES...";
+                        if (loaderSubheader) loaderSubheader.innerText = "SYSTEM STATE: WAITING FOR N8N RESPONSE...";
+                    }
+                    overlay.style.display = 'flex';
+                } else {
+                    overlay.style.display = 'none';
+                }
             }
 
-            return await response.json();
-        } catch (err) {
-            console.error("// GATEWAY WEBHOOK ERROR:", err);
-            throw err;
-        }
-    }
+            const inputs = document.querySelectorAll('input');
+            const buttons = document.querySelectorAll('button');
+            const domainLinks = document.querySelectorAll('#topDomainNav a');
 
-    // Global Action: "✨ Anything New" button trigger
-    window.triggerAnythingNew = async function(sectorContext) {
-        window.setGlobalProcessingState(true);
-        const statusLog = document.getElementById('statusConsole');
-        const outputPanel = document.getElementById('unifiedResultsConsole');
-        
-        if (statusLog) statusLog.innerText = `// TRIGGERING N8N WEBHOOK FOR ANYTHING NEW: [${sectorContext.toUpperCase()}]`;
-        if (outputPanel) outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Awaiting response from n8n webhook node...</div>`;
-
-        const payload = {
-            action: 'anything_new',
-            targetMatrix: sectorContext,
-            languages: getSelectedDashboardLanguages(),
-            timestamp: new Date().toISOString()
+            inputs.forEach(el => el.disabled = isProcessing);
+            buttons.forEach(el => el.disabled = isProcessing);
+            domainLinks.forEach(el => {
+                if (isProcessing) {
+                    el.classList.add('disabled-link');
+                } else {
+                    el.classList.remove('disabled-link');
+                }
+            });
         };
 
-        try {
-            const webhookResponse = await transmitPayloadToN8n(payload);
-            renderN8nResults(webhookResponse, sectorContext);
-            if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FROM N8N FOR [${sectorContext.toUpperCase()}]`;
-        } catch (err) {
-            if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
-            if (statusLog) statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
-        } finally {
-            window.setGlobalProcessingState(false);
-        }
-    };
+        // Render incoming n8n Webhook response into UI
+        function renderN8nResults(data, sectorContext) {
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+            if (!outputPanel) return;
 
-    // Global Action: "GO" Search button trigger
-    window.triggerUnifiedSearch = async function(sectorContext, inputId) {
-        const inputEl = document.getElementById(inputId);
-        const inputVal = inputEl ? inputEl.value : '';
-        if (!inputVal) return;
+            let resultsArray = Array.isArray(data) ? data : (data.data || data.items || [data]);
+            cachedDataStream = resultsArray;
 
-        window.setGlobalProcessingState(true);
-        const statusLog = document.getElementById('statusConsole');
-        const outputPanel = document.getElementById('unifiedResultsConsole');
+            let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}]</div>`;
 
-        if (statusLog) statusLog.innerText = `// TRANSMITTING SEARCH QUERY TO N8N WEBHOOK: [${inputVal}]`;
-        if (outputPanel) outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Awaiting response from n8n webhook node...</div>`;
-
-        const payload = {
-            action: 'unified_search',
-            targetMatrix: sectorContext,
-            query: inputVal,
-            languages: getSelectedDashboardLanguages(),
-            timestamp: new Date().toISOString()
-        };
-
-        try {
-            const webhookResponse = await transmitPayloadToN8n(payload);
-            renderN8nResults(webhookResponse, sectorContext);
-            if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FOR SEARCH [${inputVal}]`;
-        } catch (err) {
-            if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
-            if (statusLog) statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
-        } finally {
-            window.setGlobalProcessingState(false);
-        }
-    };
-
-    window.toggleLangCheckbox = async function(langKey) {
-        const btn = document.getElementById(`lang-${langKey}`);
-        activeLanguages[langKey] = !activeLanguages[langKey];
-        if (btn) btn.classList.toggle('active', activeLanguages[langKey]);
-        
-        const activeList = getSelectedDashboardLanguages();
-        const statusLog = document.getElementById('statusConsole');
-        if (statusLog) statusLog.innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
-    };
-
-    window.toggleSelectAllEnsembles = async function() {
-        const keys = Object.keys(activeLanguages);
-        const allTrue = keys.every(k => activeLanguages[k]);
-        keys.forEach(k => {
-            activeLanguages[k] = !allTrue;
-            const btn = document.getElementById(`lang-${k}`);
-            if (btn) btn.classList.toggle('active', !allTrue);
-        });
-        const statusLog = document.getElementById('statusConsole');
-        if (statusLog) statusLog.innerText = allTrue ? `// ENSEMBLES DE-SELECTED` : `// ALL ENSEMBLES ACTIVE`;
-    };
-
-    window.runBatchAnalysis = function() {
-        const selectedCheckboxes = document.querySelectorAll('.card-select-checkbox:checked');
-
-        if (selectedCheckboxes.length === 0) {
-            alert("Please select at least one card to analyze.");
-            return;
-        }
-
-        selectedCheckboxes.forEach(checkbox => {
-            const cardIndex = checkbox.value;
-            const cardContainer = document.getElementById(`card-body-${cardIndex}`);
-            const row = cachedDataStream[cardIndex];
-
-            if (cardContainer && row) {
-                cardContainer.innerHTML = `
-                    <div class="space-y-2.5">
-                        <div>
-                            <div class="text-[9px] text-cyan-400 font-mono">// [1. VERIFIED SOURCE & URL]</div>
-                            <a href="${row.url || '#'}" target="_blank" class="text-xs text-cyan-300 hover:underline break-all font-mono">${row.url || 'N/A'}</a>
-                        </div>
-
-                        <div>
-                            <div class="text-[9px] text-cyan-400 font-mono">// [2. FEATURED IMAGE]</div>
-                            <div class="w-full h-24 bg-slate-900 border border-slate-800 rounded-md overflow-hidden flex items-center justify-center">
-                                <img src="${row.image_url || 'https://via.placeholder.com/400x150?text=No+Asset'}" class="w-full h-full object-cover">
+            if (!resultsArray || resultsArray.length === 0) {
+                html += `<div class="text-slate-500">// Webhook returned empty payload.</div>`;
+            } else {
+                resultsArray.forEach((row, idx) => {
+                    html += `
+                        <div class="result-card" id="card-${idx}">
+                            <div class="flex-1 space-y-1" id="card-body-${idx}">
+                                <div class="text-cyan-400 font-bold text-xs">${row.title || row.name || 'Untitled Entry'}</div>
+                                <div class="text-slate-400 text-[11px] font-sans">${row.paragraph || row.description || row.snippet || row.content || JSON.stringify(row)}</div>
+                                ${row.url ? `<a href="${row.url}" target="_blank" class="text-[10px] text-cyan-600 hover:underline break-all block">${row.url}</a>` : ''}
                             </div>
+                            <button onclick="deleteCard(${idx})" class="text-slate-600 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">✕</button>
                         </div>
-
-                        <div>
-                            <div class="text-[9px] text-cyan-400 font-mono">// [3. ANALYZED NARRATIVE PARAGRAPH]</div>
-                            <p contenteditable="true" class="text-xs text-slate-200 bg-slate-900/80 border border-slate-800 p-2.5 rounded-md leading-relaxed font-sans">
-                                ${row.paragraph || row.description || row.title || 'No narrative snippet available.'}
-                            </p>
-                        </div>
-
-                        <div class="flex justify-between items-center pt-2 border-t border-slate-800">
-                            <select class="bg-slate-950 text-cyan-400 border border-slate-800 text-[10px] px-2 py-1 rounded">
-                                <option>POLITICS & GOVERNANCE</option>
-                                <option>BUSINESS & FINANCE</option>
-                                <option>SPORT</option>
-                            </select>
-                            <button class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] px-3 py-1 rounded uppercase cursor-pointer">
-                                📩 SEND TO EDITORIAL PAGE
-                            </button>
-                        </div>
-                    </div>
-                `;
+                    `;
+                });
             }
-        });
-        const statusLog = document.getElementById('statusConsole');
-        if (statusLog) statusLog.innerText = `// BATCH ANALYSIS COMPLETED FOR ${selectedCheckboxes.length} ITEMS.`;
-    };
+            outputPanel.innerHTML = html;
+        }
 
-    // Initialize UI on module load
-    document.addEventListener('DOMContentLoaded', () => {
-        setupCanvasAnimation();
-        initLanguageUI();
-    });
-    // Fallback trigger if DOMContentLoaded already fired
-    if (document.readyState === 'interactive' || document.readyState === 'complete') {
-        setupCanvasAnimation();
-        initLanguageUI();
-    }
-</script>
+        // Direct fetch caller to n8n Webhook Node
+        async function transmitPayloadToN8n(payload) {
+            try {
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`n8n Gateway responded with status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (err) {
+                console.error("// GATEWAY WEBHOOK ERROR:", err);
+                throw err;
+            }
+        }
+
+        // Global Action: "✨ Anything New" button trigger
+        window.triggerAnythingNew = async function(sectorContext) {
+            window.setGlobalProcessingState(true);
+            const statusLog = document.getElementById('statusConsole');
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+            
+            if (statusLog) statusLog.innerText = `// TRIGGERING N8N WEBHOOK FOR ANYTHING NEW: [${sectorContext.toUpperCase()}]`;
+            if (outputPanel) outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Awaiting response from n8n webhook node...</div>`;
+
+            const payload = {
+                action: 'anything_new',
+                targetMatrix: sectorContext,
+                languages: getSelectedDashboardLanguages(),
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const webhookResponse = await transmitPayloadToN8n(payload);
+                renderN8nResults(webhookResponse, sectorContext);
+                if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FROM N8N FOR [${sectorContext.toUpperCase()}]`;
+            } catch (err) {
+                if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
+                if (statusLog) statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
+            } finally {
+                window.setGlobalProcessingState(false);
+            }
+        };
+
+        // Global Action: "GO" Search button trigger
+        window.triggerUnifiedSearch = async function(sectorContext, inputId) {
+            const inputEl = document.getElementById(inputId);
+            const inputVal = inputEl ? inputEl.value : '';
+            if (!inputVal) return;
+
+            window.setGlobalProcessingState(true);
+            const statusLog = document.getElementById('statusConsole');
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+
+            if (statusLog) statusLog.innerText = `// TRANSMITTING SEARCH QUERY TO N8N WEBHOOK: [${inputVal}]`;
+            if (outputPanel) outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Awaiting response from n8n webhook node...</div>`;
+
+            const payload = {
+                action: 'unified_search',
+                targetMatrix: sectorContext,
+                query: inputVal,
+                languages: getSelectedDashboardLanguages(),
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const webhookResponse = await transmitPayloadToN8n(payload);
+                renderN8nResults(webhookResponse, sectorContext);
+                if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FOR SEARCH [${inputVal}]`;
+            } catch (err) {
+                if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
+                if (statusLog) statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
+            } finally {
+                window.setGlobalProcessingState(false);
+            }
+        };
+
+        window.toggleLangCheckbox = async function(langKey) {
+            const btn = document.getElementById(`lang-${langKey}`);
+            activeLanguages[langKey] = !activeLanguages[langKey];
+            if (btn) btn.classList.toggle('active', activeLanguages[langKey]);
+            
+            const activeList = getSelectedDashboardLanguages();
+            const statusLog = document.getElementById('statusConsole');
+            if (statusLog) statusLog.innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
+        };
+
+        window.toggleSelectAllEnsembles = async function() {
+            const keys = Object.keys(activeLanguages);
+            const allTrue = keys.every(k => activeLanguages[k]);
+            keys.forEach(k => {
+                activeLanguages[k] = !allTrue;
+                const btn = document.getElementById(`lang-${k}`);
+                if (btn) btn.classList.toggle('active', !allTrue);
+            });
+            const statusLog = document.getElementById('statusConsole');
+            if (statusLog) statusLog.innerText = allTrue ? `// ENSEMBLES DE-SELECTED` : `// ALL ENSEMBLES ACTIVE`;
+        };
+
+        window.deleteCard = function(idx) {
+            const card = document.getElementById(`card-${idx}`);
+            if (card) {
+                deletedCardsHistory.push({ index: idx, element: card, parent: card.parentNode, nextSibling: card.nextSibling });
+                card.remove();
+                
+                const restoreBtn = document.getElementById('btn-restore-log');
+                if (restoreBtn) restoreBtn.classList.remove('hidden');
+
+                const statusLog = document.getElementById('statusConsole');
+                if (statusLog) statusLog.innerText = `// RECORD #${idx} PURGED FROM STREAM`;
+            }
+        };
+
+        window.restoreLastDeleted = function() {
+            if (deletedCardsHistory.length === 0) return;
+            
+            const last = deletedCardsHistory.pop();
+            if (last.nextSibling) {
+                last.parent.insertBefore(last.element, last.nextSibling);
+            } else {
+                last.parent.appendChild(last.element);
+            }
+
+            if (deletedCardsHistory.length === 0) {
+                const restoreBtn = document.getElementById('btn-restore-log');
+                if (restoreBtn) restoreBtn.classList.add('hidden');
+            }
+
+            const statusLog = document.getElementById('statusConsole');
+            if (statusLog) statusLog.innerText = `// RESTORED PURGED RECORD #${last.index}`;
+        };
+
+        window.downloadAsPdf = function() {
+            window.print();
+        };
+    </script>
 </body>
 </html>
