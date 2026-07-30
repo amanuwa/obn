@@ -504,33 +504,86 @@
         };
 
         // Render incoming n8n Webhook response into UI
-        function renderN8nResults(data, sectorContext) {
-            const outputPanel = document.getElementById('unifiedResultsConsole');
-            if (!outputPanel) return;
+  function renderN8nResults(data, sectorContext) {
+    const outputPanel = document.getElementById('unifiedResultsConsole');
+    if (!outputPanel) return;
 
-            let resultsArray = Array.isArray(data) ? data : (data.data || data.items || [data]);
-            cachedDataStream = resultsArray;
+    // 1. Extract the actual news items array from nested webhook responses
+    let resultsArray = [];
 
-            let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}]</div>`;
-
-            if (!resultsArray || resultsArray.length === 0) {
-                html += `<div class="text-slate-500">// Webhook returned empty payload.</div>`;
-            } else {
-                resultsArray.forEach((row, idx) => {
-                    html += `
-                        <div class="result-card" id="card-${idx}">
-                            <div class="flex-1 space-y-1" id="card-body-${idx}">
-                                <div class="text-cyan-400 font-bold text-xs">${row.title || row.name || 'Untitled Entry'}</div>
-                                <div class="text-slate-400 text-[11px] font-sans">${row.paragraph || row.description || row.snippet || row.content || JSON.stringify(row)}</div>
-                                ${row.url ? `<a href="${row.url}" target="_blank" class="text-[10px] text-cyan-600 hover:underline break-all block">${row.url}</a>` : ''}
-                            </div>
-                            <button onclick="deleteCard(${idx})" class="text-slate-600 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">✕</button>
-                        </div>
-                    `;
-                });
-            }
-            outputPanel.innerHTML = html;
+    if (Array.isArray(data)) {
+        // If data is array of objects like [{ news: [...] }]
+        if (data[0] && Array.isArray(data[0].news)) {
+            resultsArray = data[0].news;
+        } else {
+            resultsArray = data;
         }
+    } else if (data && Array.isArray(data.news)) {
+        resultsArray = data.news;
+    } else if (data && (Array.isArray(data.data) || Array.isArray(data.items))) {
+        resultsArray = data.data || data.items;
+    } else if (data) {
+        resultsArray = [data];
+    }
+
+    // Update global stream cache for the preparation studio download function
+    cachedDataStream = resultsArray;
+
+    let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
+
+    if (!resultsArray || resultsArray.length === 0) {
+        html += `<div class="text-slate-500 font-mono">// Webhook returned empty payload.</div>`;
+    } else {
+        resultsArray.forEach((row, idx) => {
+            // Extract item properties dynamically
+            const sourceName = row.sourceName || row.source || 'Scraped Source';
+            const title = row.title || row.newsTitle || row.name || `${sourceName} News`;
+            const content = row.news || row.paragraph || row.description || row.snippet || row.content || '';
+            const imageUrl = row.imageUrl || row.image || row.media || null;
+            const url = row.url || row.link || null;
+
+            html += `
+                <div class="result-card flex flex-col bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 rounded-lg p-3.5 space-y-2.5 transition-all shadow-md" id="card-${idx}">
+                    
+                    <!-- TOP: SOURCE BADGE & DELETE BUTTON -->
+                    <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1.5">
+                        <span class="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 font-bold uppercase tracking-wider">
+                            ${sourceName}
+                        </span>
+                        <button onclick="deleteCard(${idx})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">
+                            ✕
+                        </button>
+                    </div>
+
+                    <!-- IMAGE AT THE TOP (IF PRESENT) -->
+                    ${imageUrl ? `
+                        <div class="w-full max-h-48 overflow-hidden rounded-md border border-slate-800 bg-black/40">
+                            <img src="${imageUrl}" alt="News Media" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.style.display='none'">
+                        </div>
+                    ` : ''}
+
+                    <!-- CARD TITLE & DETAIL NEWS -->
+                    <div class="space-y-1">
+                        ${title ? `<div class="text-cyan-300 font-bold text-xs tracking-wide font-sans">${title}</div>` : ''}
+                        <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words">${content}</p>
+                    </div>
+
+                    <!-- HYPERLINK FOR NEWS ITEM -->
+                    ${url ? `
+                        <div class="pt-1 border-t border-slate-800/40">
+                            <a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-200 hover:underline font-mono break-all">
+                                🔗 Source Link: ${url}
+                            </a>
+                        </div>
+                    ` : ''}
+
+                </div>
+            `;
+        });
+    }
+
+    outputPanel.innerHTML = html;
+}
 
         // Direct fetch caller to n8n Webhook Node
         async function transmitPayloadToN8n(payload) {
