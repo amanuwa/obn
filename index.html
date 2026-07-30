@@ -380,34 +380,85 @@
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
             
-            function sizeCanvas() { 
-                canvas.width = window.innerWidth; 
-                canvas.height = window.innerHeight; 
-                initMatrixGrid();
-            }
+          document.addEventListener('DOMContentLoaded', () => {
+    // 1. Retrieve data from localStorage
+    const rawData = localStorage.getItem('scrapedStreamData');
+    const container = document.getElementById('printContainer') || document.body;
 
-            const tokenChars = ['0', '1', 'X', 'A', 'F', '9', '4', 'C', '2', 'E', 'B', '7', 'Z', 'M', 'V', 'K'];
-            let particles = [];
+    if (!rawData) {
+        container.innerHTML = `<div class="text-red-500 font-mono p-4">// ERROR: No stream data found in browser storage.</div>`;
+        return;
+    }
 
-            function initMatrixGrid() {
-                particles = [];
-                const columns = Math.ceil(canvas.width / 22);
-                const rows = Math.ceil(canvas.height / 22);
+    let streamData = [];
+    try {
+        streamData = JSON.parse(rawData);
+    } catch (e) {
+        container.innerHTML = `<div class="text-red-500 font-mono p-4">// ERROR: Failed to parse data stream.</div>`;
+        return;
+    }
 
-                for (let c = 0; c < columns; c++) {
-                    for (let r = 0; r < rows; r++) {
-                        particles.push({
-                            x: c * 22 + 8,
-                            y: r * 22 + 14,
-                            char: tokenChars[Math.floor(Math.random() * tokenChars.length)],
-                            size: Math.random() > 0.5 ? 9 : 10
-                        });
-                    }
-                }
-            }
+    if (streamData.length === 0) {
+        container.innerHTML = `<div class="text-amber-500 font-mono p-4">// WARNING: Empty dataset received.</div>`;
+        return;
+    }
 
-            sizeCanvas(); 
-            window.addEventListener('resize', sizeCanvas);
+    // 2. Render all items into updated cards layout
+    let html = ``;
+    streamData.forEach((item, idx) => {
+        const source = item.sourceName || item.source || 'SOURCE';
+        const title = item.title || item.newsTitle || '';
+        const image = item.imageUrl || item.image || '';
+        const link = item.url || item.link || '';
+
+        html += `
+            <div class="result-card flex flex-row items-center gap-4 bg-slate-900/80 border border-slate-800 rounded-lg p-3 mb-3 text-slate-100 shadow-md">
+                
+                <!-- 1. MOST LEFT: SMALL, FULLY VISIBLE IMAGE -->
+                ${image ? `
+                    <div class="w-24 h-24 shrink-0 rounded-md border border-slate-800 bg-black/70 flex items-center justify-center overflow-hidden">
+                        <img src="${image}" alt="Media" class="w-full h-full object-contain" onerror="this.parentElement.style.display='none'">
+                    </div>
+                ` : ''}
+
+                <!-- 2. RIGHT COLUMN: SOURCE, HEADER, IMAGE URL, NEWS LINK -->
+                <div class="flex-1 flex flex-col justify-between min-w-0 space-y-2">
+                    
+                    <!-- TOP RIGHT: SOURCE BADGE -->
+                    <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800 pb-1">
+                        <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold uppercase tracking-wider">
+                            ${source}
+                        </span>
+                        <span class="text-slate-500">ITEM #${idx + 1}</span>
+                    </div>
+
+                    <!-- MIDDLE RIGHT: HEADER / TITLE -->
+                    ${title ? `<div class="text-cyan-300 font-bold text-xs font-sans leading-snug">${title}</div>` : ''}
+
+                    <!-- BOTTOM RIGHT: IMAGE URL & NEWS HYPERLINK -->
+                    <div class="pt-1.5 border-t border-slate-800/60 flex flex-col space-y-1 text-[10px] font-mono">
+                        ${image ? `
+                            <div class="truncate text-slate-400">
+                                <span class="text-slate-500 font-bold">📷 IMAGE URL:</span> 
+                                <a href="${image}" target="_blank" class="text-slate-300 hover:text-cyan-300 hover:underline">${image}</a>
+                            </div>
+                        ` : ''}
+
+                        ${link ? `
+                            <div class="truncate text-cyan-400">
+                                <span class="text-slate-500 font-bold">🔗 NEWS LINK:</span> 
+                                <a href="${link}" target="_blank" class="hover:underline">${link}</a>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+});
 
             let animationFrameId;
             let startTimestamp = null;
