@@ -651,7 +651,42 @@
                 if (statusLog) statusLog.innerText = `// RECORD #${idx} PURGED FROM STREAM`;
             }
         };
+        window.downloadAsPdf = function() {
+    let scrapedPayload = [];
 
+    // 1. Grab data from memory if n8n returned results, otherwise fallback to DOM cards
+    if (Array.isArray(cachedDataStream) && cachedDataStream.length > 0) {
+        scrapedPayload = cachedDataStream;
+    } else {
+        const cards = document.querySelectorAll('#unifiedResultsConsole .result-card');
+        cards.forEach((card, idx) => {
+            const titleEl = card.querySelector('.text-cyan-400');
+            const bodyEl = card.querySelector('.text-slate-400');
+            const linkEl = card.querySelector('a');
+
+            if (titleEl || bodyEl) {
+                scrapedPayload.push({
+                    id: idx,
+                    title: titleEl ? titleEl.innerText : '',
+                    content: bodyEl ? bodyEl.innerText : '',
+                    url: linkEl ? linkEl.href : '',
+                    timestamp: new Date().toISOString()
+                });
+            }
+        });
+    }
+
+    // 2. Save scraped stream data to browser session storage
+    sessionStorage.setItem('scrapedStreamData', JSON.stringify(scrapedPayload));
+
+    // 3. Log state and redirect directly to prepare.html
+    const statusLog = document.getElementById('statusConsole');
+    if (statusLog) statusLog.innerText = `// ROUTING ${scrapedPayload.length} SCRAPED ITEMS TO PREPARATION STUDIO...`;
+
+    window.location.href = 'prepare.html';
+};
+
+        
         window.restoreLastDeleted = function() {
             if (deletedCardsHistory.length === 0) return;
             
