@@ -373,7 +373,22 @@
         let cachedDataStream = [];
         let deletedCardsHistory = [];
         const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
+const canvas = document.getElementById('governanceCanvas');
+if (canvas) {
+    const ctx = canvas.getContext('2d');
 
+    function runStaticGlitchField() {
+        // Option 1 Safety Check: Prevents the page from crashing if particles isn't loaded
+        if (typeof particles !== 'undefined') {
+            // Put your existing particles logic here
+            // e.g., particles.update();
+        } else {
+            console.warn("// Warning: particles variable not initialized yet.");
+        }
+    }
+
+    runStaticGlitchField();
+}
         // Initialize Canvas matrix effect safely after DOM ready
         function setupCanvasAnimation() {
             const canvas = document.getElementById('governanceCanvas');
