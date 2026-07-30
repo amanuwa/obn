@@ -3,190 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prep Workspace | Terminal Hub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Editorial Preparation Studio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        /* Custom scrollbar styling for terminal vibe */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #030712; overflow: hidden; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
 
-        /* MS Word editor area formatting */
-        .editor-page {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+        /* Rich Text Editor Styling */
+        .editor-paper {
+            background-color: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
-        [contenteditable]:focus { outline: none; }
+
+        .editor-paper:focus {
+            outline: none;
+        }
+
+        /* Custom Scrollable Stream Container */
+        .stream-scroll-panel {
+            background: rgba(3, 7, 18, 0.6);
+            border: 1px solid #1e293b;
+        }
+
+        /* Stream Cards (Rendered dynamically) */
+        .stream-card {
+            background: #090d16;
+            border: 1px solid #1e293b;
+            border-radius: 6px;
+            padding: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .stream-card:hover {
+            border-color: #06b6d4;
+            background: #0f172a;
+        }
+
+        /* Personnel Select Styling */
+        .personnel-select {
+            background-color: #090d16;
+            border: 1px solid #06b6d4;
+            color: #38bdf8;
+            font-family: monospace;
+            font-size: 11px;
+            border-radius: 6px;
+            padding: 6px 10px;
+            outline: none;
+        }
+        .personnel-select:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-200 font-mono h-screen flex flex-col overflow-hidden">
+<body class="bg-[#030712]">
 
-    <!-- Top Navigation Header -->
-    <header class="h-14 border-b border-slate-800 bg-slate-900/80 px-4 flex items-center justify-between shrink-0">
-        <div class="flex items-center space-x-3">
-            <span class="h-3 w-3 rounded-full bg-cyan-500 animate-pulse"></span>
-            <h1 class="text-sm font-bold tracking-wider text-cyan-400">// EDITORIAL PREPARATION STUDIO</h1>
+    <!-- TOP BAR / HEADER -->
+    <header class="bg-slate-950 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none">
+        <div class="flex items-center gap-3">
+            <div class="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></div>
+            <span class="font-bold text-slate-100 text-xs tracking-wider uppercase">// EDITORIAL PREPARATION STUDIO</span>
         </div>
-        <div id="statusConsole" class="text-xs text-slate-400 font-mono">
-            // STATUS: SYSTEM READY
+
+        <div id="statusHeader" class="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">
+            // READY FOR INCOMING MULTI-SOURCE DATA STREAM
         </div>
     </header>
 
-    <!-- Main Workspace Split Container -->
-    <main class="flex-1 flex overflow-hidden">
-
-        <!-- LEFT PANEL: Scrapped Analysis Data Stream (40% width) -->
-        <section class="w-5/12 border-r border-slate-800 bg-slate-900/40 flex flex-col h-full">
-            <div class="p-3 border-b border-slate-800 bg-slate-900/60 flex justify-between items-center">
-                <span class="text-xs font-bold text-amber-400">// SCRAPED ANALYSIS STREAM</span>
-                <span class="text-[10px] text-slate-500">CLICK TO TRANSFER TO EDITOR</span>
-            </div>
+    <!-- MAIN WORKSPACE LAYOUT -->
+    <main class="flex-1 flex gap-4 p-4 h-full overflow-hidden">
+        
+        <!-- LEFT COLUMN: DYNAMIC STREAM PANEL -->
+        <div class="w-1/3 flex flex-col gap-3 h-full overflow-hidden shrink-0">
             
-            <!-- Dynamic Feed Stream -->
-            <div id="scrapedDataFeed" class="flex-1 overflow-y-auto p-4 space-y-3">
-                
-                <!-- Sample Card Item (Populated dynamically from your n8n payload) -->
-                <div class="p-3 bg-slate-900 border border-slate-800 rounded-lg hover:border-cyan-500/50 transition cursor-pointer group" onclick="transferToEditor(0)">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-[10px] bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-800">POLITICS & GOVERNANCE</span>
-                        <button class="text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 transition flex items-center gap-1">
-                            <i class="fa-solid fa-arrow-right"></i> Inject
-                        </button>
-                    </div>
-                    <h3 id="feed-title-0" class="text-xs font-bold text-slate-200 mb-1">Strait of Hormuz Security Protocol Updates</h3>
-                    <p id="feed-body-0" class="text-[11px] font-sans text-slate-400 line-clamp-3">
-                        Naval maritime surveillance monitors increased activity across commercial shipping lanes. Intelligence reports suggest multi-ensemble tracking parameters are active.
-                    </p>
-                    <div class="mt-2 text-[9px] text-slate-500 flex justify-between">
-                        <span>Source: Verified Stream</span>
-                        <span>2 mins ago</span>
-                    </div>
+            <!-- OPERATOR PROFILE HEADER -->
+            <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-3 flex items-center justify-between">
+                <div>
+                    <span class="text-[9px] text-slate-500 uppercase tracking-widest block font-bold">// ACTIVE OPERATOR</span>
+                    <span class="text-xs font-bold text-slate-200">Amanuel Bekele Woldesenbet</span>
                 </div>
+                <div class="text-right">
+                    <span class="text-[9px] text-cyan-500 font-mono block uppercase">CONNECTED</span>
+                    <span class="text-[9px] text-slate-500">Live Hub Sync</span>
+                </div>
+            </div>
 
-                <div class="p-3 bg-slate-900 border border-slate-800 rounded-lg hover:border-cyan-500/50 transition cursor-pointer group" onclick="transferToEditor(1)">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800">BUSINESS & FINANCE</span>
-                        <button class="text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 transition flex items-center gap-1">
-                            <i class="fa-solid fa-arrow-right"></i> Inject
-                        </button>
-                    </div>
-                    <h3 id="feed-title-1" class="text-xs font-bold text-slate-200 mb-1">Global Trade Yield Shifts</h3>
-                    <p id="feed-body-1" class="text-[11px] font-sans text-slate-400 line-clamp-3">
+            <!-- SCRAPED ANALYSIS STREAM HEADER -->
+            <div class="flex items-center justify-between px-1">
+                <span class="text-xs font-bold text-amber-500 tracking-wider uppercase">// SCRAPED ANALYSIS STREAM</span>
+                <span class="text-[9px] text-slate-500 uppercase">Click item to transfer to editor</span>
+            </div>
+
+            <!-- EMPTY SCROLLABLE DATA CONTAINER -->
+            <div id="streamDataContainer" class="flex-1 stream-scroll-panel rounded-xl p-3 overflow-y-auto space-y-3">
+                <!-- Data populated dynamically from Custom, Sport, Business, and Politics pages -->
+                <div class="text-slate-600 text-xs text-center py-10 font-mono">
+                    // Awaiting stream data transfers...<br>
+                    <span class="text-[10px] text-slate-700">Incoming payloads from domain modules will render here.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: EXPANDED EDITOR WORKSPACE -->
+        <div class="flex-1 flex flex-col h-full bg-slate-950/60 border border-slate-800 rounded-xl overflow-hidden relative">
+            
+            <!-- TOOLBAR -->
+            <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center gap-3 text-slate-300 select-none">
+                <button onclick="formatDoc('bold')" class="hover:text-cyan-400 font-bold px-2 py-1 rounded border border-transparent hover:border-slate-700 transition-all cursor-pointer">B</button>
+                <button onclick="formatDoc('italic')" class="hover:text-cyan-400 italic px-2 py-1 rounded border border-transparent hover:border-slate-700 transition-all cursor-pointer">I</button>
+                <button onclick="formatDoc('underline')" class="hover:text-cyan-400 underline px-2 py-1 rounded border border-transparent hover:border-slate-700 transition-all cursor-pointer">U</button>
+                <div class="h-4 w-px bg-slate-800 my-auto"></div>
+                <button onclick="formatDoc('justifyLeft')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">⯇</button>
+                <button onclick="formatDoc('justifyCenter')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">⯀</button>
+                <button onclick="formatDoc('justifyRight')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">⯈</button>
+                <div class="h-4 w-px bg-slate-800 my-auto"></div>
+                <button onclick="formatDoc('insertUnorderedList')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">• List</button>
+                <button onclick="formatDoc('insertOrderedList')" class="hover:text-cyan-400 text-xs px-1.5 py-1 cursor-pointer">1. List</button>
+            </div>
+
+            <!-- EXPANDED WHITE CANVAS AREA -->
+            <div class="flex-1 bg-slate-950 p-6 overflow-y-auto flex justify-center">
+                <div 
+                    id="editorialCanvas" 
+                    contenteditable="true" 
+                    class="editor-paper w-full max-w-4xl min-h-[850px] p-10 rounded-md shadow-2xl focus:outline-none"
+                >
+                    <h1 class="text-2xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Global Trade Yield Shifts</h1>
+                    <p class="text-slate-700 leading-relaxed text-sm">
                         Quarterly index indicates standard fluctuations across commodity supply routes. Data points collected via automated webhooks.
                     </p>
-                    <div class="mt-2 text-[9px] text-slate-500 flex justify-between">
-                        <span>Source: n8n Extraction Node</span>
-                        <span>14 mins ago</span>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- RIGHT PANEL: MS Word Editing Area (60% width) -->
-        <section class="w-7/12 bg-slate-950 flex flex-col h-full relative">
-            
-            <!-- MS Word Formatting Toolbar -->
-            <div class="p-2 border-b border-slate-800 bg-slate-900 flex items-center space-x-2 shrink-0">
-                <button onclick="formatDoc('bold')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7" title="Bold"><i class="fa-solid fa-bold"></i></button>
-                <button onclick="formatDoc('italic')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7" title="Italic"><i class="fa-solid fa-italic"></i></button>
-                <button onclick="formatDoc('underline')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7" title="Underline"><i class="fa-solid fa-underline"></i></button>
-                <div class="h-4 w-[1px] bg-slate-700"></div>
-                <button onclick="formatDoc('justifyLeft')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7"><i class="fa-solid fa-align-left"></i></button>
-                <button onclick="formatDoc('justifyCenter')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7"><i class="fa-solid fa-align-center"></i></button>
-                <button onclick="formatDoc('justifyRight')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7"><i class="fa-solid fa-align-right"></i></button>
-                <div class="h-4 w-[1px] bg-slate-700"></div>
-                <button onclick="formatDoc('insertUnorderedList')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7"><i class="fa-solid fa-list-ul"></i></button>
-                <button onclick="formatDoc('insertOrderedList')" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 text-xs w-7"><i class="fa-solid fa-list-ol"></i></button>
-            </div>
-
-            <!-- Page Container (Paper Effect) -->
-            <div class="flex-1 overflow-y-auto p-8 flex justify-center bg-slate-950">
-                <div class="editor-page w-full max-w-2xl bg-white text-slate-900 rounded shadow-2xl p-10 min-h-[700px] font-sans flex flex-col">
-                    
-                    <!-- Article Headline -->
-                    <h1 id="editorTitle" contenteditable="true" class="text-2xl font-bold mb-4 outline-none text-slate-900 border-b pb-2 placeholder-title">
-                        Draft Title Here...
-                    </h1>
-                    
-                    <!-- Editable Article Body -->
-                    <div id="editorBody" contenteditable="true" class="flex-1 text-sm leading-relaxed text-slate-800 space-y-4 outline-none">
-                        <p class="text-slate-400 italic">Select card from the left panel or start typing your story draft here...</p>
-                    </div>
-
                 </div>
             </div>
 
-            <!-- BOTTOM RIGHT ACTION PANEL: Send to Editorial -->
-            <div class="absolute bottom-6 right-8 flex items-center space-x-3">
-                <select id="editorialCategory" class="bg-slate-900 border border-slate-700 text-cyan-400 text-xs rounded px-3 py-2.5 focus:outline-none">
-                    <option>POLITICS & GOVERNANCE</option>
-                    <option>BUSINESS & FINANCE</option>
-                    <option>SPORT</option>
-                    <option>WORLD NEWS</option>
+            <!-- BOTTOM RIGHT CONTROLS: EDITORIAL PERSONNEL DISPATCH -->
+            <div class="absolute bottom-6 right-8 flex items-center gap-2 bg-slate-950/90 border border-slate-800 p-2 rounded-lg shadow-xl backdrop-blur-md">
+                <span class="text-[10px] text-slate-400 font-mono uppercase px-1">Assign to:</span>
+                
+                <!-- EDITORIAL PERSONNEL DROPDOWN -->
+                <select id="editorialPersonnelSelect" class="personnel-select cursor-pointer">
+                    <option value="" disabled selected>Select Editorial Personnel</option>
+                    <option value="editor_chief">Senior Chief Editor</option>
+                    <option value="editor_politics">Politics Desk Lead</option>
+                    <option value="editor_finance">Finance & Markets Editor</option>
+                    <option value="editor_sports">Sports Desk Lead</option>
+                    <option value="copy_editor">Copy Editing Desk</option>
                 </select>
 
-                <button onclick="sendToEditorial()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-5 py-2.5 rounded shadow-lg flex items-center space-x-2 transition cursor-pointer">
-                    <i class="fa-solid fa-paper-plane"></i>
-                    <span>SEND TO EDITORIAL PAGE</span>
+                <!-- SEND BUTTON -->
+                <button 
+                    onclick="dispatchToEditorial()" 
+                    class="bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider"
+                >
+                    <span>Send</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
                 </button>
             </div>
-
-        </section>
-
+        </div>
     </main>
 
+    <!-- SCRIPTS -->
     <script>
-        // Formatting options for MS Word text editing
+        // Formatting commands for Rich Text Editor
         function formatDoc(cmd, value = null) {
             document.execCommand(cmd, false, value);
         }
 
-        // Transfer clicked scrapped item from Left Feed into Right Editor
-        function transferToEditor(index) {
-            const titleEl = document.getElementById(`feed-title-${index}`);
-            const bodyEl = document.getElementById(`feed-body-${index}`);
+        // Dispatch logic to selected Editorial Personnel
+        function dispatchToEditorial() {
+            const select = document.getElementById('editorialPersonnelSelect');
+            const personnel = select.options[select.selectedIndex]?.text;
+            const statusHeader = document.getElementById('statusHeader');
 
-            if (titleEl && bodyEl) {
-                document.getElementById('editorTitle').innerText = titleEl.innerText;
-                document.getElementById('editorBody').innerHTML = `<p>${bodyEl.innerText}</p><p><br></p>`;
-                
-                document.getElementById('statusConsole').innerText = `// INJECTED FEED ENTRY [${index}] INTO EDITOR`;
-            }
-        }
-
-        // Action: Submit compiled story draft to your Editorial Node / Webhook
-        async function sendToEditorial() {
-            const title = document.getElementById('editorTitle').innerText;
-            const content = document.getElementById('editorBody').innerHTML;
-            const category = document.getElementById('editorialCategory').value;
-
-            if (!title || title === "Draft Title Here...") {
-                alert("Please add a title before submitting to editorial.");
+            if (!select.value) {
+                alert("Please select an editorial personnel before sending.");
                 return;
             }
 
-            const editorialPayload = {
-                title: title,
-                body: content,
-                category: category,
-                timestamp: new Date().toISOString()
-            };
-
-            console.log("// SENDING TO EDITORIAL NODE:", editorialPayload);
-            document.getElementById('statusConsole').innerText = `// TRANSMITTING STORY TO EDITORIAL PAGE...`;
-
-            // Replace with your actual n8n Editorial endpoint or function trigger:
-            try {
-                // await fetch('YOUR_EDITORIAL_WEBHOOK_URL', { method: 'POST', body: JSON.stringify(editorialPayload) });
-                alert("Story successfully sent to Editorial!");
-                document.getElementById('statusConsole').innerText = `// SUCCESS: DISPATCHED TO EDITORIAL`;
-            } catch (err) {
-                console.error(err);
-                document.getElementById('statusConsole').innerText = `// ERROR DISPATCHING TO EDITORIAL`;
+            if (statusHeader) {
+                statusHeader.innerText = `// SUCCESS: DISPATCHED TO ${personnel.toUpperCase()}`;
+                statusHeader.classList.remove('text-cyan-500');
+                statusHeader.classList.add('text-emerald-400');
             }
+
+            alert(`Article successfully dispatched to ${personnel}.`);
+        }
+
+        // Helper function to append incoming items from other domain pages
+        window.receiveStreamPayload = function(dataArray) {
+            const container = document.getElementById('streamDataContainer');
+            if (!container || !dataArray.length) return;
+
+            let html = '';
+            dataArray.forEach(item => {
+                html += `
+                    <div class="stream-card" onclick="transferToEditor('${escapeHtml(item.title)}', '${escapeHtml(item.content)}')">
+                        <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 uppercase inline-block mb-2">
+                            ${item.category || 'STREAM DATA'}
+                        </span>
+                        <h4 class="text-xs font-bold text-slate-200 mb-1">${item.title}</h4>
+                        <p class="text-[11px] text-slate-400 line-clamp-2">${item.content}</p>
+                        <span class="text-[9px] text-slate-600 block mt-2 text-right">${item.time || 'Just now'}</span>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        };
+
+        function transferToEditor(title, content) {
+            const editor = document.getElementById('editorialCanvas');
+            if (editor) {
+                editor.innerHTML += `
+                    <h2 class="text-xl font-bold text-slate-900 mt-6 mb-2">${title}</h2>
+                    <p class="text-slate-700 leading-relaxed text-sm">${content}</p>
+                `;
+            }
+        }
+
+        function escapeHtml(text) {
+            return String(text).replace(/'/g, "\\'").replace(/"/g, '&quot;');
         }
     </script>
 </body>
