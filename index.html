@@ -386,35 +386,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const rawData = localStorage.getItem('scrapedStreamData');
 
     if (!rawData) {
-        container.innerHTML = '<div style="color: red; padding: 10px;">// ERROR: No stream data found.</div>';
+        container.innerHTML = '<div style="color: #ef4444; font-family: monospace; padding: 10px;">// ERROR: No stream data found in storage.</div>';
         return;
     }
 
-    let streamData = [];
+    let parsedPayload;
     try {
-        streamData = JSON.parse(rawData);
+        parsedPayload = JSON.parse(rawData);
     } catch (e) {
-        container.innerHTML = '<div style="color: red; padding: 10px;">// ERROR: Invalid JSON data.</div>';
+        container.innerHTML = '<div style="color: #ef4444; font-family: monospace; padding: 10px;">// ERROR: Invalid JSON payload.</div>';
         return;
     }
 
-    if (!Array.isArray(streamData) || streamData.length === 0) {
-        container.innerHTML = '<div style="color: orange; padding: 10px;">// WARNING: Empty dataset.</div>';
+    // 1. Extract items array from n8n webhook wrapper
+    let streamData = [];
+
+    if (Array.isArray(parsedPayload)) {
+        if (parsedPayload[0] && Array.isArray(parsedPayload[0].news)) {
+            streamData = parsedPayload[0].news; // n8n response with nested "news" array
+        } else {
+            streamData = parsedPayload; // Direct n8n items array
+        }
+    } else if (parsedPayload && Array.isArray(parsedPayload.news)) {
+        streamData = parsedPayload.news;
+    } else if (parsedPayload && (Array.isArray(parsedPayload.data) || Array.isArray(parsedPayload.items))) {
+        streamData = parsedPayload.data || parsedPayload.items;
+    } else if (parsedPayload) {
+        streamData = [parsedPayload];
+    }
+
+    if (!streamData || streamData.length === 0) {
+        container.innerHTML = '<div style="color: #f59e0b; font-family: monospace; padding: 10px;">// WARNING: Empty dataset received from n8n.</div>';
         return;
     }
 
+    // 2. Render Cards (Data on Left, Small Image on Far-Right)
     let html = '';
 
     streamData.forEach((item, idx) => {
+        // Dynamic key matching for n8n payload properties
         const source = item.sourceName || item.source || 'SOURCE';
-        const title = item.title || item.newsTitle || '';
-        const image = item.imageUrl || item.image || '';
-        const link = item.url || item.link || '';
+        const title = item.title || item.newsTitle || item.header || '';
+        const image = item.imageUrl || item.image || item.media || '';
+        const link = item.url || item.link || item.hyperlink || '';
 
         html += `
             <div class="result-card flex flex-row items-center justify-between gap-3 bg-slate-900/80 border border-slate-800 rounded-lg p-3 mb-3 text-slate-100 shadow-md">
                 
-                <!-- 1. LEFT COLUMN: SOURCE, TITLE, LINKS -->
+                <!-- LEFT COLUMN: SOURCE, TITLE, LINKS -->
                 <div class="flex-1 flex flex-col justify-between min-w-0 space-y-1.5">
                     
                     <!-- TOP: SOURCE BADGE -->
@@ -425,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="text-slate-500">ITEM #${idx + 1}</span>
                     </div>
 
-                    <!-- MIDDLE: TITLE -->
+                    <!-- MIDDLE: TITLE / HEADER -->
                     ${title ? `<div class="text-cyan-300 font-bold text-xs font-sans leading-snug break-words">${title}</div>` : ''}
 
                     <!-- BOTTOM: LINKS -->
@@ -447,10 +466,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 </div>
 
-                <!-- 2. MOST RIGHT: VERY SMALL FULLY VISIBLE IMAGE -->
+                <!-- FAR RIGHT: VERY SMALL FULLY VISIBLE IMAGE -->
                 ${image ? `
-                    <div class="w-12 h-12 shrink-0 rounded border border-slate-800 bg-black/80 flex items-center justify-center p-0.5 overflow-hidden">
-                        <img src="${image}" alt="Media" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block;" onerror="this.parentElement.style.display='none'">
+                    <div class="w-12 h-12 shrink-0 rounded border border-slate-800 bg-black flex items-center justify-center p-0.5 overflow-hidden">
+                        <img src="${image}" alt="Thumbnail" style="max-width: 100%; max-height: 100%; object-fit: contain; display: block;" onerror="this.parentElement.style.display='none'">
                     </div>
                 ` : ''}
 
