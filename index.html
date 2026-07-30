@@ -102,25 +102,6 @@
             color: #60a5fa;
         }
 
-        /* Bottom-Left Analysis Button Styling */
-        .analysis-btn-bottom {
-            background-color: #042f2e;
-            border: 1.5px solid #0d9488;
-            color: #2dd4bf;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 5px 12px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            letter-spacing: 0.02em;
-            cursor: pointer;
-        }
-        .analysis-btn-bottom:hover:not(:disabled) {
-            border-color: #5eead4;
-            color: #ffffff;
-            box-shadow: 0 0 10px rgba(45, 212, 191, 0.3);
-        }
-
         .lang-checkbox-btn {
             background-color: #030712;
             border: 1.5px solid #1e293b;
@@ -159,19 +140,19 @@
             border-color: #ffffff;
         }
 
-        /* --- FIXED FULLSCREEN BRIGHT WHITE OVERLAY --- */
+        /* --- FIXED FULLSCREEN BRIGHT WHITE OVERLAY (Covers entire window viewport) --- */
         .terminal-loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: #ffffff;
+            background: #ffffff; /* Solid White Flash Trigger */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 100; /* Layers on top of every elements */
             font-family: monospace;
             border: 4px solid #2563eb; 
             display: none; 
@@ -222,6 +203,37 @@
             border-color: #06b6d4;
             background: rgba(15, 23, 42, 0.7);
             box-shadow: 0 4px 12px rgba(6, 182, 212, 0.05);
+        }
+        .result-image-wrapper {
+            width: 110px;
+            height: 75px;
+            flex-shrink: 0;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #334155;
+            background-color: #02050c;
+        }
+        .result-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .result-card:hover .result-image {
+            transform: scale(1.05);
+        }
+        .result-text-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+        .badge-meta {
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         @keyframes terminalPulse {
@@ -346,10 +358,8 @@
                         <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">Central Stream Monitor</span>
                     </div>
 
-                    <!-- CONTROL PANEL FOR ENSEMBLES -->
-                    <div class="flex items-center gap-2 justify-center flex-1 mx-4" id="languageContainer">
+                    <div class="flex items-center gap-3 justify-center flex-1 mx-4" id="languageContainer">
                         <button onclick="toggleSelectAllEnsembles()" id="btn-select-all" class="ensemble-btn uppercase">Select All Ensembles</button>
-                        
                         <button onclick="toggleLangCheckbox('OROMIFFA')" id="lang-OROMIFFA" class="lang-checkbox-btn active"><span class="custom-box"></span> OROMIFFA</button>
                         <button onclick="toggleLangCheckbox('AMHARIC')" id="lang-AMHARIC" class="lang-checkbox-btn active"><span class="custom-box"></span> AMHARIC</button>
                         <button onclick="toggleLangCheckbox('ENGLISH')" id="lang-ENGLISH" class="lang-checkbox-btn active"><span class="custom-box"></span> ENGLISH</button>
@@ -363,19 +373,14 @@
                     <div class="text-slate-500 tracking-wide">// System online. Terminal metrics initialized. Run an inquiry lookup via sidebar modules to display intercept logs...</div>
                 </div>
 
-                <!-- BOTTOM FOOTER OF MONITOR WITH ANALYSIS BUTTON AT MOST BOTTOM LEFT -->
                 <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <button onclick="runBatchAnalysis()" id="btn-do-analysis" class="analysis-btn-bottom uppercase">✨ DO ANALYSIS</button>
-                        <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
-                    </div>
-                    
+                    <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
                     <div class="flex gap-2">
                         <button id="btn-restore-log" onclick="restoreLastDeleted()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md cursor-pointer transition-all tracking-wide uppercase hidden">
                             ⟲ Restore Deleted
                         </button>
-                        <button id="btn-download-logs" onclick="downloadAsPdf()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
-                            Download A4 PDF Report
+                        <button id="btn-download-logs" onclick="downloadTerminalLogs()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
+                            Download Dataset Logs
                         </button>
                     </div>
                 </div>
@@ -476,17 +481,18 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let cachedDataStream = [];
         let deletedItemsStack = [];
-        let lastTriggeredMatrix = "strait_of_hormuz";
+        let lastTriggeredMatrix = "strait_of_hormuz"; // Track last active search matrix context
 
-        const activeLanguages = { OROMIFFA: false, AMHARIC: false, ENGLISH: false, ARABIC: false };
-
-        function initLanguageUI() {
-            Object.keys(activeLanguages).forEach(langKey => {
-                const btn = document.getElementById(`lang-${langKey}`);
-                if (btn) btn.classList.remove('active');
-            });
-        }
-        initLanguageUI();
+     //   const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
+const activeLanguages = { OROMIFFA: false, AMHARIC: false, ENGLISH: false, ARABIC: false };
+// Force all buttons to be visually unchecked on start
+function initLanguageUI() {
+    Object.keys(activeLanguages).forEach(langKey => {
+        const btn = document.getElementById(`lang-${langKey}`);
+        if (btn) btn.classList.remove('active');
+    });
+}
+initLanguageUI();
         
         function getSelectedDashboardLanguages() {
             return Object.keys(activeLanguages).filter(langKey => activeLanguages[langKey]);
@@ -529,6 +535,7 @@
             });
         };
 
+        // --- FIXED LANGUAGE TOGGLE PATH FUNCTIONS ---
         window.toggleLangCheckbox = async function(langKey) {
             const btn = document.getElementById(`lang-${langKey}`);
             activeLanguages[langKey] = !activeLanguages[langKey];
@@ -537,8 +544,10 @@
             const activeList = getSelectedDashboardLanguages();
             document.getElementById('statusConsole').innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
 
+            // Filter down to the active cards remaining on the visual monitor screen
             const curatedListLeftOnScreen = cachedDataStream.filter(item => item !== null);
 
+            // Path Activation Rule: Only automatically fire workflow if filtered cards exist on screen
             if (curatedListLeftOnScreen.length > 0) {
                 await executeCuratedFeedRegeneration(curatedListLeftOnScreen);
             }
@@ -553,27 +562,30 @@
             });
             document.getElementById('statusConsole').innerText = allTrue ? `// ENSEMBLES DE-SELECTED` : `// ALL ENSEMBLES ACTIVE`;
 
+            // Filter down to the active cards remaining on the visual monitor screen
             const curatedListLeftOnScreen = cachedDataStream.filter(item => item !== null);
 
+            // Path Activation Rule: Only automatically fire workflow if filtered cards exist on screen
             if (curatedListLeftOnScreen.length > 0) {
                 await executeCuratedFeedRegeneration(curatedListLeftOnScreen);
             }
         };
 
+        // Central processing pipeline wrapper for executing automated screen text updates
         async function executeCuratedFeedRegeneration(curatedFeedData) {
             const activeEnsembles = getSelectedDashboardLanguages();
             if (activeEnsembles.length === 0) return;
 
             const payload = {
                 targetMatrix: lastTriggeredMatrix,
-                executionType: 'translate_curated_feed',
-                curatedFeed: curatedFeedData,
+                executionType: 'translate_curated_feed', // Custom execution routing signature flag
+                curatedFeed: curatedFeedData,          // Curated card list array extraction dump
                 languages: activeEnsembles,
                 timestamp: new Date().toISOString()
             };
 
             const startTime = Date.now();
-            window.setGlobalProcessingState(true, "language");
+            window.setGlobalProcessingState(true, "language"); // Safely masks entire display frame layout
 
             try {
                 await transmitPayloadToN8n(payload);
@@ -583,62 +595,9 @@
                 if (visualBuffer > 0) {
                     await delay(visualBuffer);
                 }
-                window.setGlobalProcessingState(false);
+                window.setGlobalProcessingState(false); // Unmasks display viewport once node response finishes processing
             }
         }
-
-        // --- BATCH ANALYSIS FUNCTION ---
-        window.runBatchAnalysis = function() {
-            const selectedCheckboxes = document.querySelectorAll('.card-select-checkbox:checked');
-
-            if (selectedCheckboxes.length === 0) {
-                alert("Please select at least one card to analyze.");
-                return;
-            }
-
-            selectedCheckboxes.forEach(checkbox => {
-                const cardIndex = checkbox.value;
-                const cardContainer = document.getElementById(`card-body-${cardIndex}`);
-                const row = cachedDataStream[cardIndex];
-
-                if (cardContainer && row) {
-                    cardContainer.innerHTML = `
-                        <div class="space-y-2.5">
-                            <div>
-                                <div class="text-[9px] text-cyan-400 font-mono">// [1. VERIFIED SOURCE & URL]</div>
-                                <a href="${row.url || '#'}" target="_blank" class="text-xs text-cyan-300 hover:underline break-all font-mono">${row.url || 'N/A'}</a>
-                            </div>
-
-                            <div>
-                                <div class="text-[9px] text-cyan-400 font-mono">// [2. FEATURED IMAGE]</div>
-                                <div class="w-full h-24 bg-slate-900 border border-slate-800 rounded-md overflow-hidden flex items-center justify-center">
-                                    <img src="${row.image_url || 'https://via.placeholder.com/400x150?text=No+Asset'}" class="w-full h-full object-cover">
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="text-[9px] text-cyan-400 font-mono">// [3. ANALYZED NARRATIVE PARAGRAPH]</div>
-                                <p contenteditable="true" class="text-xs text-slate-200 bg-slate-900/80 border border-slate-800 p-2.5 rounded-md leading-relaxed font-sans">
-                                    ${row.paragraph || row.title || 'No narrative snippet available.'}
-                                </p>
-                            </div>
-
-                            <div class="flex justify-between items-center pt-2 border-t border-slate-800">
-                                <select class="bg-slate-950 text-cyan-400 border border-slate-800 text-[10px] px-2 py-1 rounded">
-                                    <option>POLITICS & GOVERNANCE</option>
-                                    <option>BUSINESS & FINANCE</option>
-                                    <option>SPORT</option>
-                                </select>
-                                <button onclick="sendToEditorial(${cardIndex})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] px-3 py-1 rounded uppercase cursor-pointer">
-                                    📩 SEND TO EDITORIAL PAGE
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-            document.getElementById('statusConsole').innerText = `// BATCH ANALYSIS COMPLETED FOR ${selectedCheckboxes.length} ITEMS.`;
-        };
 
         window.triggerAnythingNew = async function(sectorContext) {
             const startTime = Date.now();
@@ -659,28 +618,24 @@
                 const { data, error } = await supabaseClient.from(tableTarget).select('*').order('id', { ascending: false }).limit(4);
                 if (error) throw error;
                 cachedDataStream = data || [];
-                deletedItemsStack = [];
+                deletedItemsStack = []; // Reset stack metrics tracking on raw lookups
                 document.getElementById('btn-restore-log').classList.add('hidden');
 
                 let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// DELTA RECONNAISSANCE SEARCH: [${sectorContext.toUpperCase()}]</div>`;
                 cachedDataStream.forEach((row, idx) => {
-                    html += `
-                        <div class="result-card" id="card-${idx}">
-                            <input type="checkbox" class="card-select-checkbox accent-cyan-500 mt-1 cursor-pointer" value="${idx}">
-                            <div class="result-text-content flex-1" id="card-body-${idx}">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-amber-400 font-bold">[NEW-${idx+1}]</span>
-                                    <span class="text-[10px] text-slate-500">// RAW LOG ITEM</span>
-                                </div>
-                                <span class="text-slate-200 font-bold">${row.title || 'Untitled Element'}</span>
-                                <p class="text-[11px] text-slate-400 mt-0.5 truncate">${row.url || ''}</p>
-                            </div>
-                        </div>`;
+                    html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-amber-400 font-bold">[NEW-${idx+1}]</span> <span class="text-slate-200">${row.title || 'Untitled Element'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
                 });
                 outputPanel.innerHTML = html;
                 statusLog.innerText = `// DELTA CAPTURE FINISHED.`;
             } catch (err) {
-                outputPanel.innerHTML = `<div class="text-red-400">// ERROR FETCHING DATA.</div>`;
+                const fallbackPayload = {
+                    targetMatrix: formattedMatrixKey,
+                    executionType: 'anything_new',
+                    query: `latest operational updates tracking for ${sectorContext}`,
+                    languages: getSelectedDashboardLanguages(),
+                    timestamp: new Date().toISOString()
+                };
+                await transmitPayloadToN8n(fallbackPayload);
             } finally {
                 const elapsedTime = Date.now() - startTime;
                 const visualBuffer = 1200 - elapsedTime;
@@ -717,27 +672,28 @@
 
                 const { data, error } = await supabaseClient.from(currentTable).select('*').ilike('title', `%${queryValue}%`).limit(6);
                 if (error) throw error;
-                
                 cachedDataStream = data || [];
-                let html = `<div class="text-cyan-400 border-b border-slate-900 pb-1.5 mb-2">// QUERY MATCHES FOR: "${queryValue.toUpperCase()}"</div>`;
-                
-                cachedDataStream.forEach((row, idx) => {
-                    html += `
-                        <div class="result-card" id="card-${idx}">
-                            <input type="checkbox" class="card-select-checkbox accent-cyan-500 mt-1 cursor-pointer" value="${idx}">
-                            <div class="result-text-content flex-1" id="card-body-${idx}">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-cyan-400 font-bold">[LOG-${idx+1}]</span>
-                                </div>
-                                <span class="text-slate-200 font-bold">${row.title || 'Untitled Element'}</span>
-                                <p class="text-[11px] text-slate-400 mt-0.5 truncate">${row.url || ''}</p>
-                            </div>
-                        </div>`;
-                });
-                outputPanel.innerHTML = html;
-                statusLog.innerText = `// SEARCH FINISHED.`;
+                deletedItemsStack = []; // Clear card stack buffer logs
+                document.getElementById('btn-restore-log').classList.add('hidden');
+
+                if (cachedDataStream.length === 0) {
+                    outputPanel.innerHTML = `<div class="text-slate-500">// Search completed. 0 matching sequences found for: "${queryValue}".</div>`;
+                } else {
+                    let html = `<div class="text-cyan-400 border-b border-slate-900 pb-1.5 mb-2">// ISOLATED FEED RECORDS: ${sectorContext.toUpperCase()}</div>`;
+                    cachedDataStream.forEach((row, idx) => {
+                        html += `<div class="border-b border-slate-900 pb-2 last:border-0"><span class="text-cyan-400 font-bold">[HIT-${idx+1}]</span> <span class="text-slate-200">${row.title || 'Unknown Asset'}</span><p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">${row.url || ''}</p></div>`;
+                    });
+                    outputPanel.innerHTML = html;
+                }
             } catch (err) {
-                outputPanel.innerHTML = `<div class="text-red-400">// QUERY ERROR OCCURRED.</div>`;
+                const fallbackPayload = {
+                    targetMatrix: formattedMatrixKey,
+                    executionType: 'specific_search',
+                    query: queryValue,
+                    languages: getSelectedDashboardLanguages(),
+                    timestamp: new Date().toISOString()
+                };
+                await transmitPayloadToN8n(fallbackPayload);
             } finally {
                 const elapsedTime = Date.now() - startTime;
                 const visualBuffer = 1200 - elapsedTime;
@@ -747,6 +703,177 @@
                 window.setGlobalProcessingState(false);
             }
         };
+
+        window.deleteCard = function(index) {
+            const targetItem = cachedDataStream[index];
+            if (!targetItem) return;
+
+            // Push item onto the delete stack history along with original index
+            deletedItemsStack.push({ item: targetItem, originalIndex: index });
+
+            // Nullify this slot in our data array to preserve the key index positions
+            cachedDataStream[index] = null;
+
+            // Fade and remove item smoothly from UI
+            const cardEl = document.getElementById(`card-${index}`);
+            if (cardEl) {
+                cardEl.style.transition = 'all 0.15s ease-out';
+                cardEl.style.opacity = '0';
+                cardEl.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    cardEl.remove();
+                }, 150);
+            }
+
+            // Update visible capture counters in the header label
+            const remainingCount = cachedDataStream.filter(item => item !== null).length;
+            const headingEl = document.querySelector('#unifiedResultsConsole > .font-bold');
+            if (headingEl) {
+                headingEl.innerText = `// WEBHOOK RESPONSE CAPTURES (${remainingCount} records)`;
+            }
+
+            // Render "Restore Last Deleted" option active
+            document.getElementById('btn-restore-log').classList.remove('hidden');
+        };
+
+        window.restoreLastDeleted = function() {
+            if (deletedItemsStack.length === 0) return;
+
+            const lastDeleted = deletedItemsStack.pop();
+            const { item, originalIndex } = lastDeleted;
+
+            // Restore element back to its original slot in data cache
+            cachedDataStream[originalIndex] = item;
+
+            // Trigger full re-render cycle using our preserved array
+            rebuildVisibleCards();
+
+            // Toggle hide if no remaining deleted entries left in buffer stack
+            if (deletedItemsStack.length === 0) {
+                document.getElementById('btn-restore-log').classList.add('hidden');
+            }
+        };
+
+function rebuildVisibleCards() {
+    const outputPanel = document.getElementById('unifiedResultsConsole');
+    const selected = getSelectedDashboardLanguages();
+    
+    // 1. If no language is selected, show wait message
+    if (selected.length === 0) {
+        outputPanel.innerHTML = '<div class="text-slate-500 text-center p-10">// SELECT A LANGUAGE ENSEMBLE TO DISPLAY DATA...</div>';
+        return;
+    }
+
+    const primaryLang = selected[0]; 
+    
+    // 2. IMPORTANT: Access the data correctly from the webhook response
+    // Based on your screenshot, your data is inside 'result.data'
+    const displayData = Array.isArray(cachedDataStream) ? cachedDataStream : [];
+
+    let html = `<div class="text-emerald-400 border-b border-slate-900 pb-2 mb-4 font-bold">// WEBHOOK RESPONSE CAPTURES (${displayData.length} records)</div>`;
+
+    displayData.forEach((item, idx) => {
+        if (item === null) return;
+
+        // 3. Logic to extract the text from the structure shown in your console
+        // We look for the primaryLang key inside the item
+      //  const titleText = (item[primaryLang] || item.news || item.title || 'Untitled Decrypt');
+       const titleText = item.displayTitle; 
+        const sourceLabel = item.sourceName || item.source || 'EXTERNAL WEB';
+        const sourceUrl = item.url || '#';
+        const imageUrl = item.imageUrl || '';
+
+        html += `
+        <div id="card-${idx}" class="result-card relative">
+            <button onclick="deleteCard(${idx})" class="absolute top-2 left-2 z-20 w-5 h-5 bg-red-950/80 hover:bg-red-600 border border-red-800 text-red-400 hover:text-white rounded-full flex items-center justify-center text-[10px] font-bold cursor-pointer transition-all shadow-md">✕</button>
+            ${imageUrl ? `<div class="result-image-wrapper pl-6"><img class="result-image" src="${imageUrl}" alt="intel"></div>` : '<div class="pl-6"></div>'}
+            <div class="result-text-content">
+                <div class="badge-meta text-cyan-400">[SOURCE: ${sourceLabel.toUpperCase()}]</div>
+                <div class="text-slate-200">${titleText}</div>
+                <div class="text-[9px] text-emerald-500 uppercase font-mono tracking-wider">STATE: DECRYPTED</div>
+            </div>
+            <div class="text-right flex flex-col justify-between h-full shrink-0 select-none">
+                <span class="text-[9px] text-slate-600 font-mono">INDEX // ${String(idx + 1).padStart(3, '0')}</span>
+                <a href="${sourceUrl}" target="_blank" class="text-[9px] text-cyan-400 hover:text-cyan-300 uppercase font-bold tracking-wider hover:underline">ACCESS LINK -></a>
+            </div>
+        </div>`;
+    });
+    outputPanel.innerHTML = html;
+}
+
+        window.downloadTerminalLogs = function() {
+            // Filter empty null allocations cleanly out from download output schema array configurations
+            const activeDataset = cachedDataStream.filter(item => item !== null);
+
+            if (activeDataset.length === 0) return alert("Run a lookup sequence and preserve at least 1 record to export dataset logs.");
+            
+            const blobString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(activeDataset, null, 2));
+            const anchor = document.createElement('a');
+            anchor.setAttribute("href", blobString);
+            anchor.setAttribute("download", "terminal_dataset_dump.json");
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+        };
+
+        async function transmitPayloadToN8n(payload) {
+            console.log("// SENDING PAYLOAD TO N8N WEBHOOK...", payload);
+            const monitorContainer = document.getElementById('unifiedResultsConsole');
+            
+            // Do not wipe out visible terminal screen cards if this is specifically a quick text translation query action
+            if (monitorContainer && payload.executionType !== 'translate_curated_feed') {
+                monitorContainer.innerHTML = `
+                    <div class="text-cyan-400 font-mono text-xs animate-pulse">
+                        // INSTANTIATING INTERCEPT WEBHOOK...<br>
+                        // TARGET ROUTE: [${payload.targetMatrix.toUpperCase()}]
+                    </div>`;
+            }
+
+            try {
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`Gateway Status: ${response.status}`);
+                
+                const data = await response.json();
+                console.log("// WEBHOOK SUCCESS:", data);
+
+           // Get the active language
+                const selected = getSelectedDashboardLanguages();
+                const primaryLang = selected.length > 0 ? selected[0] : null;
+
+                // Flatten data from the nested structure
+                let rawItems = (data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : []);
+
+                // Filter/Prepare items for display
+                cachedDataStream = rawItems.map(item => {
+                    // If a language is selected, only keep items that have that language key
+                    if (primaryLang && item.news && item.news[primaryLang]) {
+                        return { ...item, displayTitle: item.news[primaryLang] };
+                    }
+                    // Fallback for non-translated or raw data
+                    return { ...item, displayTitle: item.news || item.title || 'Untitled Decrypt' };
+                });
+
+                deletedItemsStack = [];
+                document.getElementById('btn-restore-log').classList.add('hidden');
+                
+                rebuildVisibleCards();
+                }
+        
+            } catch (err) {
+                console.error("// GATEWAY ERROR:", err);
+                if (monitorContainer) {
+                    monitorContainer.innerHTML = `<span class="text-red-400 font-mono">// GATEWAY RECONNAISSANCE INTERRUPTED: ${err.message}</span>`;
+                }
+            }
+        }
     </script>
 </body>
 </html>
