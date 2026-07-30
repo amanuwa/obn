@@ -6,8 +6,6 @@
     <title>Custom Gateway | Terminal Hub</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Supabase CDN Script -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; background-color: #010206; position: relative; overflow: hidden; }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -159,7 +157,7 @@
             border-color: #ffffff;
         }
 
-        /* --- FIXED FULLSCREEN BRIGHT WHITE OVERLAY --- */
+        /* FULLSCREEN LOADING OVERLAY */
         .terminal-loading-overlay {
             position: fixed;
             top: 0;
@@ -185,7 +183,6 @@
             animation: terminalPulse 1.4s infinite;
         }
 
-        /* High Visibility Progress Track */
         .tactical-track {
             width: 280px;
             height: 6px;
@@ -206,7 +203,7 @@
             animation: radarSweep 1.3s linear infinite;
         }
 
-        /* --- HORIZONTAL RESULTS CARD SYSTEM --- */
+        /* RESULTS CARD SYSTEM */
         .result-card {
             display: flex;
             gap: 16px;
@@ -233,7 +230,6 @@
             100% { left: 310px; }
         }
 
-        /* Universal Disabled Styling */
         button:disabled, 
         input:disabled, 
         a.domain-btn.disabled-link {
@@ -248,7 +244,7 @@
     <!-- FIXED FULLSCREEN LOADING OVERLAY -->
     <div id="terminalLoader" class="terminal-loading-overlay">
         <div class="text-[12px] text-slate-900 font-bold tracking-wider" id="loaderHeader">// INITIALIZING INTERCEPT SEQUENCES...</div>
-        <div class="loading-alert-text text-[11px] mt-1.5" id="loaderSubheader">SYSTEM STATE: PROCESSING - PLEASE WAIT...</div>
+        <div class="loading-alert-text text-[11px] mt-1.5" id="loaderSubheader">SYSTEM STATE: WAITING FOR N8N WEBHOOK RESPONSE...</div>
         
         <div class="tactical-track">
             <div class="tactical-scanner"></div>
@@ -360,10 +356,10 @@
                 </div>
 
                 <div id="unifiedResultsConsole" class="flex-1 overflow-y-auto font-mono text-xs text-slate-400 bg-slate-950/40 border border-slate-900/60 rounded-md p-3 space-y-3">
-                    <div class="text-slate-500 tracking-wide">// System online. Terminal metrics initialized. Run an inquiry lookup via sidebar modules to display intercept logs...</div>
+                    <div class="text-slate-500 tracking-wide">// System online. Direct n8n webhook listener ready. Trigger any module to fetch live stream...</div>
                 </div>
 
-                <!-- BOTTOM FOOTER OF MONITOR WITH ANALYSIS BUTTON AT MOST BOTTOM LEFT -->
+                <!-- BOTTOM FOOTER -->
                 <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <button onclick="runBatchAnalysis()" id="btn-do-analysis" class="analysis-btn-bottom uppercase">✨ DO ANALYSIS</button>
@@ -391,9 +387,9 @@
 
     <!-- ENGINE SCRIPTS -->
     <script type="module">
-        import { SUPABASE_URL, SUPABASE_ANON_KEY, N8N_GATEWAY_WEBHOOK } from './config.js';
+        import { N8N_GATEWAY_WEBHOOK } from './config.js';
         
-        console.log("// TERMINAL HUB: Modules loaded successfully. Gateway configured.");
+        console.log("// TERMINAL HUB: Webhook configured:", N8N_GATEWAY_WEBHOOK);
 
         const canvas = document.getElementById('governanceCanvas');
         const ctx = canvas.getContext('2d');
@@ -472,10 +468,7 @@
         
         animationFrameId = requestAnimationFrame(runStaticGlitchField);
 
-        // Supabase Instantiation
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let cachedDataStream = [];
-        let deletedItemsStack = [];
         let lastTriggeredMatrix = "strait_of_hormuz";
 
         const activeLanguages = { OROMIFFA: false, AMHARIC: false, ENGLISH: false, ARABIC: false };
@@ -492,8 +485,6 @@
             return Object.keys(activeLanguages).filter(langKey => activeLanguages[langKey]);
         }
 
-        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
         window.setGlobalProcessingState = function(isProcessing, processingType = "standard") {
             const overlay = document.getElementById('terminalLoader');
             const loaderHeader = document.getElementById('loaderHeader');
@@ -506,7 +497,7 @@
                         loaderSubheader.innerText = "SYSTEM STATE: TRANSLATING FEED RECORDS - PLEASE WAIT...";
                     } else {
                         loaderHeader.innerText = "// INITIALIZING INTERCEPT SEQUENCES...";
-                        loaderSubheader.innerText = "SYSTEM STATE: PROCESSING - PLEASE WAIT...";
+                        loaderSubheader.innerText = "SYSTEM STATE: WAITING FOR N8N RESPONSE...";
                     }
                     overlay.style.display = 'flex';
                 } else {
@@ -529,6 +520,110 @@
             });
         };
 
+        // Render n8n response array/object into the UI
+        function renderN8nResults(data, sectorContext) {
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+            let resultsArray = Array.isArray(data) ? data : (data.data || data.items || [data]);
+
+            // Save payload to global stream cache
+            cachedDataStream = resultsArray;
+
+            let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}]</div>`;
+
+            if (resultsArray.length === 0) {
+                html += `<div class="text-slate-500">// Webhook returned empty payload.</div>`;
+            } else {
+                resultsArray.forEach((row, idx) => {
+                    html += `
+                        <div class="result-card" id="card-${idx}">
+                            <input type="checkbox" class="card-select-checkbox accent-cyan-500 mt-1 cursor-pointer" value="${idx}">
+                            <div class="flex-1 space-y-1" id="card-body-${idx}">
+                                <div class="text-cyan-400 font-bold text-xs">${row.title || row.name || 'Untitled Entry'}</div>
+                                <div class="text-slate-400 text-[11px] font-sans">${row.paragraph || row.description || row.snippet || row.content || JSON.stringify(row)}</div>
+                                ${row.url ? `<a href="${row.url}" target="_blank" class="text-[10px] text-cyan-600 hover:underline break-all block">${row.url}</a>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            outputPanel.innerHTML = html;
+        }
+
+        // Transmit webhook payload and wait for n8n's "Respond to Webhook" node output
+        async function transmitPayloadToN8n(payload) {
+            try {
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                return await response.json();
+            } catch (err) {
+                console.error("// GATEWAY WEBHOOK ERROR:", err);
+                throw err;
+            }
+        }
+
+        // Action: "✨ Anything New" button trigger
+        window.triggerAnythingNew = async function(sectorContext) {
+            window.setGlobalProcessingState(true);
+            const statusLog = document.getElementById('statusConsole');
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+            
+            statusLog.innerText = `// TRIGGERING N8N WEBHOOK FOR ANYTHING NEW: [${sectorContext.toUpperCase()}]`;
+            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Awaiting response from n8n webhook...</div>`;
+
+            const payload = {
+                action: 'anything_new',
+                targetMatrix: sectorContext,
+                languages: getSelectedDashboardLanguages(),
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const webhookResponse = await transmitPayloadToN8n(payload);
+                renderN8nResults(webhookResponse, sectorContext);
+                statusLog.innerText = `// SUCCESS: RECIEVED RESPONSE FROM N8N FOR [${sectorContext.toUpperCase()}]`;
+            } catch (err) {
+                outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
+                statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
+            } finally {
+                window.setGlobalProcessingState(false);
+            }
+        };
+
+        // Action: "GO" button trigger
+        window.triggerUnifiedSearch = async function(sectorContext, inputId) {
+            const inputVal = document.getElementById(inputId).value;
+            if (!inputVal) return;
+
+            window.setGlobalProcessingState(true);
+            const statusLog = document.getElementById('statusConsole');
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+
+            statusLog.innerText = `// TRANSMITTING SEARCH QUERY TO N8N WEBHOOK: [${inputVal}]`;
+            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Awaiting response from n8n webhook...</div>`;
+
+            const payload = {
+                action: 'unified_search',
+                targetMatrix: sectorContext,
+                query: inputVal,
+                languages: getSelectedDashboardLanguages(),
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const webhookResponse = await transmitPayloadToN8n(payload);
+                renderN8nResults(webhookResponse, sectorContext);
+                statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FOR SEARCH [${inputVal}]`;
+            } catch (err) {
+                outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
+                statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
+            } finally {
+                window.setGlobalProcessingState(false);
+            }
+        };
+
         window.toggleLangCheckbox = async function(langKey) {
             const btn = document.getElementById(`lang-${langKey}`);
             activeLanguages[langKey] = !activeLanguages[langKey];
@@ -536,12 +631,6 @@
             
             const activeList = getSelectedDashboardLanguages();
             document.getElementById('statusConsole').innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
-
-            const curatedListLeftOnScreen = cachedDataStream.filter(item => item !== null);
-
-            if (curatedListLeftOnScreen.length > 0) {
-                await executeCuratedFeedRegeneration(curatedListLeftOnScreen);
-            }
         };
 
         window.toggleSelectAllEnsembles = async function() {
@@ -552,55 +641,9 @@
                 document.getElementById(`lang-${k}`).classList.toggle('active', !allTrue);
             });
             document.getElementById('statusConsole').innerText = allTrue ? `// ENSEMBLES DE-SELECTED` : `// ALL ENSEMBLES ACTIVE`;
-
-            const curatedListLeftOnScreen = cachedDataStream.filter(item => item !== null);
-
-            if (curatedListLeftOnScreen.length > 0) {
-                await executeCuratedFeedRegeneration(curatedListLeftOnScreen);
-            }
         };
 
-        async function executeCuratedFeedRegeneration(curatedFeedData) {
-            const activeEnsembles = getSelectedDashboardLanguages();
-            if (activeEnsembles.length === 0) return;
-
-            const payload = {
-                targetMatrix: lastTriggeredMatrix,
-                executionType: 'translate_curated_feed',
-                curatedFeed: curatedFeedData,
-                languages: activeEnsembles,
-                timestamp: new Date().toISOString()
-            };
-
-            const startTime = Date.now();
-            window.setGlobalProcessingState(true, "language");
-
-            try {
-                await transmitPayloadToN8n(payload);
-            } finally {
-                const elapsedTime = Date.now() - startTime;
-                const visualBuffer = 1200 - elapsedTime;
-                if (visualBuffer > 0) {
-                    await delay(visualBuffer);
-                }
-                window.setGlobalProcessingState(false);
-            }
-        }
-
-        async function transmitPayloadToN8n(payload) {
-            try {
-                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                return await response.json();
-            } catch (err) {
-                console.error("// GATEWAY ERROR:", err);
-            }
-        }
-
-        // --- BATCH ANALYSIS FUNCTION ---
+        // Batch analysis handler for selected monitor cards
         window.runBatchAnalysis = function() {
             const selectedCheckboxes = document.querySelectorAll('.card-select-checkbox:checked');
 
@@ -632,7 +675,7 @@
                             <div>
                                 <div class="text-[9px] text-cyan-400 font-mono">// [3. ANALYZED NARRATIVE PARAGRAPH]</div>
                                 <p contenteditable="true" class="text-xs text-slate-200 bg-slate-900/80 border border-slate-800 p-2.5 rounded-md leading-relaxed font-sans">
-                                    ${row.paragraph || row.title || 'No narrative snippet available.'}
+                                    ${row.paragraph || row.description || row.title || 'No narrative snippet available.'}
                                 </p>
                             </div>
 
@@ -642,7 +685,7 @@
                                     <option>BUSINESS & FINANCE</option>
                                     <option>SPORT</option>
                                 </select>
-                                <button onclick="sendToEditorial(${cardIndex})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] px-3 py-1 rounded uppercase cursor-pointer">
+                                <button class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] px-3 py-1 rounded uppercase cursor-pointer">
                                     📩 SEND TO EDITORIAL PAGE
                                 </button>
                             </div>
@@ -651,84 +694,6 @@
                 }
             });
             document.getElementById('statusConsole').innerText = `// BATCH ANALYSIS COMPLETED FOR ${selectedCheckboxes.length} ITEMS.`;
-        };
-
-        window.triggerAnythingNew = async function(sectorContext) {
-            const startTime = Date.now();
-            window.setGlobalProcessingState(true);
-
-            const outputPanel = document.getElementById('unifiedResultsConsole');
-            const statusLog = document.getElementById('statusConsole');
-            statusLog.innerText = `// TRACKING RECENT CHRONO ENTRIES FOR: [${sectorContext.toUpperCase()}]`;
-            outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying database metrics...</div>`;
-
-            const formattedMatrixKey = sectorContext.toLowerCase().replace(/ /g, '_').replace(/[()]/g, '');
-            lastTriggeredMatrix = formattedMatrixKey;
-
-            try {
-                // Table mapping for Supabase
-                let tableTarget = sectorContext.includes('GERD') || sectorContext.includes('Ethiopia')
-                    ? 'Ethiopian -Politics and governance websites' 
-                    : 'politics and governance -websites';
-
-                const { data, error } = await supabaseClient
-                    .from(tableTarget)
-                    .select('*')
-                    .order('id', { ascending: false })
-                    .limit(4);
-
-                if (error) throw error;
-                cachedDataStream = data || [];
-                deletedItemsStack = [];
-                document.getElementById('btn-restore-log').classList.add('hidden');
-
-                let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-2">// DELTA RECONNAISSANCE SEARCH: [${sectorContext.toUpperCase()}]</div>`;
-                
-                if (cachedDataStream.length === 0) {
-                    html += `<div class="text-slate-500">// No records located in table target.</div>`;
-                } else {
-                    cachedDataStream.forEach((row, idx) => {
-                        html += `
-                            <div class="result-card" id="card-${idx}">
-                                <input type="checkbox" class="card-select-checkbox accent-cyan-500 mt-1 cursor-pointer" value="${idx}">
-                                <div class="flex-1 space-y-1" id="card-body-${idx}">
-                                    <div class="text-cyan-400 font-bold text-xs">${row.title || 'Untitled Stream Entry'}</div>
-                                    <div class="text-slate-400 text-[11px] font-sans">${row.paragraph || row.description || 'No detailed abstract recorded.'}</div>
-                                    <a href="${row.url || '#'}" target="_blank" class="text-[10px] text-cyan-600 hover:underline break-all block">${row.url || ''}</a>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-                outputPanel.innerHTML = html;
-            } catch (err) {
-                console.error("// DATABASE QUERY ERROR:", err);
-                outputPanel.innerHTML = `<div class="text-red-400">// ERROR FETCHING DATA: ${err.message}</div>`;
-            } finally {
-                const elapsedTime = Date.now() - startTime;
-                if (elapsedTime < 1000) await delay(1000 - elapsedTime);
-                window.setGlobalProcessingState(false);
-            }
-        };
-
-        window.triggerUnifiedSearch = async function(sectorContext, inputId) {
-            const inputVal = document.getElementById(inputId).value;
-            if (!inputVal) return;
-
-            window.setGlobalProcessingState(true);
-            const statusLog = document.getElementById('statusConsole');
-            statusLog.innerText = `// EXECUTING UNIFIED SEARCH FOR: [${inputVal}] IN [${sectorContext.toUpperCase()}]`;
-
-            try {
-                await transmitPayloadToN8n({
-                    targetMatrix: sectorContext,
-                    query: inputVal,
-                    languages: getSelectedDashboardLanguages(),
-                    timestamp: new Date().toISOString()
-                });
-            } finally {
-                window.setGlobalProcessingState(false);
-            }
         };
     </script>
 </body>
