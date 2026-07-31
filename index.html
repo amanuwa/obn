@@ -697,13 +697,29 @@
             }
         };
 
-        window.downloadAsPdf = function() {
-            if (!cachedDataStream || cachedDataStream.length === 0) {
-                alert("No active stream dataset available to export.");
-                return;
-            }
-            window.print();
-        };
+      window.downloadAsPdf = function() {
+    if (!cachedDataStream || cachedDataStream.length === 0) {
+        alert("No active stream dataset available to export.");
+        return;
+    }
+
+    // Filter out deleted cards so only visible stream cards are passed over
+    const visibleData = cachedDataStream.filter((_, idx) => {
+        const cardEl = document.getElementById(`card-${idx}`);
+        return cardEl && cardEl.style.display !== 'none';
+    });
+
+    if (visibleData.length === 0) {
+        alert("All cards have been deleted. Nothing to send to Preparation Studio.");
+        return;
+    }
+
+    // 1. Store the dataset in localStorage
+    localStorage.setItem('preparationStudioData', JSON.stringify(visibleData));
+
+    // 2. Redirect to prepare.html
+    window.location.href = 'prepare.html';
+};
     </script>
 </body>
 </html>
