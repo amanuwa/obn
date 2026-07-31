@@ -400,12 +400,11 @@
                 alert(`Initial draft dispatched to ${personnel}.`);
             }
         }
-    document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
         renderIncomingStreamData();
     });
 
     function renderIncomingStreamData() {
-        // 1. Fetch the stored payload from localStorage
         const rawData = localStorage.getItem('preparationStudioData');
 
         if (!rawData) {
@@ -415,75 +414,67 @@
 
         try {
             const streamItems = JSON.parse(rawData);
+            if (!Array.isArray(streamItems) || streamItems.length === 0) return;
 
-            if (!Array.isArray(streamItems) || streamItems.length === 0) {
-                return;
+            // 1. Target the specific text placeholder in the left box
+            const placeholder = Array.from(document.querySelectorAll('*')).find(
+                el => el.children.length === 0 && el.textContent.includes('Awaiting stream data transfers')
+            );
+
+            let streamContainer;
+
+            if (placeholder) {
+                // Get the parent container holding the placeholder text
+                streamContainer = placeholder.closest('div');
+                // Clear the "// Awaiting stream data transfers..." text
+                streamContainer.innerHTML = '';
+            } else {
+                // Direct fallback: search for an existing list wrapper or create one in the left panel
+                streamContainer = document.getElementById('scrapedStreamList');
             }
 
-            // 2. Locate or prepare the container inside the left panel
-            let listWrapper = document.getElementById('streamItemsWrapper');
-            
-            if (!listWrapper) {
-                // Find and clear any placeholder text ("// Awaiting stream data transfers...")
-                const placeholder = Array.from(document.querySelectorAll('div, p, span'))
-                    .find(el => el.textContent.includes('Awaiting stream data transfers'));
-                
-                if (placeholder && placeholder.parentElement) {
-                    placeholder.parentElement.innerHTML = '<div id="streamItemsWrapper" class="space-y-3 p-1.5 overflow-y-auto max-h-[calc(100vh-140px)] pr-1"></div>';
-                    listWrapper = document.getElementById('streamItemsWrapper');
-                }
-            }
+            if (!streamContainer) return;
 
-            // Fallback: If no placeholder was found, target the first main left-panel sidebar container
-            if (!listWrapper) {
-                const leftPanel = document.querySelector('aside') || document.querySelectorAll('div')[2];
-                if (leftPanel) {
-                    leftPanel.innerHTML += '<div id="streamItemsWrapper" class="space-y-3 p-1.5 overflow-y-auto max-h-[calc(100vh-140px)] pr-1"></div>';
-                    listWrapper = document.getElementById('streamItemsWrapper');
-                }
-            }
+            // Ensure container remains scrollable within the left column
+            streamContainer.id = 'scrapedStreamList';
+            streamContainer.className = "flex-1 overflow-y-auto space-y-3 p-2 max-h-[calc(100vh-220px)]";
 
-            if (!listWrapper) return;
-
-            // 3. Generate HTML with small image thumbnails & larger text
+            // 2. Build the cards (small images on left, larger title & text)
             let cardsHtml = '';
             streamItems.forEach((row, idx) => {
-                const sourceName = row.sourceName || row.source || 'Scraped Source';
+                const sourceName = row.sourceName || row.source || 'SOURCE';
                 const title = row.title || row.newsTitle || row.name || 'Untitled Stream Item';
                 const content = row.news || row.paragraph || row.description || row.snippet || row.content || '';
                 const imageUrl = row.imageUrl || row.image || row.media || null;
                 const url = row.url || row.link || null;
 
                 cardsHtml += `
-                    <div class="p-3 bg-slate-900/90 border border-slate-800 hover:border-cyan-500/70 rounded-lg transition-all cursor-pointer group shadow-md"
+                    <div class="p-3 bg-slate-900/90 border border-slate-800 hover:border-cyan-500/70 rounded-lg transition-all cursor-pointer group shadow-sm"
                          onclick="transferToEditor(${idx})">
                         
-                        <!-- Top Metadata Line -->
+                        <!-- Source Tag & Transfer Hint -->
                         <div class="flex items-center justify-between text-[10px] font-mono mb-2 pb-1 border-b border-slate-800/60">
                             <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase font-bold tracking-wider">
                                 ${sourceName}
                             </span>
                             <span class="text-slate-500 group-hover:text-cyan-400 text-[10px] uppercase tracking-wider transition-colors">
-                                Append to draft ➔
+                                Append ➔
                             </span>
                         </div>
 
-                        <!-- Main Content Layout (Small Image + Bigger Text) -->
+                        <!-- Side-by-side Layout: Small Image + Bigger Text -->
                         <div class="flex gap-3 items-start">
                             ${imageUrl ? `
-                                <div class="w-14 h-14 shrink-0 overflow-hidden rounded border border-slate-700/80 bg-black/50">
-                                    <img src="${imageUrl}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200" onerror="this.parentElement.style.display='none'">
+                                <div class="w-12 h-12 shrink-0 overflow-hidden rounded border border-slate-700/80 bg-black/50">
+                                    <img src="${imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" onerror="this.parentElement.style.display='none'">
                                 </div>
                             ` : ''}
 
                             <div class="flex-1 min-w-0">
-                                <!-- Larger Title -->
-                                <h4 class="text-cyan-300 font-sans font-bold text-sm leading-snug mb-1.5 group-hover:text-cyan-200 break-words">
+                                <h4 class="text-cyan-300 font-sans font-bold text-sm leading-snug mb-1 group-hover:text-cyan-200 break-words">
                                     ${title}
                                 </h4>
-                                
-                                <!-- Larger Summary Text -->
-                                <p class="text-slate-200 font-sans text-xs leading-relaxed line-clamp-4">
+                                <p class="text-slate-300 font-sans text-xs leading-relaxed line-clamp-3">
                                     ${content}
                                 </p>
                             </div>
@@ -500,13 +491,33 @@
                 `;
             });
 
-            listWrapper.innerHTML = cardsHtml;
+            streamContainer.innerHTML = cardsHtml;
 
-            // Global reference for editor insertion
+            // Store globally for clicking items into the main editor page
             window.activeStreamItems = streamItems;
 
         } catch (err) {
-            console.error("Error rendering preparation studio stream:", err);
+            console.error("Error populating left stream container:", err);
+        }
+    }
+
+    // Appends card content directly into the white document workspace on the right
+    function transferToEditor(index) {
+        if (!window.activeStreamItems || !window.activeStreamItems[index]) return;
+        
+        const item = window.activeStreamItems[index];
+        const title = item.title || item.newsTitle || '';
+        const content = item.news || item.paragraph || item.description || item.snippet || '';
+
+        const editorDoc = document.querySelector('.bg-white') || document.querySelector('[contenteditable="true"]');
+        if (editorDoc) {
+            const paragraphNode = document.createElement('div');
+            paragraphNode.className = 'mt-4 pt-3 border-t border-gray-200';
+            paragraphNode.innerHTML = `
+                <h3 class="text-lg font-bold text-gray-900">${title}</h3>
+                <p class="text-gray-700 text-sm mt-1 leading-relaxed">${content}</p>
+            `;
+            editorDoc.appendChild(paragraphNode);
         }
     }
 
