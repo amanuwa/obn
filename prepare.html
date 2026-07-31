@@ -400,23 +400,12 @@
                 alert(`Initial draft dispatched to ${personnel}.`);
             }
         }
-        document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
         renderIncomingStreamData();
     });
 
     function renderIncomingStreamData() {
-        // 1. Locate the left sidebar container (Scraped Analysis Stream panel)
-        const leftStreamContainer = document.querySelector('.flex-1.overflow-y-auto') 
-            || document.getElementById('scrapedStreamContainer') 
-            || document.querySelectorAll('div')[2]; // Fallback selector
-
-        // Target the specific container under "// SCRAPED ANALYSIS STREAM"
-        const targetContainer = document.querySelector('[class*="SCRAPED ANALYSIS STREAM"]')?.parentElement 
-            || document.querySelector('.w-1\\/4') 
-            || document.querySelector('aside')
-            || leftStreamContainer;
-
-        // 2. Fetch the stored payload from localStorage
+        // 1. Fetch the stored payload from localStorage
         const rawData = localStorage.getItem('preparationStudioData');
 
         if (!rawData) {
@@ -431,23 +420,32 @@
                 return;
             }
 
-            // 3. Find or set up the inner list element inside the left container
+            // 2. Locate or prepare the container inside the left panel
             let listWrapper = document.getElementById('streamItemsWrapper');
             
             if (!listWrapper) {
-                // If the container has the default placeholder text, clear it
+                // Find and clear any placeholder text ("// Awaiting stream data transfers...")
                 const placeholder = Array.from(document.querySelectorAll('div, p, span'))
                     .find(el => el.textContent.includes('Awaiting stream data transfers'));
                 
-                if (placeholder) {
-                    placeholder.parentElement.innerHTML = '<div id="streamItemsWrapper" class="space-y-3 p-2 overflow-y-auto max-h-[calc(100vh-180px)]"></div>';
+                if (placeholder && placeholder.parentElement) {
+                    placeholder.parentElement.innerHTML = '<div id="streamItemsWrapper" class="space-y-3 p-1.5 overflow-y-auto max-h-[calc(100vh-140px)] pr-1"></div>';
+                    listWrapper = document.getElementById('streamItemsWrapper');
+                }
+            }
+
+            // Fallback: If no placeholder was found, target the first main left-panel sidebar container
+            if (!listWrapper) {
+                const leftPanel = document.querySelector('aside') || document.querySelectorAll('div')[2];
+                if (leftPanel) {
+                    leftPanel.innerHTML += '<div id="streamItemsWrapper" class="space-y-3 p-1.5 overflow-y-auto max-h-[calc(100vh-140px)] pr-1"></div>';
                     listWrapper = document.getElementById('streamItemsWrapper');
                 }
             }
 
             if (!listWrapper) return;
 
-            // 4. Generate the stream card HTML matching your dashboard style
+            // 3. Generate HTML with small image thumbnails & larger text
             let cardsHtml = '';
             streamItems.forEach((row, idx) => {
                 const sourceName = row.sourceName || row.source || 'Scraped Source';
@@ -457,35 +455,43 @@
                 const url = row.url || row.link || null;
 
                 cardsHtml += `
-                    <div class="p-3 bg-slate-900/80 border border-slate-800 hover:border-cyan-500/60 rounded-lg transition-all cursor-pointer group shadow-sm"
+                    <div class="p-3 bg-slate-900/90 border border-slate-800 hover:border-cyan-500/70 rounded-lg transition-all cursor-pointer group shadow-md"
                          onclick="transferToEditor(${idx})">
                         
-                        <div class="flex items-center justify-between text-[9px] font-mono mb-1.5">
-                            <span class="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/50 uppercase font-bold">
+                        <!-- Top Metadata Line -->
+                        <div class="flex items-center justify-between text-[10px] font-mono mb-2 pb-1 border-b border-slate-800/60">
+                            <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase font-bold tracking-wider">
                                 ${sourceName}
                             </span>
-                            <span class="text-slate-500 group-hover:text-cyan-400 text-[9px] uppercase tracking-wider transition-colors">
-                                Click to append ➔
+                            <span class="text-slate-500 group-hover:text-cyan-400 text-[10px] uppercase tracking-wider transition-colors">
+                                Append to draft ➔
                             </span>
                         </div>
 
-                        ${imageUrl ? `
-                            <div class="w-full max-h-32 overflow-hidden rounded mb-2 border border-slate-800">
-                                <img src="${imageUrl}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'">
-                            </div>
-                        ` : ''}
+                        <!-- Main Content Layout (Small Image + Bigger Text) -->
+                        <div class="flex gap-3 items-start">
+                            ${imageUrl ? `
+                                <div class="w-14 h-14 shrink-0 overflow-hidden rounded border border-slate-700/80 bg-black/50">
+                                    <img src="${imageUrl}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200" onerror="this.parentElement.style.display='none'">
+                                </div>
+                            ` : ''}
 
-                        <h4 class="text-cyan-300 font-sans font-semibold text-xs leading-snug mb-1 group-hover:text-cyan-200">
-                            ${title}
-                        </h4>
-                        
-                        <p class="text-slate-400 font-sans text-[11px] leading-relaxed line-clamp-3">
-                            ${content}
-                        </p>
+                            <div class="flex-1 min-w-0">
+                                <!-- Larger Title -->
+                                <h4 class="text-cyan-300 font-sans font-bold text-sm leading-snug mb-1.5 group-hover:text-cyan-200 break-words">
+                                    ${title}
+                                </h4>
+                                
+                                <!-- Larger Summary Text -->
+                                <p class="text-slate-200 font-sans text-xs leading-relaxed line-clamp-4">
+                                    ${content}
+                                </p>
+                            </div>
+                        </div>
 
                         ${url ? `
-                            <div class="mt-2 pt-1 border-t border-slate-800/50">
-                                <a href="${url}" target="_blank" onclick="event.stopPropagation();" class="text-[9px] text-slate-500 hover:text-cyan-400 font-mono truncate block">
+                            <div class="mt-2 pt-1 border-t border-slate-800/40">
+                                <a href="${url}" target="_blank" onclick="event.stopPropagation();" class="text-[10px] text-slate-500 hover:text-cyan-400 font-mono truncate block">
                                     🔗 ${url}
                                 </a>
                             </div>
@@ -496,11 +502,32 @@
 
             listWrapper.innerHTML = cardsHtml;
 
-            // Attach globally for the click-to-editor functionality
+            // Global reference for editor insertion
             window.activeStreamItems = streamItems;
 
         } catch (err) {
-            console.error("Error parsing preparationStudioData:", err);
+            console.error("Error rendering preparation studio stream:", err);
+        }
+    }
+
+    // Transfers selected card details straight into the draft workspace
+    function transferToEditor(index) {
+        if (!window.activeStreamItems || !window.activeStreamItems[index]) return;
+        
+        const item = window.activeStreamItems[index];
+        const title = item.title || item.newsTitle || 'Scraped Segment';
+        const content = item.news || item.paragraph || item.description || item.snippet || '';
+
+        // Locates editor canvas (white document background element)
+        const editorDoc = document.querySelector('.bg-white') || document.querySelector('[contenteditable="true"]');
+        if (editorDoc) {
+            const paragraphNode = document.createElement('div');
+            paragraphNode.className = 'mt-5 pt-3 border-t border-gray-200';
+            paragraphNode.innerHTML = `
+                <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
+                <p class="text-gray-700 text-base leading-relaxed">${content}</p>
+            `;
+            editorDoc.appendChild(paragraphNode);
         }
     }
 
