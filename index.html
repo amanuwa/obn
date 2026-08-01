@@ -714,18 +714,50 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
         };
 
         // Save stream to LocalStorage and redirect to prepare.html
-        window.downloadAsPdf = function() {
-            if (!cachedDataStream || cachedDataStream.length === 0) {
-                alert("No active data stream available to send to Preparation Studio.");
-                return;
-            }
-            
-            // Persist dataset for prepare.html retrieval
-            localStorage.setItem('scrapedDataStream', JSON.stringify(cachedDataStream));
-            
-            // Redirect to prepare.html
-            window.location.href = 'prepare.html';
-        };
+    window.downloadAsPdf = function() {
+    let scrapedPayload = [];
+
+    // 1. Check in-memory cached stream first
+    if (typeof cachedDataStream !== 'undefined' && Array.isArray(cachedDataStream) && cachedDataStream.length > 0) {
+        scrapedPayload = cachedDataStream;
+    } else {
+        // 2. Fallback: Directly extract ALL visible cards from the DOM
+        const cards = document.querySelectorAll('#unifiedResultsConsole .result-card');
+        cards.forEach((card, idx) => {
+            const badge = card.querySelector('span');
+            const img = card.querySelector('img');
+            const titleEl = card.querySelector('.text-cyan-300') || card.querySelector('.font-bold');
+            const contentEl = card.querySelector('p');
+            const link = card.querySelector('a');
+
+            scrapedPayload.push({
+                id: idx,
+                sourceName: badge ? badge.innerText.trim() : 'SCRAPED SOURCE',
+                title: titleEl ? titleEl.innerText.trim() : '',
+                news: contentEl ? contentEl.innerText.trim() : '',
+                imageUrl: img ? img.src : '',
+                url: link ? link.href : ''
+            });
+        });
+    }
+
+    if (scrapedPayload.length === 0) {
+        alert('No scraped data found to send to Preparation Studio!');
+        return;
+    }
+
+    try {
+        // 3. Stringify & URI-encode payload (Replaces localStorage)
+        const jsonString = JSON.stringify(scrapedPayload);
+        const encodedData = encodeURIComponent(jsonString);
+
+        // 4. Redirect to prepare.html with data attached in the URL route
+        window.location.href = `prepare.html?data=${encodedData}`;
+    } catch (e) {
+        console.error("Error encoding stream payload for URL routing:", e);
+        alert("Failed to prepare payload for routing transfer.");
+    }
+};
 
     </script>
 </body>
