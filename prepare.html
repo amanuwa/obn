@@ -407,103 +407,120 @@
         // =========================================================================
 
         // 1. Listen for postMessage transmissions directly from another iframe / window / popup
-        window.addEventListener('message', (event) => {
-            if (event.data) {
-                const payload = event.data.payload || event.data;
-                if (Array.isArray(payload) || typeof payload === 'object') {
-                    renderLeftStreamPanel(payload);
-                }
-            }
-        });
+       // 1. URL Route Listener (Pattern 1)
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const rawEncodedData = urlParams.get('data');
 
-        // 2. Listen on BroadcastChannel for real-time cross-tab updates from another front-end page
+    if (rawEncodedData) {
         try {
-            const studioChannel = new BroadcastChannel('preparation_studio_channel');
-            studioChannel.onmessage = (event) => {
-                if (event.data) {
-                    renderLeftStreamPanel(event.data);
-                }
-            };
-        } catch (e) {
-            console.warn("// BroadcastChannel API not supported in this browser environment.");
+            const decodedJson = decodeURIComponent(rawEncodedData);
+            const parsedData = JSON.parse(decodedJson);
+            renderLeftStreamPanel(parsedData);
+        } catch (error) {
+            console.error("Failed to parse incoming route data stream:", error);
         }
+    }
+});
 
-        // RENDER INCOMING STREAM INTO THE LEFT PANEL CONTAINER
-        function renderLeftStreamPanel(rawData) {
-            const container = document.getElementById('streamDataContainer');
-            if (!container) return;
+// 2. Window Message Listener
+window.addEventListener('message', (event) => {
+    if (event.data) {
+        const payload = event.data.payload || event.data;
+        if (Array.isArray(payload) || typeof payload === 'object') {
+            renderLeftStreamPanel(payload);
+        }
+    }
+});
 
-            let streamItems = [];
+// 3. BroadcastChannel Listener
+try {
+    const studioChannel = new BroadcastChannel('preparation_studio_channel');
+    studioChannel.onmessage = (event) => {
+        if (event.data) {
+            renderLeftStreamPanel(event.data);
+        }
+    };
+} catch (e) {
+    console.warn("// BroadcastChannel API not supported in this browser environment.");
+}
 
-            // Unpack dataset safely
-            if (Array.isArray(rawData)) {
-                if (rawData[0] && Array.isArray(rawData[0].news)) {
-                    streamItems = rawData[0].news;
-                } else {
-                    streamItems = rawData;
-                }
-            } else if (rawData && Array.isArray(rawData.news)) {
-                streamItems = rawData.news;
-            } else if (rawData) {
-                streamItems = [rawData];
-            }
+// 4. Render Engine
+function renderLeftStreamPanel(rawData) {
+    const container = document.getElementById('streamDataContainer');
+    if (!container) return;
 
-            if (!streamItems || streamItems.length === 0) return;
+    let streamItems = [];
 
-            window.activeStreamItems = streamItems;
+    // Unpack dataset safely
+    if (Array.isArray(rawData)) {
+        if (rawData[0] && Array.isArray(rawData[0].news)) {
+            streamItems = rawData[0].news;
+        } else {
+            streamItems = rawData;
+        }
+    } else if (rawData && Array.isArray(rawData.news)) {
+        streamItems = rawData.news;
+    } else if (rawData) {
+        streamItems = [rawData];
+    }
 
-            let cardsHtml = '';
-            streamItems.forEach((row, idx) => {
-                const item = row.json || row;
-                const sourceName = item.sourceName || item.source || 'LIVE STREAM';
-                const title = item.title || item.newsTitle || item.name || 'Untitled Stream Entry';
-                const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
-                const imageUrl = item.imageUrl || item.image || item.media || null;
-                const url = item.url || item.link || null;
+    if (!streamItems || streamItems.length === 0) return;
 
-                cardsHtml += `
-                    <div class="p-3 bg-slate-900/90 border border-slate-800 hover:border-cyan-500/70 rounded-lg transition-all cursor-pointer group shadow-sm"
-                         onclick="transferToEditor(${idx})">
-                        
-                        <div class="flex items-center justify-between text-[10px] font-mono mb-2 pb-1 border-b border-slate-800/60">
-                            <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase font-bold tracking-wider">
-                                ${sourceName}
-                            </span>
-                            <span class="text-slate-500 group-hover:text-cyan-400 text-[10px] uppercase tracking-wider transition-colors">
-                                Append ➔
-                            </span>
+    window.activeStreamItems = streamItems;
+
+    let cardsHtml = '';
+    streamItems.forEach((row, idx) => {
+        const item = row.json || row;
+        const sourceName = item.sourceName || item.source || 'LIVE STREAM';
+        const title = item.title || item.newsTitle || item.name || 'Untitled Stream Entry';
+        const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+        const imageUrl = item.imageUrl || item.image || item.media || null;
+        const url = item.url || item.link || null;
+
+        cardsHtml += `
+            <div class="p-3 bg-slate-900/90 border border-slate-800 hover:border-cyan-500/70 rounded-lg transition-all cursor-pointer group shadow-sm"
+                 onclick="transferToEditor(${idx})">
+                
+                <div class="flex items-center justify-between text-[10px] font-mono mb-2 pb-1 border-b border-slate-800/60">
+                    <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase font-bold tracking-wider">
+                        ${sourceName}
+                    </span>
+                    <span class="text-slate-500 group-hover:text-cyan-400 text-[10px] uppercase tracking-wider transition-colors">
+                        Append ➔
+                    </span>
+                </div>
+
+                <div class="flex gap-3 items-start">
+                    ${imageUrl ? `
+                        <div class="w-12 h-12 shrink-0 overflow-hidden rounded border border-slate-700/80 bg-black/50">
+                            <img src="${imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" onerror="this.parentElement.style.display='none'">
                         </div>
+                    ` : ''}
 
-                        <div class="flex gap-3 items-start">
-                            ${imageUrl ? `
-                                <div class="w-12 h-12 shrink-0 overflow-hidden rounded border border-slate-700/80 bg-black/50">
-                                    <img src="${imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" onerror="this.parentElement.style.display='none'">
-                                </div>
-                            ` : ''}
-
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-cyan-300 font-sans font-bold text-xs leading-snug mb-1 group-hover:text-cyan-200 break-words">
-                                    ${title}
-                                </h4>
-                                <p class="text-slate-300 font-sans text-[11px] leading-relaxed line-clamp-3 break-words">
-                                    ${content}
-                                </p>
-                            </div>
-                        </div>
-
-                        ${url ? `
-                            <div class="mt-2 pt-1 border-t border-slate-800/40">
-                                <a href="${url}" target="_blank" onclick="event.stopPropagation();" class="text-[10px] text-slate-500 hover:text-cyan-400 font-mono truncate block">
-                                    🔗 ${url}
-                                </a>
-                            </div>
-                        ` : ''}
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-cyan-300 font-sans font-bold text-xs leading-snug mb-1 group-hover:text-cyan-200 break-words">
+                            ${title}
+                        </h4>
+                        <p class="text-slate-300 font-sans text-[11px] leading-relaxed line-clamp-3 break-words">
+                            ${content}
+                        </p>
                     </div>
-                `;
-            });
+                </div>
 
-            container.innerHTML = cardsHtml;
-        }
+                ${url ? `
+                    <div class="mt-2 pt-1 border-t border-slate-800/40">
+                        <a href="${url}" target="_blank" onclick="event.stopPropagation();" class="text-[10px] text-slate-500 hover:text-cyan-400 font-mono truncate block">
+                            🔗 ${url}
+                        </a>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    });
+
+    container.innerHTML = cardsHtml;
+}
 
         // TRANSFER CLICKED LEFT CARD DETAILS STRAIGHT INTO RIGHT WHITE CANVAS DRAFT
         function transferToEditor(index) {
