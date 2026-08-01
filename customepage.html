@@ -736,7 +736,6 @@ window.downloadAsPdf = function() {
     } else {
         // 2. Fallback: Directly extract ALL visible cards from the DOM
         const cards = document.querySelectorAll('#unifiedResultsConsole .result-card');
-        
         cards.forEach((card, idx) => {
             const badge = card.querySelector('span');
             const img = card.querySelector('img');
@@ -760,12 +759,21 @@ window.downloadAsPdf = function() {
         return;
     }
 
-    // 3. Save to localStorage (has higher capacity than sessionStorage)
-    localStorage.setItem('scrapedStreamData', JSON.stringify(scrapedPayload));
+    try {
+        // 3. Stringify & URI-encode payload (Replaces localStorage)
+        const jsonString = JSON.stringify(scrapedPayload);
+        const encodedData = encodeURIComponent(jsonString);
 
-    // 4. Redirect to prepare.html
-    window.location.href = 'prepare.html';
+        // 4. Redirect to prepare.html with data attached in the URL route
+        window.location.href = `prepare.html?data=${encodedData}`;
+    } catch (e) {
+        console.error("Error encoding stream payload for URL routing:", e);
+        alert("Failed to prepare payload for routing transfer.");
+    }
 };
+
+
+        
     </script>
 </body>
 </html>
