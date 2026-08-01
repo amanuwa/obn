@@ -243,7 +243,7 @@
             <div class="flex items-center gap-3">
                 <div class="w-7 h-7 rounded bg-cyan-600 flex items-center justify-center font-bold text-[10px] border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]">TG</div>
                 <div>
-                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Custom Terminal Gateway</span>
+                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Custom Terminal Geteway</span>
                 </div>
             </div>
 
@@ -496,80 +496,95 @@
         };
 
         // Render incoming n8n Webhook response into UI
-        window.renderN8nResults = function(data, sectorContext = "STREAM") {
-            const outputPanel = document.getElementById('unifiedResultsConsole');
-            if (!outputPanel) return;
+window.renderN8nResults = function(data, sectorContext = "STREAM") {
+    const outputPanel = document.getElementById('unifiedResultsConsole');
+    if (!outputPanel) {
+        console.error("CRITICAL: Could not find HTML element with id='unifiedResultsConsole'");
+        return;
+    }
 
-            // Extract news array matching n8n payload structure (data[0].news)
-            let resultsArray = [];
+    console.log("// DATA RECEIVED BY RENDERER:", data);
 
-            if (Array.isArray(data)) {
-                if (data[0] && Array.isArray(data[0].news)) {
-                    resultsArray = data[0].news;
-                } else {
-                    resultsArray = data;
-                }
-            } else if (data && Array.isArray(data.news)) {
-                resultsArray = data.news;
-            } else if (data && (Array.isArray(data.data) || Array.isArray(data.items))) {
-                resultsArray = data.data || data.items;
-            } else if (data) {
-                resultsArray = [data];
-            }
+    let resultsArray = [];
 
-            // Cache output for export
-            cachedDataStream = resultsArray;
+    // Deep unwrapping to catch any n8n node response format
+    if (Array.isArray(data) && data.length > 0) {
+        const first = data[0];
+        if (first.news && Array.isArray(first.news)) {
+            resultsArray = first.news;
+        } else if (first.json && first.json.news && Array.isArray(first.json.news)) {
+            resultsArray = first.json.news;
+        } else if (first.body && first.body.news && Array.isArray(first.body.news)) {
+            resultsArray = first.body.news;
+        } else if (first.json && Array.isArray(first.json)) {
+            resultsArray = first.json;
+        } else {
+            resultsArray = data;
+        }
+    } else if (data && typeof data === 'object') {
+        if (Array.isArray(data.news)) {
+            resultsArray = data.news;
+        } else if (data.json && Array.isArray(data.json.news)) {
+            resultsArray = data.json.news;
+        } else if (Array.isArray(data.data)) {
+            resultsArray = data.data;
+        } else {
+            resultsArray = [data];
+        }
+    }
 
-            let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
+    cachedDataStream = resultsArray;
 
-            if (!resultsArray || resultsArray.length === 0) {
-                html += `<div class="text-slate-500 font-mono">// Webhook returned empty payload.</div>`;
-            } else {
-                resultsArray.forEach((row, idx) => {
-                    const sourceName = row.sourceName || row.source || 'Scraped Source';
-                    const title = row.title || row.newsTitle || `${sourceName} Alert`;
-                    const content = row.news || row.paragraph || row.description || row.snippet || row.content || '';
-                    const imageUrl = row.imageUrl || row.image || row.media || null;
-                    const url = row.url || row.link || null;
+    let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
 
-                    html += `
-                        <div class="result-card flex flex-col bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 rounded-lg p-3.5 space-y-2.5 transition-all shadow-md" id="card-${idx}">
-                            
-                            <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1.5">
-                                <span class="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 font-bold uppercase tracking-wider">
-                                    ${sourceName}
-                                </span>
-                                <button onclick="deleteCard(${idx})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">
-                                    ✕
-                                </button>
-                            </div>
+    if (!resultsArray || resultsArray.length === 0) {
+        html += `<div class="text-slate-500 font-mono">// Webhook returned empty payload or unrecognized JSON layout. Check console logs.</div>`;
+    } else {
+        resultsArray.forEach((row, idx) => {
+            // Extracts item fields dynamically regardless of nested key placement
+            const item = row.json || row;
+            const sourceName = item.sourceName || item.source || 'Scraped Source';
+            const title = item.title || item.newsTitle || `${sourceName} Alert`;
+            const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+            const imageUrl = item.imageUrl || item.image || item.media || null;
+            const url = item.url || item.link || null;
 
-                            ${imageUrl ? `
-                                <div class="w-full max-h-48 overflow-hidden rounded-md border border-slate-800 bg-black/40">
-                                    <img src="${imageUrl}" alt="News Media" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.parentElement.style.display='none'">
-                                </div>
-                            ` : ''}
+            html += `
+                <div class="result-card flex flex-col bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 rounded-lg p-3.5 space-y-2.5 transition-all shadow-md" id="card-${idx}">
+                    <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1.5">
+                        <span class="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 font-bold uppercase tracking-wider">
+                            ${sourceName}
+                        </span>
+                        <button onclick="deleteCard(${idx})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">
+                            ✕
+                        </button>
+                    </div>
 
-                            <div class="space-y-1">
-                                ${title ? `<div class="text-cyan-300 font-bold text-xs tracking-wide font-sans">${title}</div>` : ''}
-                                <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words">${content}</p>
-                            </div>
-
-                            ${url ? `
-                                <div class="pt-1 border-t border-slate-800/40">
-                                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-200 hover:underline font-mono break-all">
-                                        🔗 Source Link: ${url}
-                                    </a>
-                                </div>
-                            ` : ''}
-
+                    ${imageUrl ? `
+                        <div class="w-full max-h-48 overflow-hidden rounded-md border border-slate-800 bg-black/40">
+                            <img src="${imageUrl}" alt="News Media" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.parentElement.style.display='none'">
                         </div>
-                    `;
-                });
-            }
+                    ` : ''}
 
-            outputPanel.innerHTML = html;
-        };
+                    <div class="space-y-1">
+                        ${title ? `<div class="text-cyan-300 font-bold text-xs tracking-wide font-sans">${title}</div>` : ''}
+                        <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words">${content}</p>
+                    </div>
+
+                    ${url ? `
+                        <div class="pt-1 border-t border-slate-800/40">
+                            <a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-200 hover:underline font-mono break-all">
+                                🔗 Source Link: ${url}
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+    }
+
+    outputPanel.innerHTML = html;
+};
 
         // Direct fetch caller to n8n Webhook Node
         async function transmitPayloadToN8n(payload) {
