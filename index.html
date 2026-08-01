@@ -495,7 +495,6 @@
             });
         };
 
-        // Render incoming n8n Webhook response into UI
 window.renderN8nResults = function(data, sectorContext = "STREAM") {
     const outputPanel = document.getElementById('unifiedResultsConsole');
     if (!outputPanel) {
@@ -533,7 +532,8 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
         }
     }
 
-    cachedDataStream = resultsArray;
+    // Save globally so window.downloadAsPdf can access it immediately
+    window.cachedDataStream = resultsArray;
 
     let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
 
@@ -541,11 +541,23 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
         html += `<div class="text-slate-500 font-mono">// Webhook returned empty payload or unrecognized JSON layout. Check console logs.</div>`;
     } else {
         resultsArray.forEach((row, idx) => {
-            // Extracts item fields dynamically regardless of nested key placement
             const item = row.json || row;
+            
+            // Prioritize sourceName (e.g. "en.mehrnews.com") over source ("Website")
             const sourceName = item.sourceName || item.source || 'Scraped Source';
-            const title = item.title || item.newsTitle || `${sourceName} Alert`;
             const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+            
+            // Smart Title handling: Use existing title or extract first sentence/90 chars from content
+            let title = item.title || item.newsTitle || '';
+            if (!title && content) {
+                const firstPeriodIndex = content.indexOf('. ');
+                if (firstPeriodIndex > 10 && firstPeriodIndex < 120) {
+                    title = content.substring(0, firstPeriodIndex + 1);
+                } else {
+                    title = content.length > 90 ? content.substring(0, 90) + '...' : content;
+                }
+            }
+
             const imageUrl = item.imageUrl || item.image || item.media || null;
             const url = item.url || item.link || null;
 
@@ -568,7 +580,7 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
 
                     <div class="space-y-1">
                         ${title ? `<div class="text-cyan-300 font-bold text-xs tracking-wide font-sans">${title}</div>` : ''}
-                        <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words">${content}</p>
+                        <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words line-clamp-4">${content}</p>
                     </div>
 
                     ${url ? `
