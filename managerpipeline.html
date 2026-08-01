@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Command Center | Editorial Pipeline & Analytics</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Chart.js for 30-Day Trend Chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { margin: 0; color: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column; background-color: #010206; font-family: monospace; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+
+        /* Navigation Buttons */
+        .domain-btn {
+            display: inline-block;
+            text-align: center;
+            background-color: #050b18;
+            border: 1px solid #06b6d4;
+            color: #22d3ee;
+            border-radius: 0.5rem;
+            padding: 0.35rem 0.8rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .domain-btn:hover, .domain-btn.active-domain {
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+            background-color: #0c1a36;
+        }
+
+        /* Column Container */
+        .kanban-col {
+            background: rgba(6, 11, 24, 0.85);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            min-height: 520px;
+            overflow: hidden;
+        }
+
+        /* Story Card */
+        .story-card {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid #1e293b;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .story-card:hover {
+            border-color: #06b6d4;
+            background: rgba(15, 23, 42, 1);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.15);
+        }
+
+        /* Domain Tag Badges */
+        .badge-politics { background-color: #451a03; color: #f97316; border: 1px solid #7c2d12; }
+        .badge-business { background-color: #064e3b; color: #34d399; border: 1px solid #065f46; }
+        .badge-sports { background-color: #1e3a8a; color: #60a5fa; border: 1px solid #1e40af; }
+        .badge-caf { background-color: #312e81; color: #a78bfa; border: 1px solid #3730a3; }
+
+        /* Priority Glow */
+        .priority-urgent { border-left: 3px solid #ef4444 !important; }
+        .priority-high { border-left: 3px solid #f59e0b !important; }
+        .priority-normal { border-left: 3px solid #3b82f6 !important; }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(1, 2, 6, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="bg-[#010206]">
+
+    <div class="relative z-10 flex flex-col w-full min-h-screen">
+        
+        <!-- HEADER -->
+        <header class="bg-slate-950 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none sticky top-0 z-30">
+            <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded bg-amber-600 flex items-center justify-center font-bold text-[10px] text-slate-950 border border-amber-400 shadow-[0_0_8px_rgba(217,119,6,0.3)]">MGR</div>
+                <div>
+                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Manager Command Center :: Live Editorial Pipeline & Performance</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <a href="business and finance.html" class="domain-btn">Business & Finance</a>
+                <a href="sport.html" class="domain-btn">Sport</a>
+                <a href="World Politics and Governance.html" class="domain-btn">Politics & Governance</a>
+                <a href="station-analytics.html" class="domain-btn">Social Analytics</a>
+                <a href="manager-pipeline.html" class="domain-btn active-domain">Pipeline Control</a>
+            </div>
+
+            <div class="flex items-center gap-4 border-l border-slate-800 pl-4">
+                <div class="text-right">
+                    <span class="block text-[11px] font-semibold text-slate-300">Station Manager</span>
+                    <span class="block text-[9px] text-cyan-500 uppercase tracking-wider">// Executive Access</span>
+                </div>
+                <button onclick="location.reload();" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 text-slate-400 hover:text-red-400 text-[10px] font-bold px-2.5 py-1.5 rounded transition-all uppercase cursor-pointer">
+                    Sign Out
+                </button>
+            </div>
+        </header>
+
+        <!-- KPI SUMMARY BAR -->
+        <section class="bg-slate-950/60 border-b border-slate-800/80 px-6 py-2 flex items-center justify-between gap-4 text-[11px] shrink-0">
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-500">// ACTIVE IN PIPELINE:</span>
+                    <span class="font-bold text-cyan-400" id="kpi-total">18 Stories</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-500">// UNDER REVIEW:</span>
+                    <span class="font-bold text-amber-400" id="kpi-review">5 Stories</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-500">// REVISION LOOPS:</span>
+                    <span class="font-bold text-red-400" id="kpi-revision">3 Stories</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-500">// GREENLIGHTED:</span>
+                    <span class="font-bold text-emerald-400" id="kpi-greenlight">6 Stories</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <input type="text" id="pipelineSearch" oninput="filterPipeline()" placeholder="Search title or journalist..." class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] px-2.5 py-1 rounded w-48 focus:outline-none focus:border-cyan-500">
+                <select id="domainFilter" onchange="filterPipeline()" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] px-2 py-1 rounded focus:outline-none focus:border-cyan-500">
+                    <option value="ALL">All Domains</option>
+                    <option value="Politics">Politics</option>
+                    <option value="Business">Business</option>
+                    <option value="Sports">Sports</option>
+                    <option value="CAF">CAF International</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- SECTION 1: 30-DAY SOCIAL MEDIA PERFORMANCE DASHBOARD (SCREENSHOT INTEGRATION) -->
+        <section class="p-4 border-b border-slate-800 bg-black/40">
+            <div class="max-w-7xl mx-auto space-y-4">
+                
+                <div class="flex items-center justify-between">
+                    <h2 class="text-base font-bold text-slate-100 font-sans tracking-tight">Social Media Performance Dashboard</h2>
+                    <span class="text-[10px] text-slate-400 uppercase tracking-widest">// Last 30 Days (July 2026)</span>
+                </div>
+
+                <!-- Platform Color Legend -->
+                <div class="flex items-center gap-6 text-xs font-sans">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-xs bg-[#3b82f6]"></span>
+                        <span class="text-slate-300">Instagram</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-xs bg-[#4ade80]"></span>
+                        <span class="text-slate-300">TikTok</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-xs bg-[#eab308]"></span>
+                        <span class="text-slate-300">Twitter (X)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-xs bg-[#f43f5e]"></span>
+                        <span class="text-slate-300">YouTube</span>
+                    </div>
+                </div>
+
+                <!-- 30-Day Views / Reach Line Graph -->
+                <div class="relative h-56 w-full pt-2">
+                    <span class="text-[10px] text-slate-400 font-sans block mb-1">Views / Reach ↑</span>
+                    <canvas id="performanceGraph"></canvas>
+                    <div class="text-right text-[10px] text-slate-400 font-sans mt-1">Date →</div>
+                </div>
+
+                <!-- Platform Metrics Breakdown Table -->
+                <div class="overflow-x-auto pt-2">
+                    <table class="w-full text-left border-collapse text-xs font-sans">
+                        <thead>
+                            <tr class="text-slate-400 border-b border-slate-800 text-[11px]">
+                                <th class="py-2 px-3 font-normal">Platform</th>
+                                <th class="py-2 px-3 font-normal">Reach</th>
+                                <th class="py-2 px-3 font-normal">Engagement</th>
+                                <th class="py-2 px-3 font-normal">Content</th>
+                                <th class="py-2 px-3 font-normal">Est. Yield</th>
+                                <th class="py-2 px-3 font-normal">Top Driver</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60 text-slate-200">
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="py-2.5 px-3 font-semibold text-slate-100">YouTube</td>
+                                <td class="py-2.5 px-3">2.1M</td>
+                                <td class="py-2.5 px-3">245.0k</td>
+                                <td class="py-2.5 px-3">84</td>
+                                <td class="py-2.5 px-3 text-emerald-400 font-semibold">$9,200</td>
+                                <td class="py-2.5 px-3 text-slate-300">Long-form & Live clips</td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="py-2.5 px-3 font-semibold text-slate-100">TikTok</td>
+                                <td class="py-2.5 px-3">1.4M</td>
+                                <td class="py-2.5 px-3">210.0k</td>
+                                <td class="py-2.5 px-3">120</td>
+                                <td class="py-2.5 px-3 text-emerald-400 font-semibold">$4,800</td>
+                                <td class="py-2.5 px-3 text-slate-300">Short-form rapid news</td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="py-2.5 px-3 font-semibold text-slate-100">Instagram</td>
+                                <td class="py-2.5 px-3">850k</td>
+                                <td class="py-2.5 px-3">115.0k</td>
+                                <td class="py-2.5 px-3">92</td>
+                                <td class="py-2.5 px-3 text-emerald-400 font-semibold">$2,900</td>
+                                <td class="py-2.5 px-3 text-slate-300">Visual infographics</td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="py-2.5 px-3 font-semibold text-slate-100">Twitter (X)</td>
+                                <td class="py-2.5 px-3">470k</td>
+                                <td class="py-2.5 px-3">72.5k</td>
+                                <td class="py-2.5 px-3">52</td>
+                                <td class="py-2.5 px-3 text-emerald-400 font-semibold">$1,550</td>
+                                <td class="py-2.5 px-3 text-slate-300">Breaking politics</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 2: LIVE KANBAN EDITORIAL PIPELINE -->
+        <main class="flex-1 p-4 flex flex-col gap-3">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-bold text-slate-300 uppercase">// LIVE NEWSROOM STAGE PIPELINE (REAL-TIME REVISION LOOPS)</span>
+                <span class="text-[10px] text-cyan-400">// WEBSOCKET LIVE SYNC ACTIVE</span>
+            </div>
+
+            <div class="grid grid-cols-5 gap-3">
+                <!-- STAGE 1: DATA PREPARATION -->
+                <div class="kanban-col">
+                    <div class="bg-slate-900/90 border-b border-slate-800 p-2.5 flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-2 h-2 rounded-full bg-slate-400"></div>
+                            <span class="text-[11px] font-bold text-slate-300 uppercase">1. Data Prep</span>
+                        </div>
+                        <span class="bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.5 rounded font-bold" id="count-prep">0</span>
+                    </div>
+                    <div class="flex-1 p-2 overflow-y-auto" id="col-prep"></div>
+                </div>
+
+                <!-- STAGE 2: EDITORIAL REVIEW -->
+                <div class="kanban-col">
+                    <div class="bg-slate-900/90 border-b border-slate-800 p-2.5 flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div>
+                            <span class="text-[11px] font-bold text-amber-300 uppercase">2. Editorial Review</span>
+                        </div>
+                        <span class="bg-amber-950/60 text-amber-400 border border-amber-800/60 text-[10px] px-1.5 py-0.5 rounded font-bold" id="count-review">0</span>
+                    </div>
+                    <div class="flex-1 p-2 overflow-y-auto" id="col-review"></div>
+                </div>
+
+                <!-- STAGE 3: NEEDS REVISION -->
+                <div class="kanban-col">
+                    <div class="bg-slate-900/90 border-b border-slate-800 p-2.5 flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                            <span class="text-[11px] font-bold text-red-400 uppercase">3. Needs Revision</span>
+                        </div>
+                        <span class="bg-red-950/60 text-red-400 border border-red-800/60 text-[10px] px-1.5 py-0.5 rounded font-bold" id="count-revision">0</span>
+                    </div>
+                    <div class="flex-1 p-2 overflow-y-auto" id="col-revision"></div>
+                </div>
+
+                <!-- STAGE 4: GREENLIGHTED -->
+                <div class="kanban-col">
+                    <div class="bg-slate-900/90 border-b border-slate-800 p-2.5 flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+                            <span class="text-[11px] font-bold text-emerald-300 uppercase">4. Greenlighted</span>
+                        </div>
+                        <span class="bg-emerald-950/60 text-emerald-400 border border-emerald-800/60 text-[10px] px-1.5 py-0.5 rounded font-bold" id="count-greenlight">0</span>
+                    </div>
+                    <div class="flex-1 p-2 overflow-y-auto" id="col-greenlight"></div>
+                </div>
+
+                <!-- STAGE 5: PUBLISHED -->
+                <div class="kanban-col">
+                    <div class="bg-slate-900/90 border-b border-slate-800 p-2.5 flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-2 h-2 rounded-full bg-cyan-400"></div>
+                            <span class="text-[11px] font-bold text-cyan-300 uppercase">5. Published</span>
+                        </div>
+                        <span class="bg-cyan-950/60 text-cyan-400 border border-cyan-800/60 text-[10px] px-1.5 py-0.5 rounded font-bold" id="count-published">0</span>
+                    </div>
+                    <div class="flex-1 p-2 overflow-y-auto" id="col-published"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="bg-slate-950 border-t border-slate-800 px-6 py-2 text-[10px] text-cyan-500 flex items-center justify-between shrink-0">
+            <div id="statusConsole">// EDITORIAL PIPELINE ACTIVE: Monitoring live journalist-editor revision loops.</div>
+            <div class="text-slate-600 text-[9px]">CONTROL SYSTEM v6.0</div>
+        </footer>
+    </div>
+
+    <!-- EDIT & COMMENT MODAL -->
+    <div id="storyModal" class="modal-overlay">
+        <div class="bg-slate-950 border border-cyan-800/80 rounded-xl w-3/5 max-w-2xl p-5 shadow-2xl flex flex-col gap-4">
+            <div class="flex justify-between items-start border-b border-slate-800 pb-3">
+                <div>
+                    <span id="modalDomain" class="text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">Domain</span>
+                    <h2 id="modalTitle" class="text-sm font-bold text-slate-100 mt-1">Story Title</h2>
+                </div>
+                <button onclick="closeModal()" class="text-slate-500 hover:text-slate-200 text-sm font-bold cursor-pointer">✕</button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-[10px] text-slate-400 uppercase font-bold block mb-1">// News Content Draft</label>
+                    <textarea id="modalContent" rows="4" readonly class="w-full bg-slate-900 border border-slate-800 rounded p-2.5 text-xs text-slate-300 font-sans focus:outline-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-[11px]">
+                    <div class="bg-slate-900/60 p-2 rounded border border-slate-800">
+                        <span class="text-slate-500 block text-[9px]">// PREPARED BY:</span>
+                        <span id="modalJournalist" class="text-slate-200 font-bold">Journalist Name</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-2 rounded border border-slate-800">
+                        <span class="text-slate-500 block text-[9px]">// ASSIGNED EDITOR:</span>
+                        <span id="modalEditor" class="text-slate-200 font-bold">Editor Name</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] text-amber-400 uppercase font-bold block mb-1">// Chief Editor Comments / Revision Instructions</label>
+                    <textarea id="modalComments" rows="2" placeholder="Add editorial note or revision comment..." class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-xs text-amber-200 font-sans focus:outline-none focus:border-amber-500"></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center border-t border-slate-800 pt-3">
+                <div class="flex gap-2">
+                    <button onclick="updateStoryStage('revision')" class="bg-red-950 hover:bg-red-900 border border-red-700 text-red-200 text-[10px] font-bold px-3 py-1.5 rounded cursor-pointer uppercase">
+                        ↩ Reject & Send to Revision
+                    </button>
+                    <button onclick="updateStoryStage('review')" class="bg-amber-950 hover:bg-amber-900 border border-amber-700 text-amber-200 text-[10px] font-bold px-3 py-1.5 rounded cursor-pointer uppercase">
+                        ⌛ Submit to Review
+                    </button>
+                </div>
+                
+                <button onclick="updateStoryStage('greenlight')" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-[10px] font-bold px-4 py-1.5 rounded cursor-pointer uppercase shadow-lg shadow-emerald-900/30">
+                    ✨ Greenlight Story
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ENGINE SCRIPTS -->
+    <script>
+        // Performance Chart Initialization matching the screenshot curve
+        function initPerformanceGraph() {
+            const ctx = document.getElementById('performanceGraph').getContext('2d');
+            
+            const days = Array.from({length: 30}, (_, i) => i + 1);
+            
+            // Curve Data Arrays matching screenshot points
+            const youtubeData = [66, 88, 59, 81, 60, 61, 56, 54, 72, 89, 62, 89, 65, 70, 73, 85, 76, 52, 82, 57, 74, 50, 78, 85, 84, 76, 57, 80, 61, 89];
+            const tiktokData  = [51, 48, 55, 38, 55, 39, 50, 35, 55, 44, 39, 52, 44, 40, 34, 42, 38, 43, 56, 36, 45, 46, 52, 53, 39, 36, 39, 43, 49, 45];
+            const instaData   = [30, 22, 30, 31, 26, 36, 33, 23, 23, 30, 20, 36, 36, 28, 28, 34, 34, 34, 28, 35, 36, 22, 32, 35, 25, 30, 34, 24, 25, 23];
+            const twitterData = [19, 19, 17, 18, 14, 17, 14, 19, 19, 16, 17, 11, 15, 16, 20, 18, 12, 10, 15, 20, 14, 18, 14, 19, 17, 20, 17, 17, 16, 15];
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [
+                        { label: 'YouTube', data: youtubeData, borderColor: '#f43f5e', backgroundColor: '#f43f5e', borderWidth: 2, tension: 0.3, pointRadius: 3 },
+                        { label: 'TikTok', data: tiktokData, borderColor: '#4ade80', backgroundColor: '#4ade80', borderWidth: 2, tension: 0.3, pointRadius: 3 },
+                        { label: 'Instagram', data: instaData, borderColor: '#3b82f6', backgroundColor: '#3b82f6', borderWidth: 2, tension: 0.3, pointRadius: 3 },
+                        { label: 'Twitter (X)', data: twitterData, borderColor: '#eab308', backgroundColor: '#eab308', borderWidth: 2, tension: 0.3, pointRadius: 3 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            grid: { color: '#1e293b' },
+                            ticks: {
+                                color: '#94a3b8',
+                                font: { size: 10 },
+                                callback: function(val, index) {
+                                    return [5, 12, 19, 26].includes(index + 1) ? (index + 1 === 5 ? '5\nJul' : index + 1) : '';
+                                }
+                            }
+                        },
+                        y: {
+                            grid: { color: '#1e293b' },
+                            ticks: {
+                                color: '#94a3b8',
+                                font: { size: 10 },
+                                callback: function(val) { return val + '.0k'; }
+                            },
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Kanban Dataset
+        let stories = [
+            { id: 101, domain: "Sports", title: "EPL: Premier League Transfer Deadline Deal Finalized", journalist: "Amanuel B.", editor: "Chief Editor Bekele", stage: "prep", priority: "urgent", text: "Final terms agreed for multi-million player transfer ahead of deadline..." },
+            { id: 102, domain: "Politics", title: "Red Sea Maritime & Strait Policy Communique", journalist: "S. Tadesse", editor: "Chief Editor Bekele", stage: "review", priority: "urgent", text: "Official government statement regarding maritime security regulations..." },
+            { id: 103, domain: "Business", title: "National Bank Inflation Adjustment Framework Q3", journalist: "M. Ali", editor: "A. Woldesenbet", stage: "review", priority: "high", text: "New fiscal monetary policy details released by central banking authorities..." },
+            { id: 104, domain: "CAF", title: "CAF Champions League Fixtures Announced for Regional Clubs", journalist: "Amanuel B.", editor: "Chief Editor Bekele", stage: "revision", priority: "normal", text: "Match schedules and venue assignments finalized for upcoming tournament...", comment: "Please verify stadium accreditation details in paragraph 2." },
+            { id: 105, domain: "Sports", title: "National Team Squad Roster Selected for Qualifiers", journalist: "K. Desalegn", editor: "A. Woldesenbet", stage: "greenlight", priority: "high", text: "Head coach announces 23-man list for international match campaign..." },
+            { id: 106, domain: "Politics", title: "Regional Trade Summit Keynote Address Summary", journalist: "S. Tadesse", editor: "Chief Editor Bekele", stage: "published", priority: "normal", text: "Economic leaders sign bilateral trade expansion agreement..." },
+            { id: 107, domain: "Business", title: "Agricultural Commodity Exchange Trades Hit Record Volume", journalist: "M. Ali", editor: "A. Woldesenbet", stage: "greenlight", priority: "normal", text: "Grain export metrics surpass initial quarterly projections by 14%..." },
+            { id: 108, domain: "CAF", title: "Youth Football Academy Investment Fund Authorized", journalist: "K. Desalegn", editor: "Chief Editor Bekele", stage: "published", priority: "normal", text: "Grassroots sports infrastructure grant allocated across 5 regional hubs..." }
+        ];
+
+        let selectedStoryId = null;
+
+        function getDomainBadgeClass(domain) {
+            switch(domain) {
+                case "Politics": return "badge-politics";
+                case "Business": return "badge-business";
+                case "Sports": return "badge-sports";
+                case "CAF": return "badge-caf";
+                default: return "bg-slate-800 text-slate-300";
+            }
+        }
+
+        function renderPipeline() {
+            const stages = ["prep", "review", "revision", "greenlight", "published"];
+            stages.forEach(st => {
+                const col = document.getElementById(`col-${st}`);
+                if (col) col.innerHTML = "";
+            });
+
+            let counts = { prep: 0, review: 0, revision: 0, greenlight: 0, published: 0 };
+
+            const searchTerm = document.getElementById('pipelineSearch').value.toLowerCase();
+            const selectedDomain = document.getElementById('domainFilter').value;
+
+            stories.forEach(story => {
+                const matchesSearch = story.title.toLowerCase().includes(searchTerm) || story.journalist.toLowerCase().includes(searchTerm);
+                const matchesDomain = selectedDomain === "ALL" || story.domain === selectedDomain;
+
+                if (!matchesSearch || !matchesDomain) return;
+
+                counts[story.stage]++;
+
+                const cardHtml = `
+                    <div class="story-card priority-${story.priority}" onclick="openModal(${story.id})">
+                        <div class="flex items-center justify-between gap-1 mb-1.5">
+                            <span class="text-[8px] font-bold px-1.5 py-0.5 rounded uppercase ${getDomainBadgeClass(story.domain)}">${story.domain}</span>
+                            <span class="text-[9px] text-slate-500">#${story.id}</span>
+                        </div>
+                        
+                        <div class="text-[11px] font-bold text-slate-200 line-clamp-2 leading-snug mb-2">${story.title}</div>
+                        
+                        ${story.comment ? `<div class="bg-red-950/40 border border-red-900/60 p-1.5 rounded text-[10px] text-red-300 mb-2 font-sans">💬 ${story.comment}</div>` : ''}
+
+                        <div class="flex items-center justify-between text-[9px] text-slate-400 border-t border-slate-800/80 pt-1.5 mt-1">
+                            <span>Prep: <strong class="text-slate-300">${story.journalist}</strong></span>
+                            <span class="uppercase text-cyan-500 font-bold">${story.priority}</span>
+                        </div>
+                    </div>
+                `;
+
+                const targetCol = document.getElementById(`col-${story.stage}`);
+                if (targetCol) targetCol.innerHTML += cardHtml;
+            });
+
+            document.getElementById('count-prep').innerText = counts.prep;
+            document.getElementById('count-review').innerText = counts.review;
+            document.getElementById('count-revision').innerText = counts.revision;
+            document.getElementById('count-greenlight').innerText = counts.greenlight;
+            document.getElementById('count-published').innerText = counts.published;
+
+            document.getElementById('kpi-total').innerText = `${stories.length} Stories`;
+            document.getElementById('kpi-review').innerText = `${counts.review} Stories`;
+            document.getElementById('kpi-revision').innerText = `${counts.revision} Stories`;
+            document.getElementById('kpi-greenlight').innerText = `${counts.greenlight} Stories`;
+        }
+
+        function filterPipeline() { renderPipeline(); }
+
+        function openModal(id) {
+            const story = stories.find(s => s.id === id);
+            if (!story) return;
+
+            selectedStoryId = id;
+            document.getElementById('modalTitle').innerText = story.title;
+            document.getElementById('modalContent').value = story.text;
+            document.getElementById('modalJournalist').innerText = story.journalist;
+            document.getElementById('modalEditor').innerText = story.editor;
+            document.getElementById('modalComments').value = story.comment || '';
+
+            const badge = document.getElementById('modalDomain');
+            badge.innerText = story.domain;
+            badge.className = `text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${getDomainBadgeClass(story.domain)}`;
+
+            document.getElementById('storyModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('storyModal').style.display = 'none';
+            selectedStoryId = null;
+        }
+
+        function updateStoryStage(newStage) {
+            if (!selectedStoryId) return;
+
+            const story = stories.find(s => s.id === selectedStoryId);
+            if (story) {
+                story.stage = newStage;
+                story.comment = document.getElementById('modalComments').value;
+                document.getElementById('statusConsole').innerText = `// PIPELINE UPDATE: Story #${story.id} moved to [${newStage.toUpperCase()}] stage by Station Manager.`;
+            }
+
+            closeModal();
+            renderPipeline();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initPerformanceGraph();
+            renderPipeline();
+        });
+    </script>
+</body>
+</html>
