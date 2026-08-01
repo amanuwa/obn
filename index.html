@@ -365,6 +365,7 @@
 
     <!-- ENGINE SCRIPTS -->
     <script type="module">
+    
         import { N8N_GATEWAY_WEBHOOK } from './config.js';
         
         console.log("// TERMINAL HUB: Webhook configured:", N8N_GATEWAY_WEBHOOK);
@@ -374,7 +375,7 @@
         let deletedCardsHistory = [];
         const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
 
-        // Matrix character particles definition to fix ReferenceError
+        // Matrix character particles definition
         const tokenChars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ01';
         let particles = [];
 
@@ -499,7 +500,7 @@
             const outputPanel = document.getElementById('unifiedResultsConsole');
             if (!outputPanel) return;
 
-            // 1. Extract the actual news items array from nested webhook responses
+            // Extract news array matching n8n payload structure (data[0].news)
             let resultsArray = [];
 
             if (Array.isArray(data)) {
@@ -516,6 +517,7 @@
                 resultsArray = [data];
             }
 
+            // Cache output for export
             cachedDataStream = resultsArray;
 
             let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
@@ -525,7 +527,7 @@
             } else {
                 resultsArray.forEach((row, idx) => {
                     const sourceName = row.sourceName || row.source || 'Scraped Source';
-                    const title = row.title || row.newsTitle || row.name || `${sourceName} News`;
+                    const title = row.title || row.newsTitle || `${sourceName} Alert`;
                     const content = row.news || row.paragraph || row.description || row.snippet || row.content || '';
                     const imageUrl = row.imageUrl || row.image || row.media || null;
                     const url = row.url || row.link || null;
@@ -653,35 +655,32 @@
             }
         };
 
+        // Toggle Single Language Checkbox
         window.toggleLangCheckbox = function(langKey) {
             const btn = document.getElementById(`lang-${langKey}`);
             activeLanguages[langKey] = !activeLanguages[langKey];
             if (btn) btn.classList.toggle('active', activeLanguages[langKey]);
-            
-            const activeList = getSelectedDashboardLanguages();
-            const statusLog = document.getElementById('statusConsole');
-            if (statusLog) statusLog.innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
         };
 
+        // Toggle Select All Ensembles
         window.toggleSelectAllEnsembles = function() {
             const keys = Object.keys(activeLanguages);
             const allActive = keys.every(k => activeLanguages[k]);
             
-            keys.forEach(k => {
-                activeLanguages[k] = !allActive;
-                const btn = document.getElementById(`lang-${k}`);
+            keys.forEach(langKey => {
+                activeLanguages[langKey] = !allActive;
+                const btn = document.getElementById(`lang-${langKey}`);
                 if (btn) btn.classList.toggle('active', !allActive);
             });
-
-            const statusLog = document.getElementById('statusConsole');
-            if (statusLog) statusLog.innerText = `// ENSEMBLE SELECTION TOGGLED: [${getSelectedDashboardLanguages().join(', ')}]`;
         };
 
-        window.deleteCard = function(index) {
-            const cardEl = document.getElementById(`card-${index}`);
-            if (cardEl) {
-                cardEl.style.display = 'none';
-                deletedCardsHistory.push(cachedDataStream[index]);
+        // Card Management Functions
+        window.deleteCard = function(idx) {
+            const cardEl = document.getElementById(`card-${idx}`);
+            if (cardEl && cachedDataStream[idx]) {
+                deletedCardsHistory.push(cachedDataStream[idx]);
+                cardEl.remove();
+                
                 const restoreBtn = document.getElementById('btn-restore-log');
                 if (restoreBtn) restoreBtn.classList.remove('hidden');
             }
@@ -689,37 +688,30 @@
 
         window.restoreLastDeleted = function() {
             if (deletedCardsHistory.length === 0) return;
-            deletedCardsHistory.pop();
-            window.renderN8nResults(cachedDataStream);
+            const restoredItem = deletedCardsHistory.pop();
+            cachedDataStream.push(restoredItem);
+            window.renderN8nResults(cachedDataStream, "RESTORED STREAM");
+
             if (deletedCardsHistory.length === 0) {
                 const restoreBtn = document.getElementById('btn-restore-log');
                 if (restoreBtn) restoreBtn.classList.add('hidden');
             }
         };
 
-      window.downloadAsPdf = function() {
-    if (!cachedDataStream || cachedDataStream.length === 0) {
-        alert("No active stream dataset available to export.");
-        return;
-    }
+        // Save stream to LocalStorage and redirect to prepare.html
+        window.downloadAsPdf = function() {
+            if (!cachedDataStream || cachedDataStream.length === 0) {
+                alert("No active data stream available to send to Preparation Studio.");
+                return;
+            }
+            
+            // Persist dataset for prepare.html retrieval
+            localStorage.setItem('scrapedDataStream', JSON.stringify(cachedDataStream));
+            
+            // Redirect to prepare.html
+            window.location.href = 'prepare.html';
+        };
 
-    // Filter out deleted cards so only visible stream cards are passed over
-    const visibleData = cachedDataStream.filter((_, idx) => {
-        const cardEl = document.getElementById(`card-${idx}`);
-        return cardEl && cardEl.style.display !== 'none';
-    });
-
-    if (visibleData.length === 0) {
-        alert("All cards have been deleted. Nothing to send to Preparation Studio.");
-        return;
-    }
-
-    // 1. Store the dataset in localStorage
-    localStorage.setItem('preparationStudioData', JSON.stringify(visibleData));
-
-    // 2. Redirect to prepare.html
-    window.location.href = 'prepare.html';
-};
     </script>
 </body>
 </html>
