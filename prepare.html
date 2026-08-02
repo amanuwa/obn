@@ -409,17 +409,21 @@
         // 1. Listen for postMessage transmissions directly from another iframe / window / popup
        // 1. URL Route Listener (Pattern 1)
 document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const rawEncodedData = urlParams.get('data');
+    try {
+        const savedData = localStorage.getItem('scrapedStreamData');
 
-    if (rawEncodedData) {
-        try {
-            const decodedJson = decodeURIComponent(rawEncodedData);
-            const parsedData = JSON.parse(decodedJson);
-            renderLeftStreamPanel(parsedData);
-        } catch (error) {
-            console.error("Failed to parse incoming route data stream:", error);
+        if (savedData) {
+            const parsedData = JSON.parse(savedData);
+
+            // Render into your display function
+            if (typeof renderLeftStreamPanel === 'function') {
+                renderLeftStreamPanel(parsedData);
+            } else if (typeof window.renderN8nResults === 'function') {
+                window.renderN8nResults(parsedData);
+            }
         }
+    } catch (err) {
+        console.error("Error reading stored payload in prepare.html:", err);
     }
 });
 
