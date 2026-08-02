@@ -96,6 +96,7 @@
                             <option value="customepage" class="bg-slate-950 text-white">Custome  Hot News</option>
                             <option value="Editor" class="bg-slate-950 text-white">Editor </option>
                             <option value="Management" class="bg-slate-950 text-white">Management </option>
+                               <option value="Production" class="bg-slate-950 text-white">Production team </option>
                         </select>
                     </div>
                 </div>
@@ -511,18 +512,22 @@
 
                 // 1. Fetch user's section from Supabase database column ["journalism Section"]
                // 1. Fetch user's section from Supabase database column ["journalism Section"]
+// 1. Fetch user's section from Supabase database column ["journalism Section"]
 const userSection = (records[0]["journalism Section"] || "").toLowerCase().trim();
-let targetPage = "customepage.html"; // Default direction (Direction 3: All Journalists)
+let targetPage = "customepage.html"; // Default direction (All Journalists)
 
-// 2. Three-Direction Routing Rules
-if (userSection === 'editor' || userSection.includes('editor')) {
-    // Direction 1: Editor personnel -> Editorpage.html
+// 2. Multi-Direction Routing Rules
+if (userSection.includes('editor')) {
+    // Direction 1: Editor personnel
     targetPage = "Editorpage.html";
-} else if (userSection === 'management' || userSection.includes('management') || userSection.includes('manager')) {
-    // Direction 2: Management personnel -> managerpipeline.html
+} else if (userSection.includes('manag') || userSection.includes('manager')) {
+    // Direction 2: Management personnel
     targetPage = "managerpipeline.html";
+} else if (userSection.includes('production') || userSection.includes('prod')) {
+    // Direction 3: Production Team personnel
+    targetPage = "productionteam.html";
 } else {
-    // Direction 3: All Journalists (Sports, Politics, World, Tech, etc.)
+    // Direction 4: All General Journalists (Sports, Politics, World, Tech, etc.)
     targetPage = "customepage.html";
 }
 
