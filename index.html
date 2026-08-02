@@ -93,9 +93,9 @@
                             <option value="world politics and governance" class="bg-slate-950 text-white">World Politics and Governance</option>
                             <option value="sports & analytics" class="bg-slate-950 text-white">Sports & Analytics</option>
                             <option value="business and finance" class="bg-slate-950 text-white">Business and Finance</option>
-                            <option value="general hot news" class="bg-slate-950 text-white">Custome  Hot News</option>
-                            <option value="general hot news" class="bg-slate-950 text-white">Editor </option>
-                            <option value="general hot news" class="bg-slate-950 text-white">Management </option>
+                            <option value="customepage" class="bg-slate-950 text-white">Custome  Hot News</option>
+                            <option value="Editor" class="bg-slate-950 text-white">Editor </option>
+                            <option value="Management" class="bg-slate-950 text-white">Management </option>
                         </select>
                     </div>
                 </div>
@@ -517,9 +517,9 @@
                 if (userSection === 'editor' || userSection.includes('editor')) {
                     // Direction 1: Editor personnel
                     targetPage = "Editorpage.html";
-                } else if (userSection === 'management' || userSection.includes('management') || userSection.includes('manager')) {
+                } else if (userSection === 'Management' || userSection.includes('Management') || userSection.includes('Manager')) {
                     // Direction 2: Management personnel
-                    targetPage = "managerpipeline.html";
+                    targetPage = "trend.html";
                 } else {
                     // Direction 3: All Journalists (Sports, Politics, World, Tech, etc.)
                     targetPage = "customepage.html";
