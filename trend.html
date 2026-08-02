@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global & Ethiopia Trends Monitor</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .active-tab {
+            border-bottom: 2px solid #38bdf8;
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col">
+
+    <!-- Header / Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-cyan-500/10 rounded-lg border border-cyan-500/30 text-cyan-400">
+                    <i class="fa-solid me-1 fa-chart-line text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-mono font-bold text-lg text-slate-100">TREND_MONITOR v1.0</h1>
+                    <p class="text-xs text-slate-400">Sports & Governmental Search Analytics</p>
+                </div>
+            </div>
+
+            <!-- Region & Filter Controls -->
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <select id="regionSelect" onchange="filterTrends()" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500">
+                    <option value="ALL">📍 All Regions</option>
+                    <option value="ETH">🇪🇹 Ethiopia</option>
+                    <option value="WORLD">🌐 Worldwide</option>
+                </select>
+
+                <select id="categorySelect" onchange="filterTrends()" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500">
+                    <option value="ALL">🏷️ All Categories</option>
+                    <option value="Sports">⚽ Sports</option>
+                    <option value="Governmental">🏛️ Governmental / Policy</option>
+                </select>
+
+                <div class="relative flex-1 md:w-64">
+                    <input type="text" id="searchInput" onkeyup="filterTrends()" placeholder="Search trends..." class="w-full bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:border-cyan-500">
+                    <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-500 text-xs"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+
+        <!-- Platform Tabs -->
+        <div class="flex border-b border-slate-800 text-sm font-mono space-x-6 overflow-x-auto">
+            <button onclick="switchPlatform('ALL')" id="tab-ALL" class="pb-3 px-1 active-tab transition-colors flex items-center gap-2">
+                <i class="fa-solid fa-layer-group"></i> All Platforms
+            </button>
+            <button onclick="switchPlatform('Google')" id="tab-Google" class="pb-3 px-1 text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-2">
+                <i class="fa-brands fa-google text-red-400"></i> Google Trends
+            </button>
+            <button onclick="switchPlatform('TikTok')" id="tab-TikTok" class="pb-3 px-1 text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-2">
+                <i class="fa-brands fa-tiktok text-cyan-400"></i> TikTok Trends
+            </button>
+            <button onclick="switchPlatform('ChatGPT')" id="tab-ChatGPT" class="pb-3 px-1 text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-2">
+                <i class="fa-solid fa-robot text-emerald-400"></i> ChatGPT Prompts
+            </button>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-lg flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 font-mono">ETHIOPIA SPORTS</span>
+                    <h3 class="text-lg font-bold text-cyan-400 mt-1">Premier League / AFCON</h3>
+                </div>
+                <i class="fa-solid fa-futbol text-2xl text-slate-700"></i>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-lg flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 font-mono">ETHIOPIA GOVT</span>
+                    <h3 class="text-lg font-bold text-amber-400 mt-1">Tax / Macro Reforms</h3>
+                </div>
+                <i class="fa-solid fa-landmark text-2xl text-slate-700"></i>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-lg flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 font-mono">WORLDWIDE SPORTS</span>
+                    <h3 class="text-lg font-bold text-cyan-400 mt-1">FIFA Club World Cup</h3>
+                </div>
+                <i class="fa-solid fa-trophy text-2xl text-slate-700"></i>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-lg flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 font-mono">WORLDWIDE GOVT</span>
+                    <h3 class="text-lg font-bold text-amber-400 mt-1">Trade Policy / Elections</h3>
+                </div>
+                <i class="fa-solid fa-earth-americas text-2xl text-slate-700"></i>
+            </div>
+        </div>
+
+        <!-- Trend Cards Container -->
+        <div id="trendsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Dynamic JavaScript injection -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900 py-4 text-center text-xs text-slate-500 font-mono">
+        // Real-Time Analytics Mock Stream • Google, TikTok & OpenAI Search Data
+    </footer>
+
+    <!-- Script to Handle Data and Filtering -->
+    <script>
+        const trendData = [
+            // ETHIOPIA - SPORTS
+            {
+                id: 1,
+                keyword: "Ethiopian Premier League Scores & Fixtures",
+                platform: "Google",
+                category: "Sports",
+                region: "ETH",
+                volume: "250K+ Searches",
+                growth: "+140%",
+                summary: "High search volume for Saint George SA, Ethiopian Coffee FC, and national league standings."
+            },
+            {
+                id: 2,
+                keyword: "Great Ethiopian Run Registration & Highlights",
+                platform: "TikTok",
+                category: "Sports",
+                region: "ETH",
+                volume: "1.2M Views",
+                growth: "+210%",
+                summary: "Viral short-form videos showing training routines, runner kits, and Addis Ababa road race footage."
+            },
+            {
+                id: 3,
+                keyword: "Ethiopian Olympic Athletes & Marathon Records",
+                platform: "ChatGPT",
+                category: "Sports",
+                region: "ETH",
+                volume: "High Intent Prompts",
+                growth: "+85%",
+                summary: "Users asking for historical stats, long-distance running training strategies, and athlete bios."
+            },
+
+            // ETHIOPIA - GOVERNMENTAL
+            {
+                id: 4,
+                keyword: "Ethiopian Customs & Foreign Exchange Policy Updates",
+                platform: "Google",
+                category: "Governmental",
+                region: "ETH",
+                volume: "180K+ Searches",
+                growth: "+310%",
+                summary: "Spike in public queries surrounding monetary updates, banking reforms, and commercial tariffs."
+            },
+            {
+                id: 5,
+                keyword: "Ministry of Education National Exam Results",
+                platform: "TikTok",
+                category: "Governmental",
+                region: "ETH",
+                volume: "3.4M Views",
+                growth: "+450%",
+                summary: "Students and parents sharing live reaction videos, portal login steps, and score updates."
+            },
+            {
+                id: 6,
+                keyword: "Ethiopia Digital ID (Fayda) Registration Process",
+                platform: "ChatGPT",
+                category: "Governmental",
+                region: "ETH",
+                volume: "High Intent Prompts",
+                growth: "+190%",
+                summary: "Queries seeking step-by-step guides for biometric enrollment and required official documentation."
+            },
+
+            // WORLDWIDE - SPORTS
+            {
+                id: 7,
+                keyword: "FIFA Club World Cup & UEFA Champions League",
+                platform: "Google",
+                category: "Sports",
+                region: "WORLD",
+                volume: "10M+ Searches",
+                growth: "+520%",
+                summary: "Global search surge covering live match schedules, club transfers, and tournament brackets."
+            },
+            {
+                id: 8,
+                keyword: "Premier League Transfer Deadline Drama",
+                platform: "TikTok",
+                category: "Sports",
+                region: "WORLD",
+                volume: "18.5M Views",
+                growth: "+380%",
+                summary: "Short edits, tactical breakdowns, and fan reactions following major club signings."
+            },
+            {
+                id: 9,
+                keyword: "Tactical Breakdown & Expected Goals (xG) Analysis",
+                platform: "ChatGPT",
+                category: "Sports",
+                region: "WORLD",
+                volume: "High Intent Prompts",
+                growth: "+110%",
+                summary: "Analysts prompting AI to calculate match probabilities, player stats, and formation comparisons."
+            },
+
+            // WORLDWIDE - GOVERNMENTAL
+            {
+                id: 10,
+                keyword: "Global Trade Tariffs & Central Bank Interest Rates",
+                platform: "Google",
+                category: "Governmental",
+                region: "WORLD",
+                volume: "5M+ Searches",
+                growth: "+270%",
+                summary: "High interest in macroeconomic policies, inflation indicators, and international trade laws."
+            },
+            {
+                id: 11,
+                keyword: "AI Regulation Bills & Tech Policy Debates",
+                platform: "TikTok",
+                category: "Governmental",
+                region: "WORLD",
+                volume: "8.1M Views",
+                growth: "+160%",
+                summary: "Creators explaining government hearings, digital privacy laws, and tech compliance."
+            },
+            {
+                id: 12,
+                keyword: "International Treaty Summaries & Policy Clauses",
+                platform: "ChatGPT",
+                category: "Governmental",
+                region: "WORLD",
+                volume: "High Intent Prompts",
+                growth: "+220%",
+                summary: "Users asking for simplified breakdowns of legislative documents and diplomatic agreements."
+            }
+        ];
+
+        let currentPlatform = 'ALL';
+
+        function renderTrends(items) {
+            const container = document.getElementById('trendsContainer');
+            container.innerHTML = '';
+
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-slate-500 font-mono">
+                        // No matching trends found for the selected criteria.
+                    </div>
+                `;
+                return;
+            }
+
+            items.forEach(item => {
+                const isEthiopia = item.region === 'ETH';
+                const isSports = item.category === 'Sports';
+
+                const platformBadge = item.platform === 'Google' 
+                    ? '<span class="text-red-400 bg-red-950/50 border border-red-800/40 px-2 py-0.5 rounded text-[10px] font-mono"><i class="fa-brands fa-google"></i> Google</span>'
+                    : item.platform === 'TikTok' 
+                    ? '<span class="text-cyan-400 bg-cyan-950/50 border border-cyan-800/40 px-2 py-0.5 rounded text-[10px] font-mono"><i class="fa-brands fa-tiktok"></i> TikTok</span>'
+                    : '<span class="text-emerald-400 bg-emerald-950/50 border border-emerald-800/40 px-2 py-0.5 rounded text-[10px] font-mono"><i class="fa-solid fa-robot"></i> ChatGPT</span>';
+
+                const cardHtml = `
+                    <div class="bg-slate-900/70 border border-slate-800 hover:border-slate-700 rounded-lg p-4 flex flex-col justify-between space-y-3 transition-all shadow-md">
+                        <div>
+                            <div class="flex items-center justify-between text-[11px] mb-2">
+                                <div class="flex items-center gap-1.5">
+                                    ${platformBadge}
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold ${isEthiopia ? 'bg-amber-950/60 text-amber-400 border border-amber-800/50' : 'bg-indigo-950/60 text-indigo-400 border border-indigo-800/50'}">
+                                        ${isEthiopia ? '🇪🇹 ETHIOPIA' : '🌐 WORLDWIDE'}
+                                    </span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold ${isSports ? 'text-cyan-400' : 'text-amber-300'}">
+                                    ${isSports ? '⚽ Sports' : '🏛️ Govt'}
+                                </span>
+                            </div>
+
+                            <h4 class="text-slate-100 font-bold text-sm tracking-wide leading-snug">
+                                ${item.keyword}
+                            </h4>
+                            <p class="text-slate-400 text-xs mt-2 leading-relaxed">
+                                ${item.summary}
+                            </p>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs font-mono">
+                            <span class="text-slate-400"><i class="fa-solid fa-chart-simple text-slate-500 mr-1"></i> ${item.volume}</span>
+                            <span class="text-emerald-400 font-bold"><i class="fa-solid fa-arrow-trend-up mr-1"></i> ${item.growth}</span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            });
+        }
+
+        function filterTrends() {
+            const regionVal = document.getElementById('regionSelect').value;
+            const categoryVal = document.getElementById('categorySelect').value;
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+
+            const filtered = trendData.filter(item => {
+                const matchesPlatform = (currentPlatform === 'ALL' || item.platform === currentPlatform);
+                const matchesRegion = (regionVal === 'ALL' || item.region === regionVal);
+                const matchesCategory = (categoryVal === 'ALL' || item.category === categoryVal);
+                const matchesSearch = item.keyword.toLowerCase().includes(searchVal) || item.summary.toLowerCase().includes(searchVal);
+
+                return matchesPlatform && matchesRegion && matchesCategory && matchesSearch;
+            });
+
+            renderTrends(filtered);
+        }
+
+        function switchPlatform(platform) {
+            currentPlatform = platform;
+            
+            // Highlight active tab
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                btn.classList.remove('active-tab');
+                btn.classList.add('text-slate-400');
+            });
+            const activeBtn = document.getElementById(`tab-${platform}`);
+            if(activeBtn) {
+                activeBtn.classList.add('active-tab');
+                activeBtn.classList.remove('text-slate-400');
+            }
+
+            filterTrends();
+        }
+
+        // Initial Render
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTrends(trendData);
+        });
+    </script>
+</body>
+</html>
