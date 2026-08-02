@@ -759,14 +759,14 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
     }
 
     try {
-        // 3. Stringify & URI-encode payload (Replaces localStorage)
+        // 3. Save directly to localStorage (Bypasses URL character limit completely)
         const jsonString = JSON.stringify(scrapedPayload);
-        const encodedData = encodeURIComponent(jsonString);
+        localStorage.setItem('scrapedStreamData', jsonString);
 
-        // 4. Redirect to prepare.html with data attached in the URL route
-        window.location.href = `prepare.html?data=${encodedData}`;
+        // 4. Clean, direct redirect to prepare.html
+        window.location.href = 'prepare.html';
     } catch (e) {
-        console.error("Error encoding stream payload for URL routing:", e);
+        console.error("Error storing stream payload:", e);
         alert("Failed to prepare payload for routing transfer.");
     }
 };
