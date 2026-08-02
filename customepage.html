@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Gateway | Terminal Hub</title>
+    <title>Custom Geteway | Terminal Hub</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
@@ -243,7 +243,7 @@
             <div class="flex items-center gap-3">
                 <div class="w-7 h-7 rounded bg-cyan-600 flex items-center justify-center font-bold text-[10px] border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]">TG</div>
                 <div>
-                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Custom Terminal Gateway</span>
+                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Custom Terminal Geteway</span>
                 </div>
             </div>
 
@@ -349,7 +349,7 @@
                             ⟲ Restore Deleted
                         </button>
                         <button id="btn-download-logs" onclick="downloadAsPdf()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
-                            Download A4 PDF Report
+                            Send to Preparation Studio
                         </button>
                     </div>
                 </div>
@@ -365,6 +365,7 @@
 
     <!-- ENGINE SCRIPTS -->
     <script type="module">
+    
         import { N8N_GATEWAY_WEBHOOK } from './config.js';
         
         console.log("// TERMINAL HUB: Webhook configured:", N8N_GATEWAY_WEBHOOK);
@@ -374,41 +375,33 @@
         let deletedCardsHistory = [];
         const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
 
+        // Matrix character particles definition
+        const tokenChars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ01';
+        let particles = [];
+
+        function initParticles(canvas) {
+            particles = [];
+            const count = Math.floor((canvas.width * canvas.height) / 10000);
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.floor(Math.random() * 8) + 10,
+                    char: tokenChars[Math.floor(Math.random() * tokenChars.length)]
+                });
+            }
+        }
+
         // Initialize Canvas matrix effect safely after DOM ready
         function setupCanvasAnimation() {
             const canvas = document.getElementById('governanceCanvas');
             if (!canvas) return;
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles(canvas);
+
             const ctx = canvas.getContext('2d');
-            
-            function sizeCanvas() { 
-                canvas.width = window.innerWidth; 
-                canvas.height = window.innerHeight; 
-                initMatrixGrid();
-            }
-
-            const tokenChars = ['0', '1', 'X', 'A', 'F', '9', '4', 'C', '2', 'E', 'B', '7', 'Z', 'M', 'V', 'K'];
-            let particles = [];
-
-            function initMatrixGrid() {
-                particles = [];
-                const columns = Math.ceil(canvas.width / 22);
-                const rows = Math.ceil(canvas.height / 22);
-
-                for (let c = 0; c < columns; c++) {
-                    for (let r = 0; r < rows; r++) {
-                        particles.push({
-                            x: c * 22 + 8,
-                            y: r * 22 + 14,
-                            char: tokenChars[Math.floor(Math.random() * tokenChars.length)],
-                            size: Math.random() > 0.5 ? 9 : 10
-                        });
-                    }
-                }
-            }
-
-            sizeCanvas(); 
-            window.addEventListener('resize', sizeCanvas);
-
             let animationFrameId;
             let startTimestamp = null;
             let panelsRevealed = false;
@@ -431,13 +424,13 @@
                     ctx.fillText(p.char, p.x, p.y);
                 });
 
-                if (!panelsRevealed && elapsed >= 2000) {
+                if (!panelsRevealed && elapsed >= 1500) {
                     panelsRevealed = true;
                     const dashContent = document.getElementById('dashboardContent');
                     if (dashContent) dashContent.classList.add('visible');
                 }
 
-                if (elapsed >= 4000) {
+                if (elapsed >= 3500) {
                     if (!canvasCleanedUp) {
                         canvasCleanedUp = true;
                         canvas.style.opacity = '0';
@@ -455,7 +448,6 @@
             animationFrameId = requestAnimationFrame(runStaticGlitchField);
         }
 
-        // Run animation setup on DOM load
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', setupCanvasAnimation);
         } else {
@@ -503,90 +495,108 @@
             });
         };
 
-        // Render incoming n8n Webhook response into UI
-      function renderN8nResults(data, sectorContext) {
+window.renderN8nResults = function(data, sectorContext = "STREAM") {
     const outputPanel = document.getElementById('unifiedResultsConsole');
-    if (!outputPanel) return;
+    if (!outputPanel) {
+        console.error("CRITICAL: Could not find HTML element with id='unifiedResultsConsole'");
+        return;
+    }
 
-    // 1. Extract the actual news items array from nested webhook responses
+    console.log("// DATA RECEIVED BY RENDERER:", data);
+
     let resultsArray = [];
 
-    if (Array.isArray(data)) {
-        if (data[0] && Array.isArray(data[0].news)) {
-            resultsArray = data[0].news;
+    // Deep unwrapping to catch any n8n node response format
+    if (Array.isArray(data) && data.length > 0) {
+        const first = data[0];
+        if (first.news && Array.isArray(first.news)) {
+            resultsArray = first.news;
+        } else if (first.json && first.json.news && Array.isArray(first.json.news)) {
+            resultsArray = first.json.news;
+        } else if (first.body && first.body.news && Array.isArray(first.body.news)) {
+            resultsArray = first.body.news;
+        } else if (first.json && Array.isArray(first.json)) {
+            resultsArray = first.json;
         } else {
             resultsArray = data;
         }
-    } else if (data && Array.isArray(data.news)) {
-        resultsArray = data.news;
-    } else if (data && (Array.isArray(data.data) || Array.isArray(data.items))) {
-        resultsArray = data.data || data.items;
-    } else if (data) {
-        resultsArray = [data];
+    } else if (data && typeof data === 'object') {
+        if (Array.isArray(data.news)) {
+            resultsArray = data.news;
+        } else if (data.json && Array.isArray(data.json.news)) {
+            resultsArray = data.json.news;
+        } else if (Array.isArray(data.data)) {
+            resultsArray = data.data;
+        } else {
+            resultsArray = [data];
+        }
     }
 
-    // Update global stream cache for the preparation studio download function
-    cachedDataStream = resultsArray;
+    // Save globally so window.downloadAsPdf can access it immediately
+    window.cachedDataStream = resultsArray;
 
-    let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold text-xs">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
+    let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
 
     if (!resultsArray || resultsArray.length === 0) {
-        html += `<div class="text-slate-500 font-mono text-xs">// Webhook returned empty payload.</div>`;
+        html += `<div class="text-slate-500 font-mono">// Webhook returned empty payload or unrecognized JSON layout. Check console logs.</div>`;
     } else {
         resultsArray.forEach((row, idx) => {
-            // Extract item properties dynamically
-            const sourceName = row.sourceName || row.source || 'Scraped Source';
-            const title = row.title || row.newsTitle || row.name || '';
-            const content = row.news || row.paragraph || row.description || row.snippet || row.content || '';
-            const imageUrl = row.imageUrl || row.image || row.media || null;
-            const url = row.url || row.link || null;
+            const item = row.json || row;
+            
+            // Prioritize sourceName (e.g. "en.mehrnews.com") over source ("Website")
+            const sourceName = item.sourceName || item.source || 'Scraped Source';
+            const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+            
+            // Smart Title handling: Use existing title or extract first sentence/90 chars from content
+            let title = item.title || item.newsTitle || '';
+            if (!title && content) {
+                const firstPeriodIndex = content.indexOf('. ');
+                if (firstPeriodIndex > 10 && firstPeriodIndex < 120) {
+                    title = content.substring(0, firstPeriodIndex + 1);
+                } else {
+                    title = content.length > 90 ? content.substring(0, 90) + '...' : content;
+                }
+            }
+
+            const imageUrl = item.imageUrl || item.image || item.media || null;
+            const url = item.url || item.link || null;
 
             html += `
-                <div class="result-card flex flex-row items-start gap-3 bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 rounded-lg p-3 transition-all shadow-md mb-3" id="card-${idx}">
-                    
-                    <!-- LEFT SIDE: SMALL FULLY VISIBLE IMAGE CONTAINER -->
+                <div class="result-card flex flex-col bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 rounded-lg p-3.5 space-y-2.5 transition-all shadow-md" id="card-${idx}">
+                    <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1.5">
+                        <span class="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 font-bold uppercase tracking-wider">
+                            ${sourceName}
+                        </span>
+                        <button onclick="deleteCard(${idx})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">
+                            ✕
+                        </button>
+                    </div>
+
                     ${imageUrl ? `
-                        <div class="w-28 h-28 shrink-0 rounded-md border border-slate-800 bg-black/60 flex items-center justify-center overflow-hidden">
-                            <img src="${imageUrl}" alt="News Media" class="w-full h-full object-contain" onerror="this.parentElement.style.display='none'">
+                        <div class="w-full max-h-48 overflow-hidden rounded-md border border-slate-800 bg-black/40">
+                            <img src="${imageUrl}" alt="News Media" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.parentElement.style.display='none'">
                         </div>
                     ` : ''}
 
-                    <!-- RIGHT SIDE: DETAILS COLUMN -->
-                    <div class="flex-1 flex flex-col justify-between min-w-0 space-y-2">
-                        
-                        <!-- 1. TOP RIGHT: SOURCE BADGE & DELETE BUTTON -->
-                        <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1">
-                            <span class="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 font-bold uppercase tracking-wider">
-                                ${sourceName}
-                            </span>
-                            <button onclick="deleteCard(${idx})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">
-                                ✕
-                            </button>
-                        </div>
-
-                        <!-- 2. MIDDLE RIGHT: DETAIL NEWS -->
-                        <div class="space-y-1">
-                            ${title ? `<div class="text-cyan-300 font-bold text-xs tracking-wide font-sans">${title}</div>` : ''}
-                            <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words">${content}</p>
-                        </div>
-
-                        <!-- 3. BOTTOM RIGHT: HYPERLINK -->
-                        ${url ? `
-                            <div class="pt-1 border-t border-slate-800/40">
-                                <a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-200 hover:underline font-mono break-all">
-                                    🔗 ${url}
-                                </a>
-                            </div>
-                        ` : ''}
-
+                    <div class="space-y-1">
+                        ${title ? `<div class="text-cyan-300 font-bold text-xs tracking-wide font-sans">${title}</div>` : ''}
+                        <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words line-clamp-4">${content}</p>
                     </div>
+
+                    ${url ? `
+                        <div class="pt-1 border-t border-slate-800/40">
+                            <a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-200 hover:underline font-mono break-all">
+                                🔗 Source Link: ${url}
+                            </a>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         });
     }
 
     outputPanel.innerHTML = html;
-}
+};
 
         // Direct fetch caller to n8n Webhook Node
         async function transmitPayloadToN8n(payload) {
@@ -629,7 +639,7 @@
 
             try {
                 const webhookResponse = await transmitPayloadToN8n(payload);
-                renderN8nResults(webhookResponse, sectorContext);
+                window.renderN8nResults(webhookResponse, sectorContext);
                 if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FROM N8N FOR [${sectorContext.toUpperCase()}]`;
             } catch (err) {
                 if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
@@ -662,7 +672,7 @@
 
             try {
                 const webhookResponse = await transmitPayloadToN8n(payload);
-                renderN8nResults(webhookResponse, sectorContext);
+                window.renderN8nResults(webhookResponse, sectorContext);
                 if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FOR SEARCH [${inputVal}]`;
             } catch (err) {
                 if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
@@ -672,62 +682,51 @@
             }
         };
 
-        window.toggleLangCheckbox = async function(langKey) {
+        // Toggle Single Language Checkbox
+        window.toggleLangCheckbox = function(langKey) {
             const btn = document.getElementById(`lang-${langKey}`);
             activeLanguages[langKey] = !activeLanguages[langKey];
             if (btn) btn.classList.toggle('active', activeLanguages[langKey]);
-            
-            const activeList = getSelectedDashboardLanguages();
-            const statusLog = document.getElementById('statusConsole');
-            if (statusLog) statusLog.innerText = `// MODIFIED SYSTEM STRINGS: [${activeList.join(', ')}]`;
         };
 
-        window.toggleSelectAllEnsembles = async function() {
+        // Toggle Select All Ensembles
+        window.toggleSelectAllEnsembles = function() {
             const keys = Object.keys(activeLanguages);
-            const allTrue = keys.every(k => activeLanguages[k]);
-            keys.forEach(k => {
-                activeLanguages[k] = !allTrue;
-                const btn = document.getElementById(`lang-${k}`);
-                if (btn) btn.classList.toggle('active', !allTrue);
+            const allActive = keys.every(k => activeLanguages[k]);
+            
+            keys.forEach(langKey => {
+                activeLanguages[langKey] = !allActive;
+                const btn = document.getElementById(`lang-${langKey}`);
+                if (btn) btn.classList.toggle('active', !allActive);
             });
-            const statusLog = document.getElementById('statusConsole');
-            if (statusLog) statusLog.innerText = allTrue ? `// ENSEMBLES DE-SELECTED` : `// ALL ENSEMBLES ACTIVE`;
         };
 
+        // Card Management Functions
         window.deleteCard = function(idx) {
-            const card = document.getElementById(`card-${idx}`);
-            if (card) {
-                deletedCardsHistory.push({ index: idx, element: card, parent: card.parentNode, nextSibling: card.nextSibling });
-                card.remove();
+            const cardEl = document.getElementById(`card-${idx}`);
+            if (cardEl && cachedDataStream[idx]) {
+                deletedCardsHistory.push(cachedDataStream[idx]);
+                cardEl.remove();
                 
                 const restoreBtn = document.getElementById('btn-restore-log');
                 if (restoreBtn) restoreBtn.classList.remove('hidden');
-
-                const statusLog = document.getElementById('statusConsole');
-                if (statusLog) statusLog.innerText = `// RECORD #${idx} PURGED FROM STREAM`;
             }
         };
 
         window.restoreLastDeleted = function() {
             if (deletedCardsHistory.length === 0) return;
-            
-            const last = deletedCardsHistory.pop();
-            if (last.nextSibling) {
-                last.parent.insertBefore(last.element, last.nextSibling);
-            } else {
-                last.parent.appendChild(last.element);
-            }
+            const restoredItem = deletedCardsHistory.pop();
+            cachedDataStream.push(restoredItem);
+            window.renderN8nResults(cachedDataStream, "RESTORED STREAM");
 
             if (deletedCardsHistory.length === 0) {
                 const restoreBtn = document.getElementById('btn-restore-log');
                 if (restoreBtn) restoreBtn.classList.add('hidden');
             }
-
-            const statusLog = document.getElementById('statusConsole');
-            if (statusLog) statusLog.innerText = `// RESTORED PURGED RECORD #${last.index}`;
         };
 
-window.downloadAsPdf = function() {
+        // Save stream to LocalStorage and redirect to prepare.html
+    window.downloadAsPdf = function() {
     let scrapedPayload = [];
 
     // 1. Check in-memory cached stream first
@@ -760,20 +759,18 @@ window.downloadAsPdf = function() {
     }
 
     try {
-        // 3. Stringify & URI-encode payload (Replaces localStorage)
+        // 3. Save directly to localStorage (Bypasses URL character limit completely)
         const jsonString = JSON.stringify(scrapedPayload);
-        const encodedData = encodeURIComponent(jsonString);
+        localStorage.setItem('scrapedStreamData', jsonString);
 
-        // 4. Redirect to prepare.html with data attached in the URL route
-        window.location.href = `prepare.html?data=${encodedData}`;
+        // 4. Clean, direct redirect to prepare.html
+        window.location.href = 'prepare.html';
     } catch (e) {
-        console.error("Error encoding stream payload for URL routing:", e);
+        console.error("Error storing stream payload:", e);
         alert("Failed to prepare payload for routing transfer.");
     }
 };
 
-
-        
     </script>
 </body>
 </html>
