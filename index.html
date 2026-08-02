@@ -510,20 +510,21 @@
                 }
 
                 // 1. Fetch user's section from Supabase database column ["journalism Section"]
-                const userSection = (records[0]["journalism Section"] || "").toLowerCase().trim();
-                let targetPage = "customepage.html"; // Default direction (Direction 3: All Journalists)
+               // 1. Fetch user's section from Supabase database column ["journalism Section"]
+const userSection = (records[0]["journalism Section"] || "").toLowerCase().trim();
+let targetPage = "customepage.html"; // Default direction (Direction 3: All Journalists)
 
-                // 2. Three-Direction Routing Rules
-                if (userSection === 'editor' || userSection.includes('editor')) {
-                    // Direction 1: Editor personnel
-                    targetPage = "Editorpage.html";
-                } else if (userSection === 'Management' || userSection.includes('Management') || userSection.includes('Manager')) {
-                    // Direction 2: Management personnel
-                    targetPage = "trend.html";
-                } else {
-                    // Direction 3: All Journalists (Sports, Politics, World, Tech, etc.)
-                    targetPage = "customepage.html";
-                }
+// 2. Three-Direction Routing Rules
+if (userSection === 'editor' || userSection.includes('editor')) {
+    // Direction 1: Editor personnel -> Editorpage.html
+    targetPage = "Editorpage.html";
+} else if (userSection === 'management' || userSection.includes('management') || userSection.includes('manager')) {
+    // Direction 2: Management personnel -> managerpipeline.html
+    targetPage = "managerpipeline.html";
+} else {
+    // Direction 3: All Journalists (Sports, Politics, World, Tech, etc.)
+    targetPage = "customepage.html";
+}
 
                 // Save session into browser storage
                 const sessionPayload = {
