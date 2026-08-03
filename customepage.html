@@ -258,6 +258,7 @@
                     <span class="block text-[11px] font-mono font-semibold text-slate-300">Amanuel Bekele Woldesenbet</span>
                     <span class="block text-[9px] font-mono text-cyan-500 uppercase tracking-wider">// Operator Profile</span>
                 </div>
+                
                 <button id="btn-sign-out" onclick="location.reload();" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5 py-1.5 rounded transition-all uppercase cursor-pointer">
                     Sign Out
                 </button>
@@ -648,6 +649,33 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
                 window.setGlobalProcessingState(false);
             }
         };
+        window.initUserHeader = function() {
+    const sessionData = localStorage.getItem('userSession');
+
+    if (!sessionData) {
+        window.location.href = '/login.html';
+        return;
+    }
+
+    try {
+        const user = JSON.parse(sessionData);
+
+        const nameEl = document.getElementById('user-display-name');
+        const sectionEl = document.getElementById('user-display-section');
+
+        // Extract FIRST NAME ONLY from fullName or username
+        const rawName = user.fullName || user.username || 'User';
+        const firstName = rawName.trim().split(' ')[0]; // Takes just the first word
+
+        // Format and display
+        if (nameEl) nameEl.innerText = firstName;
+        if (sectionEl) sectionEl.innerText = `[${(user.journalismSection || 'GENERAL').toUpperCase()}]`;
+
+    } catch (e) {
+        console.error("// ERROR PARSING USER SESSION:", e);
+        window.handleSignOut();
+    }
+};
 
         // Global Action: "GO" Search button trigger
         window.triggerUnifiedSearch = async function(sectorContext, inputId) {
