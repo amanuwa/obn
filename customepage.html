@@ -649,11 +649,13 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
                 window.setGlobalProcessingState(false);
             }
         };
-        window.initUserHeader = function() {
+  // 1. Function to retrieve and render logged-in user details
+window.initUserHeader = function() {
     const sessionData = localStorage.getItem('userSession');
 
+    // If no session exists, fallback gracefully (or set mock data for testing)
     if (!sessionData) {
-        window.location.href = '/login.html';
+        console.warn("// WARNING: No 'userSession' found in localStorage.");
         return;
     }
 
@@ -663,19 +665,36 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
         const nameEl = document.getElementById('user-display-name');
         const sectionEl = document.getElementById('user-display-section');
 
-        // Extract FIRST NAME ONLY from fullName or username
-        const rawName = user.fullName || user.username || 'User';
-        const firstName = rawName.trim().split(' ')[0]; // Takes just the first word
+        // Extract FIRST NAME ONLY from fullName, username, or name
+        const rawName = user.fullName || user.username || user.name || 'User';
+        const firstName = rawName.trim().split(' ')[0]; 
 
-        // Format and display
+        // Extract Journalism Section
+        const section = user.journalismSection || user.section || 'GENERAL';
+
+        // Render to Header
         if (nameEl) nameEl.innerText = firstName;
-        if (sectionEl) sectionEl.innerText = `[${(user.journalismSection || 'GENERAL').toUpperCase()}]`;
+        if (sectionEl) sectionEl.innerText = `// ${section.toUpperCase()}`;
 
     } catch (e) {
         console.error("// ERROR PARSING USER SESSION:", e);
-        window.handleSignOut();
     }
 };
+
+// 2. Safe Sign-Out Handler
+window.handleSignOut = function() {
+    // Clear storage
+    localStorage.removeItem('userSession');
+    sessionStorage.clear();
+
+    // Redirect to your login page
+    window.location.href = 'loginpage.html'; // Change to your login file path
+};
+
+// 3. Trigger automatically on load
+document.addEventListener('DOMContentLoaded', () => {
+    window.initUserHeader();
+});
 
         // Global Action: "GO" Search button trigger
         window.triggerUnifiedSearch = async function(sectorContext, inputId) {
