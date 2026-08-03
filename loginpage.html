@@ -529,8 +529,15 @@
                     signInBtn.innerText = "Sign In";
                     return;
                 }
+const userRecord = records[0];
+                const assignedSection = userRecord["journalism Section"];
 
-                const assignedSection = records[0]["journalism Section"];
+                // Save user details into localStorage so customepage.html can read them!
+                localStorage.setItem('userSession', JSON.stringify({
+                    fullName: userRecord["Journalist name"],
+                    journalismSection: assignedSection
+                }));
+
                 const configMatch = DESK_CONFIGS[assignedSection];
 
                 if (configMatch) {
