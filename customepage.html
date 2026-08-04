@@ -474,7 +474,7 @@
                 }
             }
 
-            sendLanguageFilterToN8n(activeLangs);
+            sendLanguageTranslationToN8n(activeLangs);
         }
 
         function handleSelectAllToggle() {
@@ -493,7 +493,7 @@
             });
 
             const activeLangs = shouldActivate ? [...ALL_LANGUAGES] : [];
-            sendLanguageFilterToN8n(activeLangs);
+            sendLanguageTranslationToN8n(activeLangs);
         }
 
       async function sendLanguageTranslationToN8n(targetLanguages) {
