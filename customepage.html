@@ -787,7 +787,7 @@ function toggleLangCheckbox(lang) {
 }
         async function triggerLanguageWebhook(targetLanguages) {
     // Replace this URL with your actual n8n Webhook URL
-   // const N8N_WEBHOOK_URL = 'https://your-n8n-instance.com/webhook/translate-stream';
+  import { N8N_WEBHOOK_URL } from './config.js';
 
     displayTerminalNotice(`Updating target languages: [${targetLanguages.join(', ')}]...`, 'info');
 
