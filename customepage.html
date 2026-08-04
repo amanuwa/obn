@@ -259,7 +259,7 @@
                   <span id="user-display-section" class="block text-[9px] font-mono text-cyan-500 uppercase tracking-wider">// --</span>
               </div>
 
-               <button id="btn-signout" onclick="window.handleSignOut()" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5">
+               <button id="btn-signout" onclick="window.handleSignOut()" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5 cursor-pointer">
                     Sign Out
               </button>
          </div>
@@ -324,17 +324,16 @@
                         <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">Central Stream Monitor</span>
                     </div>
 
-      
-<!-- CONTROL PANEL FOR ENSEMBLES -->
-<div class="flex items-center gap-2 justify-center flex-1 mx-4" id="languageContainer">
-    <button id="btn-select-all" class="ensemble-btn uppercase">Select All Ensembles</button>
+                    <!-- CONTROL PANEL FOR ENSEMBLES -->
+                    <div class="flex items-center gap-2 justify-center flex-1 mx-4" id="languageContainer">
+                        <button id="btn-select-all" class="ensemble-btn uppercase">Select All Ensembles</button>
 
-    <button id="lang-OROMIFFA" class="lang-checkbox-btn"><span class="custom-box"></span> OROMIFFA</button>
-    <button id="lang-AMHARIC" class="lang-checkbox-btn"><span class="custom-box"></span> AMHARIC</button>
-    <button id="lang-ENGLISH" class="lang-checkbox-btn"><span class="custom-box"></span> ENGLISH</button>
-    <button id="lang-ARABIC" class="lang-checkbox-btn"><span class="custom-box"></span> ARABIC</button>
-    <button id="lang-FRENCH" class="lang-checkbox-btn"><span class="custom-box"></span> FRENCH</button>
-</div>
+                        <button id="lang-OROMIFFA" class="lang-checkbox-btn"><span class="custom-box"></span> OROMIFFA</button>
+                        <button id="lang-AMHARIC" class="lang-checkbox-btn"><span class="custom-box"></span> AMHARIC</button>
+                        <button id="lang-ENGLISH" class="lang-checkbox-btn"><span class="custom-box"></span> ENGLISH</button>
+                        <button id="lang-ARABIC" class="lang-checkbox-btn"><span class="custom-box"></span> ARABIC</button>
+                        <button id="lang-FRENCH" class="lang-checkbox-btn"><span class="custom-box"></span> FRENCH</button>
+                    </div>
 
                     <div class="text-right text-[10px] font-mono text-slate-600 select-none shrink-0">// CAPTURE MATRICES</div>
                 </div>
@@ -368,15 +367,15 @@
 
     <!-- ENGINE SCRIPTS -->
     <script type="module">
-    
         import { N8N_GATEWAY_WEBHOOK } from './config.js';
         
         console.log("// TERMINAL HUB: Webhook configured:", N8N_GATEWAY_WEBHOOK);
 
+        const ALL_LANGUAGES = ['OROMIFFA', 'AMHARIC', 'ENGLISH', 'ARABIC', 'FRENCH'];
+
         // Dynamic state management
         let cachedDataStream = [];
         let deletedCardsHistory = [];
-        const activeLanguages = { OROMIFFA: true, AMHARIC: true, ENGLISH: true, ARABIC: false };
 
         // Matrix character particles definition
         const tokenChars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ01';
@@ -451,16 +450,92 @@
             animationFrameId = requestAnimationFrame(runStaticGlitchField);
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', setupCanvasAnimation);
-        } else {
-            setupCanvasAnimation();
+        // --- LANGUAGE SELECTION HANDLERS ---
+        function getSelectedLanguages() {
+            return ALL_LANGUAGES.filter(lang => {
+                const el = document.getElementById(`lang-${lang}`);
+                return el && el.classList.contains('active');
+            });
         }
 
-        // Helper functions
-        function getSelectedDashboardLanguages() {
-            return Object.keys(activeLanguages).filter(langKey => activeLanguages[langKey]);
+        function handleLanguageToggle(lang) {
+            const btn = document.getElementById(`lang-${lang}`);
+            if (!btn) return;
+
+            btn.classList.toggle('active');
+
+            const activeLangs = getSelectedLanguages();
+            const selectAllBtn = document.getElementById('btn-select-all');
+            if (selectAllBtn) {
+                if (activeLangs.length === ALL_LANGUAGES.length) {
+                    selectAllBtn.classList.add('active');
+                } else {
+                    selectAllBtn.classList.remove('active');
+                }
+            }
+
+            sendLanguageFilterToN8n(activeLangs);
         }
+
+        function handleSelectAllToggle() {
+            const selectAllBtn = document.getElementById('btn-select-all');
+            const shouldActivate = selectAllBtn ? !selectAllBtn.classList.contains('active') : true;
+
+            if (selectAllBtn) {
+                selectAllBtn.classList.toggle('active', shouldActivate);
+            }
+
+            ALL_LANGUAGES.forEach(lang => {
+                const btn = document.getElementById(`lang-${lang}`);
+                if (btn) {
+                    btn.classList.toggle('active', shouldActivate);
+                }
+            });
+
+            const activeLangs = shouldActivate ? [...ALL_LANGUAGES] : [];
+            sendLanguageFilterToN8n(activeLangs);
+        }
+
+        async function sendLanguageFilterToN8n(targetLanguages) {
+            window.setGlobalProcessingState(true, "language");
+            const statusLog = document.getElementById('statusConsole');
+            if (statusLog) statusLog.innerText = `// UPDATING LANGUAGE ENSEMBLES: [${targetLanguages.join(', ') || 'NONE'}]`;
+
+            try {
+                const payload = {
+                    action: 'filter_language',
+                    languages: targetLanguages,
+                    timestamp: new Date().toISOString()
+                };
+
+                const webhookResponse = await transmitPayloadToN8n(payload);
+                window.renderN8nResults(webhookResponse, "LANGUAGE FILTER");
+                if (statusLog) statusLog.innerText = `// SUCCESS: LANGUAGE ENSEMBLES APPLIED`;
+            } catch (err) {
+                console.error("// LANGUAGE FILTER ERROR:", err);
+                if (statusLog) statusLog.innerText = `// ERROR: FAILED TO APPLY LANGUAGE FILTER`;
+            } finally {
+                window.setGlobalProcessingState(false);
+            }
+        }
+
+        // Attach event listeners after DOM load
+        document.addEventListener('DOMContentLoaded', () => {
+            setupCanvasAnimation();
+            window.initUserHeader();
+
+            ALL_LANGUAGES.forEach(lang => {
+                const btn = document.getElementById(`lang-${lang}`);
+                if (btn) {
+                    btn.addEventListener('click', () => handleLanguageToggle(lang));
+                }
+            });
+
+            const selectAllBtn = document.getElementById('btn-select-all');
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener('click', handleSelectAllToggle);
+            }
+        });
 
         // Processing status handler
         window.setGlobalProcessingState = function(isProcessing, processingType = "standard") {
@@ -498,108 +573,104 @@
             });
         };
 
-window.renderN8nResults = function(data, sectorContext = "STREAM") {
-    const outputPanel = document.getElementById('unifiedResultsConsole');
-    if (!outputPanel) {
-        console.error("CRITICAL: Could not find HTML element with id='unifiedResultsConsole'");
-        return;
-    }
+        window.renderN8nResults = function(data, sectorContext = "STREAM") {
+            const outputPanel = document.getElementById('unifiedResultsConsole');
+            if (!outputPanel) {
+                console.error("CRITICAL: Could not find HTML element with id='unifiedResultsConsole'");
+                return;
+            }
 
-    console.log("// DATA RECEIVED BY RENDERER:", data);
+            console.log("// DATA RECEIVED BY RENDERER:", data);
 
-    let resultsArray = [];
+            let resultsArray = [];
 
-    // Deep unwrapping to catch any n8n node response format
-    if (Array.isArray(data) && data.length > 0) {
-        const first = data[0];
-        if (first.news && Array.isArray(first.news)) {
-            resultsArray = first.news;
-        } else if (first.json && first.json.news && Array.isArray(first.json.news)) {
-            resultsArray = first.json.news;
-        } else if (first.body && first.body.news && Array.isArray(first.body.news)) {
-            resultsArray = first.body.news;
-        } else if (first.json && Array.isArray(first.json)) {
-            resultsArray = first.json;
-        } else {
-            resultsArray = data;
-        }
-    } else if (data && typeof data === 'object') {
-        if (Array.isArray(data.news)) {
-            resultsArray = data.news;
-        } else if (data.json && Array.isArray(data.json.news)) {
-            resultsArray = data.json.news;
-        } else if (Array.isArray(data.data)) {
-            resultsArray = data.data;
-        } else {
-            resultsArray = [data];
-        }
-    }
-
-    // Save globally so window.downloadAsPdf can access it immediately
-    window.cachedDataStream = resultsArray;
-
-    let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
-
-    if (!resultsArray || resultsArray.length === 0) {
-        html += `<div class="text-slate-500 font-mono">// Webhook returned empty payload or unrecognized JSON layout. Check console logs.</div>`;
-    } else {
-        resultsArray.forEach((row, idx) => {
-            const item = row.json || row;
-            
-            // Prioritize sourceName (e.g. "en.mehrnews.com") over source ("Website")
-            const sourceName = item.sourceName || item.source || 'Scraped Source';
-            const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
-            
-            // Smart Title handling: Use existing title or extract first sentence/90 chars from content
-            let title = item.title || item.newsTitle || '';
-            if (!title && content) {
-                const firstPeriodIndex = content.indexOf('. ');
-                if (firstPeriodIndex > 10 && firstPeriodIndex < 120) {
-                    title = content.substring(0, firstPeriodIndex + 1);
+            if (Array.isArray(data) && data.length > 0) {
+                const first = data[0];
+                if (first.news && Array.isArray(first.news)) {
+                    resultsArray = first.news;
+                } else if (first.json && first.json.news && Array.isArray(first.json.news)) {
+                    resultsArray = first.json.news;
+                } else if (first.body && first.body.news && Array.isArray(first.body.news)) {
+                    resultsArray = first.body.news;
+                } else if (first.json && Array.isArray(first.json)) {
+                    resultsArray = first.json;
                 } else {
-                    title = content.length > 90 ? content.substring(0, 90) + '...' : content;
+                    resultsArray = data;
+                }
+            } else if (data && typeof data === 'object') {
+                if (Array.isArray(data.news)) {
+                    resultsArray = data.news;
+                } else if (data.json && Array.isArray(data.json.news)) {
+                    resultsArray = data.json.news;
+                } else if (Array.isArray(data.data)) {
+                    resultsArray = data.data;
+                } else {
+                    resultsArray = [data];
                 }
             }
 
-            const imageUrl = item.imageUrl || item.image || item.media || null;
-            const url = item.url || item.link || null;
+            window.cachedDataStream = resultsArray;
 
-            html += `
-                <div class="result-card flex flex-col bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 rounded-lg p-3.5 space-y-2.5 transition-all shadow-md" id="card-${idx}">
-                    <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1.5">
-                        <span class="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 font-bold uppercase tracking-wider">
-                            ${sourceName}
-                        </span>
-                        <button onclick="deleteCard(${idx})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">
-                            ✕
-                        </button>
-                    </div>
+            let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
 
-                    ${imageUrl ? `
-                        <div class="w-full max-h-48 overflow-hidden rounded-md border border-slate-800 bg-black/40">
-                            <img src="${imageUrl}" alt="News Media" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.parentElement.style.display='none'">
+            if (!resultsArray || resultsArray.length === 0) {
+                html += `<div class="text-slate-500 font-mono">// Webhook returned empty payload or unrecognized JSON layout. Check console logs.</div>`;
+            } else {
+                resultsArray.forEach((row, idx) => {
+                    const item = row.json || row;
+                    
+                    const sourceName = item.sourceName || item.source || 'Scraped Source';
+                    const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+                    
+                    let title = item.title || item.newsTitle || '';
+                    if (!title && content) {
+                        const firstPeriodIndex = content.indexOf('. ');
+                        if (firstPeriodIndex > 10 && firstPeriodIndex < 120) {
+                            title = content.substring(0, firstPeriodIndex + 1);
+                        } else {
+                            title = content.length > 90 ? content.substring(0, 90) + '...' : content;
+                        }
+                    }
+
+                    const imageUrl = item.imageUrl || item.image || item.media || null;
+                    const url = item.url || item.link || null;
+
+                    html += `
+                        <div class="result-card flex flex-col bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 rounded-lg p-3.5 space-y-2.5 transition-all shadow-md" id="card-${idx}">
+                            <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1.5">
+                                <span class="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 font-bold uppercase tracking-wider">
+                                    ${sourceName}
+                                </span>
+                                <button onclick="deleteCard(${idx})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">
+                                    ✕
+                                </button>
+                            </div>
+
+                            ${imageUrl ? `
+                                <div class="w-full max-h-48 overflow-hidden rounded-md border border-slate-800 bg-black/40">
+                                    <img src="${imageUrl}" alt="News Media" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.parentElement.style.display='none'">
+                                </div>
+                            ` : ''}
+
+                            <div class="space-y-1">
+                                ${title ? `<div class="text-cyan-300 font-bold text-xs tracking-wide font-sans">${title}</div>` : ''}
+                                <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words line-clamp-4">${content}</p>
+                            </div>
+
+                            ${url ? `
+                                <div class="pt-1 border-t border-slate-800/40">
+                                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-200 hover:underline font-mono break-all">
+                                        🔗 Source Link: ${url}
+                                    </a>
+                                </div>
+                            ` : ''}
                         </div>
-                    ` : ''}
+                    `;
+                });
+            }
 
-                    <div class="space-y-1">
-                        ${title ? `<div class="text-cyan-300 font-bold text-xs tracking-wide font-sans">${title}</div>` : ''}
-                        <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words line-clamp-4">${content}</p>
-                    </div>
-
-                    ${url ? `
-                        <div class="pt-1 border-t border-slate-800/40">
-                            <a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-200 hover:underline font-mono break-all">
-                                🔗 Source Link: ${url}
-                            </a>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        });
-    }
-
-    outputPanel.innerHTML = html;
-};
+            outputPanel.innerHTML = html;
+        };
 
         // Direct fetch caller to n8n Webhook Node
         async function transmitPayloadToN8n(payload) {
@@ -636,7 +707,7 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
             const payload = {
                 action: 'anything_new',
                 targetMatrix: sectorContext,
-                languages: getSelectedDashboardLanguages(),
+                languages: getSelectedLanguages(),
                 timestamp: new Date().toISOString()
             };
 
@@ -651,244 +722,41 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
                 window.setGlobalProcessingState(false);
             }
         };
-  // 1. Function to retrieve and render logged-in user details
-window.initUserHeader = function() {
-    const sessionData = localStorage.getItem('userSession');
 
-    // If no session exists, fallback gracefully (or set mock data for testing)
-    if (!sessionData) {
-        console.warn("// WARNING: No 'userSession' found in localStorage.");
-        return;
-    }
+        // Retrieve and render logged-in user details
+        window.initUserHeader = function() {
+            const sessionData = localStorage.getItem('userSession');
 
-    try {
-        const user = JSON.parse(sessionData);
-
-        const nameEl = document.getElementById('user-display-name');
-        const sectionEl = document.getElementById('user-display-section');
-
-        // Extract FIRST NAME ONLY from fullName, username, or name
-        const rawName = user.fullName || user.username || user.name || 'User';
-        const firstName = rawName.trim().split(' ')[0]; 
-
-        // Extract Journalism Section
-        const section = user.journalismSection || user.section || 'GENERAL';
-
-        // Render to Header
-        if (nameEl) nameEl.innerText = firstName;
-        if (sectionEl) sectionEl.innerText = `// ${section.toUpperCase()}`;
-
-    } catch (e) {
-        console.error("// ERROR PARSING USER SESSION:", e);
-    }
-};
-
-// 2. Safe Sign-Out Handler
-window.handleSignOut = function() {
-    // Clear storage
-    localStorage.removeItem('userSession');
-    sessionStorage.clear();
-
-    // Redirect to your login page
-    window.location.href = 'loginpage.html'; // Change to your login file path
-};
-
-// 3. Trigger automatically on load
-document.addEventListener('DOMContentLoaded', () => {
-    window.initUserHeader();
-});
-
-        // Global Action: "GO" Search button trigger
-        window.triggerUnifiedSearch = async function(sectorContext, inputId) {
-            const inputEl = document.getElementById(inputId);
-            const inputVal = inputEl ? inputEl.value : '';
-            if (!inputVal) return;
-
-            window.setGlobalProcessingState(true);
-            const statusLog = document.getElementById('statusConsole');
-            const outputPanel = document.getElementById('unifiedResultsConsole');
-
-            if (statusLog) statusLog.innerText = `// TRANSMITTING SEARCH QUERY TO N8N WEBHOOK: [${inputVal}]`;
-            if (outputPanel) outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Awaiting response from n8n webhook node...</div>`;
-
-            const payload = {
-                action: 'unified_search',
-                targetMatrix: sectorContext,
-                query: inputVal,
-                languages: getSelectedDashboardLanguages(),
-                timestamp: new Date().toISOString()
-            };
+            if (!sessionData) {
+                console.warn("// WARNING: No 'userSession' found in localStorage.");
+                return;
+            }
 
             try {
-                const webhookResponse = await transmitPayloadToN8n(payload);
-                window.renderN8nResults(webhookResponse, sectorContext);
-                if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FOR SEARCH [${inputVal}]`;
-            } catch (err) {
-                if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
-                if (statusLog) statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
-            } finally {
-                window.setGlobalProcessingState(false);
+                const user = JSON.parse(sessionData);
+
+                const nameEl = document.getElementById('user-display-name');
+                const sectionEl = document.getElementById('user-display-section');
+
+                const rawName = user.fullName || user.username || user.name || 'User';
+                const firstName = rawName.trim().split(' ')[0]; 
+
+                const section = user.journalismSection || user.section || 'GENERAL';
+
+                if (nameEl) nameEl.innerText = firstName;
+                if (sectionEl) sectionEl.innerText = `// ${section.toUpperCase()}`;
+
+            } catch (e) {
+                console.error("// ERROR PARSING USER SESSION:", e);
             }
         };
 
-        // Toggle Single Language Checkbox
-       // Array of all available languages
-const ALL_LANGUAGES = ['OROMIFFA', 'AMHARIC', 'ENGLISH', 'ARABIC', 'FRENCH'];
-
-function toggleLangCheckbox(lang) {
-    const btn = document.getElementById(`lang-${lang}`);
-    if (!btn) return;
-
-    // Toggle active state for the clicked button
-    btn.classList.toggle('active');
-
-    // Collect all currently active languages
-    const selectedLanguages = ALL_LANGUAGES.filter(l => {
-        const el = document.getElementById(`lang-${l}`);
-        return el && el.classList.contains('active');
-    });
-
-    // Update "Select All" button state UI (optional indicator)
-    const selectAllBtn = document.getElementById('btn-select-all');
-    if (selectAllBtn) {
-        if (selectedLanguages.length === ALL_LANGUAGES.length) {
-            selectAllBtn.classList.add('active');
-        } else {
-            selectAllBtn.classList.remove('active');
-        }
-    }
-
-    // Trigger the n8n webhook with selected languages
-    triggerLanguageWebhook(selectedLanguages);
-}
-
-        // Toggle Select All Ensembles
-       function toggleSelectAllEnsembles() {
-    const selectAllBtn = document.getElementById('btn-select-all');
-    const isCurrentlyActive = selectAllBtn.classList.contains('active');
-    const shouldActivate = !isCurrentlyActive;
-
-    // Toggle button state
-    selectAllBtn.classList.toggle('active', shouldActivate);
-
-    // Toggle all language buttons
-    ALL_LANGUAGES.forEach(lang => {
-        const btn = document.getElementById(`lang-${lang}`);
-        if (btn) {
-            btn.classList.toggle('active', shouldActivate);
-        }
-    });
-
-    // Collect updated active languages
-    const selectedLanguages = shouldActivate ? [...ALL_LANGUAGES] : [];
-
-    // Trigger the n8n webhook
-    triggerLanguageWebhook(selectedLanguages);
-}
-        async function triggerLanguageWebhook(targetLanguages) {
-    // Replace this URL with your actual n8n Webhook URL
- // import { N8N_WEBHOOK_URL } from './config.js';
-
-    displayTerminalNotice(`Updating target languages: [${targetLanguages.join(', ')}]...`, 'info');
-
-    try {
-        const response = await fetch(N8N_WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                action: 'FILTER_BY_LANGUAGE',
-                languages: targetLanguages, // Sends array e.g., ["AMHARIC", "FRENCH"]
-                timestamp: new Date().toISOString()
-            })
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            displayTerminalNotice(`Stream updated for languages: ${targetLanguages.join(', ') || 'NONE'}`, 'success');
-            
-            // If n8n returns translated data directly, render it here:
-            // renderStreamData(data);
-        } else {
-            displayTerminalNotice('Failed to update language stream from n8n.', 'error');
-        }
-    } catch (error) {
-        console.error('Webhook Error:', error);
-        displayTerminalNotice('Webhook connection error.', 'error');
-    }
-}
-
-        // Card Management Functions
-        window.deleteCard = function(idx) {
-            const cardEl = document.getElementById(`card-${idx}`);
-            if (cardEl && cachedDataStream[idx]) {
-                deletedCardsHistory.push(cachedDataStream[idx]);
-                cardEl.remove();
-                
-                const restoreBtn = document.getElementById('btn-restore-log');
-                if (restoreBtn) restoreBtn.classList.remove('hidden');
-            }
+        // Sign-Out Handler
+        window.handleSignOut = function() {
+            localStorage.removeItem('userSession');
+            sessionStorage.clear();
+            window.location.href = 'loginpage.html';
         };
-
-        window.restoreLastDeleted = function() {
-            if (deletedCardsHistory.length === 0) return;
-            const restoredItem = deletedCardsHistory.pop();
-            cachedDataStream.push(restoredItem);
-            window.renderN8nResults(cachedDataStream, "RESTORED STREAM");
-
-            if (deletedCardsHistory.length === 0) {
-                const restoreBtn = document.getElementById('btn-restore-log');
-                if (restoreBtn) restoreBtn.classList.add('hidden');
-            }
-        };
-
-        // Save stream to LocalStorage and redirect to prepare.html
-    window.downloadAsPdf = function() {
-    let scrapedPayload = [];
-
-    // 1. Check in-memory cached stream first
-    if (typeof cachedDataStream !== 'undefined' && Array.isArray(cachedDataStream) && cachedDataStream.length > 0) {
-        scrapedPayload = cachedDataStream;
-    } else {
-        // 2. Fallback: Directly extract ALL visible cards from the DOM
-        const cards = document.querySelectorAll('#unifiedResultsConsole .result-card');
-        cards.forEach((card, idx) => {
-            const badge = card.querySelector('span');
-            const img = card.querySelector('img');
-            const titleEl = card.querySelector('.text-cyan-300') || card.querySelector('.font-bold');
-            const contentEl = card.querySelector('p');
-            const link = card.querySelector('a');
-
-            scrapedPayload.push({
-                id: idx,
-                sourceName: badge ? badge.innerText.trim() : 'SCRAPED SOURCE',
-                title: titleEl ? titleEl.innerText.trim() : '',
-                news: contentEl ? contentEl.innerText.trim() : '',
-                imageUrl: img ? img.src : '',
-                url: link ? link.href : ''
-            });
-        });
-    }
-
-    if (scrapedPayload.length === 0) {
-        alert('No scraped data found to send to Preparation Studio!');
-        return;
-    }
-
-    try {
-        // 3. Save directly to localStorage (Bypasses URL character limit completely)
-        const jsonString = JSON.stringify(scrapedPayload);
-        localStorage.setItem('scrapedStreamData', jsonString);
-
-        // 4. Clean, direct redirect to prepare.html
-        window.location.href = 'prepare.html';
-    } catch (e) {
-        console.error("Error storing stream payload:", e);
-        alert("Failed to prepare payload for routing transfer.");
-    }
-};
-
     </script>
 </body>
 </html>
