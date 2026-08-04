@@ -785,6 +785,39 @@ function toggleLangCheckbox(lang) {
     // Trigger the n8n webhook
     triggerLanguageWebhook(selectedLanguages);
 }
+        async function triggerLanguageWebhook(targetLanguages) {
+    // Replace this URL with your actual n8n Webhook URL
+   // const N8N_WEBHOOK_URL = 'https://your-n8n-instance.com/webhook/translate-stream';
+
+    displayTerminalNotice(`Updating target languages: [${targetLanguages.join(', ')}]...`, 'info');
+
+    try {
+        const response = await fetch(N8N_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'FILTER_BY_LANGUAGE',
+                languages: targetLanguages, // Sends array e.g., ["AMHARIC", "FRENCH"]
+                timestamp: new Date().toISOString()
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            displayTerminalNotice(`Stream updated for languages: ${targetLanguages.join(', ') || 'NONE'}`, 'success');
+            
+            // If n8n returns translated data directly, render it here:
+            // renderStreamData(data);
+        } else {
+            displayTerminalNotice('Failed to update language stream from n8n.', 'error');
+        }
+    } catch (error) {
+        console.error('Webhook Error:', error);
+        displayTerminalNotice('Webhook connection error.', 'error');
+    }
+}
 
         // Card Management Functions
         window.deleteCard = function(idx) {
