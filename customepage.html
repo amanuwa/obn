@@ -673,27 +673,38 @@
         };
 
         // Direct fetch caller to n8n Webhook Node
-        async function transmitPayloadToN8n(payload) {
-            try {
-                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
+    async function transmitPayloadToN8n(payload) {
+    // Set a 10-minute timeout controller (600,000 milliseconds)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 600000);
 
-                if (!response.ok) {
-                    throw new Error(`n8n Gateway responded with status: ${response.status}`);
-                }
+    try {
+        const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal // Attaches 10-minute timeout signal
+        });
 
-                return await response.json();
-            } catch (err) {
-                console.error("// GATEWAY WEBHOOK ERROR:", err);
-                throw err;
-            }
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`n8n Gateway responded with status: ${response.status}`);
         }
+
+        return await response.json();
+    } catch (err) {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+            throw new Error('Scraping request timed out after 10 minutes. Check n8n execution logs.');
+        }
+        console.error("// GATEWAY WEBHOOK ERROR:", err);
+        throw err;
+    }
+}
 
         // Global Action: "✨ Anything New" button trigger
         window.triggerAnythingNew = async function(sectorContext) {
