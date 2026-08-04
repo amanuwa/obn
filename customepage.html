@@ -496,28 +496,29 @@
             sendLanguageFilterToN8n(activeLangs);
         }
 
-        async function sendLanguageFilterToN8n(targetLanguages) {
-            window.setGlobalProcessingState(true, "language");
-            const statusLog = document.getElementById('statusConsole');
-            if (statusLog) statusLog.innerText = `// UPDATING LANGUAGE ENSEMBLES: [${targetLanguages.join(', ') || 'NONE'}]`;
+      async function sendLanguageTranslationToN8n(targetLanguages) {
+    window.setGlobalProcessingState(true, "language");
+    const statusLog = document.getElementById('statusConsole');
+    if (statusLog) statusLog.innerText = `// INITIATING TRANSLATION FOR: [${targetLanguages.join(', ') || 'NONE'}]`;
 
-            try {
-                const payload = {
-                    action: 'filter_language',
-                    languages: targetLanguages,
-                    timestamp: new Date().toISOString()
-                };
+    try {
+        const payload = {
+            action: 'translate_articles', // Clear action target for n8n Switch/IF nodes
+            targetLanguages: targetLanguages, // Selected languages (e.g. ["FRENCH", "AMHARIC"])
+            articlesToTranslate: window.cachedDataStream || [], // The active news cards on screen
+            timestamp: new Date().toISOString()
+        };
 
-                const webhookResponse = await transmitPayloadToN8n(payload);
-                window.renderN8nResults(webhookResponse, "LANGUAGE FILTER");
-                if (statusLog) statusLog.innerText = `// SUCCESS: LANGUAGE ENSEMBLES APPLIED`;
-            } catch (err) {
-                console.error("// LANGUAGE FILTER ERROR:", err);
-                if (statusLog) statusLog.innerText = `// ERROR: FAILED TO APPLY LANGUAGE FILTER`;
-            } finally {
-                window.setGlobalProcessingState(false);
-            }
-        }
+        const webhookResponse = await transmitPayloadToN8n(payload);
+        window.renderN8nResults(webhookResponse, "TRANSLATED FEED");
+        if (statusLog) statusLog.innerText = `// SUCCESS: ARTICLES TRANSLATED`;
+    } catch (err) {
+        console.error("// TRANSLATION ERROR:", err);
+        if (statusLog) statusLog.innerText = `// ERROR: FAILED TO TRANSLATE ARTICLES`;
+    } finally {
+        window.setGlobalProcessingState(false);
+    }
+}
 
         // Attach event listeners after DOM load
         document.addEventListener('DOMContentLoaded', () => {
