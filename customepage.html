@@ -732,23 +732,59 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // Toggle Single Language Checkbox
-        window.toggleLangCheckbox = function(langKey) {
-            const btn = document.getElementById(`lang-${langKey}`);
-            activeLanguages[langKey] = !activeLanguages[langKey];
-            if (btn) btn.classList.toggle('active', activeLanguages[langKey]);
-        };
+       // Array of all available languages
+const ALL_LANGUAGES = ['OROMIFFA', 'AMHARIC', 'ENGLISH', 'ARABIC', 'FRENCH'];
+
+function toggleLangCheckbox(lang) {
+    const btn = document.getElementById(`lang-${lang}`);
+    if (!btn) return;
+
+    // Toggle active state for the clicked button
+    btn.classList.toggle('active');
+
+    // Collect all currently active languages
+    const selectedLanguages = ALL_LANGUAGES.filter(l => {
+        const el = document.getElementById(`lang-${l}`);
+        return el && el.classList.contains('active');
+    });
+
+    // Update "Select All" button state UI (optional indicator)
+    const selectAllBtn = document.getElementById('btn-select-all');
+    if (selectAllBtn) {
+        if (selectedLanguages.length === ALL_LANGUAGES.length) {
+            selectAllBtn.classList.add('active');
+        } else {
+            selectAllBtn.classList.remove('active');
+        }
+    }
+
+    // Trigger the n8n webhook with selected languages
+    triggerLanguageWebhook(selectedLanguages);
+}
 
         // Toggle Select All Ensembles
-        window.toggleSelectAllEnsembles = function() {
-            const keys = Object.keys(activeLanguages);
-            const allActive = keys.every(k => activeLanguages[k]);
-            
-            keys.forEach(langKey => {
-                activeLanguages[langKey] = !allActive;
-                const btn = document.getElementById(`lang-${langKey}`);
-                if (btn) btn.classList.toggle('active', !allActive);
-            });
-        };
+       function toggleSelectAllEnsembles() {
+    const selectAllBtn = document.getElementById('btn-select-all');
+    const isCurrentlyActive = selectAllBtn.classList.contains('active');
+    const shouldActivate = !isCurrentlyActive;
+
+    // Toggle button state
+    selectAllBtn.classList.toggle('active', shouldActivate);
+
+    // Toggle all language buttons
+    ALL_LANGUAGES.forEach(lang => {
+        const btn = document.getElementById(`lang-${lang}`);
+        if (btn) {
+            btn.classList.toggle('active', shouldActivate);
+        }
+    });
+
+    // Collect updated active languages
+    const selectedLanguages = shouldActivate ? [...ALL_LANGUAGES] : [];
+
+    // Trigger the n8n webhook
+    triggerLanguageWebhook(selectedLanguages);
+}
 
         // Card Management Functions
         window.deleteCard = function(idx) {
