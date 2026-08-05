@@ -496,22 +496,23 @@
             sendLanguageTranslationToN8n(activeLangs);
         }
 
-      async function sendLanguageTranslationToN8n(targetLanguages) {
+   async function sendLanguageTranslationToN8n(targetLanguages) {
     window.setGlobalProcessingState(true, "language");
     const statusLog = document.getElementById('statusConsole');
-    if (statusLog) statusLog.innerText = `// INITIATING TRANSLATION FOR: [${targetLanguages.join(', ') || 'NONE'}]`;
+    if (statusLog) statusLog.innerText = `// TRANSLATING [${currentActiveSector}] FEED FOR: [${targetLanguages.join(', ') || 'NONE'}]`;
 
     try {
         const payload = {
-            action: 'translate_articles', // Clear action target for n8n Switch/IF nodes
-            targetLanguages: targetLanguages, // Selected languages (e.g. ["FRENCH", "AMHARIC"])
-            articlesToTranslate: window.cachedDataStream || [], // The active news cards on screen
+            action: 'translate_articles',
+            activePanel: currentActiveSector, // Sends panel context e.g., "Trump Watch" or "Strait of Hormuz"
+            targetLanguages: targetLanguages,   // e.g. ["ARABIC"]
+            articlesToTranslate: window.cachedDataStream || [], // The active news cards
             timestamp: new Date().toISOString()
         };
 
         const webhookResponse = await transmitPayloadToN8n(payload);
-        window.renderN8nResults(webhookResponse, "TRANSLATED FEED");
-        if (statusLog) statusLog.innerText = `// SUCCESS: ARTICLES TRANSLATED`;
+        window.renderN8nResults(webhookResponse, currentActiveSector);
+        if (statusLog) statusLog.innerText = `// SUCCESS: TRANSLATED [${currentActiveSector}] ARTICLES`;
     } catch (err) {
         console.error("// TRANSLATION ERROR:", err);
         if (statusLog) statusLog.innerText = `// ERROR: FAILED TO TRANSLATE ARTICLES`;
@@ -708,32 +709,35 @@
 }
 
         // Global Action: "✨ Anything New" button trigger
-        window.triggerAnythingNew = async function(sectorContext) {
-            window.setGlobalProcessingState(true);
-            const statusLog = document.getElementById('statusConsole');
-            const outputPanel = document.getElementById('unifiedResultsConsole');
-            
-            if (statusLog) statusLog.innerText = `// TRIGGERING N8N WEBHOOK FOR ANYTHING NEW: [${sectorContext.toUpperCase()}]`;
-            if (outputPanel) outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Awaiting response from n8n webhook node...</div>`;
+ window.triggerAnythingNew = async function(sectorContext) {
+    // Save which panel triggered this data fetch
+    currentActiveSector = sectorContext; 
 
-            const payload = {
-                action: 'anything_new',
-                targetMatrix: sectorContext,
-                languages: getSelectedLanguages(),
-                timestamp: new Date().toISOString()
-            };
+    window.setGlobalProcessingState(true);
+    const statusLog = document.getElementById('statusConsole');
+    const outputPanel = document.getElementById('unifiedResultsConsole');
+    
+    if (statusLog) statusLog.innerText = `// TRIGGERING N8N WEBHOOK FOR ANYTHING NEW: [${sectorContext.toUpperCase()}]`;
+    if (outputPanel) outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Awaiting response from n8n webhook node...</div>`;
 
-            try {
-                const webhookResponse = await transmitPayloadToN8n(payload);
-                window.renderN8nResults(webhookResponse, sectorContext);
-                if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FROM N8N FOR [${sectorContext.toUpperCase()}]`;
-            } catch (err) {
-                if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
-                if (statusLog) statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
-            } finally {
-                window.setGlobalProcessingState(false);
-            }
-        };
+    const payload = {
+        action: 'anything_new',
+        targetMatrix: sectorContext,
+        languages: getSelectedLanguages(),
+        timestamp: new Date().toISOString()
+    };
+
+    try {
+        const webhookResponse = await transmitPayloadToN8n(payload);
+        window.renderN8nResults(webhookResponse, sectorContext);
+        if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FROM N8N FOR [${sectorContext.toUpperCase()}]`;
+    } catch (err) {
+        if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
+        if (statusLog) statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
+    } finally {
+        window.setGlobalProcessingState(false);
+    }
+};
 
         // Retrieve and render logged-in user details
         window.initUserHeader = function() {
