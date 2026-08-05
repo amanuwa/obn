@@ -350,9 +350,10 @@
                         <button id="btn-restore-log" onclick="restoreLastDeleted()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md cursor-pointer transition-all tracking-wide uppercase hidden">
                             ⟲ Restore Deleted
                         </button>
-                        <button id="btn-download-logs" onclick="downloadAsPdf()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs px-4 py-1.5 rounded-md shadow-md cursor-pointer transition-all tracking-wide uppercase">
-                            Send to Preparation Studio
-                        </button>
+                       <!-- Inside your story card or manager modal -->
+<button onclick="sendToPreparation(selectedStoryId)" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-mono text-[10px] font-bold px-3 py-1.5 rounded cursor-pointer uppercase transition-all">
+    ➔ Send to Preparation Studio
+</button>
                     </div>
                 </div>
             </div>
