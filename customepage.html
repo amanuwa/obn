@@ -720,38 +720,63 @@ function sendToPreparation(storyId) {
     };
 
     // Direct fetch caller to n8n Webhook Node
-    async function transmitPayloadToN8n(payload) {
-        // Set a 10-minute timeout controller (600,000 milliseconds)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 600000);
+async function transmitPayloadToN8n(payload) {
+    // 1. Trigger the background n8n workflow
+    const startResponse = await fetch(N8N_GATEWAY_WEBHOOK, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!startResponse.ok) {
+        throw new Error(`n8n Gateway failed to start: ${startResponse.status}`);
+    }
+
+    const startData = await startResponse.json();
+    
+    // If n8n returns results immediately, return them
+    if (startData.news || startData.data) {
+        return startData;
+    }
+
+    // Otherwise, grab the job ID and start polling
+    const jobId = startData.jobId;
+    if (!jobId) {
+        return startData; // Fallback if no async handling configured in n8n
+    }
+
+    // 2. Poll n8n every 5 seconds for up to 10 minutes (120 attempts * 5s = 600s)
+    const maxAttempts = 120;
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+        attempts++;
 
         try {
-            const response = await fetch(N8N_GATEWAY_WEBHOOK, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload),
-                signal: controller.signal // Attaches 10-minute timeout signal
+            const checkResponse = await fetch(`${N8N_GATEWAY_WEBHOOK}?jobId=${jobId}`, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
             });
 
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                throw new Error(`n8n Gateway responded with status: ${response.status}`);
+            if (checkResponse.ok) {
+                const jobResult = await checkResponse.json();
+                
+                // If status is completed, return the data to render
+                if (jobResult.status === 'completed') {
+                    return jobResult.data;
+                }
             }
-
-            return await response.json();
-        } catch (err) {
-            clearTimeout(timeoutId);
-            if (err.name === 'AbortError') {
-                throw new Error('Scraping request timed out after 10 minutes. Check n8n execution logs.');
-            }
-            console.error("// GATEWAY WEBHOOK ERROR:", err);
-            throw err;
+        } catch (e) {
+            console.warn("// POLLING RETRY ATTEMPT:", attempts);
         }
     }
+
+    throw new Error('Scraping task timed out after 10 minutes of polling.');
+}
 
     // Global Action: "GO" button trigger
     window.triggerUnifiedSearch = async function(sectorContext, inputId) {
