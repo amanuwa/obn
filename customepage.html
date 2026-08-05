@@ -382,7 +382,50 @@
     // Matrix character particles definition
     const tokenChars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ01';
     let particles = [];
+function sendToPreparation(storyId) {
+    // 1. Locate the story card from your local dataset
+    const story = stories.find(s => s.id === storyId);
+    if (!story) return;
 
+    // 2. Format payload to match prepare.html's expected schema
+    const payload = [{
+        sourceName: story.domain || "MANAGEMENT STREAM",
+        title: story.title,
+        news: story.text || story.content || "No draft content provided.",
+        imageUrl: story.imageUrl || null,
+        url: story.url || null,
+        journalist: story.journalist,
+        editor: story.editor,
+        priority: story.priority
+    }];
+
+    try {
+        // 3. Save payload to 'scrapedStreamData' as expected by prepare.html
+        localStorage.setItem('scrapedStreamData', JSON.stringify(payload));
+
+        // 4. Also post message via BroadcastChannel if prepare.html is open in another tab
+        try {
+            const channel = new BroadcastChannel('preparation_studio_channel');
+            channel.postMessage(payload);
+        } catch (bcError) {
+            console.warn("BroadcastChannel not active or supported.");
+        }
+
+        // 5. Navigate to prepare.html
+        window.location.href = 'prepare.html';
+
+    } catch (e) {
+        // Safe handling for localStorage 5-10MB limits
+        if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
+            console.warn("localStorage quota hit. Clearing old items and retrying...");
+            localStorage.removeItem('scrapedStreamData');
+            localStorage.setItem('scrapedStreamData', JSON.stringify(payload));
+            window.location.href = 'prepare.html';
+        } else {
+            alert("Error sending data to preparation page: " + e.message);
+        }
+    }
+}
     function initParticles(canvas) {
         particles = [];
         const count = Math.floor((canvas.width * canvas.height) / 10000);
