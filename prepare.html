@@ -527,26 +527,37 @@ function renderLeftStreamPanel(rawData) {
 }
 
         // TRANSFER CLICKED LEFT CARD DETAILS STRAIGHT INTO RIGHT WHITE CANVAS DRAFT
-        function transferToEditor(index) {
-            if (!window.activeStreamItems || !window.activeStreamItems[index]) return;
+     // TRANSFER CLICKED LEFT CARD DETAILS STRAIGHT INTO RIGHT WHITE CANVAS DRAFT
+function transferToEditor(index) {
+    if (!window.activeStreamItems || !window.activeStreamItems[index]) return;
 
-            const row = window.activeStreamItems[index];
-            const item = row.json || row;
+    const row = window.activeStreamItems[index];
+    const item = row.json || row;
 
-            const title = item.title || item.newsTitle || 'Scraped Segment';
-            const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+    const title = item.title || item.newsTitle || 'Scraped Segment';
+    const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+    
+    // Extract Image URL
+    const imageUrl = item.imageUrl || item.image || item.media || null;
 
-            const editorDoc = document.getElementById('editorialCanvas');
-            if (editorDoc) {
-                const paragraphNode = document.createElement('div');
-                paragraphNode.className = 'mt-5 pt-3 border-t border-slate-200';
-                paragraphNode.innerHTML = `
-                    <h3 class="text-lg font-bold text-slate-900 mb-1">${title}</h3>
-                    <p class="text-slate-700 text-sm leading-relaxed">${content}</p>
-                `;
-                editorDoc.appendChild(paragraphNode);
-            }
-        }
+    const editorDoc = document.getElementById('editorialCanvas');
+    if (editorDoc) {
+        const paragraphNode = document.createElement('div');
+        paragraphNode.className = 'mt-5 pt-3 border-t border-slate-200';
+        
+        paragraphNode.innerHTML = `
+            <h3 class="text-lg font-bold text-slate-900 mb-2">${title}</h3>
+            ${imageUrl ? `
+                <div class="my-3 max-h-80 overflow-hidden rounded-md border border-slate-300 bg-slate-100">
+                    <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'" />
+                </div>
+            ` : ''}
+            <p class="text-slate-700 text-sm leading-relaxed">${content}</p>
+        `;
+
+        editorDoc.appendChild(paragraphNode);
+    }
+}
     </script>
 </body>
 </html>
