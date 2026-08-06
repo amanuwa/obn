@@ -394,7 +394,7 @@ window.sendToPreparation = function() {
         return;
     }
 
-    // 2. Format payload to ensure clean schema matching prepare.html
+    // 2. Format payload to match prepare.html schema
     const payload = activeData.map((item, idx) => {
         const row = item.json || item;
         return {
@@ -404,7 +404,7 @@ window.sendToPreparation = function() {
             news: row.news || row.paragraph || row.description || row.content || "",
             imageUrl: row.imageUrl || row.image || row.media || null,
             url: row.url || row.link || null,
-            sector: currentActiveSector || "STREAM",
+            sector: (typeof currentActiveSector !== 'undefined' ? currentActiveSector : 'STREAM'),
             timestamp: new Date().toISOString()
         };
     });
@@ -412,9 +412,11 @@ window.sendToPreparation = function() {
     try {
         // 3. Save payload under 'scrapedStreamData' for prepare.html
         localStorage.setItem('scrapedStreamData', JSON.stringify(payload));
-        localStorage.setItem('scrapedSectorContext', currentActiveSector || 'STREAM');
+        if (typeof currentActiveSector !== 'undefined') {
+            localStorage.setItem('scrapedSectorContext', currentActiveSector);
+        }
 
-        // 4. Send via BroadcastChannel if prepare.html is active in another tab
+        // 4. Send via BroadcastChannel if prepare.html is open in another tab
         try {
             const channel = new BroadcastChannel('preparation_studio_channel');
             channel.postMessage(payload);
@@ -428,7 +430,6 @@ window.sendToPreparation = function() {
         window.location.href = 'prepare.html';
 
     } catch (e) {
-        // Handle localStorage limits safely
         if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
             console.warn("// localStorage quota exceeded. Clearing old cache and retrying...");
             localStorage.removeItem('scrapedStreamData');
