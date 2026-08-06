@@ -590,26 +590,49 @@ function transferToEditor(index) {
 
     const title = item.title || item.newsTitle || 'Scraped Segment';
     const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
-    
-    // Extract Image URL
     const imageUrl = item.imageUrl || item.image || item.media || null;
 
-    const editorDoc = document.getElementById('editorialCanvas');
-    if (editorDoc) {
-        const paragraphNode = document.createElement('div');
-        paragraphNode.className = 'mt-5 pt-3 border-t border-slate-200';
-        
-        paragraphNode.innerHTML = `
-            <h3 class="text-lg font-bold text-slate-900 mb-2">${title}</h3>
-            ${imageUrl ? `
-                <div class="my-3 max-h-80 overflow-hidden rounded-md border border-slate-300 bg-slate-100">
-                    <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'" />
-                </div>
-            ` : ''}
-            <p class="text-slate-700 text-sm leading-relaxed">${content}</p>
-        `;
+    const canvas = document.getElementById('editorialCanvas');
+    if (!canvas) return;
 
-        editorDoc.appendChild(paragraphNode);
+    // 1. Get the current active (bottom-most) page, or make one if missing
+    let pages = canvas.querySelectorAll('.a4-page');
+    let targetPage = pages[pages.length - 1];
+    if (!targetPage) {
+        targetPage = createNewPage();
+    }
+
+    let contentArea = targetPage.querySelector('.page-content') || targetPage;
+
+    // 2. Build the card HTML block containing title, image, and text
+    const segmentNode = document.createElement('div');
+    segmentNode.className = 'mt-5 pt-3 border-t border-slate-200';
+    segmentNode.innerHTML = `
+        <h3 class="text-lg font-bold text-slate-900 mb-2">${title}</h3>
+        ${imageUrl ? `
+            <div class="my-3 max-h-80 overflow-hidden rounded-md border border-slate-300 bg-slate-100">
+                <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'" />
+            </div>
+        ` : ''}
+        <p class="text-slate-700 text-sm leading-relaxed">${content}</p>
+    `;
+
+    contentArea.appendChild(segmentNode);
+
+    // 3. AUTO-PAGINATION CHECK:
+    // Standard A4 pixel height limit is ~1050px.
+    // If appending this segment makes the page too long, spill it into a NEW page!
+    const maxPageHeight = 1050; 
+    if (targetPage.scrollHeight > maxPageHeight) {
+        // Remove segment from full page and put it into a fresh A4 page
+        const newPage = createNewPage();
+        const newContentArea = newPage.querySelector('.page-content') || newPage;
+        newContentArea.appendChild(segmentNode);
+        
+        // Smooth scroll to the newly created page
+        newPage.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        segmentNode.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
     </script>
