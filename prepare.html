@@ -480,7 +480,48 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Error reading stored payload in prepare.html:", err);
     }
 });
+// Function that dynamically builds a brand new white A4 page container
+function createNewPage() {
+    const canvas = document.getElementById('editorialCanvas');
+    if (!canvas) return null;
 
+    const pageCount = canvas.querySelectorAll('.a4-page').length + 1;
+    
+    // Create page element
+    const pageNode = document.createElement('div');
+    pageNode.className = 'a4-page text-slate-900';
+    pageNode.id = `page-${Date.now()}`;
+
+    // Create inner wrapper for card items
+    const contentArea = document.createElement('div');
+    contentArea.className = 'page-content space-y-4';
+    pageNode.appendChild(contentArea);
+
+    // Add "✕ Delete Page" button to Page 2, Page 3, etc.
+    if (pageCount > 1) {
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-page-btn';
+        delBtn.innerText = '✕ Delete Page';
+        delBtn.onclick = function (e) {
+            e.stopPropagation();
+            if (confirm('Are you sure you want to delete this page and all its contents?')) {
+                pageNode.remove();
+            }
+        };
+        pageNode.appendChild(delBtn);
+    }
+
+    canvas.appendChild(pageNode);
+    return pageNode;
+}
+
+// Automatically create Page 1 when prepare.html opens
+document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('editorialCanvas');
+    if (canvas && canvas.querySelectorAll('.a4-page').length === 0) {
+        createNewPage();
+    }
+});
 // 2. Window Message Listener
 window.addEventListener('message', (event) => {
     if (event.data) {
