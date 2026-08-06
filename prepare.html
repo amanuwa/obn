@@ -638,7 +638,7 @@ function transferToEditor(index) {
     const canvas = document.getElementById('editorialCanvas');
     if (!canvas) return;
 
-    // 1. Get the current active (bottom-most) page, or make one if missing
+    // 1. Get the current last page, or create Page 1 if none exists
     let pages = canvas.querySelectorAll('.a4-page');
     let targetPage = pages[pages.length - 1];
     if (!targetPage) {
@@ -647,7 +647,7 @@ function transferToEditor(index) {
 
     let contentArea = targetPage.querySelector('.page-content') || targetPage;
 
-    // 2. Build the card HTML block containing title, image, and text
+    // 2. Create the segment node
     const segmentNode = document.createElement('div');
     segmentNode.className = 'mt-5 pt-3 border-t border-slate-200';
     segmentNode.innerHTML = `
@@ -660,19 +660,26 @@ function transferToEditor(index) {
         <p class="text-slate-700 text-sm leading-relaxed">${content}</p>
     `;
 
+    // Temporarily append to measure height
     contentArea.appendChild(segmentNode);
 
-    // 3. AUTO-PAGINATION CHECK:
-    // Standard A4 pixel height limit is ~1050px.
-    // If appending this segment makes the page too long, spill it into a NEW page!
-    const maxPageHeight = 1050; 
-    if (targetPage.scrollHeight > maxPageHeight) {
-        // Remove segment from full page and put it into a fresh A4 page
+    // 3. AUTO-PAGE CREATION CHECK:
+    // A standard A4 sheet in pixels is roughly 1120px tall (297mm).
+    // Subtracting padding leaves ~950px - 1000px of usable content height.
+    const maxUsableHeight = 980; 
+
+    if (contentArea.scrollHeight > maxUsableHeight) {
+        // Remove the segment that caused the overflow from Page 1
+        segmentNode.remove();
+
+        // Build a fresh NEW Page (Page 2, 3, etc.)
         const newPage = createNewPage();
         const newContentArea = newPage.querySelector('.page-content') || newPage;
+
+        // Append the segment to the newly built page
         newContentArea.appendChild(segmentNode);
-        
-        // Smooth scroll to the newly created page
+
+        // Scroll to the new page automatically
         newPage.scrollIntoView({ behavior: 'smooth' });
     } else {
         segmentNode.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
