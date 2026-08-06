@@ -6,81 +6,135 @@
     <title>Journalist Preparation Studio</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        body { 
-            margin: 0; 
-            color: #f1f5f9; 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            background-color: #030712; 
-            overflow: hidden; 
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; 
-        }
-        
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+   <style>
+    body { 
+        margin: 0; 
+        color: #f1f5f9; 
+        height: 100vh; 
+        display: flex; 
+        flex-direction: column; 
+        background-color: #030712; 
+        overflow: hidden; 
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; 
+    }
+    
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
 
-        /* Rich Text Editor Paper */
-        .editor-paper {
-            background-color: #ffffff;
-            color: #0f172a;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            min-height: 850px;
-        }
+    /* Rich Text Editor Paper */
+    .editor-paper {
+        background-color: #ffffff;
+        color: #0f172a;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        min-height: 850px;
+    }
 
-        /* Stream Cards */
-        .stream-card {
-            background: #090d16;
-            border: 1px solid #1e293b;
-            border-radius: 6px;
-            padding: 12px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        .stream-card:hover {
-            border-color: #06b6d4;
-            background: #0f172a;
-        }
+    /* Stream Cards */
+    .stream-card {
+        background: #090d16;
+        border: 1px solid #1e293b;
+        border-radius: 6px;
+        padding: 12px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .stream-card:hover {
+        border-color: #06b6d4;
+        background: #0f172a;
+    }
 
-        /* Editor Highlight Styles in Canvas */
-        .hl-red {
-            background-color: #fecaca;
-            color: #991b1b;
-            border-bottom: 2px solid #ef4444;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
+    /* Editor Highlight Styles in Canvas */
+    .hl-red {
+        background-color: #fecaca;
+        color: #991b1b;
+        border-bottom: 2px solid #ef4444;
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
 
-        .hl-yellow {
-            background-color: #fef08a;
-            color: #854d0e;
-            border-bottom: 2px solid #eab308;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
+    .hl-yellow {
+        background-color: #fef08a;
+        color: #854d0e;
+        border-bottom: 2px solid #eab308;
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
 
-        .directive-card {
-            background: #090d16;
-            border: 1px solid #1e293b;
-            border-radius: 6px;
-            padding: 10px;
-            font-size: 11px;
-        }
+    .directive-card {
+        background: #090d16;
+        border: 1px solid #1e293b;
+        border-radius: 6px;
+        padding: 10px;
+        font-size: 11px;
+    }
 
-        .personnel-select {
-            background-color: #090d16;
-            border: 1px solid #06b6d4;
-            color: #38bdf8;
-            font-family: monospace;
-            font-size: 11px;
-            border-radius: 6px;
-            padding: 6px 10px;
-            outline: none;
-        }
-    </style>
+    .personnel-select {
+        background-color: #090d16;
+        border: 1px solid #06b6d4;
+        color: #38bdf8;
+        font-family: monospace;
+        font-size: 11px;
+        border-radius: 6px;
+        padding: 6px 10px;
+        outline: none;
+    }
+
+    /* ========================================================= */
+    /* NEW: MULTI-PAGE A4 & DELETE BUTTON STYLES                  */
+    /* ========================================================= */
+
+    /* Document container holding all pages stacked vertically */
+    #editorialCanvas {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        padding: 24px 0;
+        overflow-y: auto;
+    }
+
+    /* Individual A4 Page styling */
+    .a4-page {
+        position: relative;
+        width: 210mm;
+        min-height: 297mm;
+        background: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        padding: 20mm;
+        box-sizing: border-box;
+        color: #0f172a;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Delete button for added pages */
+    .delete-page-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-family: monospace;
+        border-radius: 4px;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+
+    .delete-page-btn:hover {
+        opacity: 1;
+    }
+
+    /* Hide delete button when printing to PDF */
+    @media print {
+        .delete-page-btn { display: none; }
+        .a4-page { box-shadow: none; margin: 0; page-break-after: always; }
+    }
+</style>
 </head>
 <body class="bg-[#030712]">
 
