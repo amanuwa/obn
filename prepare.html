@@ -439,21 +439,53 @@
         }
 
         // MAIN BUTTON DISPATCH ACTION
-        function dispatchAction() {
-            const select = document.getElementById('editorialPersonnelSelect');
-            const personnel = select.options[select.selectedIndex]?.text;
+   async function dispatchAction() {
+  const selectElement = document.getElementById('editorialPersonnelSelect');
+  const targetRole = selectElement.value;
 
-            if (!select.value) {
-                alert("Please select an editorial personnel target.");
-                return;
-            }
+  if (!targetRole) {
+    alert('Please select an editor (Personnel) from the dropdown first.');
+    return;
+  }
 
-            if (currentMode === 'REVISION') {
-                alert(`Revised draft successfully sent back to ${personnel}.`);
-            } else {
-                alert(`Initial draft dispatched to ${personnel}.`);
-            }
+  // Get current authenticated user
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    alert('Please log in before submitting.');
+    return;
+  }
+
+  // Extract content from your editable canvas (line 291 in your HTML)
+  const canvasElement = document.getElementById('editorialCanvas');
+  const pagesData = [canvasElement.innerHTML]; // Saves inner HTML into your JSONB pages array
+
+  const actionBtn = document.getElementById('mainActionButton');
+  actionBtn.disabled = true;
+
+  try {
+    const { data, error } = await supabase
+      .from('editorial_submissions')
+      .insert([
+        {
+          sender_id: user.id,
+          sender_name: user.user_metadata?.full_name || user.email.split('@')[0],
+          sender_email: user.email,
+          target_role: targetRole, // Sends 'editor_chief', 'editor_politics', or 'editor_finance'
+          pages: pagesData,
+          status: 'unread'
         }
+      ]);
+
+    if (error) throw error;
+
+    alert('Submission successfully sent!');
+  } catch (err) {
+    console.error('Submission Error:', err);
+    alert('Error sending draft: ' + err.message);
+  } finally {
+    actionBtn.disabled = false;
+  }
+}
 
         // =========================================================================
         // REAL-TIME DATA INGESTION ENGINE (WINDOW POSTMESSAGE + BROADCAST CHANNEL ONLY)
