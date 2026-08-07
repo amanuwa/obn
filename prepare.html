@@ -657,7 +657,7 @@
     const canvas = document.getElementById('editorialCanvas');
     if (!canvas) return;
 
-    // 1. Get current last page, or create Page 1 if canvas is empty
+    // 1. Get the current last page, or create Page 1 if none exists
     let pages = canvas.querySelectorAll('.a4-page');
     let targetPage = pages[pages.length - 1];
     if (!targetPage) {
@@ -666,49 +666,46 @@
 
     let contentArea = targetPage.querySelector('.page-content') || targetPage;
 
-    // 2. Build segment node
+    // 2. Build the segment node
     const segmentNode = document.createElement('div');
     segmentNode.className = 'mt-4 pt-3 border-t border-slate-200';
     segmentNode.innerHTML = `
         <h3 class="text-base font-bold text-slate-900 mb-2">${title}</h3>
         ${imageUrl ? `
-            <div class="my-2 max-h-72 overflow-hidden rounded-md border border-slate-300 bg-slate-100">
-                <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover max-h-64" onerror="this.parentElement.style.display='none'" />
+            <div class="my-2 max-h-64 overflow-hidden rounded-md border border-slate-300 bg-slate-100">
+                <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover max-h-56" onerror="this.parentElement.style.display='none'" />
             </div>
         ` : ''}
         <p class="text-slate-700 text-xs leading-relaxed">${content}</p>
     `;
 
-    // Append temporarily to the active page to measure height
+    // 3. Append to the current active page
     contentArea.appendChild(segmentNode);
 
-    // 3. WAIT FOR IMAGE TO LOAD completely so height is measured accurately
+    // 4. Wait for the image to load completely so measurements are exact
     const imgElement = segmentNode.querySelector('img');
     if (imgElement && !imgElement.complete) {
         await new Promise((resolve) => {
             imgElement.onload = resolve;
-            imgElement.onerror = resolve; // Continue even if image URL is broken
+            imgElement.onerror = resolve; 
         });
     }
 
-    // 4. MAX A4 HEIGHT CHECK:
-    // A standard A4 page is 1122px tall. Subtracting top/bottom padding (80px total)
-    // gives ~1040px max printable height.
-    const maxAllowedHeight = 1000; 
+    // 5. Printable Height Limit Check:
+    // Standard A4 inner content area excluding top/bottom padding is ~950px.
+    const maxPrintableHeight = 950; 
 
-    // Check if the newly added card pushes the content area over the page limit
-    if (targetPage.offsetHeight > maxAllowedHeight || contentArea.scrollHeight > maxAllowedHeight) {
-        // Remove the overflowing card from Page 1
+    // ONLY create a new page if the inner content area actually exceeds printable height
+    if (contentArea.scrollHeight > maxPrintableHeight) {
+        // Remove the item from Page 1 because it didn't fit
         segmentNode.remove();
 
-        // Create a BRAND NEW Page (Page 2, Page 3, etc.)
+        // Create Page 2 / Page 3 only NOW because the page is full
         const newPage = window.createNewPage();
         const newContentArea = newPage.querySelector('.page-content') || newPage;
 
-        // Append the card into the new page
+        // Append the item into the new page
         newContentArea.appendChild(segmentNode);
-
-        // Smooth scroll focus down to the new page
         newPage.scrollIntoView({ behavior: 'smooth' });
     } else {
         segmentNode.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
