@@ -473,90 +473,100 @@
             }
         }
 
-        async function loginJournalist() {
-            const nameInput = document.getElementById('loginName').value.trim();
-            const passwordInput = document.getElementById('loginPassword').value;
-            const signInBtn = document.getElementById('signInBtn');
+   async function loginJournalist() {
+    const nameInput = document.getElementById('loginName').value.trim();
+    const passwordInput = document.getElementById('loginPassword').value;
+    const signInBtn = document.getElementById('signInBtn');
 
-            if (!nameInput || !passwordInput) {
-                displayTerminalNotice("Authentication Error: Credentials missing.", "error");
-                return;
-            }
+    if (!nameInput || !passwordInput) {
+        displayTerminalNotice("Authentication Error: Credentials missing.", "error");
+        return;
+    }
 
-            signInBtn.disabled = true;
-            signInBtn.innerText = "Authenticating...";
+    signInBtn.disabled = true;
+    signInBtn.innerText = "Authenticating...";
 
-            try {
-                const { data: records, error } = await supabaseClient
-                    .from('journalists')
-                    .select('*')
-                    .eq('Journalist name', nameInput);
+    try {
+        const { data: records, error } = await supabaseClient
+            .from('journalists')
+            .select('*')
+            .eq('Journalist name', nameInput);
 
-                if (error) throw error;
-                if (!records || records.length === 0 || records[0].Password !== passwordInput) {
-                    displayTerminalNotice("Authentication Error: Invalid identity passkey.", "error");
-                    signInBtn.disabled = false;
-                    signInBtn.innerText = "Sign In";
-                    return;
-                }
+        if (error) throw error;
+        if (!records || records.length === 0 || records[0].Password !== passwordInput) {
+            displayTerminalNotice("Authentication Error: Invalid identity passkey.", "error");
+            signInBtn.disabled = false;
+            signInBtn.innerText = "Sign In";
+            return;
+        }
 
-                const userRecord = records[0];
-                const rawSection = userRecord["journalism Section"] || "";
-                const rawRole = userRecord["Role"] || "";
+        const userRecord = records[0];
+        const rawSection = String(userRecord["journalism Section"] || "").trim();
+        const rawRole = String(userRecord["Role"] || "").trim();
+        
+        const sectionLower = rawSection.toLowerCase();
+        const roleLower = rawRole.toLowerCase();
+        const combined = `${sectionLower} ${roleLower}`;
 
-                // Trim whitespace and lower-case for mapping key comparison
-                const assignedSection = rawSection.trim();
-                const assignedRole = rawRole.trim();
+        // Save session details for downstream pages
+        localStorage.setItem('userSession', JSON.stringify({
+            fullName: userRecord["Journalist name"],
+            journalismSection: rawSection,
+            role: rawRole || rawSection
+        }));
 
-                // Save session details for downstream pages
-                localStorage.setItem('userSession', JSON.stringify({
-                    fullName: userRecord["Journalist name"],
-                    journalismSection: assignedSection,
-                    role: assignedRole || assignedSection
-                }));
+        // Exact mapping aligned with your GitHub repository file names
+        const ROUTE_MAP = {
+            "editor": "Editorpage.html",
+            "editorpage": "Editorpage.html",
+            "management": "managerpipeline.html",
+            "production team": "productionteam.html",
+            "world politics and governance": "World Politics and Governance.html",
+            "sports & analytics": "sport.html",
+            "sport and analytics": "sport.html",
+            "sport": "sport.html",
+            "sports": "sport.html",
+            "business and finance": "business and finance.html"
+        };
 
-                // Dynamic Routing Configuration Map
-                const ROUTE_MAP = {
-                    "editor": "Editor.html",
-                    "management": "managerpipeline.html",
-                    "production team": "productionteam.html",
-                    "world politics and governance": "World Politics and Governance.html",
-                    "sports & analytics": "sport.html",
-                    "sport and analytics": "sport.html",
-                    "sport & analytics": "sport.html",
-                    "sport": "sport.html",
-                    "sports": "sport.html",
-                    "business and finance": "business and finance.html"
-                };
+        // 1. Direct key match
+        let targetPage = ROUTE_MAP[sectionLower] || ROUTE_MAP[roleLower];
 
-                // Normalize strings for lookup
-                const sectionKey = assignedSection.toLowerCase();
-                const roleKey = assignedRole.toLowerCase();
-
-                // Determine destination URL
-                const targetPage = ROUTE_MAP[sectionKey] || ROUTE_MAP[roleKey] || 'customepage.html';
-
-                const configMatch = DESK_CONFIGS ? DESK_CONFIGS[assignedSection] : null;
-                if (configMatch) {
-                    displayTerminalNotice(`Access Granted! Routing to: ${configMatch.title}`, "success");
-                } else {
-                    displayTerminalNotice(`Access Granted! Routing to ${targetPage}...`, "success");
-                }
-
-                document.getElementById('loginPassword').value = ""; 
-
-                setTimeout(() => {
-                    signInBtn.disabled = false;
-                    signInBtn.innerText = "Sign In";
-                    window.location.href = targetPage;
-                }, 1200);
-
-            } catch (error) {
-                displayTerminalNotice("Security Subsystem Error: " + error.message, "error");
-                signInBtn.disabled = false;
-                signInBtn.innerText = "Sign In";
+        // 2. Keyword fallback for variations or legacy entries
+        if (!targetPage) {
+            if (combined.includes("editor")) {
+                targetPage = "Editorpage.html";
+            } else if (combined.includes("manage")) {
+                targetPage = "managerpipeline.html";
+            } else if (combined.includes("production")) {
+                targetPage = "productionteam.html";
+            } else if (combined.includes("poltic") || combined.includes("governance")) {
+                targetPage = "World Politics and Governance.html";
+            } else if (combined.includes("sport")) {
+                targetPage = "sport.html";
+            } else if (combined.includes("business") || combined.includes("finance")) {
+                targetPage = "business and finance.html";
+            } else {
+                targetPage = "customepage.html";
             }
         }
+
+        displayTerminalNotice(`Access Granted! Routing to ${targetPage}...`, "success");
+
+        document.getElementById('loginPassword').value = ""; 
+
+        setTimeout(() => {
+            signInBtn.disabled = false;
+            signInBtn.innerText = "Sign In";
+            window.location.href = targetPage;
+        }, 1200);
+
+    } catch (error) {
+        displayTerminalNotice("Security Subsystem Error: " + error.message, "error");
+        signInBtn.disabled = false;
+        signInBtn.innerText = "Sign In";
+    }
+}
     </script>
 </body>
 </html>
