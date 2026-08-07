@@ -417,6 +417,7 @@
     
 // Action Trigger: Send Back to Prep Studio with Full Content, Highlights, Images & Comments
 // Action Trigger: Send Back to Prep Studio with Full Content & Allowed Status
+// Action Trigger: Send Back to Prep Studio (Targeting 'prepare_studio')
 window.sendBackToStudio = async function() {
     if (!activeSubmission) {
         alert("No active submission loaded to send back.");
@@ -442,25 +443,25 @@ window.sendBackToStudio = async function() {
     const updatedPages = [fullContentHTML];
 
     try {
-        // Insert new record using an allowed status value ('archived')
+        // Insert a brand new row into editorial_submissions targeting 'prepare_studio'
         const { error } = await supabaseClient
             .from('editorial_submissions')
             .insert([{
-                sender_name: editorFullName, 
+                sender_name: editorFullName, // Logged-in editor username sending it back
                 sender_email: currentEditor?.email || 'editor@terminal.internal',
-                target_role: activeSubmission.target_role, 
-                status: 'archived', // Using an accepted status value to bypass the constraint error
+                target_role: 'prepare_studio', // Explicitly routes back to prep studio
+                status: 'archived', // Accepted table status constraint
                 pages: updatedPages 
             }]);
 
         if (error) throw error;
 
         if (statusHeader) {
-            statusHeader.innerText = `// STATUS: REVISED DRAFT & COMMENTS SENT BACK BY ${editorFullName.toUpperCase()}`;
+            statusHeader.innerText = `// STATUS: REVISED DRAFT SENT BACK TO PREPARE STUDIO BY ${editorFullName.toUpperCase()}`;
             statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
         }
 
-        alert(`Article, images, highlights, and comments successfully sent back to Prep Studio by ${editorFullName}!`);
+        alert(`Article, highlights, and comments successfully sent back to Prep Studio by ${editorFullName}!`);
     } catch (err) {
         console.error("Error inserting submission response:", err);
         alert("Failed to send back: " + err.message);
