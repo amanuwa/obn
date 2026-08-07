@@ -244,7 +244,7 @@
             <div class="flex items-center gap-4 border-l border-slate-800 pl-4">
                 <div class="text-right">
                     <span id="user-display-name" class="block text-[11px] font-mono font-semibold text-slate-300">--</span>
-                    <span id="user-display-section" class="block text-[9px] font-mono text-cyan-500 uppercase tracking-wider">// --</span>
+                    <span id="user-display-section" class="block text-[9px] font-mono text-cyan-500 uppercase tracking-wider">// SYSTEM ONLINE</span>
                </div>
 
                 <button id="btn-signout" onclick="window.handleSignOut && window.handleSignOut()" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5 py-1 rounded cursor-pointer">
@@ -369,7 +369,48 @@
         const tokenChars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ01';
         let particles = [];
 
-        // Global sendToPreparation
+        // 1. UNIFIED SEARCH HANDLER (Fixes the missing GO button handler)
+        window.triggerUnifiedSearch = async function(sector, inputId) {
+            const inputEl = document.getElementById(inputId);
+            const query = inputEl ? inputEl.value.trim() : '';
+
+            currentActiveSector = sector;
+            window.setGlobalProcessingState(true);
+            const statusLog = document.getElementById('statusConsole');
+            if (statusLog) statusLog.innerText = `// FETCHING STREAM FOR SECTOR: [${sector.toUpperCase()}]...`;
+
+            try {
+                const payload = {
+                    action: 'search',
+                    sector: sector,
+                    query: query,
+                    timestamp: new Date().toISOString()
+                };
+
+                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                window.renderN8nResults(data, sector);
+                if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED STREAM FOR [${sector.toUpperCase()}]`;
+            } catch (err) {
+                console.error("// SEARCH ERROR:", err);
+                if (statusLog) statusLog.innerText = `// ERROR: FAILED TO FETCH STREAM FOR [${sector.toUpperCase()}]`;
+                alert("Search execution failed: " + err.message);
+            } finally {
+                window.setGlobalProcessingState(false);
+            }
+        };
+
+        // 2. ANYTHING NEW TRIGGER
+        window.triggerAnythingNew = function(sector) {
+            window.triggerUnifiedSearch(sector, '');
+        };
+
+        // 3. SEND DATASET TO PREPARE.HTML
         window.sendToPreparation = function() {
             const statusLog = document.getElementById('statusConsole');
             const activeData = window.cachedDataStream || [];
@@ -421,7 +462,7 @@
             }
         };
 
-        // Delete single card
+        // 4. DELETE SINGLE CARD
         window.deleteCard = function(index) {
             if (!window.cachedDataStream || !window.cachedDataStream[index]) return;
             
@@ -434,7 +475,7 @@
             window.renderN8nResults(window.cachedDataStream, currentActiveSector);
         };
 
-        // Restore last deleted card
+        // 5. RESTORE LAST DELETED CARD
         window.restoreLastDeleted = function() {
             if (window.deletedCardsHistory.length === 0) return;
             
@@ -589,6 +630,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             setupCanvasAnimation();
+
+            if (typeof window.initUserHeader === 'function') {
+                window.initUserHeader();
+            }
 
             ALL_LANGUAGES.forEach(lang => {
                 const btn = document.getElementById(`lang-${lang}`);
