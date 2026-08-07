@@ -504,59 +504,69 @@
     };
 
     // --- 3. DATA TRANSFER TO PREPARE.HTML ---
-    window.sendToPreparation = function() {
-        const statusLog = document.getElementById('statusConsole');
-        const activeData = window.cachedDataStream || [];
+   window.sendToPreparation = function() {
+    const statusLog = document.getElementById('statusConsole');
+    const activeData = window.cachedDataStream || [];
 
-        if (!activeData || activeData.length === 0) {
-            if (statusLog) statusLog.innerText = `// ERROR: NO ACTIVE DATASET TO SEND TO PREPARE STUDIO`;
-            alert("No scraped feed data currently available to transfer.");
-            return;
+    if (!activeData || activeData.length === 0) {
+        if (statusLog) statusLog.innerText = `// ERROR: NO ACTIVE DATASET TO SEND TO PREPARE STUDIO`;
+        alert("No scraped feed data currently available in Central Monitor to transfer.");
+        return;
+    }
+
+    // 1. Format payload with safe property extraction
+    const payload = activeData.map((item, idx) => {
+        const row = item.json || item;
+        return {
+            id: row.id || `scraped-${idx}-${Date.now()}`,
+            sourceName: row.sourceName || row.source || "CENTRAL MONITOR STREAM",
+            title: row.title || row.newsTitle || row.headline || "",
+            news: row.news || row.paragraph || row.description || row.snippet || row.content || "",
+            imageUrl: row.imageUrl || row.image || row.media || null,
+            url: row.url || row.link || null,
+            sector: (typeof currentActiveSector !== 'undefined' ? currentActiveSector : 'STREAM'),
+            timestamp: new Date().toISOString()
+        };
+    });
+
+    try {
+        // 2. Save payload across all common key aliases for safety
+        const serialized = JSON.stringify(payload);
+        localStorage.setItem('scrapedStreamData', serialized);
+        localStorage.setItem('selectedEditorialContent', serialized); // Fallback key
+        
+        if (typeof currentActiveSector !== 'undefined') {
+            localStorage.setItem('scrapedSectorContext', currentActiveSector);
         }
 
-        const payload = activeData.map((item, idx) => {
-            const row = item.json || item;
-            return {
-                id: row.id || `scraped-${idx}-${Date.now()}`,
-                sourceName: row.sourceName || row.source || "CENTRAL MONITOR STREAM",
-                title: row.title || row.newsTitle || "",
-                news: row.news || row.paragraph || row.description || row.content || "",
-                imageUrl: row.imageUrl || row.image || row.media || null,
-                url: row.url || row.link || null,
-                sector: (typeof currentActiveSector !== 'undefined' ? currentActiveSector : 'STREAM'),
-                timestamp: new Date().toISOString()
-            };
-        });
-
+        // 3. Post via BroadcastChannel if prepare.html is open in another tab
         try {
-            localStorage.setItem('scrapedStreamData', JSON.stringify(payload));
-            if (typeof currentActiveSector !== 'undefined') {
-                localStorage.setItem('scrapedSectorContext', currentActiveSector);
-            }
-
-            try {
-                const channel = new BroadcastChannel('preparation_studio_channel');
-                channel.postMessage(payload);
-            } catch (bcError) {
-                console.warn("// BroadcastChannel inactive:", bcError);
-            }
-
-            if (statusLog) statusLog.innerText = `// SUCCESS: DATASET TRANSFERRED. ROUTING TO PREPARE.HTML...`;
-            window.location.href = 'prepare.html';
-
-        } catch (e) {
-            if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
-                console.warn("// localStorage quota exceeded. Clearing old cache and retrying...");
-                localStorage.removeItem('scrapedStreamData');
-                localStorage.setItem('scrapedStreamData', JSON.stringify(payload));
-                window.location.href = 'prepare.html';
-            } else {
-                console.error("// ROUTING ERROR:", e);
-                if (statusLog) statusLog.innerText = `// ERROR: FAILED TO TRANSFER DATASET`;
-                alert("Error sending data to preparation page: " + e.message);
-            }
+            const channel = new BroadcastChannel('preparation_studio_channel');
+            channel.postMessage(payload);
+        } catch (bcError) {
+            console.warn("// BroadcastChannel inactive:", bcError);
         }
-    };
+
+        if (statusLog) statusLog.innerText = `// SUCCESS: DATASET TRANSFERRED. ROUTING TO PREPARE.HTML...`;
+
+        // 4. Brief delay to ensure storage commit before page redirect
+        setTimeout(() => {
+            window.location.href = 'prepare.html';
+        }, 100);
+
+    } catch (e) {
+        if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
+            console.warn("// localStorage quota exceeded. Clearing old cache and retrying...");
+            localStorage.clear();
+            localStorage.setItem('scrapedStreamData', JSON.stringify(payload));
+            setTimeout(() => { window.location.href = 'prepare.html'; }, 100);
+        } else {
+            console.error("// ROUTING ERROR:", e);
+            if (statusLog) statusLog.innerText = `// ERROR: FAILED TO TRANSFER DATASET`;
+            alert("Error sending data to preparation page: " + e.message);
+        }
+    }
+};
 
     // --- 4. CARD DELETION & RESTORATION ---
     window.deleteCard = function(index) {
