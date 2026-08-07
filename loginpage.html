@@ -96,6 +96,7 @@
                             <option value="Production Team" class="bg-slate-950 text-white">Production Team</option>
                             <option value="Editor" class="bg-slate-950 text-white">Editor</option>
                             <option value="Management" class="bg-slate-950 text-white">Management</option>
+                              <option value="Prepare" class="bg-slate-950 text-white">Preparation studio</option>
                         </select>
                     </div>
                 </div>
@@ -519,6 +520,7 @@
         const ROUTE_MAP = {
             "editor": "Editorpage.html",
             "editorpage": "Editorpage.html",
+            "Prepare": "prepare.html",
             "management": "managerpipeline.html",
             "production team": "productionteam.html",
             "world politics and governance": "World Politics and Governance.html",
@@ -536,6 +538,8 @@
         if (!targetPage) {
             if (combined.includes("editor")) {
                 targetPage = "Editorpage.html";
+                 } else if (combined.includes("Prepare")) {
+                targetPage = "prepare.html";
             } else if (combined.includes("manage")) {
                 targetPage = "managerpipeline.html";
             } else if (combined.includes("production")) {
