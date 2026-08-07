@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Gateway | Terminal Hub</title>
+    <title>Custom Geteway | Terminal Hub</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
@@ -12,6 +12,7 @@
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
 
+        /* Crisp Fullscreen Background Canvas */
         .governance-bg-canvas {
             position: absolute;
             top: 0;
@@ -23,6 +24,7 @@
             transition: opacity 0.5s ease-out;
         }
 
+        /* Smooth UI entry fade */
         #dashboardContent {
             opacity: 0;
             transition: opacity 1.5s ease-in-out;
@@ -33,6 +35,7 @@
             pointer-events: auto;
         }
 
+        /* Routing Domain Buttons */
         .domain-btn {
             display: inline-block;
             text-align: center;
@@ -54,6 +57,7 @@
             box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
         }
 
+        /* Left Control Tiles */
         .compact-tile {
             background: linear-gradient(180deg, #060b18 0%, #02040a 100%);
             border: 1px solid #1e293b;
@@ -63,6 +67,7 @@
             border-color: #334155;
         }
 
+        /* Input Styling */
         .terminal-input {
             background-color: #02050c;
             border: 1px solid #334155;
@@ -77,6 +82,7 @@
             box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
         }
 
+        /* Language Filter Buttons Layout */
         .ensemble-btn {
             background-color: #16224f;
             border: 2.5px solid #2563eb;
@@ -132,6 +138,7 @@
             border-color: #ffffff;
         }
 
+        /* FULLSCREEN LOADING OVERLAY */
         .terminal-loading-overlay {
             position: fixed;
             top: 0;
@@ -177,8 +184,13 @@
             animation: radarSweep 1.3s linear infinite;
         }
 
+        /* RESULTS CARD SYSTEM */
         .result-card {
-            background: rgba(15, 23, 42, 0.6);
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            padding: 14px;
+            background: rgba(15, 23, 42, 0.45);
             border: 1px solid #1e293b;
             border-radius: 8px;
             transition: all 0.2s ease-in-out;
@@ -186,8 +198,8 @@
         }
         .result-card:hover {
             border-color: #06b6d4;
-            background: rgba(15, 23, 42, 0.8);
-            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.08);
+            background: rgba(15, 23, 42, 0.7);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.05);
         }
 
         @keyframes terminalPulse {
@@ -231,7 +243,7 @@
             <div class="flex items-center gap-3">
                 <div class="w-7 h-7 rounded bg-cyan-600 flex items-center justify-center font-bold text-[10px] border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]">TG</div>
                 <div>
-                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Custom Terminal Gateway</span>
+                    <span class="font-bold text-slate-100 text-xs block uppercase tracking-wide">Custom Terminal Geteway</span>
                 </div>
             </div>
 
@@ -242,15 +254,15 @@
             </div>
 
             <div class="flex items-center gap-4 border-l border-slate-800 pl-4">
-                <div class="text-right">
-                    <span id="user-display-name" class="block text-[11px] font-mono font-semibold text-slate-300">--</span>
-                    <span id="user-display-section" class="block text-[9px] font-mono text-cyan-500 uppercase tracking-wider">// SYSTEM ONLINE</span>
-               </div>
+               <div class="text-right">
+                   <span id="user-display-name" class="block text-[11px] font-mono font-semibold text-slate-300">--</span>
+                  <span id="user-display-section" class="block text-[9px] font-mono text-cyan-500 uppercase tracking-wider">// --</span>
+              </div>
 
-                <button id="btn-signout" onclick="window.handleSignOut && window.handleSignOut()" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5 py-1 rounded cursor-pointer">
+               <button id="btn-signout" onclick="window.handleSignOut()" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2.5 cursor-pointer">
                     Sign Out
-               </button>
-          </div>
+              </button>
+         </div>
         </header>
 
         <!-- DASHBOARD GRID -->
@@ -262,9 +274,9 @@
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Strait of Hormuz</h2>
                     <div class="flex items-center gap-1.5">
                         <input type="text" id="input-hormuz" placeholder="Maritime query..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button id="btn-hormuz-go" onclick="window.triggerUnifiedSearch('Strait of Hormuz', 'input-hormuz')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                        <button id="btn-hormuz-go" onclick="triggerUnifiedSearch('Strait of Hormuz', 'input-hormuz')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
                     </div>
-                    <button id="btn-hormuz-new" onclick="window.triggerAnythingNew('Strait of Hormuz')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                    <button id="btn-hormuz-new" onclick="triggerAnythingNew('Strait of Hormuz')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
                         ✨ Anything New
                     </button>
                 </section>
@@ -273,9 +285,9 @@
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Trump Watch Matrix</h2>
                     <div class="flex items-center gap-1.5">
                         <input type="text" id="input-trump" placeholder="Policy matrix..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button id="btn-trump-go" onclick="window.triggerUnifiedSearch('Trump Watch', 'input-trump')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                        <button id="btn-trump-go" onclick="triggerUnifiedSearch('Trump Watch', 'input-trump')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
                     </div>
-                    <button id="btn-trump-new" onclick="window.triggerAnythingNew('Trump Watch')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                    <button id="btn-trump-new" onclick="triggerAnythingNew('Trump Watch')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
                         ✨ Anything New
                     </button>
                 </section>
@@ -284,9 +296,9 @@
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Grand Ethiopian Dam (GERD)</h2>
                     <div class="flex items-center gap-1.5">
                         <input type="text" id="input-gerd" placeholder="Riparian terms..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button id="btn-gerd-go" onclick="window.triggerUnifiedSearch('GERD', 'input-gerd')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                        <button id="btn-gerd-go" onclick="triggerUnifiedSearch('GERD', 'input-gerd')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
                     </div>
-                    <button id="btn-gerd-new" onclick="window.triggerAnythingNew('GERD')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                    <button id="btn-gerd-new" onclick="triggerAnythingNew('GERD')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
                         ✨ Anything New
                     </button>
                 </section>
@@ -295,9 +307,9 @@
                     <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-800/80 pb-1.5">Ethiopia Sovereign Core</h2>
                     <div class="flex items-center gap-1.5">
                         <input type="text" id="input-ethiopia" placeholder="National filters..." class="terminal-input flex-1 px-2.5 py-1.5 rounded-md">
-                        <button id="btn-ethiopia-go" onclick="window.triggerUnifiedSearch('Ethiopia Core', 'input-ethiopia')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
+                        <button id="btn-ethiopia-go" onclick="triggerUnifiedSearch('Ethiopia Core', 'input-ethiopia')" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase">GO</button>
                     </div>
-                    <button id="btn-ethiopia-new" onclick="window.triggerAnythingNew('Ethiopia Core')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
+                    <button id="btn-ethiopia-new" onclick="triggerAnythingNew('Ethiopia Core')" class="w-full py-1.5 border border-slate-800 hover:border-cyan-900/50 bg-slate-950/60 hover:bg-cyan-950/20 text-slate-400 hover:text-cyan-400 font-mono text-[10px] rounded transition-all uppercase tracking-wide cursor-pointer">
                         ✨ Anything New
                     </button>
                 </section>
@@ -335,13 +347,13 @@
                     <span class="text-[9px] text-slate-500 font-mono">// MULTI-STREAM INTERCEPT TERMINAL</span>
                     
                     <div class="flex gap-2">
-                        <button id="btn-restore-log" onclick="window.restoreLastDeleted()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md cursor-pointer transition-all tracking-wide uppercase hidden">
+                        <button id="btn-restore-log" onclick="restoreLastDeleted()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md cursor-pointer transition-all tracking-wide uppercase hidden">
                             ⟲ Restore Deleted
                         </button>
-
-                        <button onclick="window.sendToPreparation()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-mono text-[10px] font-bold px-3 py-1.5 rounded cursor-pointer uppercase transition-all">
-                            ➜ Send to Preparation Studio
-                        </button>
+                       <!-- Inside your story card or manager modal -->
+<button onclick="sendToPreparation()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-mono text-[10px] font-bold px-3 py-1.5 rounded cursor-pointer uppercase transition-all">
+    ➜ Send to Preparation Studio
+</button>
                     </div>
                 </div>
             </div>
@@ -355,399 +367,532 @@
     </div>
 
     <!-- ENGINE SCRIPTS -->
-    <script type="module">
-        import { N8N_GATEWAY_WEBHOOK } from './config.js';
-        
-        console.log("// TERMINAL HUB: Webhook configured:", N8N_GATEWAY_WEBHOOK);
+   <script type="module">
+    import { N8N_GATEWAY_WEBHOOK } from './config.js';
+    
+    console.log("// TERMINAL HUB: Webhook configured:", N8N_GATEWAY_WEBHOOK);
 
-        const ALL_LANGUAGES = ['OROMIFFA', 'AMHARIC', 'ENGLISH', 'ARABIC', 'FRENCH'];
+    const ALL_LANGUAGES = ['OROMIFFA', 'AMHARIC', 'ENGLISH', 'ARABIC', 'FRENCH'];
 
-        let currentActiveSector = "STREAM";
-        window.cachedDataStream = [];
-        window.deletedCardsHistory = [];
+    // Dynamic state management & global panel tracking
+    let currentActiveSector = "STREAM";
+    let cachedDataStream = [];
+    let deletedCardsHistory = [];
 
-        const tokenChars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ01';
-        let particles = [];
+    // Matrix character particles definition
+    const tokenChars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ01';
+    let particles = [];
+window.sendToPreparation = function() {
+    const statusLog = document.getElementById('statusConsole');
+    
+    // 1. Grab the active rendered feed from window.cachedDataStream
+    const activeData = window.cachedDataStream || [];
 
-        // 1. UNIFIED SEARCH HANDLER (Fixes the missing GO button handler)
-        window.triggerUnifiedSearch = async function(sector, inputId) {
-            const inputEl = document.getElementById(inputId);
-            const query = inputEl ? inputEl.value.trim() : '';
+    if (!activeData || activeData.length === 0) {
+        if (statusLog) statusLog.innerText = `// ERROR: NO ACTIVE DATASET TO SEND TO PREPARE STUDIO`;
+        alert("No scraped feed data currently available to transfer.");
+        return;
+    }
 
-            currentActiveSector = sector;
-            window.setGlobalProcessingState(true);
-            const statusLog = document.getElementById('statusConsole');
-            if (statusLog) statusLog.innerText = `// FETCHING STREAM FOR SECTOR: [${sector.toUpperCase()}]...`;
+    // 2. Format payload to match prepare.html schema
+    const payload = activeData.map((item, idx) => {
+        const row = item.json || item;
+        return {
+            id: row.id || `scraped-${idx}-${Date.now()}`,
+            sourceName: row.sourceName || row.source || "CENTRAL MONITOR STREAM",
+            title: row.title || row.newsTitle || "",
+            news: row.news || row.paragraph || row.description || row.content || "",
+            imageUrl: row.imageUrl || row.image || row.media || null,
+            url: row.url || row.link || null,
+            sector: (typeof currentActiveSector !== 'undefined' ? currentActiveSector : 'STREAM'),
+            timestamp: new Date().toISOString()
+        };
+    });
 
-            try {
-                const payload = {
-                    action: 'search',
-                    sector: sector,
-                    query: query,
-                    timestamp: new Date().toISOString()
-                };
+    try {
+        // 3. Save payload under 'scrapedStreamData' for prepare.html
+        localStorage.setItem('scrapedStreamData', JSON.stringify(payload));
+        if (typeof currentActiveSector !== 'undefined') {
+            localStorage.setItem('scrapedSectorContext', currentActiveSector);
+        }
 
-                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+        // 4. Send via BroadcastChannel if prepare.html is open in another tab
+        try {
+            const channel = new BroadcastChannel('preparation_studio_channel');
+            channel.postMessage(payload);
+        } catch (bcError) {
+            console.warn("// BroadcastChannel inactive:", bcError);
+        }
 
-                const data = await response.json();
-                window.renderN8nResults(data, sector);
-                if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED STREAM FOR [${sector.toUpperCase()}]`;
-            } catch (err) {
-                console.error("// SEARCH ERROR:", err);
-                if (statusLog) statusLog.innerText = `// ERROR: FAILED TO FETCH STREAM FOR [${sector.toUpperCase()}]`;
-                alert("Search execution failed: " + err.message);
-            } finally {
-                window.setGlobalProcessingState(false);
+        if (statusLog) statusLog.innerText = `// SUCCESS: DATASET TRANSFERRED. ROUTING TO PREPARE.HTML...`;
+
+        // 5. Navigate directly to prepare.html
+        window.location.href = 'prepare.html';
+
+    } catch (e) {
+        if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
+            console.warn("// localStorage quota exceeded. Clearing old cache and retrying...");
+            localStorage.removeItem('scrapedStreamData');
+            localStorage.setItem('scrapedStreamData', JSON.stringify(payload));
+            window.location.href = 'prepare.html';
+        } else {
+            console.error("// ROUTING ERROR:", e);
+            if (statusLog) statusLog.innerText = `// ERROR: FAILED TO TRANSFER DATASET`;
+            alert("Error sending data to preparation page: " + e.message);
+        }
+    }
+};
+    function initParticles(canvas) {
+        particles = [];
+        const count = Math.floor((canvas.width * canvas.height) / 10000);
+        for (let i = 0; i < count; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.floor(Math.random() * 8) + 10,
+                char: tokenChars[Math.floor(Math.random() * tokenChars.length)]
+            });
+        }
+    }
+
+    // Initialize Canvas matrix effect safely after DOM ready
+    function setupCanvasAnimation() {
+        const canvas = document.getElementById('governanceCanvas');
+        if (!canvas) return;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        initParticles(canvas);
+
+        const ctx = canvas.getContext('2d');
+        let animationFrameId;
+        let startTimestamp = null;
+        let panelsRevealed = false;
+        let canvasCleanedUp = false;
+
+        function runStaticGlitchField(timestamp) {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const elapsed = timestamp - startTimestamp;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#06b6d4';
+            ctx.fillStyle = 'rgba(34, 211, 238, 0.75)';
+
+            particles.forEach(p => {
+                ctx.font = `bold ${p.size}px monospace`;
+                if (Math.random() < 0.08) {
+                    p.char = tokenChars[Math.floor(Math.random() * tokenChars.length)];
+                }
+                ctx.fillText(p.char, p.x, p.y);
+            });
+
+            if (!panelsRevealed && elapsed >= 1500) {
+                panelsRevealed = true;
+                const dashContent = document.getElementById('dashboardContent');
+                if (dashContent) dashContent.classList.add('visible');
             }
-        };
 
-        // 2. ANYTHING NEW TRIGGER
-        window.triggerAnythingNew = function(sector) {
-            window.triggerUnifiedSearch(sector, '');
-        };
-
-        // 3. SEND DATASET TO PREPARE.HTML
-        window.sendToPreparation = function() {
-            const statusLog = document.getElementById('statusConsole');
-            const activeData = window.cachedDataStream || [];
-
-            if (!activeData || activeData.length === 0) {
-                if (statusLog) statusLog.innerText = `// ERROR: NO ACTIVE DATASET TO SEND TO PREPARE STUDIO`;
-                alert("No scraped feed data currently available to transfer.");
+            if (elapsed >= 3500) {
+                if (!canvasCleanedUp) {
+                    canvasCleanedUp = true;
+                    canvas.style.opacity = '0';
+                    setTimeout(() => {
+                        canvas.style.display = 'none';
+                        cancelAnimationFrame(animationFrameId);
+                    }, 500); 
+                }
                 return;
             }
 
-            const payload = activeData.map((item, idx) => {
-                const row = item.json || item;
-                return {
-                    id: row.id || `scraped-${idx}-${Date.now()}`,
-                    sourceName: row.sourceName || row.source || "CENTRAL MONITOR STREAM",
-                    title: row.title || row.newsTitle || "",
-                    news: row.news || row.paragraph || row.description || row.content || "",
-                    imageUrl: row.imageUrl || row.image || row.media || null,
-                    url: row.url || row.link || null,
-                    sector: currentActiveSector,
-                    timestamp: new Date().toISOString()
-                };
-            });
-
-            try {
-                localStorage.setItem('scrapedStreamData', JSON.stringify(payload));
-                localStorage.setItem('scrapedSectorContext', currentActiveSector);
-
-                try {
-                    const channel = new BroadcastChannel('preparation_studio_channel');
-                    channel.postMessage(payload);
-                } catch (bcError) {
-                    console.warn("// BroadcastChannel inactive:", bcError);
-                }
-
-                if (statusLog) statusLog.innerText = `// SUCCESS: DATASET TRANSFERRED. ROUTING TO PREPARE.HTML...`;
-                window.location.href = 'prepare.html';
-
-            } catch (e) {
-                if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
-                    localStorage.removeItem('scrapedStreamData');
-                    localStorage.setItem('scrapedStreamData', JSON.stringify(payload));
-                    window.location.href = 'prepare.html';
-                } else {
-                    console.error("// ROUTING ERROR:", e);
-                    if (statusLog) statusLog.innerText = `// ERROR: FAILED TO TRANSFER DATASET`;
-                    alert("Error sending data to preparation page: " + e.message);
-                }
-            }
-        };
-
-        // 4. DELETE SINGLE CARD
-        window.deleteCard = function(index) {
-            if (!window.cachedDataStream || !window.cachedDataStream[index]) return;
-            
-            const removed = window.cachedDataStream.splice(index, 1)[0];
-            window.deletedCardsHistory.push(removed);
-
-            const restoreBtn = document.getElementById('btn-restore-log');
-            if (restoreBtn) restoreBtn.classList.remove('hidden');
-
-            window.renderN8nResults(window.cachedDataStream, currentActiveSector);
-        };
-
-        // 5. RESTORE LAST DELETED CARD
-        window.restoreLastDeleted = function() {
-            if (window.deletedCardsHistory.length === 0) return;
-            
-            const restoredItem = window.deletedCardsHistory.pop();
-            window.cachedDataStream.push(restoredItem);
-
-            if (window.deletedCardsHistory.length === 0) {
-                const restoreBtn = document.getElementById('btn-restore-log');
-                if (restoreBtn) restoreBtn.classList.add('hidden');
-            }
-
-            window.renderN8nResults(window.cachedDataStream, currentActiveSector);
-        };
-
-        function initParticles(canvas) {
-            particles = [];
-            const count = Math.floor((canvas.width * canvas.height) / 10000);
-            for (let i = 0; i < count; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    size: Math.floor(Math.random() * 8) + 10,
-                    char: tokenChars[Math.floor(Math.random() * tokenChars.length)]
-                });
-            }
-        }
-
-        function setupCanvasAnimation() {
-            const canvas = document.getElementById('governanceCanvas');
-            if (!canvas) return;
-
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            initParticles(canvas);
-
-            const ctx = canvas.getContext('2d');
-            let animationFrameId;
-            let startTimestamp = null;
-            let panelsRevealed = false;
-            let canvasCleanedUp = false;
-
-            function runStaticGlitchField(timestamp) {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const elapsed = timestamp - startTimestamp;
-
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = '#06b6d4';
-                ctx.fillStyle = 'rgba(34, 211, 238, 0.75)';
-
-                particles.forEach(p => {
-                    ctx.font = `bold ${p.size}px monospace`;
-                    if (Math.random() < 0.08) {
-                        p.char = tokenChars[Math.floor(Math.random() * tokenChars.length)];
-                    }
-                    ctx.fillText(p.char, p.x, p.y);
-                });
-
-                if (!panelsRevealed && elapsed >= 1500) {
-                    panelsRevealed = true;
-                    const dashContent = document.getElementById('dashboardContent');
-                    if (dashContent) dashContent.classList.add('visible');
-                }
-
-                if (elapsed >= 3500) {
-                    if (!canvasCleanedUp) {
-                        canvasCleanedUp = true;
-                        canvas.style.opacity = '0';
-                        setTimeout(() => {
-                            canvas.style.display = 'none';
-                            cancelAnimationFrame(animationFrameId);
-                        }, 500); 
-                    }
-                    return;
-                }
-
-                animationFrameId = requestAnimationFrame(runStaticGlitchField);
-            }
-            
             animationFrameId = requestAnimationFrame(runStaticGlitchField);
         }
+        
+        animationFrameId = requestAnimationFrame(runStaticGlitchField);
+    }
 
-        function getSelectedLanguages() {
-            return ALL_LANGUAGES.filter(lang => {
-                const el = document.getElementById(`lang-${lang}`);
-                return el && el.classList.contains('active');
-            });
+    // --- LANGUAGE SELECTION HANDLERS ---
+    function getSelectedLanguages() {
+        return ALL_LANGUAGES.filter(lang => {
+            const el = document.getElementById(`lang-${lang}`);
+            return el && el.classList.contains('active');
+        });
+    }
+
+    function handleLanguageToggle(lang) {
+        const btn = document.getElementById(`lang-${lang}`);
+        if (!btn) return;
+
+        btn.classList.toggle('active');
+
+        const activeLangs = getSelectedLanguages();
+        const selectAllBtn = document.getElementById('btn-select-all');
+        if (selectAllBtn) {
+            if (activeLangs.length === ALL_LANGUAGES.length) {
+                selectAllBtn.classList.add('active');
+            } else {
+                selectAllBtn.classList.remove('active');
+            }
         }
 
-        function handleLanguageToggle(lang) {
+        sendLanguageTranslationToN8n(activeLangs);
+    }
+
+    function handleSelectAllToggle() {
+        const selectAllBtn = document.getElementById('btn-select-all');
+        const shouldActivate = selectAllBtn ? !selectAllBtn.classList.contains('active') : true;
+
+        if (selectAllBtn) {
+            selectAllBtn.classList.toggle('active', shouldActivate);
+        }
+
+        ALL_LANGUAGES.forEach(lang => {
             const btn = document.getElementById(`lang-${lang}`);
-            if (!btn) return;
-
-            btn.classList.toggle('active');
-
-            const activeLangs = getSelectedLanguages();
-            const selectAllBtn = document.getElementById('btn-select-all');
-            if (selectAllBtn) {
-                selectAllBtn.classList.toggle('active', activeLangs.length === ALL_LANGUAGES.length);
-            }
-
-            sendLanguageTranslationToN8n(activeLangs);
-        }
-
-        function handleSelectAllToggle() {
-            const selectAllBtn = document.getElementById('btn-select-all');
-            const shouldActivate = selectAllBtn ? !selectAllBtn.classList.contains('active') : true;
-
-            if (selectAllBtn) {
-                selectAllBtn.classList.toggle('active', shouldActivate);
-            }
-
-            ALL_LANGUAGES.forEach(lang => {
-                const btn = document.getElementById(`lang-${lang}`);
-                if (btn) btn.classList.toggle('active', shouldActivate);
-            });
-
-            const activeLangs = shouldActivate ? [...ALL_LANGUAGES] : [];
-            sendLanguageTranslationToN8n(activeLangs);
-        }
-
-        async function sendLanguageTranslationToN8n(targetLanguages) {
-            window.setGlobalProcessingState(true, "language");
-            const statusLog = document.getElementById('statusConsole');
-            if (statusLog) statusLog.innerText = `// TRANSLATING [${currentActiveSector}] FEED FOR: [${targetLanguages.join(', ') || 'NONE'}]`;
-
-            try {
-                const payload = {
-                    action: 'translate_articles',
-                    activePanel: currentActiveSector,
-                    targetLanguages: targetLanguages,
-                    articlesToTranslate: window.cachedDataStream || [],
-                    timestamp: new Date().toISOString()
-                };
-
-                const response = await fetch(N8N_GATEWAY_WEBHOOK, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                const webhookResponse = await response.json();
-                window.renderN8nResults(webhookResponse, currentActiveSector);
-                if (statusLog) statusLog.innerText = `// SUCCESS: TRANSLATED [${currentActiveSector}] ARTICLES`;
-            } catch (err) {
-                console.error("// TRANSLATION ERROR:", err);
-                if (statusLog) statusLog.innerText = `// ERROR: FAILED TO TRANSLATE ARTICLES`;
-            } finally {
-                window.setGlobalProcessingState(false);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            setupCanvasAnimation();
-
-            if (typeof window.initUserHeader === 'function') {
-                window.initUserHeader();
-            }
-
-            ALL_LANGUAGES.forEach(lang => {
-                const btn = document.getElementById(`lang-${lang}`);
-                if (btn) btn.addEventListener('click', () => handleLanguageToggle(lang));
-            });
-
-            const selectAllBtn = document.getElementById('btn-select-all');
-            if (selectAllBtn) {
-                selectAllBtn.addEventListener('click', handleSelectAllToggle);
+            if (btn) {
+                btn.classList.toggle('active', shouldActivate);
             }
         });
 
-        window.setGlobalProcessingState = function(isProcessing, processingType = "standard") {
-            const overlay = document.getElementById('terminalLoader');
-            const loaderHeader = document.getElementById('loaderHeader');
-            const loaderSubheader = document.getElementById('loaderSubheader');
+        const activeLangs = shouldActivate ? [...ALL_LANGUAGES] : [];
+        sendLanguageTranslationToN8n(activeLangs);
+    }
 
-            if (overlay) {
-                if (isProcessing) {
-                    if (processingType === "language") {
-                        if (loaderHeader) loaderHeader.innerText = "// RE-CONFIGURING ENSEMBLES & RE-GENERATING DATASET...";
-                        if (loaderSubheader) loaderSubheader.innerText = "SYSTEM STATE: TRANSLATING FEED RECORDS - PLEASE WAIT...";
-                    } else {
-                        if (loaderHeader) loaderHeader.innerText = "// INITIALIZING INTERCEPT SEQUENCES...";
-                        if (loaderSubheader) loaderSubheader.innerText = "SYSTEM STATE: WAITING FOR N8N RESPONSE...";
-                    }
-                    overlay.style.display = 'flex';
+    async function sendLanguageTranslationToN8n(targetLanguages) {
+        window.setGlobalProcessingState(true, "language");
+        const statusLog = document.getElementById('statusConsole');
+        if (statusLog) statusLog.innerText = `// TRANSLATING [${currentActiveSector}] FEED FOR: [${targetLanguages.join(', ') || 'NONE'}]`;
+
+        try {
+            const payload = {
+                action: 'translate_articles',
+                activePanel: currentActiveSector, // Sends panel context e.g., "Trump Watch" or "Strait of Hormuz"
+                targetLanguages: targetLanguages,   // e.g. ["ARABIC"]
+                articlesToTranslate: window.cachedDataStream || [], // The active news cards
+                timestamp: new Date().toISOString()
+            };
+
+            const webhookResponse = await transmitPayloadToN8n(payload);
+            window.renderN8nResults(webhookResponse, currentActiveSector);
+            if (statusLog) statusLog.innerText = `// SUCCESS: TRANSLATED [${currentActiveSector}] ARTICLES`;
+        } catch (err) {
+            console.error("// TRANSLATION ERROR:", err);
+            if (statusLog) statusLog.innerText = `// ERROR: FAILED TO TRANSLATE ARTICLES`;
+        } finally {
+            window.setGlobalProcessingState(false);
+        }
+    }
+
+    // Attach event listeners after DOM load
+    document.addEventListener('DOMContentLoaded', () => {
+        setupCanvasAnimation();
+        window.initUserHeader();
+
+        ALL_LANGUAGES.forEach(lang => {
+            const btn = document.getElementById(`lang-${lang}`);
+            if (btn) {
+                btn.addEventListener('click', () => handleLanguageToggle(lang));
+            }
+        });
+
+        const selectAllBtn = document.getElementById('btn-select-all');
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', handleSelectAllToggle);
+        }
+    });
+
+    // Processing status handler
+    window.setGlobalProcessingState = function(isProcessing, processingType = "standard") {
+        const overlay = document.getElementById('terminalLoader');
+        const loaderHeader = document.getElementById('loaderHeader');
+        const loaderSubheader = document.getElementById('loaderSubheader');
+
+        if (overlay) {
+            if (isProcessing) {
+                if (processingType === "language") {
+                    if (loaderHeader) loaderHeader.innerText = "// RE-CONFIGURING ENSEMBLES & RE-GENERATING DATASET...";
+                    if (loaderSubheader) loaderSubheader.innerText = "SYSTEM STATE: TRANSLATING FEED RECORDS - PLEASE WAIT...";
                 } else {
-                    overlay.style.display = 'none';
+                    if (loaderHeader) loaderHeader.innerText = "// INITIALIZING INTERCEPT SEQUENCES...";
+                    if (loaderSubheader) loaderSubheader.innerText = "SYSTEM STATE: WAITING FOR N8N RESPONSE...";
+                }
+                overlay.style.display = 'flex';
+            } else {
+                overlay.style.display = 'none';
+            }
+        }
+
+        const inputs = document.querySelectorAll('input');
+        const buttons = document.querySelectorAll('button');
+        const domainLinks = document.querySelectorAll('#topDomainNav a');
+
+        inputs.forEach(el => el.disabled = isProcessing);
+        buttons.forEach(el => el.disabled = isProcessing);
+        domainLinks.forEach(el => {
+            if (isProcessing) {
+                el.classList.add('disabled-link');
+            } else {
+                el.classList.remove('disabled-link');
+            }
+        });
+    };
+
+    window.renderN8nResults = function(data, sectorContext = "STREAM") {
+        const outputPanel = document.getElementById('unifiedResultsConsole');
+        if (!outputPanel) {
+            console.error("CRITICAL: Could not find HTML element with id='unifiedResultsConsole'");
+            return;
+        }
+
+        console.log("// DATA RECEIVED BY RENDERER:", data);
+
+        let resultsArray = [];
+
+        if (Array.isArray(data) && data.length > 0) {
+            const first = data[0];
+            if (first.news && Array.isArray(first.news)) {
+                resultsArray = first.news;
+            } else if (first.json && first.json.news && Array.isArray(first.json.news)) {
+                resultsArray = first.json.news;
+            } else if (first.body && first.body.news && Array.isArray(first.body.news)) {
+                resultsArray = first.body.news;
+            } else if (first.json && Array.isArray(first.json)) {
+                resultsArray = first.json;
+            } else {
+                resultsArray = data;
+            }
+        } else if (data && typeof data === 'object') {
+            if (Array.isArray(data.news)) {
+                resultsArray = data.news;
+            } else if (data.json && Array.isArray(data.json.news)) {
+                resultsArray = data.json.news;
+            } else if (Array.isArray(data.data)) {
+                resultsArray = data.data;
+            } else {
+                resultsArray = [data];
+            }
+        }
+
+        window.cachedDataStream = resultsArray;
+
+        let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
+
+        if (!resultsArray || resultsArray.length === 0) {
+            html += `<div class="text-slate-500 font-mono">// Webhook returned empty payload or unrecognized JSON layout. Check console logs.</div>`;
+        } else {
+            resultsArray.forEach((row, idx) => {
+                const item = row.json || row;
+                
+                const sourceName = item.sourceName || item.source || 'Scraped Source';
+                const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+                
+                let title = item.title || item.newsTitle || '';
+                if (!title && content) {
+                    const firstPeriodIndex = content.indexOf('. ');
+                    if (firstPeriodIndex > 10 && firstPeriodIndex < 120) {
+                        title = content.substring(0, firstPeriodIndex + 1);
+                    } else {
+                        title = content.length > 90 ? content.substring(0, 90) + '...' : content;
+                    }
+                }
+
+                const imageUrl = item.imageUrl || item.image || item.media || null;
+                const url = item.url || item.link || null;
+
+                html += `
+                    <div class="result-card flex flex-col bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 rounded-lg p-3.5 space-y-2.5 transition-all shadow-md" id="card-${idx}">
+                        <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1.5">
+                            <span class="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 font-bold uppercase tracking-wider">
+                                ${sourceName}
+                            </span>
+                            <button onclick="deleteCard(${idx})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">
+                                ✕
+                            </button>
+                        </div>
+
+                        ${imageUrl ? `
+                            <div class="w-full max-h-48 overflow-hidden rounded-md border border-slate-800 bg-black/40">
+                                <img src="${imageUrl}" alt="News Media" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.parentElement.style.display='none'">
+                            </div>
+                        ` : ''}
+
+                        <div class="space-y-1">
+                            ${title ? `<div class="text-cyan-300 font-bold text-xs tracking-wide font-sans">${title}</div>` : ''}
+                            <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words line-clamp-4">${content}</p>
+                        </div>
+
+                        ${url ? `
+                            <div class="pt-1 border-t border-slate-800/40">
+                                <a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-200 hover:underline font-mono break-all">
+                                    🔗 Source Link: ${url}
+                                </a>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+        }
+
+        outputPanel.innerHTML = html;
+    };
+
+    // Direct fetch caller to n8n Webhook Node
+async function transmitPayloadToN8n(payload) {
+    // 1. Trigger the background n8n workflow
+    const startResponse = await fetch(N8N_GATEWAY_WEBHOOK, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!startResponse.ok) {
+        throw new Error(`n8n Gateway failed to start: ${startResponse.status}`);
+    }
+
+    const startData = await startResponse.json();
+    
+    // If n8n returns results immediately, return them
+    if (startData.news || startData.data) {
+        return startData;
+    }
+
+    // Otherwise, grab the job ID and start polling
+    const jobId = startData.jobId;
+    if (!jobId) {
+        return startData; // Fallback if no async handling configured in n8n
+    }
+
+    // 2. Poll n8n every 5 seconds for up to 10 minutes (120 attempts * 5s = 600s)
+    const maxAttempts = 120;
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+        attempts++;
+
+        try {
+            const checkResponse = await fetch(`${N8N_GATEWAY_WEBHOOK}?jobId=${jobId}`, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (checkResponse.ok) {
+                const jobResult = await checkResponse.json();
+                
+                // If status is completed, return the data to render
+                if (jobResult.status === 'completed') {
+                    return jobResult.data;
                 }
             }
+        } catch (e) {
+            console.warn("// POLLING RETRY ATTEMPT:", attempts);
+        }
+    }
 
-            document.querySelectorAll('input').forEach(el => el.disabled = isProcessing);
-            document.querySelectorAll('button').forEach(el => el.disabled = isProcessing);
-            document.querySelectorAll('#topDomainNav a').forEach(el => {
-                if (isProcessing) el.classList.add('disabled-link');
-                else el.classList.remove('disabled-link');
-            });
+    throw new Error('Scraping task timed out after 10 minutes of polling.');
+}
+
+    // Global Action: "GO" button trigger
+    window.triggerUnifiedSearch = async function(sectorContext, inputId) {
+        currentActiveSector = sectorContext;
+
+        const inputEl = document.getElementById(inputId);
+        const searchQuery = inputEl ? inputEl.value.trim() : '';
+
+        window.setGlobalProcessingState(true);
+        const statusLog = document.getElementById('statusConsole');
+        const outputPanel = document.getElementById('unifiedResultsConsole');
+
+        if (statusLog) statusLog.innerText = `// TRIGGERING SEARCH FOR [${sectorContext.toUpperCase()}]: "${searchQuery}"`;
+        if (outputPanel) outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying n8n webhook node...</div>`;
+
+        const payload = {
+            action: 'custom_search',
+            targetMatrix: sectorContext,
+            query: searchQuery,
+            languages: getSelectedLanguages(),
+            timestamp: new Date().toISOString()
         };
 
-        window.renderN8nResults = function(data, sectorContext = "STREAM") {
-            const outputPanel = document.getElementById('unifiedResultsConsole');
-            if (!outputPanel) return;
+        try {
+            const webhookResponse = await transmitPayloadToN8n(payload);
+            window.renderN8nResults(webhookResponse, sectorContext);
+            if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESULTS FOR [${sectorContext.toUpperCase()}]`;
+        } catch (err) {
+            if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
+            if (statusLog) statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
+        } finally {
+            window.setGlobalProcessingState(false);
+        }
+    };
 
-            currentActiveSector = sectorContext;
-            let resultsArray = [];
+    // Global Action: "✨ Anything New" button trigger
+    window.triggerAnythingNew = async function(sectorContext) {
+        // Save which panel triggered this data fetch
+        currentActiveSector = sectorContext; 
 
-            if (Array.isArray(data) && data.length > 0) {
-                const first = data[0];
-                if (first.news && Array.isArray(first.news)) resultsArray = first.news;
-                else if (first.json && first.json.news && Array.isArray(first.json.news)) resultsArray = first.json.news;
-                else if (first.body && first.body.news && Array.isArray(first.body.news)) resultsArray = first.body.news;
-                else if (first.json && Array.isArray(first.json)) resultsArray = first.json;
-                else resultsArray = data;
-            } else if (data && typeof data === 'object') {
-                if (Array.isArray(data.news)) resultsArray = data.news;
-                else if (data.json && Array.isArray(data.json.news)) resultsArray = data.json.news;
-                else if (Array.isArray(data.data)) resultsArray = data.data;
-                else resultsArray = [data];
-            }
+        window.setGlobalProcessingState(true);
+        const statusLog = document.getElementById('statusConsole');
+        const outputPanel = document.getElementById('unifiedResultsConsole');
+        
+        if (statusLog) statusLog.innerText = `// TRIGGERING N8N WEBHOOK FOR ANYTHING NEW: [${sectorContext.toUpperCase()}]`;
+        if (outputPanel) outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Awaiting response from n8n webhook node...</div>`;
 
-            window.cachedDataStream = resultsArray;
-
-            let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
-
-            if (!resultsArray || resultsArray.length === 0) {
-                html += `<div class="text-slate-500 font-mono">// Webhook returned empty payload or unrecognized JSON layout. Check console logs.</div>`;
-            } else {
-                resultsArray.forEach((row, idx) => {
-                    const item = row.json || row;
-                    const sourceName = item.sourceName || item.source || 'Scraped Source';
-                    const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
-                    
-                    let title = item.title || item.newsTitle || '';
-                    if (!title && content) {
-                        const firstPeriodIndex = content.indexOf('. ');
-                        if (firstPeriodIndex > 10 && firstPeriodIndex < 120) {
-                            title = content.substring(0, firstPeriodIndex + 1);
-                        } else {
-                            title = content.length > 90 ? content.substring(0, 90) + '...' : content;
-                        }
-                    }
-
-                    const imageUrl = item.imageUrl || item.image || item.media || null;
-                    const url = item.url || item.link || null;
-
-                    html += `
-                        <div class="result-card flex flex-col bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 rounded-lg p-3.5 space-y-2.5 transition-all shadow-md" id="card-${idx}">
-                            <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1.5">
-                                <span class="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 font-bold uppercase tracking-wider">
-                                    ${sourceName}
-                                </span>
-                                <button onclick="window.deleteCard(${idx})" class="text-slate-500 hover:text-red-400 font-bold text-xs cursor-pointer transition-colors px-1" title="Delete Card">
-                                    ✕
-                                </button>
-                            </div>
-                            
-                            ${title ? `<h4 class="text-slate-200 font-bold text-xs leading-snug">${title}</h4>` : ''}
-                            
-                            ${content ? `<p class="text-slate-400 text-[11px] leading-relaxed">${content}</p>` : ''}
-                            
-                            ${imageUrl ? `<img src="${imageUrl}" class="w-full max-h-40 object-cover rounded border border-slate-800 my-1" alt="Media content" />` : ''}
-                            
-                            <div class="flex items-center justify-between pt-1 text-[10px]">
-                                ${url ? `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">View Source Link ➜</a>` : '<span></span>'}
-                                <span class="text-slate-600">// CARD #${idx + 1}</span>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            outputPanel.innerHTML = html;
+        const payload = {
+            action: 'anything_new',
+            targetMatrix: sectorContext,
+            languages: getSelectedLanguages(),
+            timestamp: new Date().toISOString()
         };
-    </script>
+
+        try {
+            const webhookResponse = await transmitPayloadToN8n(payload);
+            window.renderN8nResults(webhookResponse, sectorContext);
+            if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED RESPONSE FROM N8N FOR [${sectorContext.toUpperCase()}]`;
+        } catch (err) {
+            if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// WEBHOOK TRANSMISSION ERROR: ${err.message}</div>`;
+            if (statusLog) statusLog.innerText = `// ERROR: N8N WEBHOOK FAILED`;
+        } finally {
+            window.setGlobalProcessingState(false);
+        }
+    };
+
+    // Retrieve and render logged-in user details
+    window.initUserHeader = function() {
+        const sessionData = localStorage.getItem('userSession');
+
+        if (!sessionData) {
+            console.warn("// WARNING: No 'userSession' found in localStorage.");
+            return;
+        }
+
+        try {
+            const user = JSON.parse(sessionData);
+
+            const nameEl = document.getElementById('user-display-name');
+            const sectionEl = document.getElementById('user-display-section');
+
+            const rawName = user.fullName || user.username || user.name || 'User';
+            const firstName = rawName.trim().split(' ')[0]; 
+
+            const section = user.journalismSection || user.section || 'GENERAL';
+
+            if (nameEl) nameEl.innerText = firstName;
+            if (sectionEl) sectionEl.innerText = `// ${section.toUpperCase()}`;
+
+        } catch (e) {
+            console.error("// ERROR PARSING USER SESSION:", e);
+        }
+    };
+
+    // Sign-Out Handler
+    window.handleSignOut = function() {
+        localStorage.removeItem('userSession');
+        sessionStorage.clear();
+        window.location.href = 'loginpage.html';
+    };
+</script>
 </body>
 </html>
