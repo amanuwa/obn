@@ -6,6 +6,7 @@
     <title>Editorial Review Studio</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { 
             margin: 0; 
@@ -31,7 +32,6 @@
             min-height: 900px;
         }
 
-        /* Custom Selection Highlight Colors */
         .hl-red {
             background-color: #fecaca;
             color: #991b1b;
@@ -72,11 +72,12 @@
 </head>
 <body class="bg-[#030712]">
 
-    <!-- HEADER WITH NOTIFICATION BUTTON -->
-    <header class="bg-slate-950 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none">
+    <!-- HEADER WITH NOTIFICATION & LOGGED-IN IDENTITY -->
+    <header class="bg-slate-950 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 select-none z-20">
         <div class="flex items-center gap-3">
             <div class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></div>
             <span class="font-bold text-slate-100 text-xs tracking-wider uppercase">// EDITORIAL REVIEW STUDIO</span>
+            <span id="editorRoleDisplay" class="text-[10px] bg-cyan-950 text-cyan-300 px-2.5 py-0.5 rounded border border-cyan-800 font-mono ml-2">Role: Loading...</span>
         </div>
 
         <div class="flex items-center gap-4">
@@ -85,18 +86,33 @@
                 // AWAITING INCOMING DRAFT DISPATCH
             </div>
 
-            <!-- NOTIFICATION BUTTON -->
-            <button 
-                id="notificationBtn" 
-                onclick="loadJournalistMessage()" 
-                class="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/50 text-amber-400 font-mono text-xs px-3 py-1.5 rounded-md flex items-center gap-2 transition-all cursor-pointer shadow-lg animate-pulse"
-            >
-                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-                <span>You have a message</span>
-                <span class="bg-amber-500 text-slate-950 text-[10px] font-bold px-1.5 py-0.2 rounded-full">1</span>
-            </button>
+            <!-- LOGGED-IN EDITOR IDENTITY BADGE -->
+            <div class="flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1 rounded-lg">
+                <span class="text-[10px] text-slate-400 font-mono">Editor:</span>
+                <span id="editorNameDisplay" class="text-xs font-bold text-white font-mono">Operator</span>
+            </div>
+
+            <!-- NOTIFICATION & SENDER DROPDOWN SYSTEM -->
+            <div class="relative">
+                <button 
+                    id="notificationBtn" 
+                    class="relative bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/50 text-amber-400 font-mono text-xs px-3 py-1.5 rounded-md flex items-center gap-2 transition-all cursor-pointer shadow-lg animate-pulse"
+                >
+                    <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span>Messages</span>
+                    <span id="notifBadge" class="bg-amber-500 text-slate-950 text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
+                </button>
+
+                <!-- Sender Dropdown Menu -->
+                <div id="senderDropdown" class="hidden absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50">
+                    <div class="text-[10px] uppercase font-mono text-slate-400 px-3 py-1.5 border-b border-slate-800">Incoming Draft Senders</div>
+                    <div id="senderListContainer" class="max-h-60 overflow-y-auto mt-1 space-y-1">
+                        <div class="text-xs text-slate-500 p-3 text-center">Checking submissions...</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -132,7 +148,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                         <p class="text-slate-400 font-mono text-xs">No article loaded yet.</p>
-                        <p class="text-slate-400 font-mono text-[10px] mt-1">Click the top "You have a message" notification to open incoming journalist draft.</p>
+                        <p class="text-slate-400 font-mono text-[10px] mt-1">Click the top "Messages" notification button to open incoming draft.</p>
                     </div>
                 </div>
             </div>
@@ -141,19 +157,11 @@
         <!-- RIGHT COLUMN: LEGEND, DIRECTIVES, COMMENTS & ACTIONS -->
         <div class="w-5/12 flex flex-col gap-3 h-full overflow-hidden shrink-0">
             
-            <!-- LEGEND PANEL -->
-            <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-col gap-2 shrink-0">
-                <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">// ANNOTATION GUIDE</span>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-red-950/40 border border-red-900/60 p-2 rounded flex items-center gap-2">
-                        <span class="w-3 h-3 rounded bg-red-500 shrink-0"></span>
-                        <span class="text-[10px] text-red-200 font-bold uppercase">Red = Completely Remove</span>
-                    </div>
-                    <div class="bg-yellow-950/40 border border-yellow-900/60 p-2 rounded flex items-center gap-2">
-                        <span class="w-3 h-3 rounded bg-yellow-500 shrink-0"></span>
-                        <span class="text-[10px] text-yellow-200 font-bold uppercase">Yellow = Needs Editing</span>
-                    </div>
-                </div>
+            <!-- METADATA INFO PANEL -->
+            <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-col gap-1 shrink-0 font-mono text-xs text-slate-300">
+                <div class="flex justify-between"><span class="text-slate-500">SENDER:</span> <span id="metaSender" class="text-cyan-400">-</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">EMAIL:</span> <span id="metaEmail" class="text-white">-</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">TIMESTAMP:</span> <span id="metaTimestamp" class="text-white">-</span></div>
             </div>
 
             <!-- RECORDED HIGHLIGHT DIRECTIVES LIST -->
@@ -211,62 +219,123 @@
     </main>
 
     <!-- LOGIC SCRIPTS -->
-    <script>
-        let directives = [];
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
-        // Sample message payload coming from the Journalist Preparation Studio
-        const incomingDraftMessage = {
-            title: "Global Trade Yield Shifts & Supply Chain Routes",
-            sender: "Journalist Desk (Scraped Data Stream)",
-            timestamp: "Just now",
-            paragraphs: [
-                "Quarterly index indicates standard fluctuations across commodity supply routes. Data points collected via automated webhooks show steady output across key European corridors.",
-                "Unverified maritime surveillance metrics suggested brief friction near coastal hubs, but these telemetry data points remain unconfirmed by local sector leads.",
-                "Recommended adjustments should focus on refining real-time log outputs before final broadcast dispatch."
-            ]
-        };
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Load Journalist Message payload onto the left page
-        function loadJournalistMessage() {
-            const canvas = document.getElementById('documentCanvas');
-            const statusHeader = document.getElementById('statusHeader');
-            const notifBtn = document.getElementById('notificationBtn');
+        // Retrieve editor session from localStorage
+        const sessionData = localStorage.getItem('userSession');
+        let currentEditor = null;
 
-            if (!canvas) return;
-
-            // Render message content onto the white document page
-            canvas.classList.remove('flex', 'items-center', 'justify-center');
-            canvas.innerHTML = `
-                <div class="mb-4 pb-2 border-b border-slate-200">
-                    <div class="flex items-center justify-between text-xs text-slate-400 font-mono mb-1">
-                        <span>FROM: ${incomingDraftMessage.sender}</span>
-                        <span>RECEIVED: ${incomingDraftMessage.timestamp}</span>
-                    </div>
-                    <h1 class="text-2xl font-bold text-slate-900">${incomingDraftMessage.title}</h1>
-                </div>
-                ${incomingDraftMessage.paragraphs.map(p => `<p class="text-slate-700 leading-relaxed text-sm mb-4">${p}</p>`).join('')}
-            `;
-
-            // Update status & notification button state
-            if (statusHeader) {
-                statusHeader.innerText = "// STATUS: DRAFT LOADED & READY FOR EDITING";
-                statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
-            }
-
-            if (notifBtn) {
-                notifBtn.classList.remove('animate-pulse');
-                notifBtn.innerHTML = `
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    <span>Message Loaded</span>
-                `;
-                notifBtn.className = "bg-slate-900 border border-slate-800 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md flex items-center gap-2 cursor-default";
+        if (sessionData) {
+            try {
+                currentEditor = JSON.parse(sessionData);
+            } catch (e) {
+                console.error("Session parse error", e);
             }
         }
 
+        const editorFullName = currentEditor?.fullName || currentEditor?.['Journalist name'] || 'Anonymous Operator';
+        const editorRole = currentEditor?.journalismSection || currentEditor?.role || 'Editor';
+
+        // Display identities in the header
+        document.getElementById('editorNameDisplay').innerText = editorFullName;
+        document.getElementById('editorRoleDisplay').innerText = `Role: ${editorRole}`;
+
+        let directives = [];
+        let fetchedSubmissions = [];
+        let activeSubmission = null;
+
+        // Toggle notification dropdown visibility
+        const notifBtn = document.getElementById('notificationBtn');
+        const dropdown = document.getElementById('senderDropdown');
+
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', () => {
+            dropdown.classList.add('hidden');
+        });
+
+        dropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Real-time Supabase Fetching filtered strictly by target_role and editor credential match
+        async function fetchSubmissions() {
+            try {
+                // Fetch submissions matching the editor's target role
+                const { data, error } = await supabaseClient
+                    .from('editorial_submissions')
+                    .select('*')
+                    .eq('target_role', editorRole)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                fetchedSubmissions = data || [];
+                updateNotificationBadge();
+                populateSenderList();
+            } catch (err) {
+                console.error("Error fetching submissions:", err);
+            }
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notifBadge');
+            badge.innerText = fetchedSubmissions.length;
+        }
+
+        function populateSenderList() {
+            const container = document.getElementById('senderListContainer');
+            if (fetchedSubmissions.length === 0) {
+                container.innerHTML = '<div class="text-xs text-slate-500 p-3 text-center">No incoming messages</div>';
+                return;
+            }
+
+            container.innerHTML = fetchedSubmissions.map((sub) => `
+                <button onclick="window.loadSubmissionToCanvas('${sub.id}')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-800 transition-colors flex flex-col cursor-pointer border-b border-slate-800/50 last:border-0">
+                    <span class="text-xs font-bold text-cyan-400">👤 ${escapeHtml(sub.sender_name)}</span>
+                    <span class="text-[10px] text-slate-400">Target Role: ${escapeHtml(sub.target_role)}</span>
+                    <span class="text-[9px] text-slate-500">${new Date(sub.created_at).toLocaleTimeString()} - Status: ${sub.status}</span>
+                </button>
+            `).join('');
+        }
+
+        // Global function triggered when editor chooses a sender name from the list
+        window.loadSubmissionToCanvas = function(submissionId) {
+            const sub = fetchedSubmissions.find(s => s.id === submissionId);
+            if (!sub) return;
+
+            activeSubmission = sub;
+
+            const canvas = document.getElementById('documentCanvas');
+            canvas.classList.remove('flex', 'items-center', 'justify-center');
+            
+            if (sub.pages && sub.pages.length > 0) {
+                canvas.innerHTML = sub.pages.join('<hr class="my-8 border-slate-300">');
+            } else {
+                canvas.innerHTML = '<p class="text-slate-500 text-center py-20">Empty submission pages.</p>';
+            }
+
+            // Update Metadata panel with actual submission data
+            document.getElementById('metaSender').innerText = sub.sender_name;
+            document.getElementById('metaEmail').innerText = sub.sender_email;
+            document.getElementById('metaTimestamp').innerText = new Date(sub.created_at).toLocaleString();
+
+            // Update status header
+            const statusHeader = document.getElementById('statusHeader');
+            statusHeader.innerText = `// STATUS: LOADED SUBMISSION FOR ROLE [${sub.target_role.toUpperCase()}]`;
+            statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
+
+            dropdown.classList.add('hidden');
+        };
+
         // Apply Red or Yellow Highlight to Selected Text
-        function applyHighlight(color) {
+        window.applyHighlight = function(color) {
             const selection = window.getSelection();
             if (!selection.rangeCount || selection.isCollapsed) {
                 alert("Please highlight text inside the document canvas first.");
@@ -285,7 +354,6 @@
             range.insertNode(span);
             selection.removeAllRanges();
 
-            // Log item in directive tracking panel
             directives.push({
                 type: color,
                 text: selectedText,
@@ -295,7 +363,6 @@
             renderDirectives();
         }
 
-        // Render recorded highlight directives
         function renderDirectives() {
             const container = document.getElementById('directivesContainer');
             const countLabel = document.getElementById('directiveCount');
@@ -325,45 +392,86 @@
                             </div>
                             <p class="text-[11px] text-slate-300 font-sans italic">"${item.text}"</p>
                         </div>
-                        <button onclick="removeDirective(${index})" class="text-slate-600 hover:text-red-400 text-xs px-1 cursor-pointer">✕</button>
+                        <button onclick="window.removeDirective(${index})" class="text-slate-600 hover:text-red-400 text-xs px-1 cursor-pointer">✕</button>
                     </div>
                 `;
             });
             container.innerHTML = html;
         }
 
-        function removeDirective(index) {
+        window.removeDirective = function(index) {
             directives.splice(index, 1);
             renderDirectives();
         }
 
-        // Action Trigger: Send Back
-        function sendBackToStudio() {
+        // Action Trigger: Send Back with Editor Authentication
+        window.sendBackToStudio = async function() {
+            if (!activeSubmission) {
+                alert("No active submission loaded to send back.");
+                return;
+            }
+
             const comments = document.getElementById('editorialComments').value;
             const statusHeader = document.getElementById('statusHeader');
 
-            if (directives.length === 0 && !comments.trim()) {
-                if (!confirm("No edits or comments recorded. Send back anyway?")) return;
-            }
+            try {
+                const { error } = await supabaseClient
+                    .from('editorial_submissions')
+                    .update({ 
+                        status: 'archived'
+                    })
+                    .eq('id', activeSubmission.id);
 
-            if (statusHeader) {
-                statusHeader.innerText = "// STATUS: REVISED DRAFT DISPATCHED TO PREPARATION STUDIO";
-                statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
-            }
+                if (error) throw error;
 
-            alert("Article revision directives and comments sent back to Journalist Preparation Studio.");
+                if (statusHeader) {
+                    statusHeader.innerText = `// STATUS: REVISED BY ${editorFullName.toUpperCase()} & SENT BACK`;
+                    statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
+                }
+
+                alert(`Article revision directives and comments authenticated by editor ${editorFullName} sent back successfully.`);
+            } catch (err) {
+                console.error("Error updating submission:", err);
+                alert("Failed to send back: " + err.message);
+            }
         }
 
-        // Action Trigger: Checked / Approved
-        function approveArticle() {
+        // Action Trigger: Checked / Approved with Editor Authentication
+        window.approveArticle = async function() {
+            if (!activeSubmission) {
+                alert("No active submission loaded to approve.");
+                return;
+            }
+
             const statusHeader = document.getElementById('statusHeader');
-            if (statusHeader) {
-                statusHeader.innerText = "// STATUS: ARTICLE CHECKED & PASSED EDITORIAL REVIEW";
-                statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
-            }
 
-            alert("Article checked and approved for publication.");
+            try {
+                const { error } = await supabaseClient
+                    .from('editorial_submissions')
+                    .update({ status: 'read' })
+                    .eq('id', activeSubmission.id);
+
+                if (error) throw error;
+
+                if (statusHeader) {
+                    statusHeader.innerText = `// STATUS: CHECKED & APPROVED BY ${editorFullName.toUpperCase()}`;
+                    statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
+                }
+
+                alert(`Article checked and approved for publication by editor ${editorFullName}.`);
+            } catch (err) {
+                console.error("Error approving submission:", err);
+                alert("Failed to approve: " + err.message);
+            }
         }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        // Initial fetch on page load and automatic polling every 10 seconds
+        fetchSubmissions();
+        setInterval(fetchSubmissions, 10000);
     </script>
 </body>
 </html>
