@@ -237,11 +237,11 @@
         }
 
         const editorFullName = currentEditor?.fullName || currentEditor?.['Journalist name'] || 'Anonymous Operator';
-        const editorRole = currentEditor?.journalismSection || currentEditor?.role || 'Editor';
+        const editorRole = (currentEditor?.journalismSection || currentEditor?.role || '').trim();
 
         // Display identities in the header
         document.getElementById('editorNameDisplay').innerText = editorFullName;
-        document.getElementById('editorRoleDisplay').innerText = `Role: ${editorRole}`;
+        document.getElementById('editorRoleDisplay').innerText = `Role: ${editorRole || 'None'}`;
 
         let directives = [];
         let fetchedSubmissions = [];
@@ -264,23 +264,32 @@
             e.stopPropagation();
         });
 
-        // Real-time Supabase Fetching filtered strictly by target_role and editor credential match
+        // Fetch submissions matching target_role from Supabase in real-time
         async function fetchSubmissions() {
             try {
-                // Fetch submissions matching the editor's target role
-                const { data, error } = await supabaseClient
+                console.log("Fetching submissions for target_role:", editorRole);
+
+                let query = supabaseClient
                     .from('editorial_submissions')
                     .select('*')
-                    .eq('target_role', editorRole)
                     .order('created_at', { ascending: false });
 
+                // If an editor role is set, filter by target_role column flexibly
+                if (editorRole) {
+                    query = query.ilike('target_role', `%${editorRole}%`);
+                }
+
+                const { data, error } = await query;
+
                 if (error) throw error;
+
+                console.log("Submissions fetched successfully:", data);
 
                 fetchedSubmissions = data || [];
                 updateNotificationBadge();
                 populateSenderList();
             } catch (err) {
-                console.error("Error fetching submissions:", err);
+                console.error("Error fetching submissions from Supabase:", err.message);
             }
         }
 
@@ -299,13 +308,13 @@
             container.innerHTML = fetchedSubmissions.map((sub) => `
                 <button onclick="window.loadSubmissionToCanvas('${sub.id}')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-800 transition-colors flex flex-col cursor-pointer border-b border-slate-800/50 last:border-0">
                     <span class="text-xs font-bold text-cyan-400">👤 ${escapeHtml(sub.sender_name)}</span>
-                    <span class="text-[10px] text-slate-400">Target Role: ${escapeHtml(sub.target_role)}</span>
+                    <span class="text-[10px] text-slate-400">Role: ${escapeHtml(sub.target_role)}</span>
                     <span class="text-[9px] text-slate-500">${new Date(sub.created_at).toLocaleTimeString()} - Status: ${sub.status}</span>
                 </button>
             `).join('');
         }
 
-        // Global function triggered when editor chooses a sender name from the list
+        // Global function: Pulls data from "pages" jsonb column on the row and loads it onto canvas
         window.loadSubmissionToCanvas = function(submissionId) {
             const sub = fetchedSubmissions.find(s => s.id === submissionId);
             if (!sub) return;
@@ -315,20 +324,21 @@
             const canvas = document.getElementById('documentCanvas');
             canvas.classList.remove('flex', 'items-center', 'justify-center');
             
-            if (sub.pages && sub.pages.length > 0) {
+            // Pulls data from the "pages" column array
+            if (sub.pages && Array.isArray(sub.pages) && sub.pages.length > 0) {
                 canvas.innerHTML = sub.pages.join('<hr class="my-8 border-slate-300">');
             } else {
-                canvas.innerHTML = '<p class="text-slate-500 text-center py-20">Empty submission pages.</p>';
+                canvas.innerHTML = '<p class="text-slate-500 text-center py-20">Empty pages in this submission.</p>';
             }
 
-            // Update Metadata panel with actual submission data
+            // Update Metadata panel
             document.getElementById('metaSender').innerText = sub.sender_name;
             document.getElementById('metaEmail').innerText = sub.sender_email;
             document.getElementById('metaTimestamp').innerText = new Date(sub.created_at).toLocaleString();
 
             // Update status header
             const statusHeader = document.getElementById('statusHeader');
-            statusHeader.innerText = `// STATUS: LOADED SUBMISSION FOR ROLE [${sub.target_role.toUpperCase()}]`;
+            statusHeader.innerText = `// STATUS: LOADED RECENT [${sub.target_role.toUpperCase()}]`;
             statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
 
             dropdown.classList.add('hidden');
@@ -411,15 +421,12 @@
                 return;
             }
 
-            const comments = document.getElementById('editorialComments').value;
             const statusHeader = document.getElementById('statusHeader');
 
             try {
                 const { error } = await supabaseClient
                     .from('editorial_submissions')
-                    .update({ 
-                        status: 'archived'
-                    })
+                    .update({ status: 'archived' })
                     .eq('id', activeSubmission.id);
 
                 if (error) throw error;
@@ -429,7 +436,7 @@
                     statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
                 }
 
-                alert(`Article revision directives and comments authenticated by editor ${editorFullName} sent back successfully.`);
+                alert(`Article revision directives authenticated by editor ${editorFullName} sent back successfully.`);
             } catch (err) {
                 console.error("Error updating submission:", err);
                 alert("Failed to send back: " + err.message);
