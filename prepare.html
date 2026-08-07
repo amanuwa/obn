@@ -478,56 +478,80 @@
     };
 
     // MAIN BUTTON DISPATCH ACTION
-    window.dispatchAction = async function() {
-        const selectElement = document.getElementById('editorialPersonnelSelect');
-        const targetRole = selectElement ? selectElement.value : '';
+  window.dispatchAction = async function() {
+    const selectElement = document.getElementById('editorialPersonnelSelect');
+    const targetRole = selectElement ? selectElement.value : '';
 
-        if (!targetRole) {
-            alert('Please select an editor (Personnel) from the dropdown first.');
-            return;
-        }
+    if (!targetRole) {
+        alert('Please select an editor (Personnel) from the dropdown first.');
+        return;
+    }
 
-        if (!supabase) {
-            alert('Supabase client failed to initialize. Check config.js');
-            return;
-        }
+    // 1. Get active user session stored in LocalStorage
+    const sessionData = localStorage.getItem('userSession');
+    let user = null;
 
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) {
-            alert('Please log in before submitting.');
-            return;
-        }
-
-        const canvasElement = document.getElementById('editorialCanvas');
-        const pagesData = canvasElement ? [canvasElement.innerHTML] : [];
-
-        const actionBtn = document.getElementById('mainActionButton');
-        if (actionBtn) actionBtn.disabled = true;
-
+    if (sessionData) {
         try {
-            const { data, error } = await supabase
-                .from('editorial_submissions')
-                .insert([
-                    {
-                        sender_id: user.id,
-                        sender_name: user.user_metadata?.full_name || user.email.split('@')[0],
-                        sender_email: user.email,
-                        target_role: targetRole,
-                        pages: pagesData,
-                        status: 'unread'
-                    }
-                ]);
-
-            if (error) throw error;
-
-            alert('Submission successfully sent!');
-        } catch (err) {
-            console.error('Submission Error:', err);
-            alert('Error sending draft: ' + err.message);
-        } finally {
-            if (actionBtn) actionBtn.disabled = false;
+            user = JSON.parse(sessionData);
+        } catch (e) {
+            console.error("// ERROR PARSING USER SESSION:", e);
         }
-    };
+    }
+
+    // Fallback: Check active Supabase session if localStorage object is missing
+    if (!user && typeof supabase !== 'undefined' && supabase.auth) {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+            user = {
+                id: authUser.id,
+                fullName: authUser.user_metadata?.full_name || authUser.email.split('@')[0],
+                email: authUser.email
+            };
+        }
+    }
+
+    // Block submission ONLY if no session exists anywhere
+    if (!user) {
+        alert('Please log in before submitting.');
+        return;
+    }
+
+    const canvasElement = document.getElementById('editorialCanvas');
+    const pagesData = canvasElement ? [canvasElement.innerHTML] : [];
+
+    const actionBtn = document.getElementById('mainActionButton');
+    if (actionBtn) actionBtn.disabled = true;
+
+    try {
+        if (!supabase) {
+            throw new Error('Supabase client failed to initialize. Check config.js');
+        }
+
+        // 2. Insert draft submission into Supabase database
+        const { data, error } = await supabase
+            .from('editorial_submissions')
+            .insert([
+                {
+                    sender_id: user.id || user.uid || 'guest-id',
+                    sender_name: user.fullName || user.username || user.name || 'Anonymous Journalist',
+                    sender_email: user.email || 'journalist@terminal.internal',
+                    target_role: targetRole,
+                    pages: pagesData,
+                    status: 'unread'
+                }
+            ]);
+
+        if (error) throw error;
+
+        alert('Submission successfully sent to Editorial!');
+    } catch (err) {
+        console.error('Submission Error:', err);
+        alert('Error sending draft: ' + err.message);
+    } finally {
+        if (actionBtn) actionBtn.disabled = false;
+    }
+};
 
     // CREATE NEW A4 PAGE
     window.createNewPage = function() {
