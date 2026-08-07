@@ -415,33 +415,45 @@
         }
 
         // Action Trigger: Send Back with Editor Authentication
-        window.sendBackToStudio = async function() {
-            if (!activeSubmission) {
-                alert("No active submission loaded to send back.");
-                return;
-            }
+    // Action Trigger: Send Back to Prep Studio (Saves a new record to editorial_submissions)
+window.sendBackToStudio = async function() {
+    if (!activeSubmission) {
+        alert("No active submission loaded to send back.");
+        return;
+    }
 
-            const statusHeader = document.getElementById('statusHeader');
+    const comments = document.getElementById('editorialComments').value.trim();
+    const statusHeader = document.getElementById('statusHeader');
+    
+    // Grab the current HTML contents from the document canvas
+    const canvasElement = document.getElementById('documentCanvas');
+    const updatedPages = [canvasElement.innerHTML];
 
-            try {
-                const { error } = await supabaseClient
-                    .from('editorial_submissions')
-                    .update({ status: 'archived' })
-                    .eq('id', activeSubmission.id);
+    try {
+        // Insert a brand new record into editorial_submissions back to the studio
+        const { error } = await supabaseClient
+            .from('editorial_submissions')
+            .insert([{
+                sender_name: editorFullName, // Logged-in editor username becomes the sender
+                sender_email: currentEditor?.email || 'editor@terminal.internal',
+                target_role: activeSubmission.target_role, // Keeps the target role alignment
+                status: 'revised_by_editor',
+                pages: updatedPages
+            }]);
 
-                if (error) throw error;
+        if (error) throw error;
 
-                if (statusHeader) {
-                    statusHeader.innerText = `// STATUS: REVISED BY ${editorFullName.toUpperCase()} & SENT BACK`;
-                    statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
-                }
-
-                alert(`Article revision directives authenticated by editor ${editorFullName} sent back successfully.`);
-            } catch (err) {
-                console.error("Error updating submission:", err);
-                alert("Failed to send back: " + err.message);
-            }
+        if (statusHeader) {
+            statusHeader.innerText = `// STATUS: REVISED DRAFT SENT BACK BY ${editorFullName.toUpperCase()}`;
+            statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
         }
+
+        alert(`Article and editorial comments successfully sent back to Prep Studio by ${editorFullName}!`);
+    } catch (err) {
+        console.error("Error inserting submission response:", err);
+        alert("Failed to send back: " + err.message);
+    }
+}
 
         // Action Trigger: Checked / Approved with Editor Authentication
         window.approveArticle = async function() {
