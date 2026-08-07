@@ -323,33 +323,40 @@
     </main>
 
     <!-- LOGIC SCRIPTS -->
-    <script>
+<script type="module">
+    import { supabase } from './config.js';
 
-        import { supabase } from './config.js';
-        let currentMode = 'PREPARATION'; // 'PREPARATION' or 'REVISION'
-        let pendingDirectives = 2;
-        window.activeStreamItems = [];
+    let currentMode = 'PREPARATION'; // 'PREPARATION' or 'REVISION'
+    let pendingDirectives = 2;
+    window.activeStreamItems = [];
 
-        // SWITCH TO REVISION MODE (Triggered by Notification Click)
-        function switchToRevisionMode() {
-            currentMode = 'REVISION';
+    // SWITCH TO REVISION MODE (Triggered by Notification Click)
+    window.switchToRevisionMode = function() {
+        currentMode = 'REVISION';
 
-            // 1. Update Layout Panels
-            document.getElementById('scrapedStreamPanel').classList.add('hidden');
-            document.getElementById('editorFeedbackPanel').classList.remove('hidden');
+        // 1. Update Layout Panels
+        document.getElementById('scrapedStreamPanel')?.classList.add('hidden');
+        document.getElementById('editorFeedbackPanel')?.classList.remove('hidden');
 
-            // 2. Update Header & Indicators
-            document.getElementById('studioTitle').innerText = "// JOURNALIST STUDIO: REVISION MODE";
-            document.getElementById('modeIndicatorDot').className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
-            
-            const statusHeader = document.getElementById('statusHeader');
+        // 2. Update Header & Indicators
+        const studioTitle = document.getElementById('studioTitle');
+        if (studioTitle) studioTitle.innerText = "// JOURNALIST STUDIO: REVISION MODE";
+
+        const modeDot = document.getElementById('modeIndicatorDot');
+        if (modeDot) modeDot.className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
+        
+        const statusHeader = document.getElementById('statusHeader');
+        if (statusHeader) {
             statusHeader.innerText = "// ACTION REQUIRED: EDITORIAL DIRECTIVES RETURNED";
             statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
+        }
 
-            document.getElementById('toolbarNote').innerText = "// Clean highlighted text after resolving directives";
+        const toolbarNote = document.getElementById('toolbarNote');
+        if (toolbarNote) toolbarNote.innerText = "// Clean highlighted text after resolving directives";
 
-            // 3. Mark Notification as Read
-            const notifBtn = document.getElementById('notificationBtn');
+        // 3. Mark Notification as Read
+        const notifBtn = document.getElementById('notificationBtn');
+        if (notifBtn) {
             notifBtn.classList.remove('animate-pulse');
             notifBtn.className = "bg-slate-900 border border-slate-800 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md flex items-center gap-2 cursor-default";
             notifBtn.innerHTML = `
@@ -358,364 +365,371 @@
                 </svg>
                 <span>Revision Active</span>
             `;
+        }
 
-            // 4. Update Main Dispatch Button for Resubmission
-            const mainBtn = document.getElementById('mainActionButton');
-            const btnText = document.getElementById('actionBtnText');
-            mainBtn.className = "bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
-            btnText.innerText = "Resubmit Draft";
+        // 4. Update Main Dispatch Button for Resubmission
+        const mainBtn = document.getElementById('mainActionButton');
+        const btnText = document.getElementById('actionBtnText');
+        if (mainBtn) mainBtn.className = "bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
+        if (btnText) btnText.innerText = "Resubmit Draft";
 
-            // 5. Load Document with Editor Highlights onto Canvas
-            const canvas = document.getElementById('editorialCanvas');
+        // 5. Load Document with Editor Highlights onto Canvas
+        const canvas = document.getElementById('editorialCanvas');
+        if (canvas) {
             canvas.innerHTML = `
-                <h1 class="text-2xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Global Trade Yield Shifts</h1>
-                
-                <p class="text-slate-700 leading-relaxed text-sm mb-4">
-                    Quarterly index indicates standard fluctuations across commodity supply routes. Data points collected via automated webhooks show steady output across key European corridors.
-                </p>
+                <div class="a4-page text-slate-900">
+                    <div class="page-content space-y-4">
+                        <h1 class="text-2xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Global Trade Yield Shifts</h1>
+                        
+                        <p class="text-slate-700 leading-relaxed text-sm mb-4">
+                            Quarterly index indicates standard fluctuations across commodity supply routes. Data points collected via automated webhooks show steady output across key European corridors.
+                        </p>
 
-                <p class="text-slate-700 leading-relaxed text-sm mb-4">
-                    <span id="directive-1" class="hl-red">Unverified maritime surveillance metrics suggested brief friction near coastal hubs, but these telemetry data points remain unconfirmed by local sector leads.</span>
-                </p>
+                        <p class="text-slate-700 leading-relaxed text-sm mb-4">
+                            <span id="directive-1" class="hl-red bg-red-200 px-1 rounded">Unverified maritime surveillance metrics suggested brief friction near coastal hubs, but these telemetry data points remain unconfirmed by local sector leads.</span>
+                        </p>
 
-                <p class="text-slate-700 leading-relaxed text-sm">
-                    <span id="directive-2" class="hl-yellow">Recommended adjustments should focus on refining real-time log outputs before final broadcast dispatch.</span>
-                </p>
-            `;
-        }
-
-        // SWITCH BACK TO INITIAL PREPARATION DRAFT MODE
-        function switchToDraftMode() {
-            currentMode = 'PREPARATION';
-
-            document.getElementById('scrapedStreamPanel').classList.remove('hidden');
-            document.getElementById('editorFeedbackPanel').classList.add('hidden');
-
-            document.getElementById('studioTitle').innerText = "// JOURNALIST PREPARATION STUDIO";
-            document.getElementById('modeIndicatorDot').className = "w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse";
-            
-            const statusHeader = document.getElementById('statusHeader');
-            statusHeader.innerText = "// READY FOR LIVE MULTI-SOURCE DATA STREAM";
-            statusHeader.className = "text-[10px] font-mono text-cyan-500 uppercase tracking-widest";
-
-            document.getElementById('toolbarNote').innerText = "// Draft Workspace";
-
-            const mainBtn = document.getElementById('mainActionButton');
-            const btnText = document.getElementById('actionBtnText');
-            mainBtn.className = "bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
-            btnText.innerText = "Send to Editorial Page";
-        }
-
-        // RESOLVE FLAGGED DIRECTIVES
-        function resolveDirective(id, isDelete) {
-            const target = document.getElementById(id);
-            const card = document.getElementById(`card-${id}`);
-
-            if (target) {
-                if (isDelete) {
-                    target.remove();
-                } else {
-                    const parent = target.parentNode;
-                    while (target.firstChild) {
-                        parent.insertBefore(target.firstChild, target);
-                    }
-                    parent.removeChild(target);
-                }
-            }
-
-            if (card) {
-                card.style.opacity = '0.3';
-                card.style.pointerEvents = 'none';
-                card.querySelector('p').innerHTML += ' <span class="text-emerald-400 font-bold font-mono">(RESOLVED)</span>';
-            }
-
-            pendingDirectives = Math.max(0, pendingDirectives - 1);
-            const label = document.getElementById('pendingCount');
-            if (label) {
-                label.innerText = `${pendingDirectives} Pending`;
-                if (pendingDirectives === 0) {
-                    label.className = "text-[9px] font-mono text-emerald-400";
-                    label.innerText = "All Resolved";
-                }
-            }
-        }
-
-        // MAIN BUTTON DISPATCH ACTION
-   async function dispatchAction() {
-  const selectElement = document.getElementById('editorialPersonnelSelect');
-  const targetRole = selectElement.value;
-
-  if (!targetRole) {
-    alert('Please select an editor (Personnel) from the dropdown first.');
-    return;
-  }
-
-  // Get current authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    alert('Please log in before submitting.');
-    return;
-  }
-
-  // Extract content from your editable canvas (line 291 in your HTML)
-  const canvasElement = document.getElementById('editorialCanvas');
-  const pagesData = [canvasElement.innerHTML]; // Saves inner HTML into your JSONB pages array
-
-  const actionBtn = document.getElementById('mainActionButton');
-  actionBtn.disabled = true;
-
-  try {
-    const { data, error } = await supabase
-      .from('editorial_submissions')
-      .insert([
-        {
-          sender_id: user.id,
-          sender_name: user.user_metadata?.full_name || user.email.split('@')[0],
-          sender_email: user.email,
-          target_role: targetRole, // Sends 'editor_chief', 'editor_politics', or 'editor_finance'
-          pages: pagesData,
-          status: 'unread'
-        }
-      ]);
-
-    if (error) throw error;
-
-    alert('Submission successfully sent!');
-  } catch (err) {
-    console.error('Submission Error:', err);
-    alert('Error sending draft: ' + err.message);
-  } finally {
-    actionBtn.disabled = false;
-  }
-}
-
-        // =========================================================================
-        // REAL-TIME DATA INGESTION ENGINE (WINDOW POSTMESSAGE + BROADCAST CHANNEL ONLY)
-        // =========================================================================
-
-        // 1. Listen for postMessage transmissions directly from another iframe / window / popup
-       // 1. URL Route Listener (Pattern 1)
-document.addEventListener('DOMContentLoaded', () => {
-    try {
-        const savedData = localStorage.getItem('scrapedStreamData');
-
-        if (savedData) {
-            const parsedData = JSON.parse(savedData);
-
-            // Render into your display function
-            if (typeof renderLeftStreamPanel === 'function') {
-                renderLeftStreamPanel(parsedData);
-            } else if (typeof window.renderN8nResults === 'function') {
-                window.renderN8nResults(parsedData);
-            }
-        }
-    } catch (err) {
-        console.error("Error reading stored payload in prepare.html:", err);
-    }
-});
-// Function that dynamically builds a brand new white A4 page container
-function createNewPage() {
-    const canvas = document.getElementById('editorialCanvas');
-    if (!canvas) return null;
-
-    const pageCount = canvas.querySelectorAll('.a4-page').length + 1;
-    
-    // Create page element
-    const pageNode = document.createElement('div');
-    pageNode.className = 'a4-page text-slate-900';
-    pageNode.id = `page-${Date.now()}`;
-
-    // Create inner wrapper for card items
-    const contentArea = document.createElement('div');
-    contentArea.className = 'page-content space-y-4';
-    pageNode.appendChild(contentArea);
-
-    // Add "✕ Delete Page" button to Page 2, Page 3, etc.
-    if (pageCount > 1) {
-        const delBtn = document.createElement('button');
-        delBtn.className = 'delete-page-btn';
-        delBtn.innerText = '✕ Delete Page';
-        delBtn.onclick = function (e) {
-            e.stopPropagation();
-            if (confirm('Are you sure you want to delete this page and all its contents?')) {
-                pageNode.remove();
-            }
-        };
-        pageNode.appendChild(delBtn);
-    }
-
-    canvas.appendChild(pageNode);
-    return pageNode;
-}
-
-// Automatically create Page 1 when prepare.html opens
-document.addEventListener('DOMContentLoaded', () => {
-    const canvas = document.getElementById('editorialCanvas');
-    if (canvas && canvas.querySelectorAll('.a4-page').length === 0) {
-        createNewPage();
-    }
-});
-// 2. Window Message Listener
-window.addEventListener('message', (event) => {
-    if (event.data) {
-        const payload = event.data.payload || event.data;
-        if (Array.isArray(payload) || typeof payload === 'object') {
-            renderLeftStreamPanel(payload);
-        }
-    }
-});
-
-// 3. BroadcastChannel Listener
-try {
-    const studioChannel = new BroadcastChannel('preparation_studio_channel');
-    studioChannel.onmessage = (event) => {
-        if (event.data) {
-            renderLeftStreamPanel(event.data);
-        }
-    };
-} catch (e) {
-    console.warn("// BroadcastChannel API not supported in this browser environment.");
-}
-
-// 4. Render Engine
-function renderLeftStreamPanel(rawData) {
-    const container = document.getElementById('streamDataContainer');
-    if (!container) return;
-
-    let streamItems = [];
-
-    // Unpack dataset safely
-    if (Array.isArray(rawData)) {
-        if (rawData[0] && Array.isArray(rawData[0].news)) {
-            streamItems = rawData[0].news;
-        } else {
-            streamItems = rawData;
-        }
-    } else if (rawData && Array.isArray(rawData.news)) {
-        streamItems = rawData.news;
-    } else if (rawData) {
-        streamItems = [rawData];
-    }
-
-    if (!streamItems || streamItems.length === 0) return;
-
-    window.activeStreamItems = streamItems;
-
-    let cardsHtml = '';
-    streamItems.forEach((row, idx) => {
-        const item = row.json || row;
-        const sourceName = item.sourceName || item.source || 'LIVE STREAM';
-        const title = item.title || item.newsTitle || item.name || 'Untitled Stream Entry';
-        const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
-        const imageUrl = item.imageUrl || item.image || item.media || null;
-        const url = item.url || item.link || null;
-
-        cardsHtml += `
-            <div class="p-3 bg-slate-900/90 border border-slate-800 hover:border-cyan-500/70 rounded-lg transition-all cursor-pointer group shadow-sm"
-                 onclick="transferToEditor(${idx})">
-                
-                <div class="flex items-center justify-between text-[10px] font-mono mb-2 pb-1 border-b border-slate-800/60">
-                    <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase font-bold tracking-wider">
-                        ${sourceName}
-                    </span>
-                    <span class="text-slate-500 group-hover:text-cyan-400 text-[10px] uppercase tracking-wider transition-colors">
-                        Append ➔
-                    </span>
-                </div>
-
-                <div class="flex gap-3 items-start">
-                    ${imageUrl ? `
-                        <div class="w-12 h-12 shrink-0 overflow-hidden rounded border border-slate-700/80 bg-black/50">
-                            <img src="${imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" onerror="this.parentElement.style.display='none'">
-                        </div>
-                    ` : ''}
-
-                    <div class="flex-1 min-w-0">
-                        <h4 class="text-cyan-300 font-sans font-bold text-xs leading-snug mb-1 group-hover:text-cyan-200 break-words">
-                            ${title}
-                        </h4>
-                        <p class="text-slate-300 font-sans text-[11px] leading-relaxed line-clamp-3 break-words">
-                            ${content}
+                        <p class="text-slate-700 leading-relaxed text-sm">
+                            <span id="directive-2" class="hl-yellow bg-yellow-200 px-1 rounded">Recommended adjustments should focus on refining real-time log outputs before final broadcast dispatch.</span>
                         </p>
                     </div>
                 </div>
+            `;
+        }
+    };
 
-                ${url ? `
-                    <div class="mt-2 pt-1 border-t border-slate-800/40">
-                        <a href="${url}" target="_blank" onclick="event.stopPropagation();" class="text-[10px] text-slate-500 hover:text-cyan-400 font-mono truncate block">
-                            🔗 ${url}
-                        </a>
+    // SWITCH BACK TO INITIAL PREPARATION DRAFT MODE
+    window.switchToDraftMode = function() {
+        currentMode = 'PREPARATION';
+
+        document.getElementById('scrapedStreamPanel')?.classList.remove('hidden');
+        document.getElementById('editorFeedbackPanel')?.classList.add('hidden');
+
+        const studioTitle = document.getElementById('studioTitle');
+        if (studioTitle) studioTitle.innerText = "// JOURNALIST PREPARATION STUDIO";
+
+        const modeDot = document.getElementById('modeIndicatorDot');
+        if (modeDot) modeDot.className = "w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse";
+        
+        const statusHeader = document.getElementById('statusHeader');
+        if (statusHeader) {
+            statusHeader.innerText = "// READY FOR LIVE MULTI-SOURCE DATA STREAM";
+            statusHeader.className = "text-[10px] font-mono text-cyan-500 uppercase tracking-widest";
+        }
+
+        const toolbarNote = document.getElementById('toolbarNote');
+        if (toolbarNote) toolbarNote.innerText = "// Draft Workspace";
+
+        const mainBtn = document.getElementById('mainActionButton');
+        const btnText = document.getElementById('actionBtnText');
+        if (mainBtn) mainBtn.className = "bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
+        if (btnText) btnText.innerText = "Send to Editorial Page";
+    };
+
+    // RESOLVE FLAGGED DIRECTIVES
+    window.resolveDirective = function(id, isDelete) {
+        const target = document.getElementById(id);
+        const card = document.getElementById(`card-${id}`);
+
+        if (target) {
+            if (isDelete) {
+                target.remove();
+            } else {
+                const parent = target.parentNode;
+                while (target.firstChild) {
+                    parent.insertBefore(target.firstChild, target);
+                }
+                parent.removeChild(target);
+            }
+        }
+
+        if (card) {
+            card.style.opacity = '0.3';
+            card.style.pointerEvents = 'none';
+            const p = card.querySelector('p');
+            if (p) p.innerHTML += ' <span class="text-emerald-400 font-bold font-mono">(RESOLVED)</span>';
+        }
+
+        pendingDirectives = Math.max(0, pendingDirectives - 1);
+        const label = document.getElementById('pendingCount');
+        if (label) {
+            label.innerText = `${pendingDirectives} Pending`;
+            if (pendingDirectives === 0) {
+                label.className = "text-[9px] font-mono text-emerald-400";
+                label.innerText = "All Resolved";
+            }
+        }
+    };
+
+    // MAIN BUTTON DISPATCH ACTION
+    window.dispatchAction = async function() {
+        const selectElement = document.getElementById('editorialPersonnelSelect');
+        const targetRole = selectElement ? selectElement.value : '';
+
+        if (!targetRole) {
+            alert('Please select an editor (Personnel) from the dropdown first.');
+            return;
+        }
+
+        if (!supabase) {
+            alert('Supabase client failed to initialize. Check config.js');
+            return;
+        }
+
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            alert('Please log in before submitting.');
+            return;
+        }
+
+        const canvasElement = document.getElementById('editorialCanvas');
+        const pagesData = canvasElement ? [canvasElement.innerHTML] : [];
+
+        const actionBtn = document.getElementById('mainActionButton');
+        if (actionBtn) actionBtn.disabled = true;
+
+        try {
+            const { data, error } = await supabase
+                .from('editorial_submissions')
+                .insert([
+                    {
+                        sender_id: user.id,
+                        sender_name: user.user_metadata?.full_name || user.email.split('@')[0],
+                        sender_email: user.email,
+                        target_role: targetRole,
+                        pages: pagesData,
+                        status: 'unread'
+                    }
+                ]);
+
+            if (error) throw error;
+
+            alert('Submission successfully sent!');
+        } catch (err) {
+            console.error('Submission Error:', err);
+            alert('Error sending draft: ' + err.message);
+        } finally {
+            if (actionBtn) actionBtn.disabled = false;
+        }
+    };
+
+    // CREATE NEW A4 PAGE
+    window.createNewPage = function() {
+        const canvas = document.getElementById('editorialCanvas');
+        if (!canvas) return null;
+
+        const pageCount = canvas.querySelectorAll('.a4-page').length + 1;
+        
+        const pageNode = document.createElement('div');
+        pageNode.className = 'a4-page text-slate-900 bg-white p-8 mb-6 shadow-lg rounded-sm relative min-h-[1050px]';
+        pageNode.id = `page-${Date.now()}`;
+
+        const contentArea = document.createElement('div');
+        contentArea.className = 'page-content space-y-4';
+        pageNode.appendChild(contentArea);
+
+        if (pageCount > 1) {
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-page-btn absolute top-2 right-2 text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded font-mono cursor-pointer';
+            delBtn.innerText = '✕ Delete Page';
+            delBtn.onclick = function (e) {
+                e.stopPropagation();
+                if (confirm('Are you sure you want to delete this page and all its contents?')) {
+                    pageNode.remove();
+                }
+            };
+            pageNode.appendChild(delBtn);
+        }
+
+        canvas.appendChild(pageNode);
+        return pageNode;
+    };
+
+    // RENDER ENGINE
+    window.renderLeftStreamPanel = function(rawData) {
+        const container = document.getElementById('streamDataContainer');
+        if (!container) {
+            console.error("// PREPARE STUDIO: #streamDataContainer element not found.");
+            return;
+        }
+
+        let streamItems = [];
+
+        if (Array.isArray(rawData)) {
+            if (rawData[0] && Array.isArray(rawData[0].news)) {
+                streamItems = rawData[0].news;
+            } else {
+                streamItems = rawData;
+            }
+        } else if (rawData && Array.isArray(rawData.news)) {
+            streamItems = rawData.news;
+        } else if (rawData) {
+            streamItems = [rawData];
+        }
+
+        if (!streamItems || streamItems.length === 0) {
+            container.innerHTML = `<div class="text-slate-500 font-mono text-xs p-3">// No scraped data available in stream.</div>`;
+            return;
+        }
+
+        window.activeStreamItems = streamItems;
+
+        let cardsHtml = '';
+        streamItems.forEach((row, idx) => {
+            const item = row.json || row;
+            const sourceName = item.sourceName || item.source || 'LIVE STREAM';
+            const title = item.title || item.newsTitle || item.name || 'Untitled Stream Entry';
+            const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+            const imageUrl = item.imageUrl || item.image || item.media || null;
+            const url = item.url || item.link || null;
+
+            cardsHtml += `
+                <div class="p-3 bg-slate-900/90 border border-slate-800 hover:border-cyan-500/70 rounded-lg transition-all cursor-pointer group shadow-sm mb-2"
+                     onclick="window.transferToEditor(${idx})">
+                    
+                    <div class="flex items-center justify-between text-[10px] font-mono mb-2 pb-1 border-b border-slate-800/60">
+                        <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase font-bold tracking-wider">
+                            ${sourceName}
+                        </span>
+                        <span class="text-slate-500 group-hover:text-cyan-400 text-[10px] uppercase tracking-wider transition-colors">
+                            Append ➔
+                        </span>
                     </div>
-                ` : ''}
-            </div>
+
+                    <div class="flex gap-3 items-start">
+                        ${imageUrl ? `
+                            <div class="w-12 h-12 shrink-0 overflow-hidden rounded border border-slate-700/80 bg-black/50">
+                                <img src="${imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" onerror="this.parentElement.style.display='none'">
+                            </div>
+                        ` : ''}
+
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-cyan-300 font-sans font-bold text-xs leading-snug mb-1 group-hover:text-cyan-200 break-words">
+                                ${title}
+                            </h4>
+                            <p class="text-slate-300 font-sans text-[11px] leading-relaxed line-clamp-3 break-words">
+                                ${content}
+                            </p>
+                        </div>
+                    </div>
+
+                    ${url ? `
+                        <div class="mt-2 pt-1 border-t border-slate-800/40">
+                            <a href="${url}" target="_blank" onclick="event.stopPropagation();" class="text-[10px] text-slate-500 hover:text-cyan-400 font-mono truncate block">
+                                🔗 ${url}
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+
+        container.innerHTML = cardsHtml;
+    };
+
+    // TRANSFER CLICKED LEFT CARD DETAILS STRAIGHT INTO RIGHT WHITE CANVAS DRAFT
+    window.transferToEditor = function(index) {
+        if (!window.activeStreamItems || !window.activeStreamItems[index]) return;
+
+        const row = window.activeStreamItems[index];
+        const item = row.json || row;
+
+        const title = item.title || item.newsTitle || 'Scraped Segment';
+        const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+        const imageUrl = item.imageUrl || item.image || item.media || null;
+
+        const canvas = document.getElementById('editorialCanvas');
+        if (!canvas) return;
+
+        let pages = canvas.querySelectorAll('.a4-page');
+        let targetPage = pages[pages.length - 1];
+        if (!targetPage) {
+            targetPage = window.createNewPage();
+        }
+
+        let contentArea = targetPage.querySelector('.page-content') || targetPage;
+
+        const segmentNode = document.createElement('div');
+        segmentNode.className = 'mt-5 pt-3 border-t border-slate-200';
+        segmentNode.innerHTML = `
+            <h3 class="text-lg font-bold text-slate-900 mb-2">${title}</h3>
+            ${imageUrl ? `
+                <div class="my-3 max-h-80 overflow-hidden rounded-md border border-slate-300 bg-slate-100">
+                    <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'" />
+                </div>
+            ` : ''}
+            <p class="text-slate-700 text-sm leading-relaxed">${content}</p>
         `;
+
+        contentArea.appendChild(segmentNode);
+
+        const maxUsableHeight = 980; 
+
+        if (contentArea.scrollHeight > maxUsableHeight) {
+            segmentNode.remove();
+
+            const newPage = window.createNewPage();
+            const newContentArea = newPage.querySelector('.page-content') || newPage;
+
+            newContentArea.appendChild(segmentNode);
+            newPage.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            segmentNode.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    };
+
+    // BOOTSTRAP INITIALIZATION & RECEIVER LISTENERS
+    function loadSavedDataFromStorage() {
+        try {
+            const savedData = localStorage.getItem('scrapedStreamData') || localStorage.getItem('selectedEditorialContent');
+
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                window.renderLeftStreamPanel(parsedData);
+            }
+        } catch (err) {
+            console.error("Error reading stored payload in prepare.html:", err);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const canvas = document.getElementById('editorialCanvas');
+        if (canvas && canvas.querySelectorAll('.a4-page').length === 0) {
+            window.createNewPage();
+        }
+
+        // Load data immediately on boot
+        loadSavedDataFromStorage();
     });
 
-    container.innerHTML = cardsHtml;
-}
+    // Window postMessage Listener
+    window.addEventListener('message', (event) => {
+        if (event.data) {
+            const payload = event.data.payload || event.data;
+            if (Array.isArray(payload) || typeof payload === 'object') {
+                window.renderLeftStreamPanel(payload);
+            }
+        }
+    });
 
-        // TRANSFER CLICKED LEFT CARD DETAILS STRAIGHT INTO RIGHT WHITE CANVAS DRAFT
-     // TRANSFER CLICKED LEFT CARD DETAILS STRAIGHT INTO RIGHT WHITE CANVAS DRAFT
-function transferToEditor(index) {
-    if (!window.activeStreamItems || !window.activeStreamItems[index]) return;
-
-    const row = window.activeStreamItems[index];
-    const item = row.json || row;
-
-    const title = item.title || item.newsTitle || 'Scraped Segment';
-    const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
-    const imageUrl = item.imageUrl || item.image || item.media || null;
-
-    const canvas = document.getElementById('editorialCanvas');
-    if (!canvas) return;
-
-    // 1. Get the current last page, or create Page 1 if none exists
-    let pages = canvas.querySelectorAll('.a4-page');
-    let targetPage = pages[pages.length - 1];
-    if (!targetPage) {
-        targetPage = createNewPage();
+    // BroadcastChannel Listener
+    try {
+        const studioChannel = new BroadcastChannel('preparation_studio_channel');
+        studioChannel.onmessage = (event) => {
+            if (event.data) {
+                window.renderLeftStreamPanel(event.data);
+            }
+        };
+    } catch (e) {
+        console.warn("// BroadcastChannel API not supported in this browser environment.");
     }
 
-    let contentArea = targetPage.querySelector('.page-content') || targetPage;
-
-    // 2. Create the segment node
-    const segmentNode = document.createElement('div');
-    segmentNode.className = 'mt-5 pt-3 border-t border-slate-200';
-    segmentNode.innerHTML = `
-        <h3 class="text-lg font-bold text-slate-900 mb-2">${title}</h3>
-        ${imageUrl ? `
-            <div class="my-3 max-h-80 overflow-hidden rounded-md border border-slate-300 bg-slate-100">
-                <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'" />
-            </div>
-        ` : ''}
-        <p class="text-slate-700 text-sm leading-relaxed">${content}</p>
-    `;
-
-    // Temporarily append to measure height
-    contentArea.appendChild(segmentNode);
-
-    // 3. AUTO-PAGE CREATION CHECK:
-    // A standard A4 sheet in pixels is roughly 1120px tall (297mm).
-    // Subtracting padding leaves ~950px - 1000px of usable content height.
-    const maxUsableHeight = 980; 
-
-    if (contentArea.scrollHeight > maxUsableHeight) {
-        // Remove the segment that caused the overflow from Page 1
-        segmentNode.remove();
-
-        // Build a fresh NEW Page (Page 2, 3, etc.)
-        const newPage = createNewPage();
-        const newContentArea = newPage.querySelector('.page-content') || newPage;
-
-        // Append the segment to the newly built page
-        newContentArea.appendChild(segmentNode);
-
-        // Scroll to the new page automatically
-        newPage.scrollIntoView({ behavior: 'smooth' });
-    } else {
-        segmentNode.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-}
-    </script>
+    // LocalStorage Change Listener
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'scrapedStreamData' || e.key === 'selectedEditorialContent') {
+            loadSavedDataFromStorage();
+        }
+    });
+</script>
 </body>
 </html>
