@@ -517,31 +517,31 @@
         }));
 
         // Exact mapping aligned with your GitHub repository file names
-        const ROUTE_MAP = {
-            "editor": "Editorpage.html",
-            "editorpage": "Editorpage.html",
-            "Prepare": "prepare.html",
-            "management": "managerpipeline.html",
-            "production team": "productionteam.html",
-            "world politics and governance": "World Politics and Governance.html",
-            "sports & analytics": "sport.html",
-            "sport and analytics": "sport.html",
-            "sport": "sport.html",
-            "sports": "sport.html",
-            "business and finance": "business and finance.html"
-        };
+  const ROUTE_MAP = {
+    "editor": "Editorpage.html",
+    "editorpage": "Editorpage.html",
+    "prepare": "prepare.html",
+    "management": "managerpipeline.html",
+    "production team": "productionteam.html",
+    "world politics and governance": "World Politics and Governance.html",
+    "sports & analytics": "sport.html",
+    "sport and analytics": "sport.html",
+    "sport": "sport.html",
+    "sports": "sport.html",
+    "business and finance": "business and finance.html"
+};
 
-        // 1. Direct key match
-        let targetPage = ROUTE_MAP[sectionLower] || ROUTE_MAP[roleLower];
+// 1. Direct key map
+let targetPage = ROUTE_MAP[sectionLower] || ROUTE_MAP[roleLower];
 
-        // 2. Keyword fallback for variations or legacy entries
-        if (!targetPage) {
-            if (combined.includes("editor")) {
-                targetPage = "Editorpage.html";
-                 } else if (combined.includes("Prepare")) {
-                targetPage = "prepare.html";
-            } else if (combined.includes("manage")) {
-                targetPage = "managerpipeline.html";
+// 2. Keyword fallback for variations or legacy entries
+if (!targetPage) {
+    if (combined.includes("editor")) {
+        targetPage = "Editorpage.html";
+    } else if (combined.includes("prepare")) {
+        targetPage = "prepare.html";
+    } else if (combined.includes("manage")) {
+        targetPage = "managerpipeline.html";
             } else if (combined.includes("production")) {
                 targetPage = "productionteam.html";
             } else if (combined.includes("poltic") || combined.includes("governance")) {
