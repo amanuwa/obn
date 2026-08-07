@@ -644,55 +644,76 @@
     };
 
     // TRANSFER CLICKED LEFT CARD DETAILS STRAIGHT INTO RIGHT WHITE CANVAS DRAFT
-    window.transferToEditor = function(index) {
-        if (!window.activeStreamItems || !window.activeStreamItems[index]) return;
+ window.transferToEditor = async function(index) {
+    if (!window.activeStreamItems || !window.activeStreamItems[index]) return;
 
-        const row = window.activeStreamItems[index];
-        const item = row.json || row;
+    const row = window.activeStreamItems[index];
+    const item = row.json || row;
 
-        const title = item.title || item.newsTitle || 'Scraped Segment';
-        const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
-        const imageUrl = item.imageUrl || item.image || item.media || null;
+    const title = item.title || item.newsTitle || 'Scraped Segment';
+    const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+    const imageUrl = item.imageUrl || item.image || item.media || null;
 
-        const canvas = document.getElementById('editorialCanvas');
-        if (!canvas) return;
+    const canvas = document.getElementById('editorialCanvas');
+    if (!canvas) return;
 
-        let pages = canvas.querySelectorAll('.a4-page');
-        let targetPage = pages[pages.length - 1];
-        if (!targetPage) {
-            targetPage = window.createNewPage();
-        }
+    // 1. Get current last page, or create Page 1 if canvas is empty
+    let pages = canvas.querySelectorAll('.a4-page');
+    let targetPage = pages[pages.length - 1];
+    if (!targetPage) {
+        targetPage = window.createNewPage();
+    }
 
-        let contentArea = targetPage.querySelector('.page-content') || targetPage;
+    let contentArea = targetPage.querySelector('.page-content') || targetPage;
 
-        const segmentNode = document.createElement('div');
-        segmentNode.className = 'mt-5 pt-3 border-t border-slate-200';
-        segmentNode.innerHTML = `
-            <h3 class="text-lg font-bold text-slate-900 mb-2">${title}</h3>
-            ${imageUrl ? `
-                <div class="my-3 max-h-80 overflow-hidden rounded-md border border-slate-300 bg-slate-100">
-                    <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'" />
-                </div>
-            ` : ''}
-            <p class="text-slate-700 text-sm leading-relaxed">${content}</p>
-        `;
+    // 2. Build segment node
+    const segmentNode = document.createElement('div');
+    segmentNode.className = 'mt-4 pt-3 border-t border-slate-200';
+    segmentNode.innerHTML = `
+        <h3 class="text-base font-bold text-slate-900 mb-2">${title}</h3>
+        ${imageUrl ? `
+            <div class="my-2 max-h-72 overflow-hidden rounded-md border border-slate-300 bg-slate-100">
+                <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover max-h-64" onerror="this.parentElement.style.display='none'" />
+            </div>
+        ` : ''}
+        <p class="text-slate-700 text-xs leading-relaxed">${content}</p>
+    `;
 
-        contentArea.appendChild(segmentNode);
+    // Append temporarily to the active page to measure height
+    contentArea.appendChild(segmentNode);
 
-        const maxUsableHeight = 980; 
+    // 3. WAIT FOR IMAGE TO LOAD completely so height is measured accurately
+    const imgElement = segmentNode.querySelector('img');
+    if (imgElement && !imgElement.complete) {
+        await new Promise((resolve) => {
+            imgElement.onload = resolve;
+            imgElement.onerror = resolve; // Continue even if image URL is broken
+        });
+    }
 
-        if (contentArea.scrollHeight > maxUsableHeight) {
-            segmentNode.remove();
+    // 4. MAX A4 HEIGHT CHECK:
+    // A standard A4 page is 1122px tall. Subtracting top/bottom padding (80px total)
+    // gives ~1040px max printable height.
+    const maxAllowedHeight = 1000; 
 
-            const newPage = window.createNewPage();
-            const newContentArea = newPage.querySelector('.page-content') || newPage;
+    // Check if the newly added card pushes the content area over the page limit
+    if (targetPage.offsetHeight > maxAllowedHeight || contentArea.scrollHeight > maxAllowedHeight) {
+        // Remove the overflowing card from Page 1
+        segmentNode.remove();
 
-            newContentArea.appendChild(segmentNode);
-            newPage.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            segmentNode.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-    };
+        // Create a BRAND NEW Page (Page 2, Page 3, etc.)
+        const newPage = window.createNewPage();
+        const newContentArea = newPage.querySelector('.page-content') || newPage;
+
+        // Append the card into the new page
+        newContentArea.appendChild(segmentNode);
+
+        // Smooth scroll focus down to the new page
+        newPage.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        segmentNode.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+};
 
     // BOOTSTRAP INITIALIZATION & RECEIVER LISTENERS
     function loadSavedDataFromStorage() {
