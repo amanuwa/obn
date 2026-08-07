@@ -98,17 +98,33 @@
 }
 
     /* Individual A4 Page styling */
-    .a4-page {
-        position: relative;
-        width: 210mm;
-        min-height: 297mm;
-        background: #ffffff;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-        padding: 20mm;
-        box-sizing: border-box;
-        color: #0f172a;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    }
+    /* Fix A4 Page dimensions */
+.a4-page {
+    position: relative;
+    width: 794px; /* Standard A4 width at 96 DPI */
+    min-height: 1122px; /* Standard A4 height at 96 DPI */
+    box-sizing: border-box;
+    background-color: #ffffff;
+    padding: 40px;
+    margin-bottom: 30px;
+}
+
+/* Force inner content area to have strict bounds for measurement */
+.a4-page .page-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Prevent image sizing glitches */
+.a4-page img {
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 320px !important;
+    object-fit: cover;
+    border-radius: 4px;
+    display: block;
+}
 
     /* Delete button for added pages */
     .delete-page-btn {
