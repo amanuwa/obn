@@ -414,8 +414,8 @@
             renderDirectives();
         }
 
-        // Action Trigger: Send Back with Editor Authentication
-    // Action Trigger: Send Back to Prep Studio (Saves a new record to editorial_submissions)
+    
+// Action Trigger: Send Back to Prep Studio with Full Content, Highlights, Images & Comments
 window.sendBackToStudio = async function() {
     if (!activeSubmission) {
         alert("No active submission loaded to send back.");
@@ -425,12 +425,24 @@ window.sendBackToStudio = async function() {
     const comments = document.getElementById('editorialComments').value.trim();
     const statusHeader = document.getElementById('statusHeader');
     
-    // Grab the current HTML contents from the document canvas
+    // Grab the full HTML contents from the document canvas (including images, text, and highlights)
     const canvasElement = document.getElementById('documentCanvas');
-    const updatedPages = [canvasElement.innerHTML];
+    
+    // Combine canvas HTML and general comments so nothing is left behind
+    const fullContentHTML = `
+        <div class="editor-review-payload">
+            <div class="canvas-content mb-6">${canvasElement.innerHTML}</div>
+            ${comments ? `<div class="editor-feedback bg-slate-900 text-white p-4 rounded-lg mt-4 border border-cyan-800">
+                <h4 class="text-cyan-400 font-bold text-xs uppercase mb-1">// Feedback from Editor: ${editorFullName}</h4>
+                <p class="text-sm">${escapeHtml(comments)}</p>
+            </div>` : ''}
+        </div>
+    `;
+
+    const updatedPages = [fullContentHTML];
 
     try {
-        // Insert a brand new record into editorial_submissions back to the studio
+        // Insert a brand new record into editorial_submissions carrying all text, images, highlights, and comments
         const { error } = await supabaseClient
             .from('editorial_submissions')
             .insert([{
@@ -438,17 +450,17 @@ window.sendBackToStudio = async function() {
                 sender_email: currentEditor?.email || 'editor@terminal.internal',
                 target_role: activeSubmission.target_role, // Keeps the target role alignment
                 status: 'revised_by_editor',
-                pages: updatedPages
+                pages: updatedPages // Saves all HTML data including images and highlights
             }]);
 
         if (error) throw error;
 
         if (statusHeader) {
-            statusHeader.innerText = `// STATUS: REVISED DRAFT SENT BACK BY ${editorFullName.toUpperCase()}`;
+            statusHeader.innerText = `// STATUS: REVISED DRAFT & COMMENTS SENT BACK BY ${editorFullName.toUpperCase()}`;
             statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
         }
 
-        alert(`Article and editorial comments successfully sent back to Prep Studio by ${editorFullName}!`);
+        alert(`Article, images, highlights, and comments successfully sent back to Prep Studio by ${editorFullName}!`);
     } catch (err) {
         console.error("Error inserting submission response:", err);
         alert("Failed to send back: " + err.message);
