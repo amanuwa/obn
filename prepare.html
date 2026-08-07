@@ -478,7 +478,7 @@
     };
 
     // MAIN BUTTON DISPATCH ACTION
-  window.dispatchAction = async function() {
+window.dispatchAction = async function() {
     const selectElement = document.getElementById('editorialPersonnelSelect');
     const targetRole = selectElement ? selectElement.value : '';
 
@@ -487,7 +487,7 @@
         return;
     }
 
-    // 1. Get active user session stored in LocalStorage
+    // 1. Get active user session stored from login / custompage navigation
     const sessionData = localStorage.getItem('userSession');
     let user = null;
 
@@ -499,22 +499,33 @@
         }
     }
 
-    // Fallback: Check active Supabase session if localStorage object is missing
+    // Fallback: Check active Supabase session if localStorage object is unreadable
     if (!user && typeof supabase !== 'undefined' && supabase.auth) {
         const { data: { user: authUser } } = await supabase.auth.getUser();
         if (authUser) {
             user = {
                 id: authUser.id,
-                fullName: authUser.user_metadata?.full_name || authUser.email.split('@')[0],
+                fullName: authUser.user_metadata?.full_name || authUser.email?.split('@')[0],
                 email: authUser.email
             };
         }
     }
 
-    // Block submission ONLY if no session exists anywhere
     if (!user) {
         alert('Please log in before submitting.');
         return;
+    }
+
+    // 2. Extract logged-in name dynamically across common property naming keys
+    const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name || 'Journalist';
+    const loggedInEmail = user.email || 'journalist@terminal.internal';
+
+    // 3. Ensure sender_id matches UUID format required by Supabase DB
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    let senderUuid = (user.id || user.uid || '').toString();
+
+    if (!uuidRegex.test(senderUuid)) {
+        senderUuid = '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12);
     }
 
     const canvasElement = document.getElementById('editorialCanvas');
@@ -528,14 +539,14 @@
             throw new Error('Supabase client failed to initialize. Check config.js');
         }
 
-        // 2. Insert draft submission into Supabase database
+        // 4. Submit to Supabase with the exact logged-in user details
         const { data, error } = await supabase
             .from('editorial_submissions')
             .insert([
                 {
-                    sender_id: user.id || user.uid || 'guest-id',
-                    sender_name: user.fullName || user.username || user.name || 'Anonymous Journalist',
-                    sender_email: user.email || 'journalist@terminal.internal',
+                    sender_id: senderUuid,
+                    sender_name: loggedInName,
+                    sender_email: loggedInEmail,
                     target_role: targetRole,
                     pages: pagesData,
                     status: 'unread'
@@ -544,7 +555,7 @@
 
         if (error) throw error;
 
-        alert('Submission successfully sent to Editorial!');
+        alert(`Submission from ${loggedInName} successfully sent to Editorial!`);
     } catch (err) {
         console.error('Submission Error:', err);
         alert('Error sending draft: ' + err.message);
