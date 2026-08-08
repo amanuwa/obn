@@ -346,75 +346,144 @@
     let currentMode = 'PREPARATION'; // 'PREPARATION' or 'REVISION'
     let pendingDirectives = 2;
     window.activeStreamItems = [];
+    let fetchedSubmissions = [];
+    let activeSubmission = null;
 
-    // SWITCH TO REVISION MODE (Triggered by Notification Click)
-    window.switchToRevisionMode = function() {
-        currentMode = 'REVISION';
+    // Toggle notification dropdown visibility on click
+    const notifBtn = document.getElementById('notificationBtn');
+    const dropdown = document.getElementById('senderDropdown');
 
-        // 1. Update Layout Panels
-        document.getElementById('scrapedStreamPanel')?.classList.add('hidden');
-        document.getElementById('editorFeedbackPanel')?.classList.remove('hidden');
+    if (notifBtn && dropdown) {
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
 
-        // 2. Update Header & Indicators
-        const studioTitle = document.getElementById('studioTitle');
-        if (studioTitle) studioTitle.innerText = "// JOURNALIST STUDIO: REVISION MODE";
+        document.addEventListener('click', () => {
+            dropdown.classList.add('hidden');
+        });
 
-        const modeDot = document.getElementById('modeIndicatorDot');
-        if (modeDot) modeDot.className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
-        
-        const statusHeader = document.getElementById('statusHeader');
-        if (statusHeader) {
-            statusHeader.innerText = "// ACTION REQUIRED: EDITORIAL DIRECTIVES RETURNED";
-            statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
+        dropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    // Real-time Supabase Fetching for prepare studio target roles
+    async function fetchPrepareSubmissions() {
+        try {
+            const { data, error } = await supabase
+                .from('editorial_submissions')
+                .select('*')
+                .or('target_role.ilike.%prepare_studio%,target_role.ilike.%prepare%')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            fetchedSubmissions = data || [];
+            updateNotificationBadge();
+            populateSenderList();
+        } catch (err) {
+            console.error("Error fetching incoming submissions:", err.message);
+        }
+    }
+
+    function updateNotificationBadge() {
+        const badge = document.getElementById('notifBadge');
+        if (badge) {
+            badge.innerText = fetchedSubmissions.length;
+        }
+    }
+
+    function populateSenderList() {
+        const container = document.getElementById('senderListContainer');
+        if (!container) return;
+
+        if (fetchedSubmissions.length === 0) {
+            container.innerHTML = '<div class="text-xs text-slate-500 p-3 text-center">No incoming messages</div>';
+            return;
         }
 
-        const toolbarNote = document.getElementById('toolbarNote');
-        if (toolbarNote) toolbarNote.innerText = "// Clean highlighted text after resolving directives";
+        container.innerHTML = fetchedSubmissions.map((sub) => `
+            <button onclick="window.loadSubmissionToPrepare('${sub.id}')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-800 transition-colors flex flex-col cursor-pointer border-b border-slate-800/50 last:border-0">
+                <span class="text-xs font-bold text-cyan-400">👤 Editor: ${escapeHtml(sub.sender_name)}</span>
+                <span class="text-[10px] text-slate-400">Status: ${sub.status}</span>
+                <span class="text-[9px] text-slate-500">${new Date(sub.created_at).toLocaleTimeString()}</span>
+            </button>
+        `).join('');
+    }
 
-        // 3. Mark Notification as Read
-        const notifBtn = document.getElementById('notificationBtn');
-        if (notifBtn) {
-            notifBtn.classList.remove('animate-pulse');
-            notifBtn.className = "bg-slate-900 border border-slate-800 text-slate-400 font-mono text-xs px-3 py-1.5 rounded-md flex items-center gap-2 cursor-default";
-            notifBtn.innerHTML = `
-                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                <span>Revision Active</span>
-            `;
+    // Load selected submission data into revision view and canvas
+    window.loadSubmissionToPrepare = function(submissionId) {
+        const sub = fetchedSubmissions.find(s => s.id === submissionId);
+        if (!sub) return;
+
+        activeSubmission = sub;
+        window.switchToRevisionMode();
+
+        const commentBox = document.getElementById('editorCommentText');
+        if (commentBox) {
+            commentBox.innerText = sub.comments || "Review and incorporate editor directives below.";
         }
 
-        // 4. Update Main Dispatch Button for Resubmission
-        const mainBtn = document.getElementById('mainActionButton');
-        const btnText = document.getElementById('actionBtnText');
-        if (mainBtn) mainBtn.className = "bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
-        if (btnText) btnText.innerText = "Resubmit Draft";
-
-        // 5. Load Document with Editor Highlights onto Canvas
         const canvas = document.getElementById('editorialCanvas');
         if (canvas) {
-            canvas.innerHTML = `
-                <div class="a4-page text-slate-900">
-                    <div class="page-content space-y-4">
-                        <h1 class="text-2xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Global Trade Yield Shifts</h1>
-                        
-                        <p class="text-slate-700 leading-relaxed text-sm mb-4">
-                            Quarterly index indicates standard fluctuations across commodity supply routes. Data points collected via automated webhooks show steady output across key European corridors.
-                        </p>
-
-                        <p class="text-slate-700 leading-relaxed text-sm mb-4">
-                            <span id="directive-1" class="hl-red bg-red-200 px-1 rounded">Unverified maritime surveillance metrics suggested brief friction near coastal hubs, but these telemetry data points remain unconfirmed by local sector leads.</span>
-                        </p>
-
-                        <p class="text-slate-700 leading-relaxed text-sm">
-                            <span id="directive-2" class="hl-yellow bg-yellow-200 px-1 rounded">Recommended adjustments should focus on refining real-time log outputs before final broadcast dispatch.</span>
-                        </p>
-                    </div>
-                </div>
-            `;
+            if (sub.pages && Array.isArray(sub.pages) && sub.pages.length > 0) {
+                canvas.innerHTML = sub.pages.join('<hr class="my-8 border-slate-300">');
+            } else {
+                canvas.innerHTML = '<p class="text-slate-500 text-center py-20">Empty revision content.</p>';
+            }
         }
+
+        if (dropdown) dropdown.classList.add('hidden');
     };
 
+    // SWITCH TO REVISION MODE (Triggered by Notification Click)
+    // SWITCH TO REVISION MODE (Dynamic with Supabase Data)
+window.switchToRevisionMode = function(sub) {
+    currentMode = 'REVISION';
+
+    // 1. Update Layout Panels
+    document.getElementById('scrapedStreamPanel')?.classList.add('hidden');
+    document.getElementById('editorFeedbackPanel')?.classList.remove('hidden');
+
+    // 2. Update Header & Indicators
+    const studioTitle = document.getElementById('studioTitle');
+    if (studioTitle) studioTitle.innerText = "// JOURNALIST STUDIO: REVISION MODE";
+
+    const modeDot = document.getElementById('modeIndicatorDot');
+    if (modeDot) modeDot.className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
+    
+    const statusHeader = document.getElementById('statusHeader');
+    if (statusHeader) {
+        statusHeader.innerText = "// ACTION REQUIRED: EDITORIAL DIRECTIVES RETURNED";
+        statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
+    }
+
+    const toolbarNote = document.getElementById('toolbarNote');
+    if (toolbarNote) toolbarNote.innerText = "// Clean highlighted text after resolving directives";
+
+    // 3. Mark Notification Button State
+    const notifBtn = document.getElementById('notificationBtn');
+    if (notifBtn) {
+        notifBtn.classList.remove('animate-pulse');
+    }
+
+    // 4. Update Main Dispatch Button for Resubmission
+    const mainBtn = document.getElementById('mainActionButton');
+    const btnText = document.getElementById('actionBtnText');
+    if (mainBtn) mainBtn.className = "bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
+    if (btnText) btnText.innerText = "Resubmit Draft";
+
+    // 5. Load Real Database Pages onto Canvas (Replaced hardcoded dummy text)
+    const canvas = document.getElementById('editorialCanvas');
+    if (canvas && sub) {
+        if (sub.pages && Array.isArray(sub.pages) && sub.pages.length > 0) {
+            canvas.innerHTML = sub.pages.join('<hr class="my-8 border-slate-300">');
+        } else {
+            canvas.innerHTML = '<p class="text-slate-500 text-center py-20">Empty revision content.</p>';
+        }
+    }
+};
     // SWITCH BACK TO INITIAL PREPARATION DRAFT MODE
     window.switchToDraftMode = function() {
         currentMode = 'PREPARATION';
