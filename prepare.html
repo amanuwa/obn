@@ -284,10 +284,7 @@
                 <span class="text-[10px] text-slate-400 font-mono uppercase px-1">Assign to:</span>
                 
                 <select id="editorialPersonnelSelect" class="personnel-select cursor-pointer">
-                    <option value="" disabled selected>Select Personnel</option>
-                    <option value="editor_chief">Senior Chief Editor</option>
-                    <option value="editor_politics">Politics Desk Lead</option>
-                    <option value="editor_finance">Finance Desk Lead</option>
+                   <option value="" disabled selected>Loading Editors...</option>
                 </select>
 
                 <button 
@@ -373,6 +370,35 @@
                 console.error("Error fetching incoming submissions:", err.message);
             }
         }
+ async function loadEditorsIntoDropdown() {
+    const selectElement = document.getElementById('editorialPersonnelSelect');
+    if (!selectElement) return;
+
+    try {
+        // Queries your actual 'journalists' table and checks the 'journalism Section' column
+        const { data, error } = await supabase
+            .from('journalists')
+            .select('*')
+            .ilike('journalism Section', '%Editor%');
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+            selectElement.innerHTML = '<option value="" disabled selected>Select Editor</option>' + 
+                data.map(row => `
+                    <option value="${row['Journalist name']}">
+                        ${row['Journalist name']} (${row['journalism Section']})
+                    </option>
+                `).join('');
+        } else {
+            selectElement.innerHTML = '<option value="" disabled selected>No Editors Found</option>';
+        }
+    } catch (err) {
+        console.error("Error loading editors list:", err.message);
+        selectElement.innerHTML = '<option value="" disabled selected>Error loading editors</option>';
+    }
+}
+        loadEditorsIntoDropdown();
 
         // Load selected submission data into revision view and canvas
         window.loadSubmissionToPrepare = function(submissionId) {
