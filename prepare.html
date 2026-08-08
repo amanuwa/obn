@@ -566,6 +566,26 @@
             canvas.appendChild(pageNode);
             return pageNode;
         };
+// Function to dynamically display the logged-in user's name
+function loadActiveOperatorName() {
+    const nameSpan = document.getElementById('activeJournalistName');
+    if (!nameSpan) return;
+
+    const sessionData = localStorage.getItem('userSession');
+    if (sessionData) {
+        try {
+            const user = JSON.parse(sessionData);
+            const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name;
+            if (loggedInName) {
+                nameSpan.innerText = loggedInName;
+            }
+        } catch (e) {
+            console.error("Error parsing user session for display:", e);
+        }
+    }
+}
+
+        
 
         // RENDER STREAM PANEL
         window.renderLeftStreamPanel = function(rawData) {
