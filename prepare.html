@@ -567,23 +567,32 @@
             return pageNode;
         };
 // Function to dynamically display the logged-in user's name
-function loadActiveOperatorName() {
-    const nameSpan = document.getElementById('activeJournalistName');
-    if (!nameSpan) return;
-
+// Automatically load and display the logged-in user's name on both panels
+function loadLoggedUserName() {
     const sessionData = localStorage.getItem('userSession');
-    if (sessionData) {
-        try {
-            const user = JSON.parse(sessionData);
-            const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name;
-            if (loggedInName) {
-                nameSpan.innerText = loggedInName;
-            }
-        } catch (e) {
-            console.error("Error parsing user session for display:", e);
+    if (!sessionData) return;
+
+    try {
+        const user = JSON.parse(sessionData);
+        // Extracts name using your app's common property keys
+        const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name;
+
+        if (loggedInName) {
+            // Update panel 1
+            const nameEl1 = document.getElementById('activeOperatorName1');
+            if (nameEl1) nameEl1.innerText = loggedInName;
+
+            // Update panel 2 (Revision mode panel)
+            const nameEl2 = document.getElementById('activeOperatorName2');
+            if (nameEl2) nameEl2.innerText = loggedInName;
         }
+    } catch (e) {
+        console.error("Error parsing user session for display:", e);
     }
 }
+
+// Call it immediately when the script runs
+loadLoggedUserName();
 
         
 
