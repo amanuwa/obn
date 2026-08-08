@@ -742,6 +742,29 @@ loadLoggedUserName();
         function escapeHtml(str) {
             return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
+        // 1. Function to instantly grab data sent from customepage.html
+function loadIncomingScrapedStream() {
+    const rawData = localStorage.getItem('scrapedStreamData') || localStorage.getItem('selectedEditorialContent');
+    if (!rawData) {
+        console.log("No incoming data found in localStorage.");
+        return;
+    }
+
+    try {
+        const parsedItems = JSON.parse(rawData);
+        console.log("Successfully intercepted incoming stream data:", parsedItems);
+        
+        // Render it into your left stream panel automatically
+        if (typeof window.renderLeftStreamPanel === 'function') {
+            window.renderLeftStreamPanel(parsedItems);
+        }
+    } catch (err) {
+        console.error("Failed to parse incoming scraped stream:", err);
+    }
+}
+
+// 2. Call it immediately when prepare.html loads
+loadIncomingScrapedStream();
 
         // Initial fetch and poll every 10 seconds
         fetchPrepareSubmissions();
