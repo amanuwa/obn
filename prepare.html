@@ -484,82 +484,96 @@
         };
 
         // DISPATCH ACTION
-        window.dispatchAction = async function() {
-            const selectElement = document.getElementById('editorialPersonnelSelect');
-            const targetRole = selectElement ? selectElement.value : '';
+window.dispatchAction = async function() {
+    const selectElement = document.getElementById('editorialPersonnelSelect');
+    const targetRole = selectElement ? selectElement.value : '';
 
-            if (!targetRole) {
-                alert('Please select an editor (Personnel) from the dropdown first.');
-                return;
-            }
+    if (!targetRole) {
+        alert('Please select an editor (Personnel) from the dropdown first.');
+        return;
+    }
 
-            const sessionData = localStorage.getItem('userSession');
-            let user = null;
+    // 1. Prompt user to write the draft name
+    const draftName = prompt("Enter a name for this draft submission:");
+    if (!draftName || draftName.trim() === "") {
+        alert("Draft submission cancelled. A draft name is required.");
+        return;
+    }
 
-            if (sessionData) {
-                try {
-                    user = JSON.parse(sessionData);
-                } catch (e) {
-                    console.error("ERROR PARSING USER SESSION:", e);
+    // 2. Get active user session stored from login / custompage navigation
+    const sessionData = localStorage.getItem('userSession');
+    let user = null;
+
+    if (sessionData) {
+        try {
+            user = JSON.parse(sessionData);
+        } catch (e) {
+            console.error("// ERROR PARSING USER SESSION:", e);
+        }
+    }
+
+    if (!user && typeof supabase !== 'undefined' && supabase.auth) {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+            user = {
+                id: authUser.id,
+                fullName: authUser.user_metadata?.full_name || authUser.email?.split('@')[0],
+                email: authUser.email
+            };
+        }
+    }
+
+    if (!user) {
+        alert('Please log in before submitting.');
+        return;
+    }
+
+    const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name || 'Journalist';
+    const loggedInEmail = user.email || 'journalist@terminal.internal';
+
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    let senderUuid = (user.id || user.uid || '').toString();
+
+    if (!uuidRegex.test(senderUuid)) {
+        senderUuid = '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12);
+    }
+
+    const canvasElement = document.getElementById('editorialCanvas');
+    const pagesData = canvasElement ? [canvasElement.innerHTML] : [];
+
+    const actionBtn = document.getElementById('mainActionButton');
+    if (actionBtn) actionBtn.disabled = true;
+
+    try {
+        if (!supabase) {
+            throw new Error('Supabase client failed to initialize. Check config.js');
+        }
+
+        // 3. Insert into Supabase including the draft_name column
+    const { error } = await supabase
+            .from('editorial_submissions')
+            .insert([
+                {
+                    sender_id: senderUuid,
+                    sender_name: loggedInName,
+                    sender_email: loggedInEmail,
+                    receiver_name: targetRole, // Saves the selected editor's name from the dropdown
+                    draft_name: draftName.trim(),
+                    pages: pagesData,
+                    status: 'unread'
                 }
-            }
+            ]);
 
-            if (!user && typeof supabase !== 'undefined' && supabase.auth) {
-                const { data: { user: authUser } } = await supabase.auth.getUser();
-                if (authUser) {
-                    user = {
-                        id: authUser.id,
-                        fullName: authUser.user_metadata?.full_name || authUser.email?.split('@')[0],
-                        email: authUser.email
-                    };
-                }
-            }
+        if (error) throw error;
 
-            if (!user) {
-                alert('Please log in before submitting.');
-                return;
-            }
-
-            const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name || 'Journalist';
-            const loggedInEmail = user.email || 'journalist@terminal.internal';
-
-            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-            let senderUuid = (user.id || user.uid || '').toString();
-
-            if (!uuidRegex.test(senderUuid)) {
-                senderUuid = '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12);
-            }
-
-            const canvasElement = document.getElementById('editorialCanvas');
-            const pagesData = canvasElement ? [canvasElement.innerHTML] : [];
-
-            const actionBtn = document.getElementById('mainActionButton');
-            if (actionBtn) actionBtn.disabled = true;
-
-            try {
-                const { error } = await supabase
-                    .from('editorial_submissions')
-                    .insert([
-                        {
-                            sender_id: senderUuid,
-                            sender_name: loggedInName,
-                            sender_email: loggedInEmail,
-                            target_role: targetRole,
-                            pages: pagesData,
-                            status: 'unread'
-                        }
-                    ]);
-
-                if (error) throw error;
-
-                alert(`Submission from ${loggedInName} successfully sent to Editorial!`);
-            } catch (err) {
-                console.error('Submission Error:', err);
-                alert('Error sending draft: ' + err.message);
-            } finally {
-                if (actionBtn) actionBtn.disabled = false;
-            }
-        };
+        alert(`Draft "${draftName.trim()}" successfully sent to ${targetRole}!`);
+    } catch (err) {
+        console.error('Submission Error:', err);
+        alert('Error sending draft: ' + err.message);
+    } finally {
+        if (actionBtn) actionBtn.disabled = false;
+    }
+};
 
         // CREATE NEW A4 PAGE
         window.createNewPage = function() {
