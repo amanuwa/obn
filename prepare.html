@@ -413,29 +413,7 @@
     }
 
     // Load selected submission data into revision view and canvas
-    window.loadSubmissionToPrepare = function(submissionId) {
-        const sub = fetchedSubmissions.find(s => s.id === submissionId);
-        if (!sub) return;
-
-        activeSubmission = sub;
-        window.switchToRevisionMode();
-
-        const commentBox = document.getElementById('editorCommentText');
-        if (commentBox) {
-            commentBox.innerText = sub.comments || "Review and incorporate editor directives below.";
-        }
-
-        const canvas = document.getElementById('editorialCanvas');
-        if (canvas) {
-            if (sub.pages && Array.isArray(sub.pages) && sub.pages.length > 0) {
-                canvas.innerHTML = sub.pages.join('<hr class="my-8 border-slate-300">');
-            } else {
-                canvas.innerHTML = '<p class="text-slate-500 text-center py-20">Empty revision content.</p>';
-            }
-        }
-
-        if (dropdown) dropdown.classList.add('hidden');
-    };
+loadSubmissionToPrepare
 
     // SWITCH TO REVISION MODE (Triggered by Notification Click)
     // SWITCH TO REVISION MODE (Dynamic with Supabase Data)
