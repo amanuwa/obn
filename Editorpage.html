@@ -220,9 +220,7 @@
 
     <!-- LOGIC SCRIPTS -->
     <script type="module">
-        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+     import { supabase } from './config.js';
 
         // Retrieve editor session from localStorage
         const sessionData = localStorage.getItem('userSession');
