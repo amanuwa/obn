@@ -265,54 +265,74 @@
         });
 
         // Fetch submissions matching target_role from Supabase in real-time
-        async function fetchSubmissions() {
+       async function fetchEditorSubmissions() {
+    try {
+        // 1. Get current logged-in editor's name from localStorage
+        const sessionData = localStorage.getItem('userSession');
+        let currentEditorName = '';
+
+        if (sessionData) {
             try {
-                console.log("Fetching submissions for target_role:", editorRole);
-
-                let query = supabaseClient
-                    .from('editorial_submissions')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                // If an editor role is set, filter by target_role column flexibly
-                if (editorRole) {
-                    query = query.ilike('target_role', `%${editorRole}%`);
-                }
-
-                const { data, error } = await query;
-
-                if (error) throw error;
-
-                console.log("Submissions fetched successfully:", data);
-
-                fetchedSubmissions = data || [];
-                updateNotificationBadge();
-                populateSenderList();
-            } catch (err) {
-                console.error("Error fetching submissions from Supabase:", err.message);
+                const user = JSON.parse(sessionData);
+                currentEditorName = user.fullName || user.username || user.name || user.user_metadata?.full_name || '';
+            } catch (e) {
+                console.error("Error parsing user session:", e);
             }
         }
 
-        function updateNotificationBadge() {
-            const badge = document.getElementById('notifBadge');
-            badge.innerText = fetchedSubmissions.length;
+        if (!currentEditorName) {
+            console.warn("No logged-in user found to filter submissions.");
+            return;
         }
 
-        function populateSenderList() {
-            const container = document.getElementById('senderListContainer');
-            if (fetchedSubmissions.length === 0) {
-                container.innerHTML = '<div class="text-xs text-slate-500 p-3 text-center">No incoming messages</div>';
-                return;
-            }
+        // 2. Query Supabase filtered by receiver_name and status 'unread'
+        const { data, error } = await supabase
+            .from('editorial_submissions')
+            .select('*')
+            .eq('receiver_name', currentEditorName.trim())
+            .eq('status', 'unread')
+            .order('created_at', { ascending: false });
 
-            container.innerHTML = fetchedSubmissions.map((sub) => `
-                <button onclick="window.loadSubmissionToCanvas('${sub.id}')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-800 transition-colors flex flex-col cursor-pointer border-b border-slate-800/50 last:border-0">
-                    <span class="text-xs font-bold text-cyan-400">👤 ${escapeHtml(sub.sender_name)}</span>
-                    <span class="text-[10px] text-slate-400">Role: ${escapeHtml(sub.target_role)}</span>
-                    <span class="text-[9px] text-slate-500">${new Date(sub.created_at).toLocaleTimeString()} - Status: ${sub.status}</span>
+        if (error) throw error;
+
+        fetchedSubmissions = data || [];
+        
+        // Update notification badge count
+        const badge = document.getElementById('notifBadge') || document.querySelector('.messages-badge');
+        if (badge) badge.innerText = fetchedSubmissions.length;
+
+        const container = document.getElementById('senderListContainer') || document.getElementById('incomingSendersList');
+        if (!container) return;
+
+        if (fetchedSubmissions.length === 0) {
+            container.innerHTML = '<div class="text-xs text-slate-500 p-3 text-center">No unread submissions assigned to you</div>';
+            return;
+        }
+
+        // 3. Render list showing Draft Name, Sender, and Time Sent
+        container.innerHTML = fetchedSubmissions.map((sub) => {
+            const formattedDate = new Date(sub.created_at).toLocaleString();
+            const draftTitle = sub.draft_name || 'Untitled Draft';
+            const sender = sub.sender_name || 'Unknown Journalist';
+
+            return `
+                <button onclick="window.loadSubmissionToEditor('${sub.id}')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-800 transition-colors flex flex-col cursor-pointer border-b border-slate-800/50 last:border-0">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-cyan-400">📄 ${escapeHtml(draftTitle)}</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 uppercase font-mono">${sub.status}</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-1 text-[10px] text-slate-400 font-mono">
+                        <span>👤 Sender: ${escapeHtml(sender)}</span>
+                    </div>
+                    <span class="text-[9px] text-slate-500 mt-0.5 font-mono">📅 ${formattedDate}</span>
                 </button>
-            `).join('');
-        }
+            `;
+        }).join('');
+
+    } catch (err) {
+        console.error("Error fetching editor submissions:", err.message);
+    }
+}
 
         // Global function: Pulls data from "pages" jsonb column on the row and loads it onto canvas
         window.loadSubmissionToCanvas = function(submissionId) {
@@ -502,8 +522,8 @@ window.sendBackToStudio = async function() {
         }
 
         // Initial fetch on page load and automatic polling every 10 seconds
-        fetchSubmissions();
-        setInterval(fetchSubmissions, 10000);
+        fetchEditorSubmissions();
+        setInterval(fetchEditorSubmissions, 10000);
     </script>
 </body>
 </html>
