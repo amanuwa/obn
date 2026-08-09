@@ -464,7 +464,7 @@ window.sendBackToStudio = async function() {
 
     try {
         // Insert a brand new row into editorial_submissions targeting 'prepare_studio'
-        const { error } = await supabaseClient
+        const { error } = await supabase
             .from('editorial_submissions')
             .insert([{
                 sender_name: editorFullName, // Logged-in editor username sending it back
