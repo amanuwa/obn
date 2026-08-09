@@ -464,13 +464,15 @@ window.sendBackToStudio = async function() {
 
     try {
         // Insert a brand new row into editorial_submissions targeting 'prepare_studio'
-        const { error } = await supabase
+      const { error } = await supabase
             .from('editorial_submissions')
             .insert([{
+                draft_name: activeSubmission.draft_name, // Keeps the original draft title
+                receiver_name: activeSubmission.sender_name, // Routes it back to the original sender
                 sender_name: editorFullName, // Logged-in editor username sending it back
                 sender_email: currentEditor?.email || 'editor@terminal.internal',
                 target_role: 'prepare_studio', // Explicitly routes back to prep studio
-                status: 'archived', // Accepted table status constraint
+                status: 'sent from editor to prep_studio', // Custom workflow status
                 pages: updatedPages 
             }]);
 
