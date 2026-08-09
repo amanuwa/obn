@@ -572,6 +572,23 @@
         }
     }
 };
+      // --- ROUTE TO PREPARE.HTML WITH USER SESSION ---
+    window.openPreparationStudio = function() {
+        const sessionData = localStorage.getItem('userSession');
+        
+        if (sessionData) {
+            try {
+                // Ensure session data is valid before routing
+                const user = JSON.parse(sessionData);
+                console.log("// ROUTING TO PREPARE STUDIO WITH USER:", user.fullName || user.username);
+            } catch (e) {
+                console.error("Error parsing user session during routing:", e);
+            }
+        }
+
+        // Direct navigation to prepare.html (which will read the session storage natively)
+        window.location.href = 'prepare.html';
+    };
 
     // --- 4. CARD DELETION & RESTORATION ---
     window.deleteCard = function(index) {
