@@ -265,7 +265,7 @@
         });
 
         // Fetch submissions matching target_role from Supabase in real-time
-       async function fetchEditorSubmissions() {
+   async function fetchEditorSubmissions() {
     try {
         // 1. Get current logged-in editor's name from localStorage
         const sessionData = localStorage.getItem('userSession');
@@ -280,13 +280,15 @@
             }
         }
 
+        console.log("🔍 Current Logged-In Editor Name from Session:", currentEditorName);
+
         if (!currentEditorName) {
-            console.warn("No logged-in user found to filter submissions.");
+            console.warn("⚠️ No logged-in user found in localStorage session.");
             return;
         }
 
-        // 2. Query Supabase filtered by receiver_name and status 'unread'
-  const { data, error } = await supabase
+        // 2. Query Supabase
+        const { data, error } = await supabase
             .from('editorial_submissions')
             .select('*')
             .ilike('receiver_name', currentEditorName.trim())
@@ -295,9 +297,10 @@
 
         if (error) throw error;
 
+        console.log("📦 Supabase Raw Data Result:", data);
+
         fetchedSubmissions = data || [];
         
-        // Update notification badge count
         const badge = document.getElementById('notifBadge') || document.querySelector('.messages-badge');
         if (badge) badge.innerText = fetchedSubmissions.length;
 
@@ -309,7 +312,6 @@
             return;
         }
 
-        // 3. Render list showing Draft Name, Sender, and Time Sent
         container.innerHTML = fetchedSubmissions.map((sub) => {
             const formattedDate = new Date(sub.created_at).toLocaleString();
             const draftTitle = sub.draft_name || 'Untitled Draft';
@@ -330,7 +332,7 @@
         }).join('');
 
     } catch (err) {
-        console.error("Error fetching editor submissions:", err.message);
+        console.error("❌ Supabase Fetch Error:", err.message);
     }
 }
 
