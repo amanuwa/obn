@@ -374,15 +374,21 @@
             return;
         }
 
-        container.innerHTML = fetchedSubmissions.map((sub) => {
+     container.innerHTML = fetchedSubmissions.map((sub) => {
             const formattedDate = new Date(sub.created_at).toLocaleString();
+            const draftTitle = sub.draft_name || 'Untitled Draft';
+            const sender = sub.sender_name || 'Unknown Sender';
+
             return `
                 <button onclick="window.loadSubmissionToPrepare('${sub.id}')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-800 transition-colors flex flex-col cursor-pointer border-b border-slate-800/50 last:border-0">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-cyan-400">👤 ${escapeHtml(sub.sender_name)}</span>
+                        <span class="text-xs font-bold text-cyan-400">📄 ${escapeHtml(draftTitle)}</span>
                         <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-amber-400 uppercase">${sub.status}</span>
                     </div>
-                    <span class="text-[9px] text-slate-500 mt-0.5">📅 ${formattedDate}</span>
+                    <div class="flex items-center justify-between mt-1 text-[10px] text-slate-300 font-mono">
+                        <span>👤 Sender: ${escapeHtml(sender)}</span>
+                    </div>
+                    <span class="text-[9px] text-slate-500 mt-0.5 font-mono">📅 ${formattedDate}</span>
                 </button>
             `;
         }).join('');
