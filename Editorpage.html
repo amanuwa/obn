@@ -286,10 +286,10 @@
         }
 
         // 2. Query Supabase filtered by receiver_name and status 'unread'
-        const { data, error } = await supabase
+  const { data, error } = await supabase
             .from('editorial_submissions')
             .select('*')
-            .eq('receiver_name', currentEditorName.trim())
+            .ilike('receiver_name', currentEditorName.trim())
             .eq('status', 'unread')
             .order('created_at', { ascending: false });
 
