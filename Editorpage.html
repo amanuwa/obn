@@ -651,6 +651,7 @@ window.approveArticle = async function() {
 
             // 4. GENERATE TEXT PDF
         // 5. GENERATE IMAGE PDF (Renders actual images)
+           // 5. GENERATE IMAGE PDF (Renders actual images)
             const pdfImages = new jsPDF();
             pdfImages.setFont("helvetica", "bold");
             pdfImages.text("Draft Images Reference", 15, 15);
@@ -700,8 +701,6 @@ window.approveArticle = async function() {
             }
 
             pdfImages.save(`${activeSubmission.draft_name || 'draft'}-images.pdf`);
-    };
-
     function escapeHtml(str) {
         return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
