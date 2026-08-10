@@ -721,7 +721,9 @@ window.approveArticle = async function() {
         URL.revokeObjectURL(url);
     }
 
-     
+     function escapeHtml(str) {
+        return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
 
         // Initial fetch on page load and automatic polling every 10 seconds
         fetchEditorSubmissions();
