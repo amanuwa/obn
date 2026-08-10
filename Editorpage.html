@@ -533,7 +533,7 @@ window.sendBackToStudio = async function() {
 }
 
         // Action Trigger: Checked / Approved with Editor Authentication
-   window.approveArticle = async function() {
+ window.approveArticle = async function() {
         if (!activeSubmission) {
             alert("No active submission loaded to approve.");
             return;
@@ -569,7 +569,6 @@ window.sendBackToStudio = async function() {
         const parser = new DOMParser();
         const doc = parser.parseFromString(pageContentHtml, 'text/html');
         
-        // Extract plain text and image URLs
         const textContent = Array.from(doc.querySelectorAll('p, h1, h2, h3, h4, h5, h6'))
             .map(el => el.innerText)
             .join('\n\n');
@@ -579,7 +578,8 @@ window.sendBackToStudio = async function() {
             .join('\n');
 
         try {
-            // 3. Insert new row into 'editorial_submissions' for the production team
+            // 3. Insert new row with status set to 'read' to satisfy database constraint, 
+            // target_role as 'production_team', receiver_name as 'none', and matching draft_name
             const { error: insertError } = await client
                 .from('editorial_submissions')
                 .insert([
@@ -591,16 +591,16 @@ window.sendBackToStudio = async function() {
                         receiver_name: 'none',
                         draft_name: activeSubmission.draft_name || 'Untitled Draft',
                         pages: [pageContentHtml],
-                        status: 'checked'
+                        status: 'read' 
                     }
                 ]);
 
             if (insertError) throw insertError;
 
-            // 4. Update original submission status to 'checked' / 'read'
+            // 4. Update original submission status to 'read' as well
             await client
                 .from('editorial_submissions')
-                .update({ status: 'checked' })
+                .update({ status: 'read' })
                 .eq('id', activeSubmission.id);
 
             if (statusHeader) {
@@ -608,7 +608,7 @@ window.sendBackToStudio = async function() {
                 statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
             }
 
-            // 5. Automatically trigger browser downloads for text and image lists
+            // 5. Trigger browser downloads for text and image files
             downloadFile(textContent || 'No text content found.', `${activeSubmission.draft_name || 'draft'}-text.txt`, 'text/plain');
             if (imageUrls) {
                 downloadFile(imageUrls, `${activeSubmission.draft_name || 'draft'}-images.txt`, 'text/plain');
@@ -625,6 +625,18 @@ window.sendBackToStudio = async function() {
             alert("Failed to process approval: " + err.message);
         }
     };
+
+    function downloadFile(content, filename, contentType) {
+        const blob = new Blob([content], { type: contentType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
 
     // Helper function to handle text/asset downloads
     function downloadFile(content, filename, contentType) {
