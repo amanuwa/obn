@@ -703,10 +703,6 @@ window.approveArticle = async function() {
         alert("Approval failed: " + err.message);
     }
 };
-            pdfImages.save(`${activeSubmission.draft_name || 'draft'}-images.pdf`);
-    function escapeHtml(str) {
-        return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
 
    
 
