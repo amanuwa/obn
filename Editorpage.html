@@ -285,7 +285,7 @@
             return;
         }
 
-        // 2. Query Supabase: Matches receiver name, sorts by newest date/time first, and limits to 1 item
+        // 2. Query Supabase: Exact match on receiver_name, sort by newest created_at first, limit to exactly 1
         const { data, error } = await supabase
             .from('editorial_submissions')
             .select('*')
@@ -310,6 +310,7 @@
             return;
         }
 
+        // 3. Render only that single closest/most recent submission
         container.innerHTML = fetchedSubmissions.map((sub) => {
             const formattedDate = new Date(sub.created_at).toLocaleString();
             const draftTitle = sub.draft_name || 'Untitled Draft';
