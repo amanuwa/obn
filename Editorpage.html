@@ -606,100 +606,103 @@ window.sendBackToStudio = async function() {
 
         // Action Trigger: Checked / Approved with Editor Authentication
 window.approveArticle = async function() {
-        if (!activeSubmission) {
-            alert("No active submission loaded to approve.");
-            return;
+    if (!activeSubmission) {
+        alert("No active submission loaded to approve.");
+        return;
+    }
+
+    const statusHeader = document.getElementById('statusHeader');
+    const client = typeof supabaseClient !== 'undefined' ? supabaseClient : supabase;
+
+    // 1. Session and User Setup
+    const sessionData = localStorage.getItem('userSession');
+    let currentEditorName = 'Editor';
+    try {
+        if (sessionData) {
+            const user = JSON.parse(sessionData);
+            currentEditorName = user.fullName || user.username || user.name || user.user_metadata?.full_name || 'Editor';
         }
+    } catch (e) { console.error("Session error", e); }
 
-        const statusHeader = document.getElementById('statusHeader');
-        const client = typeof supabaseClient !== 'undefined' ? supabaseClient : supabase;
+    // 2. Extract Data from Canvas
+    const canvas = document.getElementById('documentCanvas');
+    if (!canvas) return;
+    
+    const textContent = Array.from(canvas.querySelectorAll('p, h1, h2, h3, h4, h5, h6'))
+        .map(el => el.innerText).join('\n\n');
 
-        // 1. Session and User Setup
-        const sessionData = localStorage.getItem('userSession');
-        let currentEditorName = 'Editor';
-        try {
-            if (sessionData) {
-                const user = JSON.parse(sessionData);
-                currentEditorName = user.fullName || user.username || user.name || user.user_metadata?.full_name || 'Editor';
-            }
-        } catch (e) { console.error("Session error", e); }
+    try {
+        // 3. Database Update
+        const { error: insertError } = await client.from('editorial_submissions').insert([{
+            sender_id: activeSubmission.sender_id || 'manual-approval',
+            sender_name: currentEditorName,
+            sender_email: activeSubmission.sender_email || 'editor@terminal.internal',
+            target_role: 'production_team',
+            receiver_name: 'none',
+            draft_name: activeSubmission.draft_name || 'Untitled Draft',
+            pages: [canvas.innerHTML],
+            status: 'read'
+        }]);
+        if (insertError) throw insertError;
 
-        // 2. Extract Data from Canvas
-        const canvas = document.getElementById('documentCanvas');
-        if (!canvas) return;
+        await client.from('editorial_submissions').update({ status: 'read' }).eq('id', activeSubmission.id);
+
+        // 4. GENERATE TEXT PDF
+        const { jsPDF } = window.jspdf;
+        const pdfText = new jsPDF();
+        pdfText.setFont("helvetica", "normal");
+        pdfText.setFontSize(12);
+        pdfText.text("Draft Text Content", 15, 15);
+        pdfText.text(pdfText.splitTextToSize(textContent || 'No text found.', 180), 15, 25);
+        pdfText.save(`${activeSubmission.draft_name || 'draft'}-text.pdf`);
+
+        // 5. GENERATE IMAGE PDF
+        const pdfImages = new jsPDF();
+        pdfImages.setFont("helvetica", "bold");
+        pdfImages.text("Draft Images Reference", 15, 15);
         
-        const textContent = Array.from(canvas.querySelectorAll('p, h1, h2, h3, h4, h5, h6'))
-            .map(el => el.innerText).join('\n\n');
-        const imageUrls = Array.from(canvas.querySelectorAll('img'))
-            .map(img => img.src);
-
-        try {
-            // 3. Database Update
-            const { error: insertError } = await client.from('editorial_submissions').insert([{
-                sender_id: activeSubmission.sender_id || 'manual-approval',
-                sender_name: currentEditorName,
-                sender_email: activeSubmission.sender_email || 'editor@terminal.internal',
-                target_role: 'production_team',
-                receiver_name: 'none',
-                draft_name: activeSubmission.draft_name || 'Untitled Draft',
-                pages: [canvas.innerHTML],
-                status: 'read'
-            }]);
-            if (insertError) throw insertError;
-
-            await client.from('editorial_submissions').update({ status: 'read' }).eq('id', activeSubmission.id);
-
-            // 4. GENERATE TEXT PDF
-        // 5. GENERATE IMAGE PDF (Renders actual images)
-           // 5. GENERATE IMAGE PDF (Renders actual images)
-            const pdfImages = new jsPDF();
-            pdfImages.setFont("helvetica", "bold");
-            pdfImages.text("Draft Images Reference", 15, 15);
-            
-            let yOffset = 25;
-            
-            for (let i = 0; i < canvas.querySelectorAll('img').length; i++) {
-                const imgElement = canvas.querySelectorAll('img')[i];
+        let yOffset = 25;
+        const imgs = canvas.querySelectorAll('img');
+        
+        for (let i = 0; i < imgs.length; i++) {
+            try {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = imgs[i].src;
                 
-                try {
-                    // Create an off-screen image element to bypass CORS painting issues if possible
-                    const img = new Image();
-                    img.crossOrigin = "anonymous";
-                    img.src = imgElement.src;
-                    
-                    await new Promise((resolve, reject) => {
-                        img.onload = resolve;
-                        img.onerror = reject;
-                    });
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
 
-                    // Draw image onto a temporary canvas to get base64 data
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = img.naturalWidth || 400;
-                    tempCanvas.height = img.naturalHeight || 300;
-                    const ctx = tempCanvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    
-                    const imgData = tempCanvas.toDataURL('image/jpeg', 0.8);
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = img.naturalWidth;
+                tempCanvas.height = img.naturalHeight;
+                tempCanvas.getContext('2d').drawImage(img, 0, 0);
+                const imgData = tempCanvas.toDataURL('image/jpeg', 0.8);
 
-                    if (yOffset > 220) {
-                        pdfImages.addPage();
-                        yOffset = 20;
-                    }
-
-                    pdfImages.setFontSize(10);
-                    pdfImages.text(`Image ${i + 1}:`, 15, yOffset);
-                    
-                    // Add the actual picture onto the PDF (width: 80mm, height: auto proportional)
-                    pdfImages.addImage(imgData, 'JPEG', 15, yOffset + 5, 80, 50);
-                    yOffset += 65;
-
-                } catch (imgErr) {
-                    console.warn(`Could not embed image ${i + 1} due to CORS/loading restrictions:`, imgErr);
-                    pdfImages.text(`Image ${i + 1}: [Failed to load image preview]`, 15, yOffset);
-                    yOffset += 15;
+                if (yOffset > 220) {
+                    pdfImages.addPage();
+                    yOffset = 20;
                 }
-            }
 
+                pdfImages.setFontSize(10);
+                pdfImages.text(`Image ${i + 1}:`, 15, yOffset);
+                pdfImages.addImage(imgData, 'JPEG', 15, yOffset + 5, 80, 50);
+                yOffset += 65;
+            } catch (imgErr) {
+                console.warn("Could not embed image", imgErr);
+            }
+        }
+        pdfImages.save(`${activeSubmission.draft_name || 'draft'}-images.pdf`);
+
+        alert("Article approved. PDFs downloading...");
+        if (typeof fetchEditorSubmissions === 'function') fetchEditorSubmissions();
+    } catch (err) {
+        console.error("Approval error:", err);
+        alert("Approval failed: " + err.message);
+    }
+};
             pdfImages.save(`${activeSubmission.draft_name || 'draft'}-images.pdf`);
     function escapeHtml(str) {
         return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
