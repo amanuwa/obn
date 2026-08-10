@@ -334,7 +334,7 @@
     }
 }
 
-     // Global function: Pulls data from "pages" jsonb column on the row and loads it onto canvas
+   // Global function: Pulls data from "pages" jsonb column on the row and loads it onto canvas
     window.loadSubmissionToCanvas = function(submissionId) {
         const sub = fetchedSubmissions.find(s => s.id === submissionId);
         if (!sub) return;
@@ -357,18 +357,28 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(rawContent, 'text/html');
 
-            // 1. Strip out old feedback boxes, delete buttons, header/footer elements, and outer page wrappers
-            const unwanted = doc.querySelectorAll('.editor-feedback, .delete-page-btn, .a4-page, .page-content, footer, header');
+            // 1. Strip out old feedback boxes, delete buttons, and duplicate outer wrappers
+            const unwanted = doc.querySelectorAll('.editor-feedback, .delete-page-btn');
             unwanted.forEach(el => el.remove());
 
-            // 2. Extract strictly the core elements (text paragraphs, headers, media, sections)
+            // 2. Extract inner content elements from the payload
             const contentNodes = doc.querySelectorAll('p, h1, h2, h3, h4, h5, h6, img, ul, ol, blockquote, div.result-card');
-            
+            let innerHTMLContent = '';
+
             if (contentNodes.length > 0) {
-                canvas.innerHTML = Array.from(contentNodes).map(node => node.outerHTML).join('');
+                innerHTMLContent = Array.from(contentNodes).map(node => node.outerHTML).join('');
             } else {
-                canvas.innerHTML = doc.body.innerHTML;
+                innerHTMLContent = doc.body.innerHTML;
             }
+
+            // 3. Render inside a clean, single A4 white page sheet container
+            canvas.innerHTML = `
+                <div class="a4-page text-slate-900 bg-white p-10 mb-6 shadow-2xl rounded-sm relative min-h-[1050px] w-full max-w-3xl mx-auto">
+                    <div class="page-content space-y-4">
+                        ${innerHTMLContent}
+                    </div>
+                </div>
+            `;
         } else {
             canvas.innerHTML = '<p class="text-slate-500 text-center py-20">Empty pages in this submission.</p>';
         }
