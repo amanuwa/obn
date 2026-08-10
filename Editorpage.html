@@ -533,33 +533,111 @@ window.sendBackToStudio = async function() {
 }
 
         // Action Trigger: Checked / Approved with Editor Authentication
-        window.approveArticle = async function() {
-            if (!activeSubmission) {
-                alert("No active submission loaded to approve.");
-                return;
-            }
+   window.approveArticle = async function() {
+        if (!activeSubmission) {
+            alert("No active submission loaded to approve.");
+            return;
+        }
 
-            const statusHeader = document.getElementById('statusHeader');
+        const statusHeader = document.getElementById('statusHeader');
+        const client = typeof supabaseClient !== 'undefined' ? supabaseClient : supabase;
 
+        // 1. Get current logged-in editor's name from session storage
+        const sessionData = localStorage.getItem('userSession');
+        let currentEditorName = 'Editor';
+
+        if (sessionData) {
             try {
-                const { error } = await supabaseClient
-                    .from('editorial_submissions')
-                    .update({ status: 'read' })
-                    .eq('id', activeSubmission.id);
-
-                if (error) throw error;
-
-                if (statusHeader) {
-                    statusHeader.innerText = `// STATUS: CHECKED & APPROVED BY ${editorFullName.toUpperCase()}`;
-                    statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
-                }
-
-                alert(`Article checked and approved for publication by editor ${editorFullName}.`);
-            } catch (err) {
-                console.error("Error approving submission:", err);
-                alert("Failed to approve: " + err.message);
+                const user = JSON.parse(sessionData);
+                currentEditorName = user.fullName || user.username || user.name || user.user_metadata?.full_name || 'Editor';
+            } catch (e) {
+                console.error("Error parsing user session:", e);
             }
         }
+
+        const email = activeSubmission.sender_email || 'editor@terminal.internal';
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        let editorUuid = activeSubmission.sender_id || '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12);
+        if (!uuidRegex.test(editorUuid)) {
+            editorUuid = '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12);
+        }
+
+        // 2. Extract content from current white page canvas for download and storage
+        const canvas = document.getElementById('documentCanvas');
+        const pageContentHtml = canvas ? canvas.innerHTML : '';
+        
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(pageContentHtml, 'text/html');
+        
+        // Extract plain text and image URLs
+        const textContent = Array.from(doc.querySelectorAll('p, h1, h2, h3, h4, h5, h6'))
+            .map(el => el.innerText)
+            .join('\n\n');
+            
+        const imageUrls = Array.from(doc.querySelectorAll('img'))
+            .map(img => img.src)
+            .join('\n');
+
+        try {
+            // 3. Insert new row into 'editorial_submissions' for the production team
+            const { error: insertError } = await client
+                .from('editorial_submissions')
+                .insert([
+                    {
+                        sender_id: editorUuid,
+                        sender_name: currentEditorName,
+                        sender_email: email,
+                        target_role: 'production_team',
+                        receiver_name: 'none',
+                        draft_name: activeSubmission.draft_name || 'Untitled Draft',
+                        pages: [pageContentHtml],
+                        status: 'checked'
+                    }
+                ]);
+
+            if (insertError) throw insertError;
+
+            // 4. Update original submission status to 'checked' / 'read'
+            await client
+                .from('editorial_submissions')
+                .update({ status: 'checked' })
+                .eq('id', activeSubmission.id);
+
+            if (statusHeader) {
+                statusHeader.innerText = `// STATUS: CHECKED & FORWARDED TO PRODUCTION TEAM`;
+                statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
+            }
+
+            // 5. Automatically trigger browser downloads for text and image lists
+            downloadFile(textContent || 'No text content found.', `${activeSubmission.draft_name || 'draft'}-text.txt`, 'text/plain');
+            if (imageUrls) {
+                downloadFile(imageUrls, `${activeSubmission.draft_name || 'draft'}-images.txt`, 'text/plain');
+            }
+
+            alert(`Article checked successfully, sent to production team, and downloaded.`);
+
+            if (typeof fetchEditorSubmissions === 'function') {
+                fetchEditorSubmissions();
+            }
+
+        } catch (err) {
+            console.error("Error approving submission:", err);
+            alert("Failed to process approval: " + err.message);
+        }
+    };
+
+    // Helper function to handle text/asset downloads
+    function downloadFile(content, filename, contentType) {
+        const blob = new Blob([content], { type: contentType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
 
         function escapeHtml(str) {
             return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
