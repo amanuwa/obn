@@ -605,7 +605,7 @@ window.sendBackToStudio = async function() {
 }
 
         // Action Trigger: Checked / Approved with Editor Authentication
- window.approveArticle = async function() {
+window.approveArticle = async function() {
         if (!activeSubmission) {
             alert("No active submission loaded to approve.");
             return;
@@ -614,7 +614,6 @@ window.sendBackToStudio = async function() {
         const statusHeader = document.getElementById('statusHeader');
         const client = typeof supabaseClient !== 'undefined' ? supabaseClient : supabase;
 
-        // 1. Get current logged-in editor's name from session storage
         const sessionData = localStorage.getItem('userSession');
         let currentEditorName = 'Editor';
 
@@ -634,7 +633,6 @@ window.sendBackToStudio = async function() {
             editorUuid = '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12);
         }
 
-        // 2. Extract content from current white page canvas for download and storage
         const canvas = document.getElementById('documentCanvas');
         const pageContentHtml = canvas ? canvas.innerHTML : '';
         
@@ -646,12 +644,9 @@ window.sendBackToStudio = async function() {
             .join('\n\n');
             
         const imageUrls = Array.from(doc.querySelectorAll('img'))
-            .map(img => img.src)
-            .join('\n');
+            .map(img => img.src);
 
         try {
-            // 3. Insert new row with status set to 'read' to satisfy database constraint, 
-            // target_role as 'production_team', receiver_name as 'none', and matching draft_name
             const { error: insertError } = await client
                 .from('editorial_submissions')
                 .insert([
@@ -669,7 +664,6 @@ window.sendBackToStudio = async function() {
 
             if (insertError) throw insertError;
 
-            // 4. Update original submission status to 'read' as well
             await client
                 .from('editorial_submissions')
                 .update({ status: 'read' })
@@ -680,13 +674,44 @@ window.sendBackToStudio = async function() {
                 statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
             }
 
-            // 5. Trigger browser downloads for text and image files
-            downloadFile(textContent || 'No text content found.', `${activeSubmission.draft_name || 'draft'}-text.txt`, 'text/plain');
-            if (imageUrls) {
-                downloadFile(imageUrls, `${activeSubmission.draft_name || 'draft'}-images.txt`, 'text/plain');
-            }
+            // Generate and download Text PDF using jsPDF
+            const { jsPDF } = window.jspdf;
+            const pdfText = new jsPDF();
+            pdfText.setFont("Helvetica", "normal");
+            pdfText.setFontSize(11);
+            
+            const splitText = pdfText.splitTextToSize(textContent || 'No text content found.', 180);
+            pdfText.text(splitText, 15, 20);
+            pdfText.save(`${activeSubmission.draft_name || 'draft'}-text.pdf`);
 
-            alert(`Article checked successfully, sent to production team, and downloaded.`);
+            // Generate and download Images PDF using jsPDF
+            const pdfImages = new jsPDF();
+            pdfImages.setFont("Helvetica", "bold");
+            pdfImages.setFontSize(14);
+            pdfImages.text("Extracted Images Reference", 15, 20);
+            
+            pdfImages.setFontSize(10);
+            pdfImages.setFont("Helvetica", "normal");
+            
+            if (imageUrls.length > 0) {
+                let yOffset = 30;
+                imageUrls.forEach((url, idx) => {
+                    if (yOffset > 270) {
+                        pdfImages.addPage();
+                        yOffset = 20;
+                    }
+                    pdfImages.text(`Image ${idx + 1}:`, 15, yOffset);
+                    pdfImages.setTextColor(0, 0, 255);
+                    pdfImages.text(url, 15, yOffset + 6, { maxWidth: 180 });
+                    pdfImages.setTextColor(0, 0, 0);
+                    yOffset += 20;
+                });
+            } else {
+                pdfImages.text("No images found in this document.", 15, 35);
+            }
+            pdfImages.save(`${activeSubmission.draft_name || 'draft'}-images.pdf`);
+
+            alert(`Article checked successfully, sent to production team, and PDFs downloaded.`);
 
             if (typeof fetchEditorSubmissions === 'function') {
                 fetchEditorSubmissions();
@@ -697,6 +722,12 @@ window.sendBackToStudio = async function() {
             alert("Failed to process approval: " + err.message);
         }
     };
+
+    function escapeHtml(str) {
+        return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+   
 
 
 
