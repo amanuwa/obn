@@ -614,112 +614,69 @@ window.approveArticle = async function() {
         const statusHeader = document.getElementById('statusHeader');
         const client = typeof supabaseClient !== 'undefined' ? supabaseClient : supabase;
 
+        // 1. Session and User Setup
         const sessionData = localStorage.getItem('userSession');
         let currentEditorName = 'Editor';
-
-        if (sessionData) {
-            try {
+        try {
+            if (sessionData) {
                 const user = JSON.parse(sessionData);
                 currentEditorName = user.fullName || user.username || user.name || user.user_metadata?.full_name || 'Editor';
-            } catch (e) {
-                console.error("Error parsing user session:", e);
             }
-        }
+        } catch (e) { console.error("Session error", e); }
 
-        const email = activeSubmission.sender_email || 'editor@terminal.internal';
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        let editorUuid = activeSubmission.sender_id || '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12);
-        if (!uuidRegex.test(editorUuid)) {
-            editorUuid = '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12);
-        }
-
+        // 2. Extract Data from Canvas
         const canvas = document.getElementById('documentCanvas');
-        const pageContentHtml = canvas ? canvas.innerHTML : '';
+        if (!canvas) return;
         
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(pageContentHtml, 'text/html');
-        
-        const textContent = Array.from(doc.querySelectorAll('p, h1, h2, h3, h4, h5, h6'))
-            .map(el => el.innerText)
-            .join('\n\n');
-            
-        const imageUrls = Array.from(doc.querySelectorAll('img'))
+        const textContent = Array.from(canvas.querySelectorAll('p, h1, h2, h3, h4, h5, h6'))
+            .map(el => el.innerText).join('\n\n');
+        const imageUrls = Array.from(canvas.querySelectorAll('img'))
             .map(img => img.src);
 
         try {
-            const { error: insertError } = await client
-                .from('editorial_submissions')
-                .insert([
-                    {
-                        sender_id: editorUuid,
-                        sender_name: currentEditorName,
-                        sender_email: email,
-                        target_role: 'production_team',
-                        receiver_name: 'none',
-                        draft_name: activeSubmission.draft_name || 'Untitled Draft',
-                        pages: [pageContentHtml],
-                        status: 'read' 
-                    }
-                ]);
-
+            // 3. Database Update
+            const { error: insertError } = await client.from('editorial_submissions').insert([{
+                sender_id: activeSubmission.sender_id || 'manual-approval',
+                sender_name: currentEditorName,
+                sender_email: activeSubmission.sender_email || 'editor@terminal.internal',
+                target_role: 'production_team',
+                receiver_name: 'none',
+                draft_name: activeSubmission.draft_name || 'Untitled Draft',
+                pages: [canvas.innerHTML],
+                status: 'read'
+            }]);
             if (insertError) throw insertError;
 
-            await client
-                .from('editorial_submissions')
-                .update({ status: 'read' })
-                .eq('id', activeSubmission.id);
+            await client.from('editorial_submissions').update({ status: 'read' }).eq('id', activeSubmission.id);
 
-            if (statusHeader) {
-                statusHeader.innerText = `// STATUS: CHECKED & FORWARDED TO PRODUCTION TEAM`;
-                statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
-            }
-
-            // Generate and download Text PDF using jsPDF
+            // 4. GENERATE TEXT PDF
             const { jsPDF } = window.jspdf;
             const pdfText = new jsPDF();
-            pdfText.setFont("Helvetica", "normal");
-            pdfText.setFontSize(11);
-            
-            const splitText = pdfText.splitTextToSize(textContent || 'No text content found.', 180);
-            pdfText.text(splitText, 15, 20);
+            pdfText.setFont("helvetica", "normal");
+            pdfText.setFontSize(12);
+            pdfText.text("Draft Text Content", 15, 15);
+            pdfText.text(pdfText.splitTextToSize(textContent || 'No text found.', 180), 15, 25);
             pdfText.save(`${activeSubmission.draft_name || 'draft'}-text.pdf`);
 
-            // Generate and download Images PDF using jsPDF
+            // 5. GENERATE IMAGE PDF
             const pdfImages = new jsPDF();
-            pdfImages.setFont("Helvetica", "bold");
-            pdfImages.setFontSize(14);
-            pdfImages.text("Extracted Images Reference", 15, 20);
-            
+            pdfImages.setFont("helvetica", "bold");
+            pdfImages.text("Draft Images Reference", 15, 15);
             pdfImages.setFontSize(10);
-            pdfImages.setFont("Helvetica", "normal");
             
-            if (imageUrls.length > 0) {
-                let yOffset = 30;
-                imageUrls.forEach((url, idx) => {
-                    if (yOffset > 270) {
-                        pdfImages.addPage();
-                        yOffset = 20;
-                    }
-                    pdfImages.text(`Image ${idx + 1}:`, 15, yOffset);
-                    pdfImages.setTextColor(0, 0, 255);
-                    pdfImages.text(url, 15, yOffset + 6, { maxWidth: 180 });
-                    pdfImages.setTextColor(0, 0, 0);
-                    yOffset += 20;
-                });
-            } else {
-                pdfImages.text("No images found in this document.", 15, 35);
-            }
+            let y = 25;
+            imageUrls.forEach((url, i) => {
+                pdfImages.text(`${i + 1}. ${url}`, 15, y, { maxWidth: 180 });
+                y += 10;
+                if (y > 280) { pdfImages.addPage(); y = 20; }
+            });
             pdfImages.save(`${activeSubmission.draft_name || 'draft'}-images.pdf`);
 
-            alert(`Article checked successfully, sent to production team, and PDFs downloaded.`);
-
-            if (typeof fetchEditorSubmissions === 'function') {
-                fetchEditorSubmissions();
-            }
-
+            alert("Article approved. Two PDFs are downloading.");
+            if (typeof fetchEditorSubmissions === 'function') fetchEditorSubmissions();
         } catch (err) {
-            console.error("Error approving submission:", err);
-            alert("Failed to process approval: " + err.message);
+            console.error("Approval error:", err);
+            alert("Approval failed: " + err.message);
         }
     };
 
