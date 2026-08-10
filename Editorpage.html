@@ -263,7 +263,7 @@
         });
 
         // Fetch submissions matching target_role from Supabase in real-time
-   async function fetchEditorSubmissions() {
+  async function fetchEditorSubmissions() {
     try {
         // 1. Get current logged-in editor's name from localStorage
         const sessionData = localStorage.getItem('userSession');
@@ -285,13 +285,13 @@
             return;
         }
 
-        // 2. Query Supabase
+        // 2. Query Supabase: Matches receiver name, sorts by newest date/time first, and limits to 1 item
         const { data, error } = await supabase
             .from('editorial_submissions')
             .select('*')
             .ilike('receiver_name', currentEditorName.trim())
-            .eq('status', 'unread')
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .limit(1);
 
         if (error) throw error;
 
@@ -306,7 +306,7 @@
         if (!container) return;
 
         if (fetchedSubmissions.length === 0) {
-            container.innerHTML = '<div class="text-xs text-slate-500 p-3 text-center">No unread submissions assigned to you</div>';
+            container.innerHTML = '<div class="text-xs text-slate-500 p-3 text-center">No submissions assigned to you</div>';
             return;
         }
 
