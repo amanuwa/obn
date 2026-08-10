@@ -334,35 +334,67 @@
     }
 }
 
-        // Global function: Pulls data from "pages" jsonb column on the row and loads it onto canvas
-        window.loadSubmissionToCanvas = function(submissionId) {
-            const sub = fetchedSubmissions.find(s => s.id === submissionId);
-            if (!sub) return;
+     // Global function: Pulls data from "pages" jsonb column on the row and loads it onto canvas
+    window.loadSubmissionToCanvas = function(submissionId) {
+        const sub = fetchedSubmissions.find(s => s.id === submissionId);
+        if (!sub) return;
 
-            activeSubmission = sub;
+        activeSubmission = sub;
 
-            const canvas = document.getElementById('documentCanvas');
-            canvas.classList.remove('flex', 'items-center', 'justify-center');
+        const canvas = document.getElementById('documentCanvas');
+        if (!canvas) return;
+
+        canvas.classList.remove('flex', 'items-center', 'justify-center');
+        
+        let rawContent = '';
+        if (sub.pages && Array.isArray(sub.pages) && sub.pages.length > 0) {
+            rawContent = sub.pages.join('');
+        } else if (typeof sub.pages === 'string') {
+            rawContent = sub.pages;
+        }
+
+        if (rawContent.trim()) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(rawContent, 'text/html');
+
+            // 1. Strip out old feedback boxes, delete buttons, header/footer elements, and outer page wrappers
+            const unwanted = doc.querySelectorAll('.editor-feedback, .delete-page-btn, .a4-page, .page-content, footer, header');
+            unwanted.forEach(el => el.remove());
+
+            // 2. Extract strictly the core elements (text paragraphs, headers, media, sections)
+            const contentNodes = doc.querySelectorAll('p, h1, h2, h3, h4, h5, h6, img, ul, ol, blockquote, div.result-card');
             
-            // Pulls data from the "pages" column array
-            if (sub.pages && Array.isArray(sub.pages) && sub.pages.length > 0) {
-                canvas.innerHTML = sub.pages.join('<hr class="my-8 border-slate-300">');
+            if (contentNodes.length > 0) {
+                canvas.innerHTML = Array.from(contentNodes).map(node => node.outerHTML).join('');
             } else {
-                canvas.innerHTML = '<p class="text-slate-500 text-center py-20">Empty pages in this submission.</p>';
+                canvas.innerHTML = doc.body.innerHTML;
             }
+        } else {
+            canvas.innerHTML = '<p class="text-slate-500 text-center py-20">Empty pages in this submission.</p>';
+        }
 
-            // Update Metadata panel
-            document.getElementById('metaSender').innerText = sub.sender_name;
-            document.getElementById('metaEmail').innerText = sub.sender_email;
-            document.getElementById('metaTimestamp').innerText = new Date(sub.created_at).toLocaleString();
+        // Update Metadata panel
+        const metaSender = document.getElementById('metaSender');
+        if (metaSender) metaSender.innerText = sub.sender_name || '';
 
-            // Update status header
-            const statusHeader = document.getElementById('statusHeader');
-            statusHeader.innerText = `// STATUS: LOADED RECENT [${sub.target_role.toUpperCase()}]`;
+        const metaEmail = document.getElementById('metaEmail');
+        if (metaEmail) metaEmail.innerText = sub.sender_email || '';
+
+        const metaTimestamp = document.getElementById('metaTimestamp');
+        if (metaTimestamp) metaTimestamp.innerText = new Date(sub.created_at).toLocaleString();
+
+        // Update status header
+        const statusHeader = document.getElementById('statusHeader');
+        if (statusHeader) {
+            statusHeader.innerText = `// STATUS: LOADED RECENT [${(sub.target_role || '').toUpperCase()}]`;
             statusHeader.className = "text-[10px] font-mono text-emerald-400 uppercase tracking-widest";
+        }
 
+        const dropdown = document.getElementById('dropdown') || document.getElementById('senderDropdown');
+        if (dropdown) {
             dropdown.classList.add('hidden');
-        };
+        }
+    };
 
         // Apply Red or Yellow Highlight to Selected Text
         window.applyHighlight = function(color) {
