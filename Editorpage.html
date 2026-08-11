@@ -632,7 +632,7 @@ window.approveArticle = async function() {
         .map(el => el.innerText).join('\n\n');
 
     try {
-        // 3. Database Update: Insert production record
+        // 3. Insert production record
         const { error: insertError } = await client.from('editorial_submissions').insert([{
             sender_id: activeSubmission.sender_id || 'manual-approval',
             sender_name: currentEditorName,
@@ -645,13 +645,24 @@ window.approveArticle = async function() {
         }]);
         if (insertError) throw insertError;
 
-        // 4. BATCH UPDATE: Mark ALL rows with this draft_name as 'read'
-        // This ensures every version of this draft disappears from the editor's list.
-        const { error: updateError } = await client.from('editorial_submissions')
-            .update({ status: 'read' })
+        // 4. ROBUST BATCH UPDATE
+        // First, fetch all IDs that match this draft_name
+        const { data: rowsToUpdate, error: fetchError } = await client
+            .from('editorial_submissions')
+            .select('id')
             .eq('draft_name', activeSubmission.draft_name);
         
-        if (updateError) throw updateError;
+        if (fetchError) throw fetchError;
+
+        if (rowsToUpdate && rowsToUpdate.length > 0) {
+            const ids = rowsToUpdate.map(r => r.id);
+            // Then, perform an 'in' update to force status change for every single one
+            const { error: updateError } = await client.from('editorial_submissions')
+                .update({ status: 'read' })
+                .in('id', ids);
+            
+            if (updateError) throw updateError;
+        }
 
         // 5. GENERATE TEXT PDF
         const { jsPDF } = window.jspdf;
@@ -702,7 +713,7 @@ window.approveArticle = async function() {
         }
         pdfImages.save(`${activeSubmission.draft_name || 'draft'}-images.pdf`);
 
-        alert("Article approved. All previous versions marked as read, PDFs downloading...");
+        alert("Article approved. All versions of this draft marked as read.");
         if (typeof fetchEditorSubmissions === 'function') fetchEditorSubmissions();
     } catch (err) {
         console.error("Approval error:", err);
