@@ -645,26 +645,13 @@ window.approveArticle = async function() {
         }]);
         if (insertError) throw insertError;
 
-        // 4. BULLETPROOF LOOP UPDATE: Find all rows with this draft_name and update them individually
-        const { data: rowsToUpdate, error: fetchError } = await client
-            .from('editorial_submissions')
-            .select('id')
-            .eq('draft_name', activeSubmission.draft_name);
+        // 4. DATABASE-SIDE BATCH UPDATE VIA RPC
+        // This calls the server-side function to instantly update all rows with this draft name
+        const { error: rpcError } = await client.rpc('mark_draft_as_read', {
+            target_draft_name: activeSubmission.draft_name
+        });
         
-        if (fetchError) throw fetchError;
-
-        if (rowsToUpdate && rowsToUpdate.length > 0) {
-            for (const row of rowsToUpdate) {
-                const { error: updateError } = await client
-                    .from('editorial_submissions')
-                    .update({ status: 'read' })
-                    .eq('id', row.id);
-                
-                if (updateError) {
-                    console.error(`Failed to update row ID ${row.id}:`, updateError);
-                }
-            }
-        }
+        if (rpcError) throw rpcError;
 
         // 5. GENERATE TEXT PDF
         const { jsPDF } = window.jspdf;
@@ -722,7 +709,6 @@ window.approveArticle = async function() {
         alert("Approval failed: " + err.message);
     }
 };
-   
 
 
 
