@@ -645,8 +645,7 @@ window.approveArticle = async function() {
         }]);
         if (insertError) throw insertError;
 
-        // 4. ROBUST BATCH UPDATE
-        // First, fetch all IDs that match this draft_name
+        // 4. BULLETPROOF LOOP UPDATE: Find all rows with this draft_name and update them individually
         const { data: rowsToUpdate, error: fetchError } = await client
             .from('editorial_submissions')
             .select('id')
@@ -655,13 +654,16 @@ window.approveArticle = async function() {
         if (fetchError) throw fetchError;
 
         if (rowsToUpdate && rowsToUpdate.length > 0) {
-            const ids = rowsToUpdate.map(r => r.id);
-            // Then, perform an 'in' update to force status change for every single one
-            const { error: updateError } = await client.from('editorial_submissions')
-                .update({ status: 'read' })
-                .in('id', ids);
-            
-            if (updateError) throw updateError;
+            for (const row of rowsToUpdate) {
+                const { error: updateError } = await client
+                    .from('editorial_submissions')
+                    .update({ status: 'read' })
+                    .eq('id', row.id);
+                
+                if (updateError) {
+                    console.error(`Failed to update row ID ${row.id}:`, updateError);
+                }
+            }
         }
 
         // 5. GENERATE TEXT PDF
@@ -720,7 +722,6 @@ window.approveArticle = async function() {
         alert("Approval failed: " + err.message);
     }
 };
-
    
 
 
