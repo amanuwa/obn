@@ -632,7 +632,7 @@ window.approveArticle = async function() {
         .map(el => el.innerText).join('\n\n');
 
     try {
-        // 3. Database Update
+        // 3. Database Update: Insert production record
         const { error: insertError } = await client.from('editorial_submissions').insert([{
             sender_id: activeSubmission.sender_id || 'manual-approval',
             sender_name: currentEditorName,
@@ -645,9 +645,15 @@ window.approveArticle = async function() {
         }]);
         if (insertError) throw insertError;
 
-        await client.from('editorial_submissions').update({ status: 'read' }).eq('id', activeSubmission.id);
+        // 4. BATCH UPDATE: Mark ALL rows with this draft_name as 'read'
+        // This ensures every version of this draft disappears from the editor's list.
+        const { error: updateError } = await client.from('editorial_submissions')
+            .update({ status: 'read' })
+            .eq('draft_name', activeSubmission.draft_name);
+        
+        if (updateError) throw updateError;
 
-        // 4. GENERATE TEXT PDF
+        // 5. GENERATE TEXT PDF
         const { jsPDF } = window.jspdf;
         const pdfText = new jsPDF();
         pdfText.setFont("helvetica", "normal");
@@ -656,7 +662,7 @@ window.approveArticle = async function() {
         pdfText.text(pdfText.splitTextToSize(textContent || 'No text found.', 180), 15, 25);
         pdfText.save(`${activeSubmission.draft_name || 'draft'}-text.pdf`);
 
-        // 5. GENERATE IMAGE PDF
+        // 6. GENERATE IMAGE PDF
         const pdfImages = new jsPDF();
         pdfImages.setFont("helvetica", "bold");
         pdfImages.text("Draft Images Reference", 15, 15);
@@ -696,7 +702,7 @@ window.approveArticle = async function() {
         }
         pdfImages.save(`${activeSubmission.draft_name || 'draft'}-images.pdf`);
 
-        alert("Article approved. PDFs downloading...");
+        alert("Article approved. All previous versions marked as read, PDFs downloading...");
         if (typeof fetchEditorSubmissions === 'function') fetchEditorSubmissions();
     } catch (err) {
         console.error("Approval error:", err);
