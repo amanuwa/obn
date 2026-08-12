@@ -521,33 +521,57 @@ async function fetchPrepareSubmissions() {
         };
 
         // SWITCH TO REVISION MODE
-        window.switchToRevisionMode = function() {
-            currentMode = 'REVISION';
+    window.handleFileInsertion = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-            document.getElementById('scrapedStreamPanel')?.classList.add('hidden');
-            document.getElementById('editorFeedbackPanel')?.classList.remove('hidden');
+            const fileType = file.type;
+            const fileName = file.name;
+            let extractedContent = '';
 
-            const studioTitle = document.getElementById('studioTitle');
-            if (studioTitle) studioTitle.innerText = "// JOURNALIST STUDIO: REVISION MODE";
+            try {
+                if (fileType.includes('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imgHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Attachment: ${fileName}</p><img src="${e.target.result}" class="max-w-full rounded border border-slate-300"/></div>`;
+                        window.appendContentToA4Page(imgHtml);
+                    };
+                    reader.readAsDataURL(file);
+                    return;
+                } else if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
+                    extractedContent = await file.text();
+                } else {
+                    extractedContent = `[Imported content from file: ${fileName}]`;
+                }
 
-            const modeDot = document.getElementById('modeIndicatorDot');
-            if (modeDot) modeDot.className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
+                const textHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 Source: ${fileName}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${escapeHtml(extractedContent)}</p></div>`;
+                window.appendContentToA4Page(textHtml);
+            } catch (err) {
+                console.error("Error reading file:", err);
+                alert("Failed to read the selected file.");
+            } finally {
+                event.target.value = '';
+            }
+        };
+
+        window.appendContentToA4Page = function(htmlContent) {
+            const canvas = document.getElementById('editorialCanvas');
+            if (!canvas) return;
+
+            let activePage = canvas.querySelector('.a4-page:last-of-type');
             
-            const statusHeader = document.getElementById('statusHeader');
-            if (statusHeader) {
-                statusHeader.innerText = "// ACTION REQUIRED: EDITORIAL DIRECTIVES RETURNED";
-                statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
+            if (!activePage || activePage.scrollHeight > 1050) {
+                activePage = window.createNewA4Page();
             }
 
-            const toolbarNote = document.getElementById('toolbarNote');
-            if (toolbarNote) toolbarNote.innerText = "// Clean highlighted text after resolving directives";
-
-            if (notifBtn) notifBtn.classList.remove('animate-pulse');
-
-            const mainBtn = document.getElementById('mainActionButton');
-            const btnText = document.getElementById('actionBtnText');
-            if (mainBtn) mainBtn.className = "bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
-            if (btnText) btnText.innerText = "Resubmit Draft";
+            let contentBody = activePage.querySelector('.page-content');
+            if (!contentBody) {
+                contentBody = document.createElement('div');
+                contentBody.className = 'page-content flex-1 outline-none';
+                activePage.appendChild(contentBody);
+            }
+            
+            contentBody.innerHTML += htmlContent;
         };
 
         // SWITCH BACK TO DRAFT MODE
