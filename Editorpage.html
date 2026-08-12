@@ -348,48 +348,41 @@ async function fetchEditorSubmissions() {
             }
         }
 
-        console.log("🔍 Current Logged-In Editor Name from Session:", currentEditorName);
-
         if (!currentEditorName) {
             console.warn("⚠️ No logged-in user found in localStorage session.");
             return;
         }
 
-        // 1. Fetch ALL rows globally to find any draft that reached production (regardless of receiver name)
-        const { data: approvedData, error: approvedError } = await supabase
+        // 1. Get a list of all draft names that have already reached 'production_team'
+        const { data: productionData, error: prodError } = await supabase
             .from('editorial_submissions')
-            .select('draft_name, target_role, status');
+            .select('draft_name')
+            .eq('target_role', 'production_team');
 
-        if (approvedError) throw approvedError;
+        if (prodError) throw prodError;
 
-        // 2. Extract unique draft names that have hit 'production_team'
-        const approvedDrafts = approvedData
-            ? [...new Set(approvedData
-                .filter(d => d.target_role && d.target_role.trim().toLowerCase() === 'production_team')
-                .map(d => d.draft_name))] 
-            : [];
+        // Extract unique draft names into an array (e.g., ['zena1'])
+        const finishedDrafts = productionData ? [...new Set(productionData.map(d => d.draft_name))] : [];
+        console.log("🚫 Drafts already sent to production (to be hidden):", finishedDrafts);
 
-        console.log("🚀 Cleaned Approved Drafts List:", approvedDrafts);
-
-        // 3. Query Supabase for unread items assigned specifically to this editor
-        const { data, error } = await supabase
+        // 2. Query Supabase for unread items assigned to this editor
+        let query = supabase
             .from('editorial_submissions')
             .select('*')
             .ilike('receiver_name', currentEditorName.trim())
             .eq('status', 'unread')
             .order('created_at', { ascending: false });
 
+        const { data, error } = await query;
+
         if (error) throw error;
 
-        // 4. Filter out any rows whose draft_name is in the approved list
-        const activeSubmissions = (data || []).filter(sub => {
-            const isApproved = approvedDrafts.includes(sub.draft_name);
-            if (isApproved) console.log(`🔒 Hiding draft "${sub.draft_name}" because it reached production.`);
-            return !isApproved;
-        });
+        // 3. Exclude any rows whose draft_name exists in the production list
+        const activeSubmissions = (data || []).filter(sub => !finishedDrafts.includes(sub.draft_name));
 
-        console.log("✨ Final Active Submissions to Show:", activeSubmissions);
+        console.log("✨ Active submissions remaining after exclusion:", activeSubmissions);
 
+        // Take only the single most recent active submission
         fetchedSubmissions = activeSubmissions.length > 0 ? [activeSubmissions[0]] : [];
         
         const badge = document.getElementById('notifBadge') || document.querySelector('.messages-badge');
