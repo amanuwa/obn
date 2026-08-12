@@ -269,7 +269,14 @@
                 </div>
                 <span id="toolbarNote" class="text-[10px] font-mono text-slate-400">// Draft Workspace</span>
             </div>
-
+<div class="flex items-center gap-3">
+                    <button onclick="document.getElementById('fileUploadInput').click()" class="text-[10px] font-mono px-2.5 py-1 bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 rounded border border-cyan-500/30 transition-colors flex items-center gap-1.5 cursor-pointer">
+                        📁 Insert File
+                    </button>
+                    <input type="file" id="fileUploadInput" class="hidden" accept=".pdf,.docx,.txt,image/*" onchange="window.handleFileInsertion(event)">
+                    <span id="toolbarNote" class="text-[10px] font-mono text-slate-400">// Draft Workspace</span>
+                </div>
+            </div>
             <!-- WHITE PAPER CANVAS -->
             <div class="flex-1 bg-slate-950 p-6 overflow-y-auto flex justify-center">
                 <div 
@@ -527,6 +534,79 @@ async function fetchPrepareSubmissions() {
             const btnText = document.getElementById('actionBtnText');
             if (mainBtn) mainBtn.className = "bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
             if (btnText) btnText.innerText = "Send to Editorial Page";
+            // FILE INSERTION & MULTI-PAGE A4 WORKFLOW
+        window.handleFileInsertion = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileType = file.type;
+            const fileName = file.name;
+            let extractedContent = '';
+
+            try {
+                if (fileType.includes('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imgHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Attachment: ${fileName}</p><img src="${e.target.result}" class="max-w-full rounded border border-slate-300"/></div>`;
+                        appendContentToA4Page(imgHtml);
+                    };
+                    reader.readAsDataURL(file);
+                    return;
+                } else if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
+                    extractedContent = await file.text();
+                } else {
+                    extractedContent = `[Imported content from file: ${fileName}]`;
+                }
+
+                const textHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 Source: ${fileName}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${escapeHtml(extractedContent)}</p></div>`;
+                appendContentToA4Page(textHtml);
+            } catch (err) {
+                console.error("Error reading file:", err);
+                alert("Failed to read the selected file.");
+            } finally {
+                event.target.value = '';
+            }
+        };
+
+        function appendContentToA4Page(htmlContent) {
+            const canvas = document.getElementById('editorialCanvas');
+            if (!canvas) return;
+
+            let activePage = canvas.querySelector('.a4-page:last-of-type');
+            
+            if (!activePage || activePage.scrollHeight > 1050) {
+                activePage = window.createNewA4Page();
+            }
+
+            let contentBody = activePage.querySelector('.page-content');
+            if (!contentBody) {
+                contentBody = document.createElement('div');
+                contentBody.className = 'page-content flex-1 outline-none';
+                activePage.appendChild(contentBody);
+            }
+            
+            contentBody.innerHTML += htmlContent;
+        }
+
+        window.createNewA4Page = function() {
+            const canvas = document.getElementById('editorialCanvas');
+            if (!canvas) return null;
+
+            const pageId = 'page-' + Date.now();
+            const pageNode = document.createElement('div');
+            pageNode.id = pageId;
+            pageNode.className = 'a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col mb-6';
+            
+            pageNode.innerHTML = `
+                <button onclick="document.getElementById('${pageId}').remove()" class="delete-page-btn absolute top-2 right-2 text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded font-mono cursor-pointer">
+                    ✕ Delete Page
+                </button>
+                <div class="page-content flex-1 outline-none" contenteditable="true"></div>
+            `;
+            
+            canvas.appendChild(pageNode);
+            return pageNode;
+        };
         };
 
         // DISPATCH ACTION
@@ -584,8 +664,8 @@ window.dispatchAction = async function() {
         senderUuid = '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12);
     }
 
-    const canvasElement = document.getElementById('editorialCanvas');
-    const pagesData = canvasElement ? [canvasElement.innerHTML] : [];
+  const canvasElement = document.getElementById('editorialCanvas');
+    const pagesData = canvasElement ? Array.from(canvasElement.querySelectorAll('.a4-page')).map(p => p.outerHTML) : [];
 
     const actionBtn = document.getElementById('mainActionButton');
     if (actionBtn) actionBtn.disabled = true;
