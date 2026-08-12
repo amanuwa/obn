@@ -261,53 +261,59 @@
 
         <!-- RIGHT COLUMN: EXPANDED EDITOR WORKSPACE -->
         <div class="flex-1 flex flex-col h-full bg-slate-950/60 border border-slate-800 rounded-xl overflow-hidden relative">
-            <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-slate-300 select-none">
+            
+            <!-- TOP TOOLBAR WITH CONTROLS MOVED UP -->
+            <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-slate-300 select-none flex-wrap gap-2">
                 <div class="flex items-center gap-3">
                     <button onclick="document.execCommand('bold', false, null)" class="hover:text-cyan-400 font-bold px-2 py-1 rounded cursor-pointer">B</button>
                     <button onclick="document.execCommand('italic', false, null)" class="hover:text-cyan-400 italic px-2 py-1 rounded cursor-pointer">I</button>
                     <button onclick="document.execCommand('underline', false, null)" class="hover:text-cyan-400 underline px-2 py-1 rounded cursor-pointer">U</button>
                 </div>
-                <span id="toolbarNote" class="text-[10px] font-mono text-slate-400">// Draft Workspace</span>
-            </div>
-<div class="flex items-center gap-3">
+                
+                <div class="flex items-center gap-3">
                     <button onclick="document.getElementById('fileUploadInput').click()" class="text-[10px] font-mono px-2.5 py-1 bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 rounded border border-cyan-500/30 transition-colors flex items-center gap-1.5 cursor-pointer">
                         📁 Insert File
                     </button>
                     <input type="file" id="fileUploadInput" class="hidden" accept=".pdf,.docx,.txt,image/*" onchange="window.handleFileInsertion(event)">
                     <span id="toolbarNote" class="text-[10px] font-mono text-slate-400">// Draft Workspace</span>
                 </div>
+
+                <!-- DISPATCH CONTROLS PLACED ABOVE WORKSPACE -->
+                <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 p-1.5 rounded-md shadow-md">
+                    <span class="text-[10px] text-slate-400 font-mono uppercase px-1">Assign to:</span>
+                    <select id="editorialPersonnelSelect" class="personnel-select cursor-pointer py-1">
+                       <option value="" disabled selected>Loading Editors...</option>
+                    </select>
+                    <button 
+                        id="mainActionButton"
+                        onclick="window.dispatchAction()" 
+                        class="bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs px-3 py-1.5 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-1.5 uppercase tracking-wider"
+                    >
+                        <span id="actionBtnText">Send to Editorial Page</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
-            <!-- WHITE PAPER CANVAS -->
-            <div class="flex-1 bg-slate-950 p-6 overflow-y-auto flex justify-center">
+
+            <!-- WHITE PAPER CANVAS (EXPANDED FULL WIDTH) -->
+            <div class="flex-1 bg-slate-950 p-6 overflow-y-auto flex flex-col items-center">
                 <div 
                     id="editorialCanvas" 
-                    contenteditable="true" 
-                    class="editor-paper w-full max-w-4xl p-10 rounded-md shadow-2xl focus:outline-none"
-                ></div>
-            </div>
-
-            <!-- BOTTOM RIGHT DYNAMIC DISPATCH CONTROLS -->
-            <div class="absolute bottom-6 right-8 flex items-center gap-2 bg-slate-950/90 border border-slate-800 p-2 rounded-lg shadow-xl backdrop-blur-md">
-                <span class="text-[10px] text-slate-400 font-mono uppercase px-1">Assign to:</span>
-                
-                <select id="editorialPersonnelSelect" class="personnel-select cursor-pointer">
-                   <option value="" disabled selected>Loading Editors...</option>
-                </select>
-
-                <button 
-                    id="mainActionButton"
-                    onclick="window.dispatchAction()" 
-                    class="bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider"
+                    class="w-full flex flex-col items-center gap-6"
                 >
-                    <span id="actionBtnText">Send to Editorial Page</span>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                    </svg>
-                </button>
+                    <div class="a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col">
+                        <div class="page-content flex-1 outline-none" contenteditable="true">
+                            <p class="text-slate-400">Start typing or insert files here...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
+
         </div>
     </main>
-
+</body>
     <!-- LOGIC SCRIPTS -->
     <script type="module">
         import { supabase } from './config.js';
