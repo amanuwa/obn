@@ -331,7 +331,7 @@
         }
 
         // Real-time Supabase Fetching
-        async function fetchPrepareSubmissions() {
+async function fetchPrepareSubmissions() {
     try {
         // 1. Get logged-in user's name from localStorage
         const sessionData = localStorage.getItem('userSession');
@@ -351,7 +351,19 @@
             return;
         }
 
-        // 2. Query Supabase with receiver filter, target_role, and chronological sort
+        // 2. Get a list of all draft names that have already reached 'production_team' (fully completed)
+        const { data: productionData, error: prodError } = await supabase
+            .from('editorial_submissions')
+            .select('draft_name')
+            .eq('target_role', 'production_team');
+
+        if (prodError) throw prodError;
+
+        // Extract unique lowercase draft names into an array for case-insensitive matching
+        const finishedDrafts = productionData ? [...new Set(productionData.map(d => (d.draft_name || '').toLowerCase()))] : [];
+        console.log("🚫 Drafts already sent to production (to be hidden from prepare studio):", finishedDrafts);
+
+        // 3. Query Supabase with receiver filter, target_role, and chronological sort
         const { data, error } = await supabase
             .from('editorial_submissions')
             .select('*')
@@ -361,7 +373,15 @@
 
         if (error) throw error;
 
-        fetchedSubmissions = data || [];
+        // 4. Exclude any rows whose lowercase draft_name exists in the production list
+        const activeSubmissions = (data || []).filter(sub => {
+            const draftLower = (sub.draft_name || '').toLowerCase();
+            return !finishedDrafts.includes(draftLower);
+        });
+
+        console.log("✨ Active prepare submissions remaining after exclusion:", activeSubmissions);
+
+        fetchedSubmissions = activeSubmissions || [];
         
         const badge = document.getElementById('notifBadge');
         if (badge) badge.innerText = fetchedSubmissions.length;
@@ -374,7 +394,7 @@
             return;
         }
 
-     container.innerHTML = fetchedSubmissions.map((sub) => {
+        container.innerHTML = fetchedSubmissions.map((sub) => {
             const formattedDate = new Date(sub.created_at).toLocaleString();
             const draftTitle = sub.draft_name || 'Untitled Draft';
             const sender = sub.sender_name || 'Unknown Sender';
