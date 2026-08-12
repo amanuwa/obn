@@ -361,8 +361,8 @@ async function fetchEditorSubmissions() {
 
         if (prodError) throw prodError;
 
-        // Extract unique draft names into an array (e.g., ['zena1'])
-        const finishedDrafts = productionData ? [...new Set(productionData.map(d => d.draft_name))] : [];
+        // Extract unique lowercase draft names into an array for case-insensitive matching
+        const finishedDrafts = productionData ? [...new Set(productionData.map(d => (d.draft_name || '').toLowerCase()))] : [];
         console.log("🚫 Drafts already sent to production (to be hidden):", finishedDrafts);
 
         // 2. Query Supabase for unread items assigned to this editor
@@ -377,8 +377,11 @@ async function fetchEditorSubmissions() {
 
         if (error) throw error;
 
-        // 3. Exclude any rows whose draft_name exists in the production list
-        const activeSubmissions = (data || []).filter(sub => !finishedDrafts.includes(sub.draft_name));
+        // 3. Exclude any rows whose lowercase draft_name exists in the production list
+        const activeSubmissions = (data || []).filter(sub => {
+            const draftLower = (sub.draft_name || '').toLowerCase();
+            return !finishedDrafts.includes(draftLower);
+        });
 
         console.log("✨ Active submissions remaining after exclusion:", activeSubmissions);
 
