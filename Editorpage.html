@@ -334,7 +334,7 @@
         });
 
         // Fetch submissions matching target_role from Supabase in real-time
-  async function fetchEditorSubmissions() {
+async function fetchEditorSubmissions() {
     try {
         // 1. Get current logged-in editor's name from localStorage
         const sessionData = localStorage.getItem('userSession');
@@ -356,19 +356,34 @@
             return;
         }
 
-        // 2. Query Supabase: Exact match on receiver_name, sort by newest created_at first, limit to exactly 1
+        // 2. Find all draft names that have already been sent to production (fully approved/closed)
+        const { data: approvedData, error: approvedError } = await supabase
+            .from('editorial_submissions')
+            .select('draft_name')
+            .eq('target_role', 'production_team');
+
+        if (approvedError) throw approvedError;
+
+        // Extract a unique list of fully approved/completed draft names
+        const approvedDrafts = approvedData ? [...new Set(approvedData.map(d => d.draft_name))] : [];
+
+        // 3. Query Supabase: Get unread items assigned to this editor, sorted by newest first
         const { data, error } = await supabase
             .from('editorial_submissions')
             .select('*')
             .ilike('receiver_name', currentEditorName.trim())
-            .order('created_at', { ascending: false })
-            .limit(1);
+            .eq('status', 'unread')
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
 
         console.log("📦 Supabase Raw Data Result:", data);
 
-        fetchedSubmissions = data || [];
+        // 4. Filter out any rows whose draft_name has already reached production (is fully approved)
+        const activeSubmissions = (data || []).filter(sub => !approvedDrafts.includes(sub.draft_name));
+
+        // Take only the single most recent active submission to match your layout limit
+        fetchedSubmissions = activeSubmissions.length > 0 ? [activeSubmissions[0]] : [];
         
         const badge = document.getElementById('notifBadge') || document.querySelector('.messages-badge');
         if (badge) badge.innerText = fetchedSubmissions.length;
@@ -381,7 +396,7 @@
             return;
         }
 
-        // 3. Render only that single closest/most recent submission
+        // 5. Render only that single closest/most recent submission
         container.innerHTML = fetchedSubmissions.map((sub) => {
             const formattedDate = new Date(sub.created_at).toLocaleString();
             const draftTitle = sub.draft_name || 'Untitled Draft';
