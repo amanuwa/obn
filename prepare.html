@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Journalist Preparation Studio</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
-    <!-- Tailwind CSS -->
+     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
    <style>
     body { 
@@ -951,32 +950,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let extractedText = '';
 
             try {
-                // Show a quick status message on the canvas or console while processing
-                console.log("⏳ Processing file for text conversion:", fileName);
-
-                if (fileType.includes('image/')) {
-                    // Use Tesseract.js to recognize handwriting from images/photos
-                    const reader = new FileReader();
-                    reader.onload = async function(e) {
-                        const imageDataUrl = e.target.result;
-                        
-                        // Run OCR to read handwritten or printed text from the image
-                        const { data: { text } } = await Tesseract.recognize(
-                            imageDataUrl,
-                            'eng',
-                            { logger: m => console.log(m) } // Optional progress tracker in console
-                        );
-
-                        extractedText = text.trim() || "[No readable text found in this handwriting image]";
-                        
-                        const textHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">✍️ Converted Handwriting: ${fileName}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${escapeHtml(extractedText)}</p></div>`;
-                        appendContentToPage(textHtml);
-                    };
-                    reader.readAsDataURL(file);
-                    event.target.value = '';
-                    return; // Exit early since FileReader is asynchronous
-
-                } else if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+                if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+                    // Extract raw text content using PDF.js
                     const arrayBuffer = await file.arrayBuffer();
                     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                     let fullText = '';
@@ -990,17 +965,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     extractedText = fullText.trim();
                 } else if (fileType.includes('text/') || fileName.endsWith('.txt')) {
                     extractedText = await file.text();
+                } else if (fileType.includes('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imgHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Attachment: ${fileName}</p><img src="${e.target.result}" class="max-w-full rounded border border-slate-300"/></div>`;
+                        appendContentToPage(imgHtml);
+                    };
+                    reader.readAsDataURL(file);
+                    event.target.value = '';
+                    return;
                 } else {
                     extractedText = `[Imported file: ${fileName}]`;
                 }
 
-                // Format standard text files or PDFs for the white canvas
+                // Format the extracted text cleanly for your white canvas
                 const textHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 Source Text: ${fileName}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${escapeHtml(extractedText)}</p></div>`;
                 appendContentToPage(textHtml);
 
             } catch (err) {
-                console.error("Error processing file text:", err);
-                alert("Failed to convert the file text or handwriting.");
+                console.error("Error reading file content:", err);
+                alert("Failed to parse the selected file text.");
             } finally {
                 event.target.value = '';
             }
@@ -1008,13 +992,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Helper function to fill the existing page or create a new one only when full
+// Helper function to smartly fill the existing page or create a new one only when full
 function appendContentToPage(htmlContent) {
     const canvas = document.getElementById('editorialCanvas');
     if (!canvas) return;
 
     let targetPage = canvas.querySelector('.a4-page:last-of-type');
     
+    // Check if the current page is empty. If it has no content yet, use it! Only create a new page if it's already overflowing or filled.
     const contentBody = targetPage ? targetPage.querySelector('.page-content') : null;
     const isCurrentPageEmpty = !contentBody || contentBody.innerHTML.trim() === '' || contentBody.innerHTML.includes('here...');
 
@@ -1029,11 +1014,17 @@ function appendContentToPage(htmlContent) {
         targetPage.appendChild(targetBody);
     }
     
+    // Clear placeholder text if it's the initial default state
     if (targetBody.innerHTML.includes('here...')) {
         targetBody.innerHTML = '';
     }
 
     targetBody.innerHTML += htmlContent;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
 
