@@ -1086,32 +1086,32 @@ function appendContentToPage(htmlContent) {
 });
 
 // Helper function to fill the existing page or create a new one only when full
-function appendContentToPage(htmlContent) {
-    const canvas = document.getElementById('editorialCanvas');
-    if (!canvas) return;
+// function appendContentToPage(htmlContent) {
+//     const canvas = document.getElementById('editorialCanvas');
+//     if (!canvas) return;
 
-    let targetPage = canvas.querySelector('.a4-page:last-of-type');
+//     let targetPage = canvas.querySelector('.a4-page:last-of-type');
     
-    const contentBody = targetPage ? targetPage.querySelector('.page-content') : null;
-    const isCurrentPageEmpty = !contentBody || contentBody.innerHTML.trim() === '' || contentBody.innerHTML.includes('here...');
+//     const contentBody = targetPage ? targetPage.querySelector('.page-content') : null;
+//     const isCurrentPageEmpty = !contentBody || contentBody.innerHTML.trim() === '' || contentBody.innerHTML.includes('here...');
 
-    if (!targetPage || (!isCurrentPageEmpty && targetPage.scrollHeight > 1050)) {
-        targetPage = window.createNewA4Page();
-    }
+//     if (!targetPage || (!isCurrentPageEmpty && targetPage.scrollHeight > 1050)) {
+//         targetPage = window.createNewA4Page();
+//     }
 
-    let targetBody = targetPage.querySelector('.page-content');
-    if (!targetBody) {
-        targetBody = document.createElement('div');
-        targetBody.className = 'page-content flex-1 outline-none';
-        targetPage.appendChild(targetBody);
-    }
+//     let targetBody = targetPage.querySelector('.page-content');
+//     if (!targetBody) {
+//         targetBody = document.createElement('div');
+//         targetBody.className = 'page-content flex-1 outline-none';
+//         targetPage.appendChild(targetBody);
+//     }
     
-    if (targetBody.innerHTML.includes('here...')) {
-        targetBody.innerHTML = '';
-    }
+//     if (targetBody.innerHTML.includes('here...')) {
+//         targetBody.innerHTML = '';
+//     }
 
-    targetBody.innerHTML += htmlContent;
-}
+//     targetBody.innerHTML += htmlContent;
+// }
 
 
 
