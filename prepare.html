@@ -761,23 +761,23 @@ window.dispatchAction = async function() {
 };
 
         // CREATE NEW A4 PAGE
-        window.createNewPage = function()  {
-        const canvas = document.getElementById('editorialCanvas');
-        if (!canvas) return null;
+      window.createNewA4Page = function() {
+    const canvas = document.getElementById('editorialCanvas');
+    if (!canvas) return null;
 
-        const pageNode = document.createElement('div');
-        pageNode.className = 'a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col mb-6';
-        
-        pageNode.innerHTML = `
-            <button onclick="this.closest('.a4-page').remove()" class="delete-page-btn">
-                ✕ Delete Page
-            </button>
-            <div class="page-content flex-1 outline-none" contenteditable="true"></div>
-        `;
-        
-        canvas.appendChild(pageNode);
-        return pageNode;
-    }
+    const pageNode = document.createElement('div');
+    pageNode.className = 'a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col mb-6';
+    
+    pageNode.innerHTML = `
+        <button onclick="this.closest('.a4-page').remove()" class="delete-page-btn">
+            ✕ Delete Page
+        </button>
+        <div class="page-content flex-1 outline-none" contenteditable="true"></div>
+    `;
+    
+    canvas.appendChild(pageNode);
+    return pageNode;
+};
 
     function escapeHtml(text) {
         if (!text) return '';
