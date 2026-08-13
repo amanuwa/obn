@@ -944,6 +944,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = event.target.files[0];
             if (!file) return;
 
+            console.log("📁 File selected:", file.name, "Type:", file.type);
+
             const fileType = file.type;
             const fileName = file.name;
 
@@ -951,29 +953,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const fileDataUrl = e.target.result;
+                    console.log("✅ FileReader loaded data URL successfully (length):", fileDataUrl.length);
+
                     let contentHtml = '';
 
                     if (fileType.includes('image/')) {
                         contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Image Attachment: ${fileName}</p><img src="${fileDataUrl}" class="max-w-full rounded border border-slate-300"/></div>`;
                     } else if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-                        contentHtml = `<div class="mb-4 h-full flex flex-col"><p class="text-xs font-bold text-slate-700 mb-1">📄 PDF Document: ${fileName}</p><embed src="${fileDataUrl}" type="application/pdf" width="100%" height="900px" class="rounded border border-slate-300"/></div>`;
+                        contentHtml = `<div class="mb-4 h-full flex flex-col" style="min-height: 800px;"><p class="text-xs font-bold text-slate-700 mb-1">📄 PDF Document: ${fileName}</p><embed src="${fileDataUrl}" type="application/pdf" width="100%" height="100%" class="flex-1 rounded border border-slate-300 min-h-[750px]"/></div>`;
                     } else {
                         contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 File: ${fileName}</p><p class="text-sm text-slate-800">[File Loaded Successfully]</p></div>`;
                     }
 
-                    // 1. Find the current/last existing A4 page on the canvas
                     const canvas = document.getElementById('editorialCanvas');
-                    if (!canvas) return;
+                    if (!canvas) {
+                        console.error("❌ Error: #editorialCanvas element not found!");
+                        return;
+                    }
 
                     let targetPage = canvas.querySelector('.a4-page:last-of-type');
                     
-                    // 2. Check if a page exists AND if it already has significant content (or exceeds height)
-                    // If no page exists, or if the current page is full/already filled, create a new one.
                     if (!targetPage || targetPage.scrollHeight > 1050 || targetPage.querySelector('.page-content')?.innerHTML.trim() !== '') {
                         targetPage = window.createNewA4Page();
                     }
 
-                    // 3. Inject into the target page's content area
                     let contentBody = targetPage.querySelector('.page-content');
                     if (!contentBody) {
                         contentBody = document.createElement('div');
@@ -982,11 +985,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     contentBody.innerHTML += contentHtml;
+                    console.log("🎉 Content successfully injected into the white page!");
                 };
 
                 reader.readAsDataURL(file);
             } catch (err) {
-                console.error("Error reading file:", err);
+                console.error("❌ Error reading file:", err);
                 alert("Failed to read the selected file.");
             } finally {
                 event.target.value = '';
