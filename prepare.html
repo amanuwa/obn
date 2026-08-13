@@ -918,9 +918,7 @@ loadLoggedUserName();
             contentArea.appendChild(segmentNode);
         };
 
-        function escapeHtml(str) {
-            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
+     
         // 1. Function to instantly grab data sent from customepage.html
 function loadIncomingScrapedStream() {
     const rawData = localStorage.getItem('scrapedStreamData') || localStorage.getItem('selectedEditorialContent');
