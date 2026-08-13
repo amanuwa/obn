@@ -944,60 +944,87 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = event.target.files[0];
             if (!file) return;
 
-            console.log("📁 File selected:", file.name, "Type:", file.type);
-
             const fileType = file.type;
             const fileName = file.name;
+            let extractedText = '';
 
             try {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const fileDataUrl = e.target.result;
-                    console.log("✅ FileReader loaded data URL successfully (length):", fileDataUrl.length);
+                if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+                    // Extract raw text content using PDF.js
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    let fullText = '';
 
-                    let contentHtml = '';
-
-                    if (fileType.includes('image/')) {
-                        contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Image Attachment: ${fileName}</p><img src="${fileDataUrl}" class="max-w-full rounded border border-slate-300"/></div>`;
-                    } else if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-                        contentHtml = `<div class="mb-4 h-full flex flex-col" style="min-height: 800px;"><p class="text-xs font-bold text-slate-700 mb-1">📄 PDF Document: ${fileName}</p><embed src="${fileDataUrl}" type="application/pdf" width="100%" height="100%" class="flex-1 rounded border border-slate-300 min-h-[750px]"/></div>`;
-                    } else {
-                        contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 File: ${fileName}</p><p class="text-sm text-slate-800">[File Loaded Successfully]</p></div>`;
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map(item => item.str).join(' ');
+                        fullText += pageText + '\n\n';
                     }
+                    extractedText = fullText.trim();
+                } else if (fileType.includes('text/') || fileName.endsWith('.txt')) {
+                    extractedText = await file.text();
+                } else if (fileType.includes('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imgHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Attachment: ${fileName}</p><img src="${e.target.result}" class="max-w-full rounded border border-slate-300"/></div>`;
+                        appendContentToPage(imgHtml);
+                    };
+                    reader.readAsDataURL(file);
+                    event.target.value = '';
+                    return;
+                } else {
+                    extractedText = `[Imported file: ${fileName}]`;
+                }
 
-                    const canvas = document.getElementById('editorialCanvas');
-                    if (!canvas) {
-                        console.error("❌ Error: #editorialCanvas element not found!");
-                        return;
-                    }
+                // Format the extracted text cleanly for your white canvas
+                const textHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 Source Text: ${fileName}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${escapeHtml(extractedText)}</p></div>`;
+                appendContentToPage(textHtml);
 
-                    let targetPage = canvas.querySelector('.a4-page:last-of-type');
-                    
-                    if (!targetPage || targetPage.scrollHeight > 1050 || targetPage.querySelector('.page-content')?.innerHTML.trim() !== '') {
-                        targetPage = window.createNewA4Page();
-                    }
-
-                    let contentBody = targetPage.querySelector('.page-content');
-                    if (!contentBody) {
-                        contentBody = document.createElement('div');
-                        contentBody.className = 'page-content flex-1 outline-none';
-                        targetPage.appendChild(contentBody);
-                    }
-                    
-                    contentBody.innerHTML += contentHtml;
-                    console.log("🎉 Content successfully injected into the white page!");
-                };
-
-                reader.readAsDataURL(file);
             } catch (err) {
-                console.error("❌ Error reading file:", err);
-                alert("Failed to read the selected file.");
+                console.error("Error reading file content:", err);
+                alert("Failed to parse the selected file text.");
             } finally {
                 event.target.value = '';
             }
         });
     }
 });
+
+// Helper function to smartly fill the existing page or create a new one only when full
+function appendContentToPage(htmlContent) {
+    const canvas = document.getElementById('editorialCanvas');
+    if (!canvas) return;
+
+    let targetPage = canvas.querySelector('.a4-page:last-of-type');
+    
+    // Check if the current page is empty. If it has no content yet, use it! Only create a new page if it's already overflowing or filled.
+    const contentBody = targetPage ? targetPage.querySelector('.page-content') : null;
+    const isCurrentPageEmpty = !contentBody || contentBody.innerHTML.trim() === '' || contentBody.innerHTML.includes('here...');
+
+    if (!targetPage || (!isCurrentPageEmpty && targetPage.scrollHeight > 1050)) {
+        targetPage = window.createNewA4Page();
+    }
+
+    let targetBody = targetPage.querySelector('.page-content');
+    if (!targetBody) {
+        targetBody = document.createElement('div');
+        targetBody.className = 'page-content flex-1 outline-none';
+        targetPage.appendChild(targetBody);
+    }
+    
+    // Clear placeholder text if it's the initial default state
+    if (targetBody.innerHTML.includes('here...')) {
+        targetBody.innerHTML = '';
+    }
+
+    targetBody.innerHTML += htmlContent;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
 
 // 2. Call it immediately when prepare.html loads
 loadIncomingScrapedStream();
