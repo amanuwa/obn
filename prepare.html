@@ -648,25 +648,23 @@ function appendContentToA4Page(htmlContent) {
             contentBody.innerHTML += htmlContent;
         }
 
-        window.createNewA4Page = function() {
-            const canvas = document.getElementById('editorialCanvas');
-            if (!canvas) return null;
+    window.createNewA4Page = function() {
+    const canvas = document.getElementById('editorialCanvas');
+    if (!canvas) return null;
 
-            const pageId = 'page-' + Date.now();
-            const pageNode = document.createElement('div');
-            pageNode.id = pageId;
-            pageNode.className = 'a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col mb-6';
-            
-            pageNode.innerHTML = `
-                <button onclick="document.getElementById('${pageId}').remove()" class="delete-page-btn absolute top-2 right-2 text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded font-mono cursor-pointer">
-                    ✕ Delete Page
-                </button>
-                <div class="page-content flex-1 outline-none" contenteditable="true"></div>
-            `;
-            
-            canvas.appendChild(pageNode);
-            return pageNode;
-        };
+    const pageNode = document.createElement('div');
+    pageNode.className = 'a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col mb-6';
+    
+    pageNode.innerHTML = `
+        <button onclick="this.closest('.a4-page').remove()" class="delete-page-btn">
+            ✕ Delete Page
+        </button>
+        <div class="page-content flex-1 outline-none" contenteditable="true"></div>
+    `;
+    
+    canvas.appendChild(pageNode);
+    return pageNode;
+};
         };
 
         // DISPATCH ACTION
