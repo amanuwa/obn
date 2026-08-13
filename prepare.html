@@ -1029,6 +1029,94 @@ function escapeHtml(text) {
     if (!text) return '';
     return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
+        document.addEventListener('DOMContentLoaded', () => {
+    const aiScanBtn = document.getElementById('aiScanBtn');
+    const fileInput = document.getElementById('fileUploadInput');
+
+    if (aiScanBtn && fileInput) {
+        aiScanBtn.addEventListener('click', () => {
+            // Create a temporary hidden file input specifically for photo uploads
+            const photoInput = document.createElement('input');
+            photoInput.type = 'file';
+            photoInput.accept = 'image/*';
+            
+            photoInput.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                console.log("📤 Sending handwritten image to Gemini webhook...", file.name);
+
+                try {
+                    // Convert image to Base64 to send via webhook
+                    const reader = new FileReader();
+                    reader.onload = async function(uploadEvent) {
+                        const base64Image = uploadEvent.target.result;
+
+                        // Send to your n8n or backend webhook endpoint connected to Gemini
+                        const response = await fetch('YOUR_WEBHOOK_URL_HERE', {
+                            method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                fileName: file.name,
+                                imageBase64: base64Image,
+                                prompt: "Transcribe this handwritten note accurately into clean, computer-written digital text. Fix any minor character slips but preserve the exact meaning, structure, and tone."
+                            })
+                        });
+
+                        if (!response.ok) throw new Error('Failed to reach AI webhook endpoint.');
+
+                        const data = await response.json();
+                        // Assuming your webhook returns the text in data.text or data.result
+                        const transcribedText = data.text || data.result || "[No text returned from AI]";
+
+                        // Format and display on the white canvas
+                        const textHtml = `<div class="mb-4"><p class="text-xs font-bold text-purple-700 mb-1">✨ AI Transcribed Handwriting: ${file.name}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${escapeHtml(transcribedText)}</p></div>`;
+                        
+                        appendContentToPage(textHtml);
+                        console.log("🎉 AI transcribed text successfully displayed on canvas!");
+                    };
+                    reader.readAsDataURL(file);
+
+                } catch (err) {
+                    console.error("Error communicating with webhook:", err);
+                    alert("Failed to send image to Gemini webhook.");
+                }
+            };
+
+            photoInput.click();
+        });
+    }
+});
+
+// Helper function to fill the existing page or create a new one only when full
+function appendContentToPage(htmlContent) {
+    const canvas = document.getElementById('editorialCanvas');
+    if (!canvas) return;
+
+    let targetPage = canvas.querySelector('.a4-page:last-of-type');
+    
+    const contentBody = targetPage ? targetPage.querySelector('.page-content') : null;
+    const isCurrentPageEmpty = !contentBody || contentBody.innerHTML.trim() === '' || contentBody.innerHTML.includes('here...');
+
+    if (!targetPage || (!isCurrentPageEmpty && targetPage.scrollHeight > 1050)) {
+        targetPage = window.createNewA4Page();
+    }
+
+    let targetBody = targetPage.querySelector('.page-content');
+    if (!targetBody) {
+        targetBody = document.createElement('div');
+        targetBody.className = 'page-content flex-1 outline-none';
+        targetPage.appendChild(targetBody);
+    }
+    
+    if (targetBody.innerHTML.includes('here...')) {
+        targetBody.innerHTML = '';
+    }
+
+    targetBody.innerHTML += htmlContent;
+}
+
+
 
 
 
