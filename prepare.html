@@ -321,7 +321,7 @@
     <!-- LOGIC SCRIPTS -->
     <script type="module">
       //  import { supabase } from './config.js';
- import {N8N_GATEWAY_WEBHOOK} from './config.js';
+ import {N8N_Preparepage_GATEWAY_WEBHOOK} from './config.js';
         let currentMode = 'PREPARATION';
         let pendingDirectives = 2;
         window.activeStreamItems = [];
@@ -348,7 +348,7 @@
                     const base64Image = uploadEvent.target.result;
 
                     try {
-                        const response = await fetch(N8N_GATEWAY_WEBHOOK , {
+                        const response = await fetch(N8N_Preparepage_GATEWAY_WEBHOOK , {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
