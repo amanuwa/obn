@@ -1137,34 +1137,34 @@ function appendContentToPage(htmlContent) {
 });
 
 // Helper function to smartly fill the existing page or create a new one only when full
-function appendContentToPage(htmlContent) {
-    const canvas = document.getElementById('editorialCanvas');
-    if (!canvas) return;
+// function appendContentToPage(htmlContent) {
+//     const canvas = document.getElementById('editorialCanvas');
+//     if (!canvas) return;
 
-    let targetPage = canvas.querySelector('.a4-page:last-of-type');
+//     let targetPage = canvas.querySelector('.a4-page:last-of-type');
     
-    // Check if the current page is empty. If it has no content yet, use it! Only create a new page if it's already overflowing or filled.
-    const contentBody = targetPage ? targetPage.querySelector('.page-content') : null;
-    const isCurrentPageEmpty = !contentBody || contentBody.innerHTML.trim() === '' || contentBody.innerHTML.includes('here...');
+//     // Check if the current page is empty. If it has no content yet, use it! Only create a new page if it's already overflowing or filled.
+//     const contentBody = targetPage ? targetPage.querySelector('.page-content') : null;
+//     const isCurrentPageEmpty = !contentBody || contentBody.innerHTML.trim() === '' || contentBody.innerHTML.includes('here...');
 
-    if (!targetPage || (!isCurrentPageEmpty && targetPage.scrollHeight > 1050)) {
-        targetPage = window.createNewA4Page();
-    }
+//     if (!targetPage || (!isCurrentPageEmpty && targetPage.scrollHeight > 1050)) {
+//         targetPage = window.createNewA4Page();
+//     }
 
-    let targetBody = targetPage.querySelector('.page-content');
-    if (!targetBody) {
-        targetBody = document.createElement('div');
-        targetBody.className = 'page-content flex-1 outline-none';
-        targetPage.appendChild(targetBody);
-    }
+//     let targetBody = targetPage.querySelector('.page-content');
+//     if (!targetBody) {
+//         targetBody = document.createElement('div');
+//         targetBody.className = 'page-content flex-1 outline-none';
+//         targetPage.appendChild(targetBody);
+//     }
     
-    // Clear placeholder text if it's the initial default state
-    if (targetBody.innerHTML.includes('here...')) {
-        targetBody.innerHTML = '';
-    }
+//     // Clear placeholder text if it's the initial default state
+//     if (targetBody.innerHTML.includes('here...')) {
+//         targetBody.innerHTML = '';
+//     }
 
-    targetBody.innerHTML += htmlContent;
-}
+//     targetBody.innerHTML += htmlContent;
+// }
 
 
 
