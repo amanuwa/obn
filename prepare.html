@@ -985,6 +985,7 @@ function loadIncomingScrapedStream() {
 }
 document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('fileUploadInput');
+
     if (fileInput) {
         fileInput.addEventListener('change', async (event) => {
             const file = event.target.files[0];
@@ -992,44 +993,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const fileType = file.type;
             const fileName = file.name;
-            let extractedText = '';
 
             try {
-                if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-                    // Extract raw text content using PDF.js
-                    const arrayBuffer = await file.arrayBuffer();
-                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                    let fullText = '';
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    const fileDataUrl = e.target.result;
 
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i);
-                        const textContent = await page.getTextContent();
-                        const pageText = textContent.items.map(item => item.str).join(' ');
-                        fullText += pageText + '\n\n';
+                    // Automatically create a new blank white A4 page for the imported file
+                    const newPage = window.createNewA4Page();
+                    const contentBody = newPage.querySelector('.page-content');
+
+                    let contentHtml = '';
+                    if (fileType.includes('image/')) {
+                        contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Image Attachment: ${fileName}</p><img src="${fileDataUrl}" class="max-w-full rounded border border-slate-300"/></div>`;
+                    } else if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+                        contentHtml = `<div class="mb-4 h-full flex flex-col"><p class="text-xs font-bold text-slate-700 mb-1">📄 PDF Document: ${fileName}</p><embed src="${fileDataUrl}" type="application/pdf" width="100%" height="900px" class="rounded border border-slate-300"/></div>`;
+                    } else {
+                        contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 File: ${fileName}</p><p class="text-sm text-slate-800">[File Loaded Successfully]</p></div>`;
                     }
-                    extractedText = fullText.trim();
-                } else if (fileType.includes('text/') || fileName.endsWith('.txt')) {
-                    extractedText = await file.text();
-                } else if (fileType.includes('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const imgHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Attachment: ${fileName}</p><img src="${e.target.result}" class="max-w-full rounded border border-slate-300"/></div>`;
-                        appendContentToPage(imgHtml);
-                    };
-                    reader.readAsDataURL(file);
-                    event.target.value = '';
-                    return;
-                } else {
-                    extractedText = `[Imported file: ${fileName}]`;
-                }
 
-                // Format the extracted text cleanly for your white canvas
-                const textHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 Source Text: ${fileName}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${escapeHtml(extractedText)}</p></div>`;
-                appendContentToPage(textHtml);
+                    if (contentBody) {
+                        contentBody.innerHTML = contentHtml;
+                    }
 
+                    // Send file payload to your n8n webhook endpoint securely
+                    try {
+                        console.log("📤 Sending file data to webhook...");
+                        const response = await fetch(N8N_Preparepage_GATEWAY_WEBHOOK, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                fileName: fileName,
+                                fileType: fileType,
+                                fileBase64: fileDataUrl
+                            })
+                        });
+
+                        if (!response.ok) throw new Error('Failed to reach webhook endpoint.');
+
+                        const responseText = await response.text();
+                        console.log("🎉 Success! Webhook response processed:", responseText);
+                    } catch (webhookErr) {
+                        console.error("Error communicating with webhook:", webhookErr);
+                    }
+                };
+
+                reader.readAsDataURL(file);
             } catch (err) {
-                console.error("Error reading file content:", err);
-                alert("Failed to parse the selected file text.");
+                console.error("Error reading file:", err);
+                alert("Failed to read the selected file.");
             } finally {
                 event.target.value = '';
             }
