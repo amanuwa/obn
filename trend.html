@@ -32,13 +32,13 @@
 
             <!-- Region & Filter Controls -->
             <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <select id="regionSelect" onchange="filterTrends()" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500">
+                <select id="regionSelect" onchange="filterTrends()" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500 cursor-pointer">
                     <option value="ALL">📍 All Regions</option>
                     <option value="ETH">🇪🇹 Ethiopia</option>
                     <option value="WORLD">🌐 Worldwide</option>
                 </select>
 
-                <select id="categorySelect" onchange="filterTrends()" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500">
+                <select id="categorySelect" onchange="filterTrends()" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500 cursor-pointer">
                     <option value="ALL">🏷️ All Categories</option>
                     <option value="Sports">⚽ Sports</option>
                     <option value="Governmental">🏛️ Governmental / Policy</option>
@@ -57,68 +57,88 @@
 
         <!-- Platform Tabs -->
         <div class="flex border-b border-slate-800 text-sm font-mono space-x-6 overflow-x-auto">
-            <button onclick="switchPlatform('ALL')" id="tab-ALL" class="pb-3 px-1 active-tab transition-colors flex items-center gap-2">
+            <button onclick="switchPlatform('ALL')" id="tab-ALL" class="pb-3 px-1 active-tab transition-colors flex items-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-layer-group"></i> All Platforms
             </button>
-            <button onclick="switchPlatform('Google')" id="tab-Google" class="pb-3 px-1 text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-2">
+            <button onclick="switchPlatform('Google')" id="tab-Google" class="pb-3 px-1 text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-2 cursor-pointer">
                 <i class="fa-brands fa-google text-red-400"></i> Google Trends
             </button>
-            <button onclick="switchPlatform('TikTok')" id="tab-TikTok" class="pb-3 px-1 text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-2">
+            <button onclick="switchPlatform('TikTok')" id="tab-TikTok" class="pb-3 px-1 text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-2 cursor-pointer">
                 <i class="fa-brands fa-tiktok text-cyan-400"></i> TikTok Trends
             </button>
-            <button onclick="switchPlatform('ChatGPT')" id="tab-ChatGPT" class="pb-3 px-1 text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-2">
+            <button onclick="switchPlatform('ChatGPT')" id="tab-ChatGPT" class="pb-3 px-1 text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-robot text-emerald-400"></i> ChatGPT Prompts
             </button>
         </div>
 
-        <!-- Metrics Cards -->
+        <!-- Metrics Summary Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-lg flex items-center justify-between">
                 <div>
                     <span class="text-xs text-slate-400 font-mono">ETHIOPIA SPORTS</span>
-                    <h3 class="text-lg font-bold text-cyan-400 mt-1">Premier League / AFCON</h3>
+                    <h3 class="text-base font-bold text-cyan-400 mt-1">Premier League / AFCON</h3>
                 </div>
                 <i class="fa-solid fa-futbol text-2xl text-slate-700"></i>
             </div>
             <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-lg flex items-center justify-between">
                 <div>
                     <span class="text-xs text-slate-400 font-mono">ETHIOPIA GOVT</span>
-                    <h3 class="text-lg font-bold text-amber-400 mt-1">Tax / Macro Reforms</h3>
+                    <h3 class="text-base font-bold text-amber-400 mt-1">Tax / Macro Reforms</h3>
                 </div>
                 <i class="fa-solid fa-landmark text-2xl text-slate-700"></i>
             </div>
             <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-lg flex items-center justify-between">
                 <div>
                     <span class="text-xs text-slate-400 font-mono">WORLDWIDE SPORTS</span>
-                    <h3 class="text-lg font-bold text-cyan-400 mt-1">FIFA Club World Cup</h3>
+                    <h3 class="text-base font-bold text-cyan-400 mt-1">FIFA Club World Cup</h3>
                 </div>
                 <i class="fa-solid fa-trophy text-2xl text-slate-700"></i>
             </div>
             <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-lg flex items-center justify-between">
                 <div>
                     <span class="text-xs text-slate-400 font-mono">WORLDWIDE GOVT</span>
-                    <h3 class="text-lg font-bold text-amber-400 mt-1">Trade Policy / Elections</h3>
+                    <h3 class="text-base font-bold text-amber-400 mt-1">Trade Policy / Elections</h3>
                 </div>
                 <i class="fa-solid fa-earth-americas text-2xl text-slate-700"></i>
             </div>
         </div>
 
-        <!-- Trend Cards Container -->
-        <div id="trendsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Dynamic JavaScript injection -->
+        <!-- Tabular Data Container -->
+        <div class="bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
+                <span class="text-xs font-mono text-slate-400 uppercase tracking-widest">// ANALYTICS PARAMETERS & TREND MATRIX</span>
+                <span id="resultCount" class="text-xs font-mono text-cyan-400">Loading parameters...</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse font-mono">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-[10px] text-slate-400 uppercase tracking-wider bg-slate-950/80">
+                            <th class="p-3.5">Platform</th>
+                            <th class="p-3.5">Region</th>
+                            <th class="p-3.5">Category</th>
+                            <th class="p-3.5">Trend Keyword / Subject</th>
+                            <th class="p-3.5">Summary Detail</th>
+                            <th class="p-3.5">Volume / Intent</th>
+                            <th class="p-3.5">Momentum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trendsTableBody" class="text-xs divide-y divide-slate-800/60 text-slate-300">
+                        <!-- Dynamic rows injected via JS -->
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-800 bg-slate-900 py-4 text-center text-xs text-slate-500 font-mono">
+    <footer class="border-t border-slate-800 bg-slate-900 py-4 text-center text-xs text-slate-500 font-mono mt-auto">
         // Real-Time Analytics Mock Stream • Google, TikTok & OpenAI Search Data
     </footer>
 
-    <!-- Script to Handle Data and Filtering -->
+    <!-- Script to Handle Data and Tabular Rendering -->
     <script>
         const trendData = [
-            // ETHIOPIA - SPORTS
             {
                 id: 1,
                 keyword: "Ethiopian Premier League Scores & Fixtures",
@@ -149,8 +169,6 @@
                 growth: "+85%",
                 summary: "Users asking for historical stats, long-distance running training strategies, and athlete bios."
             },
-
-            // ETHIOPIA - GOVERNMENTAL
             {
                 id: 4,
                 keyword: "Ethiopian Customs & Foreign Exchange Policy Updates",
@@ -181,8 +199,6 @@
                 growth: "+190%",
                 summary: "Queries seeking step-by-step guides for biometric enrollment and required official documentation."
             },
-
-            // WORLDWIDE - SPORTS
             {
                 id: 7,
                 keyword: "FIFA Club World Cup & UEFA Champions League",
@@ -213,8 +229,6 @@
                 growth: "+110%",
                 summary: "Analysts prompting AI to calculate match probabilities, player stats, and formation comparisons."
             },
-
-            // WORLDWIDE - GOVERNMENTAL
             {
                 id: 10,
                 keyword: "Global Trade Tariffs & Central Bank Interest Rates",
@@ -250,14 +264,18 @@
         let currentPlatform = 'ALL';
 
         function renderTrends(items) {
-            const container = document.getElementById('trendsContainer');
-            container.innerHTML = '';
+            const tableBody = document.getElementById('trendsTableBody');
+            const resultCount = document.getElementById('resultCount');
+            tableBody.innerHTML = '';
+            resultCount.innerText = `Showing ${items.length} Parameters`;
 
             if (items.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full py-12 text-center text-slate-500 font-mono">
-                        // No matching trends found for the selected criteria.
-                    </div>
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-slate-500 font-mono">
+                            // No matching trends found for the selected criteria.
+                        </td>
+                    </tr>
                 `;
                 return;
             }
@@ -267,41 +285,37 @@
                 const isSports = item.category === 'Sports';
 
                 const platformBadge = item.platform === 'Google' 
-                    ? '<span class="text-red-400 bg-red-950/50 border border-red-800/40 px-2 py-0.5 rounded text-[10px] font-mono"><i class="fa-brands fa-google"></i> Google</span>'
+                    ? '<span class="text-red-400 flex items-center gap-1.5 font-bold"><i class="fa-brands fa-google"></i> Google</span>'
                     : item.platform === 'TikTok' 
-                    ? '<span class="text-cyan-400 bg-cyan-950/50 border border-cyan-800/40 px-2 py-0.5 rounded text-[10px] font-mono"><i class="fa-brands fa-tiktok"></i> TikTok</span>'
-                    : '<span class="text-emerald-400 bg-emerald-950/50 border border-emerald-800/40 px-2 py-0.5 rounded text-[10px] font-mono"><i class="fa-solid fa-robot"></i> ChatGPT</span>';
+                    ? '<span class="text-cyan-400 flex items-center gap-1.5 font-bold"><i class="fa-brands fa-tiktok"></i> TikTok</span>'
+                    : '<span class="text-emerald-400 flex items-center gap-1.5 font-bold"><i class="fa-solid fa-robot"></i> ChatGPT</span>';
 
-                const cardHtml = `
-                    <div class="bg-slate-900/70 border border-slate-800 hover:border-slate-700 rounded-lg p-4 flex flex-col justify-between space-y-3 transition-all shadow-md">
-                        <div>
-                            <div class="flex items-center justify-between text-[11px] mb-2">
-                                <div class="flex items-center gap-1.5">
-                                    ${platformBadge}
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold ${isEthiopia ? 'bg-amber-950/60 text-amber-400 border border-amber-800/50' : 'bg-indigo-950/60 text-indigo-400 border border-indigo-800/50'}">
-                                        ${isEthiopia ? '🇪🇹 ETHIOPIA' : '🌐 WORLDWIDE'}
-                                    </span>
-                                </div>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold ${isSports ? 'text-cyan-400' : 'text-amber-300'}">
-                                    ${isSports ? '⚽ Sports' : '🏛️ Govt'}
-                                </span>
-                            </div>
-
-                            <h4 class="text-slate-100 font-bold text-sm tracking-wide leading-snug">
-                                ${item.keyword}
-                            </h4>
-                            <p class="text-slate-400 text-xs mt-2 leading-relaxed">
-                                ${item.summary}
-                            </p>
-                        </div>
-
-                        <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs font-mono">
-                            <span class="text-slate-400"><i class="fa-solid fa-chart-simple text-slate-500 mr-1"></i> ${item.volume}</span>
-                            <span class="text-emerald-400 font-bold"><i class="fa-solid fa-arrow-trend-up mr-1"></i> ${item.growth}</span>
-                        </div>
-                    </div>
+                const rowHtml = `
+                    <tr class="hover:bg-slate-900/60 transition-colors">
+                        <td class="p-3.5 whitespace-nowrap">${platformBadge}</td>
+                        <td class="p-3.5 whitespace-nowrap">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isEthiopia ? 'bg-amber-950/60 text-amber-400 border border-amber-800/50' : 'bg-indigo-950/60 text-indigo-400 border border-indigo-800/50'}">
+                                ${isEthiopia ? '🇪🇹 ETH' : '🌐 WORLD'}
+                            </span>
+                        </td>
+                        <td class="p-3.5 whitespace-nowrap font-semibold ${isSports ? 'text-cyan-400' : 'text-amber-300'}">
+                            ${isSports ? '⚽ Sports' : '🏛️ Govt'}
+                        </td>
+                        <td class="p-3.5 font-bold text-slate-100 max-w-xs">
+                            ${item.keyword}
+                        </td>
+                        <td class="p-3.5 text-slate-400 text-[11px] max-w-md leading-relaxed">
+                            ${item.summary}
+                        </td>
+                        <td class="p-3.5 whitespace-nowrap text-slate-300">
+                            ${item.volume}
+                        </td>
+                        <td class="p-3.5 whitespace-nowrap text-emerald-400 font-bold">
+                            <i class="fa-solid fa-arrow-trend-up mr-1 text-[10px]"></i> ${item.growth}
+                        </td>
+                    </tr>
                 `;
-                container.innerHTML += cardHtml;
+                tableBody.innerHTML += rowHtml;
             });
         }
 
