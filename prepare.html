@@ -328,62 +328,32 @@
         let fetchedSubmissions = [];
         let activeSubmission = null;
 
-   document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     const aiScanBtn = document.getElementById('aiScanBtn');
 
     if (aiScanBtn) {
-        aiScanBtn.addEventListener('click', () => {
-            const photoInput = document.createElement('input');
-            photoInput.type = 'file';
-            photoInput.accept = 'image/*';
-            
-            photoInput.onchange = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
+        aiScanBtn.addEventListener('click', async () => {
+            console.log("📤 Sending test message to webhook...");
 
-                console.log("📤 Sending handwritten image to Gemini webhook...", file.name);
+            try {
+                const response = await fetch(N8N_Preparepage_GATEWAY_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: "hi"
+                    })
+                });
 
-                const reader = new FileReader();
-                reader.onload = async function(uploadEvent) {
-                    const base64Image = uploadEvent.target.result;
+                if (!response.ok) throw new Error('Failed to reach webhook endpoint.');
 
-                    try {
-                        const response = await fetch(N8N_Preparepage_GATEWAY_WEBHOOK  , {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                fileName: file.name,
-                                imageBase64: base64Image,
-                                prompt: "Transcribe this handwritten note accurately into clean, computer-written digital text. Fix any minor character slips but preserve the exact meaning, structure, and tone."
-                            })
-                        });
+                const resultText = await response.text();
+                console.log("🎉 Success! Webhook response:", resultText);
+                alert("Success! Check your n8n execution history.");
 
-                        if (!response.ok) throw new Error('Failed to reach AI webhook endpoint.');
-
-                        const responseText = await response.text();
-                        let transcribedText = responseText;
-
-                        try {
-                            const data = JSON.parse(responseText);
-                            transcribedText = data.text || data.result || responseText;
-                        } catch (err) {
-                            // Fallback to raw text if response isn't JSON
-                        }
-
-                        const textHtml = `<div class="mb-4"><p class="text-xs font-bold text-purple-700 mb-1">✨ AI Transcribed Handwriting: ${file.name}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${escapeHtml(transcribedText)}</p></div>`;
-
-                        appendContentToPage(textHtml);
-                        console.log("🎉 AI transcribed text successfully displayed on canvas!");
-
-                    } catch (err) {
-                        console.error("Error communicating with webhook:", err);
-                        alert("Failed to send image to Gemini webhook.");
-                    }
-                };
-                reader.readAsDataURL(file);
-            };
-
-            photoInput.click();
+            } catch (err) {
+                console.error("Error communicating with webhook:", err);
+                alert("Failed to send test message to webhook.");
+            }
         });
     }
 });
