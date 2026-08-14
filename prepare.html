@@ -356,16 +356,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
   //if (!response.ok) throw new Error('Failed to reach AI webhook endpoint.');
-//
-const responseText = await response.text();
-let transcribedText = responseText;
-
-try {
-    const data = JSON.parse(responseText);
-    transcribedText = data.text || data.result || responseText;
-} catch (e) {
-    // Falls back to plain text if the webhook returns raw text
-}
 
 const textHtml = `<div class="mb-4"><p class="text-xs font-bold text-purple-700 mb-1">✨ AI Transcribed Handwriting: ${file.name}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${escapeHtml(transcribedText)}</p></div>`;
 
