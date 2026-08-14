@@ -358,8 +358,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-if (!response.ok) throw new Error('Failed to reach AI webhook endpoint.');
-
+  //if (!response.ok) throw new Error('Failed to reach AI webhook endpoint.');
+//
 const responseText = await response.text();
 let transcribedText = responseText;
 
