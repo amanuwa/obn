@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global & Ethiopia Trends Monitor</title>
+    <title>Global & Regional Trends Monitor</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -25,17 +25,23 @@
                     <i class="fa-solid me-1 fa-chart-line text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-mono font-bold text-lg text-slate-100">TREND_MONITOR v1.0</h1>
-                    <p class="text-xs text-slate-400">Sports & Governmental Search Analytics</p>
+                    <h1 class="font-mono font-bold text-lg text-slate-100">TREND_MONITOR v2.0</h1>
+                    <p class="text-xs text-slate-400">Global & Continental Search Analytics</p>
                 </div>
             </div>
 
             <!-- Region & Filter Controls -->
             <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
                 <select id="regionSelect" onchange="filterTrends()" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500 cursor-pointer">
-                    <option value="ALL">📍 All Regions</option>
-                    <option value="ETH">🇪🇹 Ethiopia</option>
-                    <option value="WORLD">🌐 Worldwide</option>
+                    <option value="ALL">🌐 All Regions / Worldwide</option>
+                    <option value="ETH">🇪🇹 Ethiopia (National)</option>
+                    <option value="AFRICA">🌍 Africa</option>
+                    <option value="ASIA">🌏 Asia</option>
+                    <option value="EUROPE">🇪🇺 Europe</option>
+                    <option value="NORTH_AMERICA">🌎 North America</option>
+                    <option value="SOUTH_AMERICA">🌎 South America</option>
+                    <option value="OCEANIA">🇦🇺 Oceania / Australia</option>
+                    <option value="ANTARCTICA">❄️ Antarctica</option>
                 </select>
 
                 <select id="categorySelect" onchange="filterTrends()" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500 cursor-pointer">
@@ -71,38 +77,6 @@
             </button>
         </div>
 
-        <!-- Metrics Summary Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-lg flex items-center justify-between">
-                <div>
-                    <span class="text-xs text-slate-400 font-mono">ETHIOPIA SPORTS</span>
-                    <h3 class="text-base font-bold text-cyan-400 mt-1">Premier League / AFCON</h3>
-                </div>
-                <i class="fa-solid fa-futbol text-2xl text-slate-700"></i>
-            </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-lg flex items-center justify-between">
-                <div>
-                    <span class="text-xs text-slate-400 font-mono">ETHIOPIA GOVT</span>
-                    <h3 class="text-base font-bold text-amber-400 mt-1">Tax / Macro Reforms</h3>
-                </div>
-                <i class="fa-solid fa-landmark text-2xl text-slate-700"></i>
-            </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-lg flex items-center justify-between">
-                <div>
-                    <span class="text-xs text-slate-400 font-mono">WORLDWIDE SPORTS</span>
-                    <h3 class="text-base font-bold text-cyan-400 mt-1">FIFA Club World Cup</h3>
-                </div>
-                <i class="fa-solid fa-trophy text-2xl text-slate-700"></i>
-            </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-lg flex items-center justify-between">
-                <div>
-                    <span class="text-xs text-slate-400 font-mono">WORLDWIDE GOVT</span>
-                    <h3 class="text-base font-bold text-amber-400 mt-1">Trade Policy / Elections</h3>
-                </div>
-                <i class="fa-solid fa-earth-americas text-2xl text-slate-700"></i>
-            </div>
-        </div>
-
         <!-- Tabular Data Container -->
         <div class="bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
             <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
@@ -133,7 +107,7 @@
 
     <!-- Footer -->
     <footer class="border-t border-slate-800 bg-slate-900 py-4 text-center text-xs text-slate-500 font-mono mt-auto">
-        // Real-Time Analytics Mock Stream • Google, TikTok & OpenAI Search Data
+        // Real-Time Continental Analytics Stream • Google, TikTok & OpenAI Search Data
     </footer>
 
     <!-- Script to Handle Data and Tabular Rendering -->
@@ -151,26 +125,66 @@
             },
             {
                 id: 2,
-                keyword: "Great Ethiopian Run Registration & Highlights",
-                platform: "TikTok",
+                keyword: "AFCON Qualifiers & Continental Matchups",
+                platform: "Google",
                 category: "Sports",
-                region: "ETH",
-                volume: "1.2M Views",
-                growth: "+210%",
-                summary: "Viral short-form videos showing training routines, runner kits, and Addis Ababa road race footage."
+                region: "AFRICA",
+                volume: "4.2M Searches",
+                growth: "+290%",
+                summary: "Pan-African search spike covering national team tournament qualification matches."
             },
             {
                 id: 3,
-                keyword: "Ethiopian Olympic Athletes & Marathon Records",
-                platform: "ChatGPT",
+                keyword: "AFC Champions League Elite Highlights",
+                platform: "TikTok",
                 category: "Sports",
-                region: "ETH",
-                volume: "High Intent Prompts",
-                growth: "+85%",
-                summary: "Users asking for historical stats, long-distance running training strategies, and athlete bios."
+                region: "ASIA",
+                volume: "9.6M Views",
+                growth: "+310%",
+                summary: "Viral short-form clips highlighting top club goals across Asian football leagues."
             },
             {
                 id: 4,
+                keyword: "UEFA Champions League Quarter-Final Draws",
+                platform: "Google",
+                category: "Sports",
+                region: "EUROPE",
+                volume: "12M+ Searches",
+                growth: "+450%",
+                summary: "Massive European search interest regarding club fixtures, tickets, and odds."
+            },
+            {
+                id: 5,
+                keyword: "Copa América Tournament Bracket Analysis",
+                platform: "ChatGPT",
+                category: "Sports",
+                region: "SOUTH_AMERICA",
+                volume: "High Intent Prompts",
+                growth: "+180%",
+                summary: "South American users prompting AI for match outcome simulations and historical records."
+            },
+            {
+                id: 6,
+                keyword: "MLS Cup Playoff Scenarios & Ticket Sales",
+                platform: "Google",
+                category: "Sports",
+                region: "NORTH_AMERICA",
+                volume: "3.1M Searches",
+                growth: "+160%",
+                summary: "North American search surge tracking football club standings and playoff brackets."
+            },
+            {
+                id: 7,
+                keyword: "A-League Men Match Highlights & Transfers",
+                platform: "TikTok",
+                category: "Sports",
+                region: "OCEANIA",
+                volume: "850K Views",
+                growth: "+120%",
+                summary: "Oceania regional sports content covering Australian and Pacific football leagues."
+            },
+            {
+                id: 8,
                 keyword: "Ethiopian Customs & Foreign Exchange Policy Updates",
                 platform: "Google",
                 category: "Governmental",
@@ -180,84 +194,24 @@
                 summary: "Spike in public queries surrounding monetary updates, banking reforms, and commercial tariffs."
             },
             {
-                id: 5,
-                keyword: "Ministry of Education National Exam Results",
-                platform: "TikTok",
-                category: "Governmental",
-                region: "ETH",
-                volume: "3.4M Views",
-                growth: "+450%",
-                summary: "Students and parents sharing live reaction videos, portal login steps, and score updates."
-            },
-            {
-                id: 6,
-                keyword: "Ethiopia Digital ID (Fayda) Registration Process",
-                platform: "ChatGPT",
-                category: "Governmental",
-                region: "ETH",
-                volume: "High Intent Prompts",
-                growth: "+190%",
-                summary: "Queries seeking step-by-step guides for biometric enrollment and required official documentation."
-            },
-            {
-                id: 7,
-                keyword: "FIFA Club World Cup & UEFA Champions League",
-                platform: "Google",
-                category: "Sports",
-                region: "WORLD",
-                volume: "10M+ Searches",
-                growth: "+520%",
-                summary: "Global search surge covering live match schedules, club transfers, and tournament brackets."
-            },
-            {
-                id: 8,
-                keyword: "Premier League Transfer Deadline Drama",
-                platform: "TikTok",
-                category: "Sports",
-                region: "WORLD",
-                volume: "18.5M Views",
-                growth: "+380%",
-                summary: "Short edits, tactical breakdowns, and fan reactions following major club signings."
-            },
-            {
                 id: 9,
-                keyword: "Tactical Breakdown & Expected Goals (xG) Analysis",
+                keyword: "African Continental Free Trade Area (AfCFTA) Policies",
                 platform: "ChatGPT",
-                category: "Sports",
-                region: "WORLD",
+                category: "Governmental",
+                region: "AFRICA",
                 volume: "High Intent Prompts",
-                growth: "+110%",
-                summary: "Analysts prompting AI to calculate match probabilities, player stats, and formation comparisons."
+                growth: "+210%",
+                summary: "Cross-border trade agreement inquiries and customs protocol summaries across Africa."
             },
             {
                 id: 10,
-                keyword: "Global Trade Tariffs & Central Bank Interest Rates",
+                keyword: "EU Artificial Intelligence Act Compliance Directives",
                 platform: "Google",
                 category: "Governmental",
-                region: "WORLD",
-                volume: "5M+ Searches",
-                growth: "+270%",
-                summary: "High interest in macroeconomic policies, inflation indicators, and international trade laws."
-            },
-            {
-                id: 11,
-                keyword: "AI Regulation Bills & Tech Policy Debates",
-                platform: "TikTok",
-                category: "Governmental",
-                region: "WORLD",
-                volume: "8.1M Views",
-                growth: "+160%",
-                summary: "Creators explaining government hearings, digital privacy laws, and tech compliance."
-            },
-            {
-                id: 12,
-                keyword: "International Treaty Summaries & Policy Clauses",
-                platform: "ChatGPT",
-                category: "Governmental",
-                region: "WORLD",
-                volume: "High Intent Prompts",
-                growth: "+220%",
-                summary: "Users asking for simplified breakdowns of legislative documents and diplomatic agreements."
+                region: "EUROPE",
+                volume: "2.8M Searches",
+                growth: "+340%",
+                summary: "Regulatory compliance queries regarding software deployment and digital governance in Europe."
             }
         ];
 
@@ -294,8 +248,8 @@
                     <tr class="hover:bg-slate-900/60 transition-colors">
                         <td class="p-3.5 whitespace-nowrap">${platformBadge}</td>
                         <td class="p-3.5 whitespace-nowrap">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isEthiopia ? 'bg-amber-950/60 text-amber-400 border border-amber-800/50' : 'bg-indigo-950/60 text-indigo-400 border border-indigo-800/50'}">
-                                ${isEthiopia ? '🇪🇹 ETH' : '🌐 WORLD'}
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                                ${item.region}
                             </span>
                         </td>
                         <td class="p-3.5 whitespace-nowrap font-semibold ${isSports ? 'text-cyan-400' : 'text-amber-300'}">
