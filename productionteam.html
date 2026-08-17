@@ -47,16 +47,14 @@
                 </div>
             </div>
 
-            <!-- LOGGED-IN USER DISPLAY (FIXED & RESTORED) -->
-            <div class="flex items-center space-x-2 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 shadow-inner">
-                <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                <span id="loggedInUserDisplay" class="text-xs font-mono text-cyan-300 font-semibold">Loading...</span>
+            <!-- LOGGED-IN OPERATOR NAME (Replaces status text completely) -->
+            <div class="flex items-center space-x-2.5 bg-slate-900 border border-cyan-900/60 rounded-lg px-3.5 py-1.5 shadow-inner">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                <div class="flex flex-col">
+                    <span class="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Operator</span>
+                    <span id="loggedInUserDisplay" class="text-xs font-mono text-cyan-300 font-bold">Amanuel Bekele</span>
+                </div>
             </div>
-
-            <!-- STATUS INDICATOR -->
-            <span id="statusIndicator" class="text-xs font-mono bg-slate-800 text-cyan-400 px-3 py-1.5 rounded border border-cyan-900/60">
-                STATUS: WAITING FOR EDITOR DATA
-            </span>
         </div>
     </header>
 
@@ -467,11 +465,6 @@
             document.getElementById('twitterKeywords').value = tagVal;
             document.getElementById('telegramKeywords').value = tagVal;
 
-            // Update UI status
-            const statusIndicator = document.getElementById('statusIndicator');
-            statusIndicator.innerText = `STATUS: LOADED (${item.keyword || 'Draft'})`;
-            statusIndicator.className = "text-xs font-mono bg-emerald-950 text-emerald-400 px-3 py-1.5 rounded border border-emerald-800";
-
             // Hide dropdown
             document.getElementById('notifDropdown').classList.add('hidden');
         }
@@ -530,10 +523,6 @@
                 <p class="mt-1">${body}</p>
                 <p class="text-sky-300 font-mono mt-2">${tags} t.me/NewsChannel</p>
             `;
-
-            const statusIndicator = document.getElementById('statusIndicator');
-            statusIndicator.innerText = "STATUS: POSTS GENERATED FOR ALL PANELS";
-            statusIndicator.className = "text-xs font-mono bg-cyan-950 text-cyan-400 px-3 py-1.5 rounded border border-cyan-800";
         }
 
         // 4. Simulated Publishing Dispatch Function
