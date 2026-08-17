@@ -47,12 +47,12 @@
                 </div>
             </div>
 
-            <!-- LOGGED-IN OPERATOR NAME (Replaces status text completely) -->
+            <!-- LOGGED-IN USERNAME (ONLY USERNAME) -->
             <div class="flex items-center space-x-2.5 bg-slate-900 border border-cyan-900/60 rounded-lg px-3.5 py-1.5 shadow-inner">
                 <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
                 <div class="flex flex-col">
                     <span class="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Operator</span>
-                    <span id="loggedInUserDisplay" class="text-xs font-mono text-cyan-300 font-bold">Amanuel Bekele</span>
+                    <span id="loggedInUserDisplay" class="text-xs font-mono text-cyan-300 font-bold">Loading...</span>
                 </div>
             </div>
         </div>
@@ -372,18 +372,37 @@
         const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Replace with your Supabase Anon/Public Key
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // --- USER IDENTIFICATION ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentUser = urlParams.get('user') || 'Amanuel Bekele';
-        document.getElementById('loggedInUserDisplay').innerText = currentUser;
-
-        // Global store for fetched drafts
+        let currentUser = 'Operator';
         let fetchedDrafts = [];
 
-        // On Page Load: Fetch records automatically from Supabase matching current user or general feed
-        window.addEventListener('DOMContentLoaded', () => {
+        // On Page Load: Fetch active logged-in user and payloads automatically
+        window.addEventListener('DOMContentLoaded', async () => {
+            await fetchLoggedInUser();
             fetchUserPayloadsFromSupabase();
         });
+
+        // 1. Fetch Logged-in Username dynamically from Supabase Auth Session
+        async function fetchLoggedInUser() {
+            try {
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                
+                if (session && session.user) {
+                    // Extract username or email prefix from active session
+                    const userEmail = session.user.email || '';
+                    currentUser = session.user.user_metadata?.username || session.user.user_metadata?.full_name || userEmail.split('@')[0] || 'Authenticated User';
+                } else {
+                    // Fallback to URL parameter (?user=username) or localStorage if testing locally
+                    const urlParams = new URLSearchParams(window.location.search);
+                    currentUser = urlParams.get('user') || localStorage.getItem('loggedInUsername') || 'Operator';
+                }
+
+                // Render ONLY the username in the top right header
+                document.getElementById('loggedInUserDisplay').innerText = currentUser;
+            } catch (err) {
+                console.error('Auth session error:', err);
+                document.getElementById('loggedInUserDisplay').innerText = 'Operator';
+            }
+        }
 
         // Toggle Notification Drawer Dropdown
         function toggleNotificationDropdown() {
@@ -398,7 +417,7 @@
             }
         });
 
-        // 1. Fetch recent sent data from Supabase automatically
+        // 2. Fetch recent sent data from Supabase automatically
         async function fetchUserPayloadsFromSupabase() {
             const notifList = document.getElementById('notifList');
             const notifBadge = document.getElementById('notifBadge');
@@ -446,7 +465,7 @@
             }
         }
 
-        // 2. Select a draft from the notification drawer and populate form
+        // 3. Select a draft from the notification drawer and populate form
         function selectDraft(index) {
             const item = fetchedDrafts[index];
             if (!item) return;
@@ -469,7 +488,7 @@
             document.getElementById('notifDropdown').classList.add('hidden');
         }
 
-        // 3. Main Post Generator Logic across all 6 panels
+        // 4. Main Post Generator Logic across all 6 panels
         function generateSocialMediaPosts() {
             const headline = document.getElementById('inputHeadline').value.trim();
             const body = document.getElementById('inputBody').value.trim();
@@ -525,7 +544,7 @@
             `;
         }
 
-        // 4. Simulated Publishing Dispatch Function
+        // 5. Simulated Publishing Dispatch Function
         function publishPost(platform) {
             alert(`[SUCCESS] Post dispatched to ${platform} pipeline!`);
         }
