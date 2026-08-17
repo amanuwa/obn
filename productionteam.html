@@ -371,10 +371,23 @@
 
     let fetchedDrafts = [];
 
-    // On Page Load: Read logged-in username from URL parameter & fetch payloads instantly
+    // On Page Load: Retrieve user session from localStorage, URL parameter, or fallback
     window.addEventListener('DOMContentLoaded', () => {
+        const sessionData = localStorage.getItem('userSession');
+        let currentEditorName = null;
+
+        if (sessionData) {
+            try {
+                const user = JSON.parse(sessionData);
+                currentEditorName = user.fullName || user.Journalist name || user.username || user.name || user.user_metadata?.full_name;
+            } catch (e) {
+                console.error("Session parse error", e);
+            }
+        }
+
+        // Fallbacks: URL parameter (?user=...) -> activeUser storage -> Operator
         const urlParams = new URLSearchParams(window.location.search);
-        const loggedInUser = urlParams.get('user') || localStorage.getItem('activeUser') || 'Operator';
+        const loggedInUser = currentEditorName || urlParams.get('user') || localStorage.getItem('activeUser') || 'Operator';
         
         // Save to localStorage so it persists if they refresh the page
         localStorage.setItem('activeUser', loggedInUser);
