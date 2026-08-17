@@ -366,188 +366,155 @@
     </main>
 
     <!-- JavaScript Automation & Supabase Logic -->
-    <script>
-        // --- SUPABASE CONFIGURATION ---
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // Replace with your Supabase URL
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Replace with your Supabase Anon/Public Key
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+   <script type="module">
+    // Import the pre-initialized supabase client from your config.js
+    import { supabase, N8N_GATEWAY_WEBHOOK } from './config.js';
 
-        let currentUser = 'Operator';
-        let fetchedDrafts = [];
+    let fetchedDrafts = [];
 
-        // On Page Load: Fetch active logged-in user and payloads automatically
-        window.addEventListener('DOMContentLoaded', async () => {
-            await fetchLoggedInUser();
-            fetchUserPayloadsFromSupabase();
-        });
+    // On Page Load: Set username and fetch payloads instantly
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeUser = urlParams.get('user') || localStorage.getItem('loggedInUsername') || 'Amanuel';
+        
+        document.getElementById('loggedInUserDisplay').innerText = activeUser;
 
-        // 1. Fetch Logged-in Username dynamically from Supabase Auth Session
-        async function fetchLoggedInUser() {
-            try {
-                const { data: { session }, error } = await supabaseClient.auth.getSession();
-                
-                if (session && session.user) {
-                    // Extract username or email prefix from active session
-                    const userEmail = session.user.email || '';
-                    currentUser = session.user.user_metadata?.username || session.user.user_metadata?.full_name || userEmail.split('@')[0] || 'Authenticated User';
-                } else {
-                    // Fallback to URL parameter (?user=username) or localStorage if testing locally
-                    const urlParams = new URLSearchParams(window.location.search);
-                    currentUser = urlParams.get('user') || localStorage.getItem('loggedInUsername') || 'Operator';
-                }
+        fetchUserPayloadsFromSupabase();
+    });
 
-                // Render ONLY the username in the top right header
-                document.getElementById('loggedInUserDisplay').innerText = currentUser;
-            } catch (err) {
-                console.error('Auth session error:', err);
-                document.getElementById('loggedInUserDisplay').innerText = 'Operator';
-            }
-        }
+    // Toggle Notification Drawer Dropdown
+    window.toggleNotificationDropdown = function() {
+        const dropdown = document.getElementById('notifDropdown');
+        dropdown.classList.toggle('hidden');
+    }
 
-        // Toggle Notification Drawer Dropdown
-        function toggleNotificationDropdown() {
-            const dropdown = document.getElementById('notifDropdown');
-            dropdown.classList.toggle('hidden');
-        }
-
-        // Close dropdown when clicking outside
-        window.addEventListener('click', function(e) {
-            if (!e.target.closest('.relative')) {
-                document.getElementById('notifDropdown').classList.add('hidden');
-            }
-        });
-
-        // 2. Fetch recent sent data from Supabase automatically
-        async function fetchUserPayloadsFromSupabase() {
-            const notifList = document.getElementById('notifList');
-            const notifBadge = document.getElementById('notifBadge');
-            const notifCount = document.getElementById('notifCount');
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('live_trends') // Replace with your actual table name if different
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(20);
-
-                if (error) throw error;
-
-                fetchedDrafts = data || [];
-                notifCount.innerText = `${fetchedDrafts.length} items`;
-
-                if (fetchedDrafts.length > 0) {
-                    notifBadge.classList.remove('hidden');
-                    notifList.innerHTML = '';
-
-                    fetchedDrafts.forEach((item, index) => {
-                        const draftName = item.keyword || item.draft_name || item.headline || 'Untitled Draft';
-                        const sender = item.sender || currentUser;
-                        const timeSent = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
-
-                        notifList.innerHTML += `
-                            <div onclick="selectDraft(${index})" class="p-3 hover:bg-slate-800/60 transition-colors cursor-pointer">
-                                <div class="font-bold text-slate-200 truncate">${draftName}</div>
-                                <div class="flex items-center justify-between text-[10px] text-slate-400 mt-1 font-mono">
-                                    <span>Sender: <strong class="text-cyan-400">${sender}</strong></span>
-                                    <span class="text-slate-500">${timeSent}</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                } else {
-                    notifBadge.classList.add('hidden');
-                    notifList.innerHTML = `<div class="p-4 text-center text-slate-500 font-mono">No recent drafts found</div>`;
-                }
-
-            } catch (err) {
-                console.error('Supabase fetch error:', err);
-                notifList.innerHTML = `<div class="p-4 text-center text-red-400 font-mono">Failed to load notifications</div>`;
-            }
-        }
-
-        // 3. Select a draft from the notification drawer and populate form
-        function selectDraft(index) {
-            const item = fetchedDrafts[index];
-            if (!item) return;
-
-            document.getElementById('inputHeadline').value = item.keyword || item.headline || '';
-            document.getElementById('inputBody').value = item.summary || item.body || '';
-            document.getElementById('inputTags').value = item.tags || '#BreakingNews #NewsDesk';
-            if (item.category) document.getElementById('inputCategory').value = item.category;
-
-            // Populate panel-specific keywords dynamically
-            const tagVal = item.tags || '#News';
-            document.getElementById('tiktokKeywords').value = tagVal;
-            document.getElementById('instagramKeywords').value = tagVal;
-            document.getElementById('facebookKeywords').value = tagVal;
-            document.getElementById('youtubeKeywords').value = tagVal;
-            document.getElementById('twitterKeywords').value = tagVal;
-            document.getElementById('telegramKeywords').value = tagVal;
-
-            // Hide dropdown
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function(e) {
+        if (!e.target.closest('.relative')) {
             document.getElementById('notifDropdown').classList.add('hidden');
         }
+    });
 
-        // 4. Main Post Generator Logic across all 6 panels
-        function generateSocialMediaPosts() {
-            const headline = document.getElementById('inputHeadline').value.trim();
-            const body = document.getElementById('inputBody').value.trim();
-            const tags = document.getElementById('inputTags').value.trim();
+    // Fetch recent sent data from Supabase automatically using the imported 'supabase' client
+    async function fetchUserPayloadsFromSupabase() {
+        const notifList = document.getElementById('notifList');
+        const notifBadge = document.getElementById('notifBadge');
+        const notifCount = document.getElementById('notifCount');
 
-            if (!headline || !body) {
-                alert("Please ensure both Headline and Body content are filled.");
-                return;
+        try {
+            const { data, error } = await supabase
+                .from('live_trends')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            if (error) throw error;
+
+            fetchedDrafts = data || [];
+            notifCount.innerText = `${fetchedDrafts.length} items`;
+
+            if (fetchedDrafts.length > 0) {
+                notifBadge.classList.info ? '' : notifBadge.classList.remove('hidden');
+                notifList.innerHTML = '';
+
+                fetchedDrafts.forEach((item, index) => {
+                    const draftName = item.keyword || item.draft_name || item.headline || 'Untitled Draft';
+                    const sender = item.sender || 'Operator';
+                    const timeSent = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+
+                    notifList.innerHTML += `
+                        <div onclick="selectDraft(${index})" class="p-3 hover:bg-slate-800/60 transition-colors cursor-pointer">
+                            <div class="font-bold text-slate-200 truncate">${draftName}</div>
+                            <div class="flex items-center justify-between text-[10px] text-slate-400 mt-1 font-mono">
+                                <span>Sender: <strong class="text-cyan-400">${sender}</strong></span>
+                                <span class="text-slate-500">${timeSent}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                notifBadge.classList.add('hidden');
+                notifList.innerHTML = `<div class="p-4 text-center text-slate-500 font-mono">No recent drafts found</div>`;
             }
 
-            // TikTok Output
-            document.getElementById('tiktokOutput').innerHTML = `
-                <p class="text-pink-400 font-bold">[SCRIPT HOOK]</p>
-                <p>"${headline.toUpperCase()}"</p>
-                <p class="text-pink-400 font-bold mt-2">[BODY COVERAGE]</p>
-                <p>${body.substring(0, 220)}...</p>
-                <p class="text-slate-400 mt-2">${tags} #TikTokShorts</p>
-            `;
+        } catch (err) {
+            console.error('Supabase fetch error:', err);
+            notifList.innerHTML = `<div class="p-4 text-center text-red-400 font-mono">Failed to load notifications</div>`;
+        }
+    }
 
-            // Instagram Output
-            document.getElementById('instagramOutput').innerHTML = `
-                <p class="font-bold text-slate-100">${headline}</p>
-                <p class="mt-1">${body.substring(0, 280)}...</p>
-                <p class="text-fuchsia-400 font-mono mt-2">${tags} #InstaDaily</p>
-            `;
+    window.selectDraft = function(index) {
+        const item = fetchedDrafts[index];
+        if (!item) return;
 
-            // Facebook Output
-            document.getElementById('facebookOutput').innerHTML = `
-                <p class="font-bold text-blue-400">📰 ${headline}</p>
-                <p class="mt-1">${body}</p>
-                <p class="text-blue-300 font-mono mt-2">${tags}</p>
-            `;
+        document.getElementById('inputHeadline').value = item.keyword || item.headline || '';
+        document.getElementById('inputBody').value = item.summary || item.body || '';
+        document.getElementById('inputTags').value = item.tags || '#BreakingNews #NewsDesk';
+        if (item.category) document.getElementById('inputCategory').value = item.category;
 
-            // YouTube Output
-            document.getElementById('youtubeOutput').innerHTML = `
-                <p class="text-red-400 font-bold">[TITLE]: ${headline}</p>
-                <p class="mt-1">[DESCRIPTION]: ${body.substring(0, 250)}...</p>
-                <p class="text-slate-500 text-[10px] mt-2">TAGS: ${headline.toLowerCase().split(' ').join(', ')}</p>
-            `;
+        const tagVal = item.tags || '#News';
+        document.getElementById('tiktokKeywords').value = tagVal;
+        document.getElementById('instagramKeywords').value = tagVal;
+        document.getElementById('facebookKeywords').value = tagVal;
+        document.getElementById('youtubeKeywords').value = tagVal;
+        document.getElementById('twitterKeywords').value = tagVal;
+        document.getElementById('telegramKeywords').value = tagVal;
 
-            // Twitter / X Output
-            document.getElementById('twitterOutput').innerHTML = `
-                <p class="font-semibold text-slate-100">🚨 ${headline}</p>
-                <p class="mt-1">${body.substring(0, 180)}...</p>
-                <p class="text-cyan-400 font-mono mt-2">${tags}</p>
-            `;
+        document.getElementById('notifDropdown').classList.add('hidden');
+    }
 
-            // Telegram Output
-            document.getElementById('telegramOutput').innerHTML = `
-                <p class="font-bold text-sky-400">📢 BROADCAST: ${headline}</p>
-                <p class="mt-1">${body}</p>
-                <p class="text-sky-300 font-mono mt-2">${tags} t.me/NewsChannel</p>
-            `;
+    window.generateSocialMediaPosts = function() {
+        const headline = document.getElementById('inputHeadline').value.trim();
+        const body = document.getElementById('inputBody').value.trim();
+        const tags = document.getElementById('inputTags').value.trim();
+
+        if (!headline || !body) {
+            alert("Please ensure both Headline and Body content are filled.");
+            return;
         }
 
-        // 5. Simulated Publishing Dispatch Function
-        function publishPost(platform) {
-            alert(`[SUCCESS] Post dispatched to ${platform} pipeline!`);
-        }
-    </script>
+        document.getElementById('tiktokOutput').innerHTML = `
+            <p class="text-pink-400 font-bold">[SCRIPT HOOK]</p>
+            <p>"${headline.toUpperCase()}"</p>
+            <p class="text-pink-400 font-bold mt-2">[BODY COVERAGE]</p>
+            <p>${body.substring(0, 220)}...</p>
+            <p class="text-slate-400 mt-2">${tags} #TikTokShorts</p>
+        `;
+
+        document.getElementById('instagramOutput').innerHTML = `
+            <p class="font-bold text-slate-100">${headline}</p>
+            <p class="mt-1">${body.substring(0, 280)}...</p>
+            <p class="text-fuchsia-400 font-mono mt-2">${tags} #InstaDaily</p>
+        `;
+
+        document.getElementById('facebookOutput').innerHTML = `
+            <p class="font-bold text-blue-400">📰 ${headline}</p>
+            <p class="mt-1">${body}</p>
+            <p class="text-blue-300 font-mono mt-2">${tags}</p>
+        `;
+
+        document.getElementById('youtubeOutput').innerHTML = `
+            <p class="font-red-400 font-bold">[TITLE]: ${headline}</p>
+            <p class="mt-1">[DESCRIPTION]: ${body.substring(0, 250)}...</p>
+            <p class="text-slate-500 text-[10px] mt-2">TAGS: ${headline.toLowerCase().split(' ').join(', ')}</p>
+        `;
+
+        document.getElementById('twitterOutput').innerHTML = `
+            <p class="font-semibold text-slate-100">🚨 ${headline}</p>
+            <p class="mt-1">${body.substring(0, 180)}...</p>
+            <p class="text-cyan-400 font-mono mt-2">${tags}</p>
+        `;
+
+        document.getElementById('telegramOutput').innerHTML = `
+            <p class="font-bold text-sky-400">📢 BROADCAST: ${headline}</p>
+            <p class="mt-1">${body}</p>
+            <p class="text-sky-300 font-mono mt-2">${tags} t.me/NewsChannel</p>
+        `;
+    }
+
+    window.publishPost = function(platform) {
+        alert(`[SUCCESS] Post dispatched to ${platform} pipeline!`);
+    }
+</script>
 </body>
 </html>
