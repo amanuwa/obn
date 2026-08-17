@@ -365,20 +365,24 @@
         </section>
     </main>
 
-    <!-- JavaScript Automation & Supabase Logic -->
    <script type="module">
     // Import the pre-initialized supabase client from your config.js
-    import { supabase, N8N_GATEWAY_WEBHOOK } from './config.js';
+    import { supabase } from './config.js';
 
     let fetchedDrafts = [];
 
-    // On Page Load: Set username and fetch payloads instantly
+    // On Page Load: Read logged-in username from URL parameter & fetch payloads instantly
     window.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
-        const activeUser = urlParams.get('user') || localStorage.getItem('loggedInUsername') || 'Amanuel';
+        const loggedInUser = urlParams.get('user') || localStorage.getItem('activeUser') || 'Operator';
         
-        document.getElementById('loggedInUserDisplay').innerText = activeUser;
+        // Save to localStorage so it persists if they refresh the page
+        localStorage.setItem('activeUser', loggedInUser);
 
+        // Display the logged-in username in the top right header
+        document.getElementById('loggedInUserDisplay').innerText = loggedInUser;
+
+        // Fetch notifications/payloads from Supabase
         fetchUserPayloadsFromSupabase();
     });
 
@@ -395,7 +399,7 @@
         }
     });
 
-    // Fetch recent sent data from Supabase automatically using the imported 'supabase' client
+    // Fetch recent sent data from Supabase automatically
     async function fetchUserPayloadsFromSupabase() {
         const notifList = document.getElementById('notifList');
         const notifBadge = document.getElementById('notifBadge');
@@ -414,7 +418,7 @@
             notifCount.innerText = `${fetchedDrafts.length} items`;
 
             if (fetchedDrafts.length > 0) {
-                notifBadge.classList.info ? '' : notifBadge.classList.remove('hidden');
+                notifBadge.classList.remove('hidden');
                 notifList.innerHTML = '';
 
                 fetchedDrafts.forEach((item, index) => {
@@ -494,7 +498,7 @@
         `;
 
         document.getElementById('youtubeOutput').innerHTML = `
-            <p class="font-red-400 font-bold">[TITLE]: ${headline}</p>
+            <p class="text-red-400 font-bold">[TITLE]: ${headline}</p>
             <p class="mt-1">[DESCRIPTION]: ${body.substring(0, 250)}...</p>
             <p class="text-slate-500 text-[10px] mt-2">TAGS: ${headline.toLowerCase().split(' ').join(', ')}</p>
         `;
