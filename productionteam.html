@@ -6,6 +6,8 @@
     <title>Production Engine // Social Transformation Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Supabase JS Client CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
@@ -23,15 +25,35 @@
         </div>
 
         <div class="flex items-center space-x-6">
-            <!-- NOTIFICATION ICON -->
-            <button onclick="acceptIncomingEditorData()" class="relative p-2 text-slate-300 hover:text-cyan-400 transition" title="View Editor Payload Alert">
-                <i class="fa-solid fa-bell text-xl"></i>
-                <span id="notifBadge" class="absolute top-0 right-0 flex h-3 w-3">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                </span>
-            </button>
+            <!-- NOTIFICATION BELL & DROPDOWN -->
+            <div class="relative">
+                <button onclick="toggleNotificationDropdown()" class="relative p-2 text-slate-300 hover:text-cyan-400 transition cursor-pointer" title="View Notifications">
+                    <i class="fa-solid fa-bell text-xl"></i>
+                    <span id="notifBadge" class="absolute top-0 right-0 flex h-3 w-3 hidden">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                    </span>
+                </button>
 
+                <!-- Notification Dropdown Drawer -->
+                <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden z-50 font-mono">
+                    <div class="p-3 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
+                        <span class="text-xs text-slate-400 uppercase tracking-widest">// RECENT DRAFTS FEED</span>
+                        <span id="notifCount" class="text-[10px] text-cyan-400">0 items</span>
+                    </div>
+                    <div id="notifList" class="max-h-72 overflow-y-auto divide-y divide-slate-800/60 text-xs">
+                        <div class="p-4 text-center text-slate-500">Loading notifications from Supabase...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOGGED-IN USER DISPLAY (FIXED & RESTORED) -->
+            <div class="flex items-center space-x-2 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 shadow-inner">
+                <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                <span id="loggedInUserDisplay" class="text-xs font-mono text-cyan-300 font-semibold">Loading...</span>
+            </div>
+
+            <!-- STATUS INDICATOR -->
             <span id="statusIndicator" class="text-xs font-mono bg-slate-800 text-cyan-400 px-3 py-1.5 rounded border border-cyan-900/60">
                 STATUS: WAITING FOR EDITOR DATA
             </span>
@@ -54,7 +76,7 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-xs font-mono text-slate-400 mb-1">STORY HEADLINE / TITLE</label>
-                        <input type="text" id="inputHeadline" placeholder="Click notification bell or enter title..." 
+                        <input type="text" id="inputHeadline" placeholder="Click notification bell or select draft..." 
                             class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-cyan-100 focus:outline-none focus:border-cyan-500 transition">
                     </div>
 
@@ -71,7 +93,7 @@
 
                     <div>
                         <label class="block text-xs font-mono text-slate-400 mb-1">FINAL EDITED BODY CONTENT</label>
-                        <textarea id="inputBody" rows="10" placeholder="Editor text content will automatically render here upon notification click..." 
+                        <textarea id="inputBody" rows="10" placeholder="Editor text content will automatically render here upon selecting a draft..." 
                             class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition"></textarea>
                     </div>
 
@@ -83,7 +105,7 @@
                 </div>
             </div>
 
-            <button onclick="generateSocialMediaPosts()" class="w-full mt-6 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:shadow-cyan-500/20 transition flex items-center justify-center space-x-2">
+            <button onclick="generateSocialMediaPosts()" class="w-full mt-6 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:shadow-cyan-500/20 transition flex items-center justify-center space-x-2 cursor-pointer">
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                 <span>GENERATE SOCIAL MEDIA POSTS</span>
             </button>
@@ -111,7 +133,6 @@
                         <p class="text-slate-500 italic">No post generated yet.</p>
                     </div>
 
-                    <!-- Keywords, Files & Audio Controls -->
                     <div class="space-y-2 pt-2 border-t border-slate-800/60">
                         <input type="text" id="tiktokKeywords" placeholder="TikTok Keywords / Captions" class="w-full bg-slate-950 border border-slate-800 text-xs p-2 rounded text-pink-300 focus:border-pink-500 outline-none">
                         
@@ -130,7 +151,7 @@
                             <label class="flex items-center text-xs text-pink-400 cursor-pointer">
                                 <input type="checkbox" id="tiktokTrendingAudio" class="mr-1.5 accent-pink-500"> Use TikTok Trend Audio
                             </label>
-                            <button onclick="publishPost('TikTok')" class="bg-pink-600 hover:bg-pink-500 text-white text-xs px-3 py-1.5 rounded font-bold transition">
+                            <button onclick="publishPost('TikTok')" class="bg-pink-600 hover:bg-pink-500 text-white text-xs px-3 py-1.5 rounded font-bold transition cursor-pointer">
                                 <i class="fa-solid fa-paper-plane mr-1"></i> Post TikTok
                             </button>
                         </div>
@@ -171,7 +192,7 @@
                         </div>
 
                         <div class="flex justify-end pt-1">
-                            <button onclick="publishPost('Instagram')" class="bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs px-3 py-1.5 rounded font-bold transition">
+                            <button onclick="publishPost('Instagram')" class="bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs px-3 py-1.5 rounded font-bold transition cursor-pointer">
                                 <i class="fa-solid fa-paper-plane mr-1"></i> Post Instagram
                             </button>
                         </div>
@@ -212,7 +233,7 @@
                         </div>
 
                         <div class="flex justify-end pt-1">
-                            <button onclick="publishPost('Facebook')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded font-bold transition">
+                            <button onclick="publishPost('Facebook')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded font-bold transition cursor-pointer">
                                 <i class="fa-solid fa-paper-plane mr-1"></i> Post Facebook
                             </button>
                         </div>
@@ -253,7 +274,7 @@
                         </div>
 
                         <div class="flex justify-end pt-1">
-                            <button onclick="publishPost('YouTube')" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded font-bold transition">
+                            <button onclick="publishPost('YouTube')" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded font-bold transition cursor-pointer">
                                 <i class="fa-solid fa-paper-plane mr-1"></i> Post YouTube
                             </button>
                         </div>
@@ -294,7 +315,7 @@
                         </div>
 
                         <div class="flex justify-end pt-1">
-                            <button onclick="publishPost('X (Twitter)')" class="bg-slate-200 hover:bg-white text-slate-950 text-xs px-3 py-1.5 rounded font-bold transition">
+                            <button onclick="publishPost('X (Twitter)')" class="bg-slate-200 hover:bg-white text-slate-950 text-xs px-3 py-1.5 rounded font-bold transition cursor-pointer">
                                 <i class="fa-solid fa-paper-plane mr-1"></i> Post to X
                             </button>
                         </div>
@@ -335,7 +356,7 @@
                         </div>
 
                         <div class="flex justify-end pt-1">
-                            <button onclick="publishPost('Telegram')" class="bg-sky-500 hover:bg-sky-400 text-white text-xs px-3 py-1.5 rounded font-bold transition">
+                            <button onclick="publishPost('Telegram')" class="bg-sky-500 hover:bg-sky-400 text-white text-xs px-3 py-1.5 rounded font-bold transition cursor-pointer">
                                 <i class="fa-solid fa-paper-plane mr-1"></i> Broadcast Telegram
                             </button>
                         </div>
@@ -346,56 +367,116 @@
         </section>
     </main>
 
-    <!-- JavaScript Automation Logic -->
+    <!-- JavaScript Automation & Supabase Logic -->
     <script>
-        // Check local storage for notification badge status on startup
+        // --- SUPABASE CONFIGURATION ---
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // Replace with your Supabase URL
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Replace with your Supabase Anon/Public Key
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- USER IDENTIFICATION ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentUser = urlParams.get('user') || 'Amanuel Bekele';
+        document.getElementById('loggedInUserDisplay').innerText = currentUser;
+
+        // Global store for fetched drafts
+        let fetchedDrafts = [];
+
+        // On Page Load: Fetch records automatically from Supabase matching current user or general feed
         window.addEventListener('DOMContentLoaded', () => {
-            const payload = localStorage.getItem('finalEditedPayload');
-            const badge = document.getElementById('notifBadge');
-            if (payload) {
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
+            fetchUserPayloadsFromSupabase();
+        });
+
+        // Toggle Notification Drawer Dropdown
+        function toggleNotificationDropdown() {
+            const dropdown = document.getElementById('notifDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('.relative')) {
+                document.getElementById('notifDropdown').classList.add('hidden');
             }
         });
 
-        // 1. Notification Bell Handler: Paste Editor Data into form automatically
-        function acceptIncomingEditorData() {
-            const storedPayload = localStorage.getItem('finalEditedPayload');
-            const statusIndicator = document.getElementById('statusIndicator');
+        // 1. Fetch recent sent data from Supabase automatically
+        async function fetchUserPayloadsFromSupabase() {
+            const notifList = document.getElementById('notifList');
+            const notifBadge = document.getElementById('notifBadge');
+            const notifCount = document.getElementById('notifCount');
 
-            if (storedPayload) {
-                try {
-                    const data = JSON.parse(storedPayload);
-                    document.getElementById('inputHeadline').value = data.headline || '';
-                    document.getElementById('inputBody').value = data.body || '';
-                    document.getElementById('inputTags').value = data.tags || '#BreakingNews #NewsDesk';
-                    if (data.category) document.getElementById('inputCategory').value = data.category;
-                    
-                    // Populate panel-specific keywords dynamically
-                    const tagVal = data.tags || '#News';
-                    document.getElementById('tiktokKeywords').value = tagVal;
-                    document.getElementById('instagramKeywords').value = tagVal;
-                    document.getElementById('facebookKeywords').value = tagVal;
-                    document.getElementById('youtubeKeywords').value = tagVal;
-                    document.getElementById('twitterKeywords').value = tagVal;
-                    document.getElementById('telegramKeywords').value = tagVal;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('live_trends') // Replace with your actual table name if different
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(20);
 
-                    // Update UI status
-                    statusIndicator.innerText = "STATUS: PAYLOAD LOADED FROM EDITOR";
-                    statusIndicator.className = "text-xs font-mono bg-emerald-950 text-emerald-400 px-3 py-1.5 rounded border border-emerald-800";
-                    
-                    // Hide notification badge after accepting
-                    document.getElementById('notifBadge').classList.add('hidden');
-                } catch (e) {
-                    alert("Failed to parse editor payload.");
+                if (error) throw error;
+
+                fetchedDrafts = data || [];
+                notifCount.innerText = `${fetchedDrafts.length} items`;
+
+                if (fetchedDrafts.length > 0) {
+                    notifBadge.classList.remove('hidden');
+                    notifList.innerHTML = '';
+
+                    fetchedDrafts.forEach((item, index) => {
+                        const draftName = item.keyword || item.draft_name || item.headline || 'Untitled Draft';
+                        const sender = item.sender || currentUser;
+                        const timeSent = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+
+                        notifList.innerHTML += `
+                            <div onclick="selectDraft(${index})" class="p-3 hover:bg-slate-800/60 transition-colors cursor-pointer">
+                                <div class="font-bold text-slate-200 truncate">${draftName}</div>
+                                <div class="flex items-center justify-between text-[10px] text-slate-400 mt-1 font-mono">
+                                    <span>Sender: <strong class="text-cyan-400">${sender}</strong></span>
+                                    <span class="text-slate-500">${timeSent}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    notifBadge.classList.add('hidden');
+                    notifList.innerHTML = `<div class="p-4 text-center text-slate-500 font-mono">No recent drafts found</div>`;
                 }
-            } else {
-                alert("No new payload sent from the Editor page yet.");
+
+            } catch (err) {
+                console.error('Supabase fetch error:', err);
+                notifList.innerHTML = `<div class="p-4 text-center text-red-400 font-mono">Failed to load notifications</div>`;
             }
         }
 
-        // 2. Main Post Generator Logic across all 6 panels
+        // 2. Select a draft from the notification drawer and populate form
+        function selectDraft(index) {
+            const item = fetchedDrafts[index];
+            if (!item) return;
+
+            document.getElementById('inputHeadline').value = item.keyword || item.headline || '';
+            document.getElementById('inputBody').value = item.summary || item.body || '';
+            document.getElementById('inputTags').value = item.tags || '#BreakingNews #NewsDesk';
+            if (item.category) document.getElementById('inputCategory').value = item.category;
+
+            // Populate panel-specific keywords dynamically
+            const tagVal = item.tags || '#News';
+            document.getElementById('tiktokKeywords').value = tagVal;
+            document.getElementById('instagramKeywords').value = tagVal;
+            document.getElementById('facebookKeywords').value = tagVal;
+            document.getElementById('youtubeKeywords').value = tagVal;
+            document.getElementById('twitterKeywords').value = tagVal;
+            document.getElementById('telegramKeywords').value = tagVal;
+
+            // Update UI status
+            const statusIndicator = document.getElementById('statusIndicator');
+            statusIndicator.innerText = `STATUS: LOADED (${item.keyword || 'Draft'})`;
+            statusIndicator.className = "text-xs font-mono bg-emerald-950 text-emerald-400 px-3 py-1.5 rounded border border-emerald-800";
+
+            // Hide dropdown
+            document.getElementById('notifDropdown').classList.add('hidden');
+        }
+
+        // 3. Main Post Generator Logic across all 6 panels
         function generateSocialMediaPosts() {
             const headline = document.getElementById('inputHeadline').value.trim();
             const body = document.getElementById('inputBody').value.trim();
@@ -455,7 +536,7 @@
             statusIndicator.className = "text-xs font-mono bg-cyan-950 text-cyan-400 px-3 py-1.5 rounded border border-cyan-800";
         }
 
-        // 3. Simulated Publishing Dispatch Function
+        // 4. Simulated Publishing Dispatch Function
         function publishPost(platform) {
             alert(`[SUCCESS] Post dispatched to ${platform} pipeline!`);
         }
