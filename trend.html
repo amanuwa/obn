@@ -107,91 +107,59 @@
     </footer>
 
     <!-- Script to Handle Data and Tabular Rendering -->
-    <script>
-        const trendData = [
-            {
-                id: 1,
-                keyword: "Ethiopian Premier League Scores & Fixtures",
-                platform: "Google",
-                category: "Sports",
-                region: "ETH",
-                volume: "250K+ Searches",
-                growth: "+140%",
-                summary: "High search volume for Saint George SA, Ethiopian Coffee FC, and national league standings."
-            },
-            {
-                id: 2,
-                keyword: "Ethiopian Customs & Foreign Exchange Policy Updates",
-                platform: "Google",
-                category: "Governmental",
-                region: "ETH",
-                volume: "180K+ Searches",
-                growth: "+310%",
-                summary: "Spike in public queries surrounding monetary updates, banking reforms, and commercial tariffs."
-            },
-            {
-                id: 3,
-                keyword: "NFL & NBA Playoffs Live Broadcasts",
-                platform: "Google",
-                category: "Sports",
-                region: "US",
-                volume: "15M+ Searches",
-                growth: "+380%",
-                summary: "Massive US search surges covering professional basketball and football league schedules."
-            },
-            {
-                id: 4,
-                keyword: "US Federal Reserve Interest Rate Decisions",
-                platform: "ChatGPT",
-                category: "Governmental",
-                region: "US",
-                volume: "High Intent Prompts",
-                growth: "+210%",
-                summary: "Financial analysts and users prompting AI for economic forecasts and monetary policies."
-            },
-            {
-                id: 5,
-                keyword: "Saudi Pro League Match Highlights & Transfers",
-                platform: "TikTok",
-                category: "Sports",
-                region: "MIDDLE_EAST",
-                volume: "6.4M Views",
-                growth: "+290%",
-                summary: "Viral short-form clips tracking star players and club rivalries across the Middle East."
-            },
-            {
-                id: 6,
-                keyword: "Middle East Regional Infrastructure & Energy Pacts",
-                platform: "Google",
-                category: "Governmental",
-                region: "MIDDLE_EAST",
-                volume: "3.2M Searches",
-                growth: "+175%",
-                summary: "Search interest covering cross-border economic collaborations and energy regulations."
-            },
-            {
-                id: 7,
-                keyword: "AFC Asian Cup & Regional Football Tournaments",
-                platform: "Google",
-                category: "Sports",
-                region: "ARAB",
-                volume: "4.8M Searches",
-                growth: "+310%",
-                summary: "Pan-Arab search interest focusing on international football qualifiers and regional matches."
-            },
-            {
-                id: 8,
-                keyword: "Arab League Economic & Digital Transformation Policies",
-                platform: "ChatGPT",
-                category: "Governmental",
-                region: "ARAB",
-                volume: "High Intent Prompts",
-                growth: "+190%",
-                summary: "Queries analyzing legislative changes, digital governance, and regional trade agreements."
-            }
-        ];
-
+   <script>
+        let trendData = [];
         let currentPlatform = 'ALL';
+
+        // Fetch live data from your published Google Sheet CSV URL
+        async function fetchTrendsFromSheet() {
+            const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPSSxcPzN9EneuweISrRHAqqX3S059BPbmG__-52w8aS9TgJk0ymXgUrnRitP7kvWhUzjjIWeC7-Js/pub?gid=813608862&single=true&output=csv'; 
+            const resultCount = document.getElementById('resultCount');
+            
+            try {
+                const response = await fetch(CSV_URL);
+                const csvText = await response.text();
+                
+                // Parse CSV into rows (handles standard CSV formatting)
+                const rows = csvText.split('\n').map(row => {
+                    // Simple CSV split handling basic commas
+                    return row.split(',').map(val => val.replace(/^"|"$/g, '').trim());
+                });
+
+                trendData = [];
+                // Skip header row (start at i = 1)
+                for (let i = 1; i < rows.length; i++) {
+                    const cols = rows[i];
+                    // Ensure the row has columns and isn't blank
+                    if (cols.length >= 7 && cols[0] !== "") {
+                        trendData.push({
+                            id: i,
+                            platform: cols[0],
+                            region: cols[1],
+                            category: cols[2],
+                            keyword: cols[3],
+                            summary: cols[4],
+                            volume: cols[5],
+                            growth: cols[6]
+                        });
+                    }
+                }
+
+                // Initial render with fetched live data
+                filterTrends();
+
+            } catch (error) {
+                console.error('Error loading live trends:', error);
+                document.getElementById('resultCount').innerText = 'Error loading live trends stream.';
+                document.getElementById('trendsTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-red-400 font-mono">
+                            // Failed to connect to the Google Sheets analytics stream. Check CSV URL.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
 
         function renderTrends(items) {
             const tableBody = document.getElementById('trendsTableBody');
@@ -211,13 +179,13 @@
             }
 
             items.forEach(item => {
-                const isSports = item.category === 'Sports';
+                const isSports = item.category.toLowerCase().includes('sport');
 
-                const platformBadge = item.platform === 'Google' 
+                const platformBadge = item.platform.toLowerCase() === 'google' 
                     ? '<span class="text-red-400 flex items-center gap-1.5 font-bold"><i class="fa-brands fa-google"></i> Google</span>'
-                    : item.platform === 'TikTok' 
+                    : item.platform.toLowerCase() === 'tiktok' 
                     ? '<span class="text-cyan-400 flex items-center gap-1.5 font-bold"><i class="fa-brands fa-tiktok"></i> TikTok</span>'
-                    : '<span class="text-emerald-400 flex items-center gap-1.5 font-bold"><i class="fa-solid fa-robot"></i> ChatGPT</span>';
+                    : `<span class="text-emerald-400 flex items-center gap-1.5 font-bold"><i class="fa-solid fa-robot"></i> ${item.platform}</span>`;
 
                 const rowHtml = `
                     <tr class="hover:bg-slate-900/60 transition-colors">
@@ -254,9 +222,9 @@
             const searchVal = document.getElementById('searchInput').value.toLowerCase();
 
             const filtered = trendData.filter(item => {
-                const matchesPlatform = (currentPlatform === 'ALL' || item.platform === currentPlatform);
-                const matchesRegion = (regionVal === 'ALL' || item.region === regionVal);
-                const matchesCategory = (categoryVal === 'ALL' || item.category === categoryVal);
+                const matchesPlatform = (currentPlatform === 'ALL' || item.platform.toLowerCase() === currentPlatform.toLowerCase());
+                const matchesRegion = (regionVal === 'ALL' || item.region.toUpperCase() === regionVal.toUpperCase());
+                const matchesCategory = (categoryVal === 'ALL' || item.category.toLowerCase().includes(categoryVal.toLowerCase()));
                 const matchesSearch = item.keyword.toLowerCase().includes(searchVal) || item.summary.toLowerCase().includes(searchVal);
 
                 return matchesPlatform && matchesRegion && matchesCategory && matchesSearch;
@@ -282,9 +250,9 @@
             filterTrends();
         }
 
-        // Initial Render
+        // Initial Load on Page Startup
         document.addEventListener('DOMContentLoaded', () => {
-            renderTrends(trendData);
+            fetchTrendsFromSheet();
         });
     </script>
 </body>
