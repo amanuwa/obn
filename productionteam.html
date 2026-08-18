@@ -270,20 +270,51 @@ function loadLoggedUserName() {
 loadLoggedUserName();
 
 // Function to fetch and update drafts from Supabase database every 10 seconds
-if (supabase) {
-    const { data, error } = await supabase
-        .from('drafts')
-        .select('*')
-        .eq('receiver_name', currentLoggedInUser)
-        .eq('status', 'read');
+// Function to fetch and update drafts from Supabase database every 10 seconds
+async function fetchDraftsFromSupabase() {
+    try {
+        let filteredDrafts = [];
 
-    if (error) {
-        console.error('Supabase query error:', error.message);
-        return;
+        if (supabase) {
+            const { data, error } = await supabase
+                .from('drafts')
+                .select('*')
+                .eq('receiver_name', currentLoggedInUser)
+                .eq('status', 'read');
+
+            if (error) {
+                console.error('Supabase query error:', error.message);
+                return;
+            }
+            filteredDrafts = data || [];
+        } else {
+            console.warn('Supabase client is not initialized.');
+        }
+
+        // Update Notification Badge count
+        document.getElementById('notifBadge').textContent = filteredDrafts.length;
+
+        // Render Notification List
+        const notifListEl = document.getElementById('notifList');
+        notifListEl.innerHTML = '';
+
+        if (filteredDrafts.length === 0) {
+            notifListEl.innerHTML = '<div class="px-4 py-3 text-xs font-mono text-gray-500 text-center">No read drafts found.</div>';
+        } else {
+            filteredDrafts.forEach(draft => {
+                const item = document.createElement('div');
+                item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition";
+                item.onclick = () => selectDraft(draft);
+                item.innerHTML = `
+                    <p class="text-xs font-mono font-bold text-gray-200">${draft.draft_name}</p>
+                    <p class="text-[10px] font-mono text-gray-400 mt-1">SENDER: ${draft.sender_name} | TIME: ${draft.send_time}</p>
+                `;
+                notifListEl.appendChild(item);
+            });
+        }
+    } catch (err) {
+        console.error('Error fetching data:', err);
     }
-    filteredDrafts = data || [];
-} else {
-    console.warn('Supabase client is not initialized.');
 }
 
 // Initialize Page on Load and set 10-second polling interval
