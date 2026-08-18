@@ -165,11 +165,11 @@
         </main>
 
         <!-- BOTTOM SECTION: 6 Distribution Panels (Scrolled down section) -->
-    <section class="max-w-full px-6 py-8 border-t border-gray-800 mt-12 bg-[#0b0f19]">
+   <section class="max-w-full px-6 py-8 border-t border-gray-800 mt-12 bg-[#0b0f19]">
     <h3 class="text-xs font-mono text-cyan-400 tracking-wider mb-6">// MULTI-PLATFORM DISTRIBUTION CHANNELS</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
-        <!-- TikTok Panel -->
+        <!-- 1. TikTok Panel -->
         <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -217,10 +217,17 @@
                 <input type="text" placeholder="e.g. news, trending" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none">
             </div>
 
-            <button onclick="publishTo('TikTok')" class="w-full bg-gray-900 hover:bg-gray-800 text-white border border-gray-700 text-xs font-mono py-2 rounded transition font-bold">Publish to TikTok</button>
+            <div class="flex items-center space-x-2 pt-2">
+                <button onclick="publishTo('TikTok', this)" class="bg-gray-900 hover:bg-gray-800 text-white border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to TikTok</button>
+                <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-cyan-500">
+                    <option value="">Select Account...</option>
+                    <option value="account_1">TikTok Main (@obn_official)</option>
+                    <option value="account_2">TikTok News Desk</option>
+                </select>
+            </div>
         </div>
 
-        <!-- Instagram Panel -->
+        <!-- 2. Instagram Panel -->
         <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -268,10 +275,17 @@
                 <input type="text" placeholder="e.g. photography, lifestyle" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-pink-500 outline-none">
             </div>
 
-            <button onclick="publishTo('Instagram')" class="w-full bg-gray-900 hover:bg-gray-800 text-pink-400 border border-gray-700 text-xs font-mono py-2 rounded transition font-bold">Publish to Instagram</button>
+            <div class="flex items-center space-x-2 pt-2">
+                <button onclick="publishTo('Instagram', this)" class="bg-gray-900 hover:bg-gray-800 text-pink-400 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to Instagram</button>
+                <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-pink-500">
+                    <option value="">Select Account...</option>
+                    <option value="account_1">Instagram Primary (@obn_news)</option>
+                    <option value="account_2">Instagram English Desk</option>
+                </select>
+            </div>
         </div>
 
-        <!-- Twitter / X Panel -->
+        <!-- 3. Twitter / X Panel -->
         <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -319,10 +333,17 @@
                 <input type="text" placeholder="e.g. breaking, update" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none">
             </div>
 
-            <button onclick="publishTo('Twitter')" class="w-full bg-gray-900 hover:bg-gray-800 text-cyan-400 border border-gray-700 text-xs font-mono py-2 rounded transition font-bold">Publish to Twitter</button>
+            <div class="flex items-center space-x-2 pt-2">
+                <button onclick="publishTo('Twitter', this)" class="bg-gray-900 hover:bg-gray-800 text-cyan-400 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to Twitter</button>
+                <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-cyan-500">
+                    <option value="">Select Account...</option>
+                    <option value="account_1">Twitter Official (@OBNTV)</option>
+                    <option value="account_2">Twitter Breaking News</option>
+                </select>
+            </div>
         </div>
 
-        <!-- Telegram Panel -->
+        <!-- 4. Telegram Panel -->
         <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -370,10 +391,17 @@
                 <input type="text" placeholder="e.g. announcement" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-sky-500 outline-none">
             </div>
 
-            <button onclick="publishTo('Telegram')" class="w-full bg-gray-900 hover:bg-gray-800 text-sky-400 border border-gray-700 text-xs font-mono py-2 rounded transition font-bold">Publish to Telegram</button>
+            <div class="flex items-center space-x-2 pt-2">
+                <button onclick="publishTo('Telegram', this)" class="bg-gray-900 hover:bg-gray-800 text-sky-400 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to Telegram</button>
+                <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-sky-500">
+                    <option value="">Select Account...</option>
+                    <option value="account_1">Telegram Channel (@obn_broadcast)</option>
+                    <option value="account_2">Telegram Community Group</option>
+                </select>
+            </div>
         </div>
 
-        <!-- YouTube Panel -->
+        <!-- 5. YouTube Panel -->
         <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -421,10 +449,17 @@
                 <input type="text" placeholder="e.g. video, podcast" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-red-500 outline-none">
             </div>
 
-            <button onclick="publishTo('YouTube')" class="w-full bg-gray-900 hover:bg-gray-800 text-red-500 border border-gray-700 text-xs font-mono py-2 rounded transition font-bold">Publish to YouTube</button>
+            <div class="flex items-center space-x-2 pt-2">
+                <button onclick="publishTo('YouTube', this)" class="bg-gray-900 hover:bg-gray-800 text-red-500 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to YouTube</button>
+                <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-red-500">
+                    <option value="">Select Account...</option>
+                    <option value="account_1">YouTube Main Channel (OBN)</option>
+                    <option value="account_2">YouTube Sport Channel</option>
+                </select>
+            </div>
         </div>
 
-        <!-- Facebook Panel -->
+        <!-- 6. Facebook Panel -->
         <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -472,7 +507,14 @@
                 <input type="text" placeholder="e.g. community, update" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-blue-500 outline-none">
             </div>
 
-            <button onclick="publishTo('Facebook')" class="w-full bg-gray-900 hover:bg-gray-800 text-blue-500 border border-gray-700 text-xs font-mono py-2 rounded transition font-bold">Publish to Facebook</button>
+            <div class="flex items-center space-x-2 pt-2">
+                <button onclick="publishTo('Facebook', this)" class="bg-gray-900 hover:bg-gray-800 text-blue-500 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to Facebook</button>
+                <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-blue-500">
+                    <option value="">Select Account...</option>
+                    <option value="account_1">Facebook Page (OBN English)</option>
+                    <option value="account_2">Facebook Page (Afaan Oromoo)</option>
+                </select>
+            </div>
         </div>
 
     </div>
