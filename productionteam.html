@@ -301,6 +301,24 @@ async function fetchDraftsFromSupabase() {
         if (filteredDrafts.length === 0) {
             notifListEl.innerHTML = '<div class="px-4 py-3 text-xs font-mono text-gray-500 text-center">No read drafts found.</div>';
         } else {
+            // Inside fetchDraftsFromSupabase(), update how the list items are built:
+filteredDrafts.forEach(draft => {
+    const item = document.createElement('div');
+    item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition";
+    item.onclick = () => selectDraft(draft);
+    
+    // Fallback title since there is no draft_name column in editorial_submissions
+    const displayTitle = draft.title || `Submission from ${draft.sender_name}`;
+    const displayTime = draft.created_at ? new Date(draft.created_at).toLocaleTimeString() : "Recent";
+
+    item.innerHTML = `
+        <p class="text-xs font-mono font-bold text-gray-200">${displayTitle}</p>
+        <p class="text-[10px] font-mono text-gray-400 mt-1">SENDER: ${draft.sender_name} | TIME: ${displayTime}</p>
+    `;
+    notifListEl.appendChild(item);
+});
+
+            
             filteredDrafts.forEach(draft => {
                 const item = document.createElement('div');
                 item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition";
