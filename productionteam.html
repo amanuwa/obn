@@ -755,6 +755,7 @@ window.createPostAction = function() {
 
 // Global variable to hold the main editor's featured image data
 // Global variable to hold the main editor's featured image data
+// Global variable to hold the main editor's featured image data
 let mainEditorImageSrc = null;
 
 // Track main featured image selection from the editor panel file input
@@ -766,7 +767,7 @@ window.loadMainEditorImage = function(event) {
     reader.onload = function(e) {
         mainEditorImageSrc = e.target.result;
         
-        // Display in main editor preview box if it exists
+        // Display in main editor preview box
         const previewBox = document.getElementById('mainEditorImagePreview');
         if (previewBox) {
             previewBox.src = mainEditorImageSrc;
@@ -777,18 +778,13 @@ window.loadMainEditorImage = function(event) {
 };
 
 // Distribute content from the main editor to all social media panels
-window.distributeContent = function() {
-    console.log("Distribute button clicked!"); // Debug log
-
-    // 1. Grab values from the main editor panel safely
-    const mainTitleEl = document.getElementById('postTitle'); 
-    const mainBodyEl = document.getElementById('postContent'); 
+window.distributeContentToPlatforms = function() {
+    // 1. Grab values from the main editor panel
+    const mainTitleEl = document.getElementById('postTitle'); // Adjust ID if your main title input has a different ID
+    const mainBodyEl = document.getElementById('postContent'); // Adjust ID if your main body textarea has a different ID
     
     const titleText = mainTitleEl ? mainTitleEl.value : '';
     const bodyText = mainBodyEl ? mainBodyEl.value : '';
-
-    console.log("Captured Title:", titleText);
-    console.log("Captured Body:", bodyText);
 
     if (!titleText && !bodyText && !mainEditorImageSrc) {
         alert('Please fill out the title, content body, or upload a featured image first.');
@@ -797,12 +793,6 @@ window.distributeContent = function() {
 
     // 2. Loop through all social media distribution cards
     const platformCards = document.querySelectorAll('.bg-\\[\\#111827\\]');
-    console.log("Found platform cards:", platformCards.length);
-
-    if (platformCards.length === 0) {
-        alert('Error: Could not find any platform cards with class .bg-[#111827]');
-        return;
-    }
 
     platformCards.forEach(card => {
         // Fill Title
@@ -838,12 +828,15 @@ window.distributeContent = function() {
                 container.classList.remove('h-48', 'h-56', 'h-72');
                 
                 if (headerText.includes('tiktok') || headerText.includes('youtube')) {
+                    // Vertical 9:16 layout for TikTok/Shorts
                     container.classList.add('h-72');
                     if (badge) badge.textContent = "Resized: 9:16 Vertical";
                 } else if (headerText.includes('instagram')) {
+                    // Square 1:1 layout for Instagram Feed
                     container.classList.add('h-56');
                     if (badge) badge.textContent = "Resized: 1:1 Square";
                 } else {
+                    // Standard Landscape 16:9 for Twitter/Facebook/Telegram
                     container.classList.add('h-48');
                     if (badge) badge.textContent = "Resized: 16:9 Landscape";
                 }
