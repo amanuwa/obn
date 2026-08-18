@@ -96,10 +96,7 @@
                         </label>
                         <span id="loadedFileName" class="text-xs font-mono text-gray-500">// Draft Workspace</span>
                     </div>
-                    <!-- Create Posts Button -->
-                    <button onclick="createPostAction()" class="bg-cyan-600 hover:bg-cyan-500 text-black text-xs font-mono font-bold px-4 py-2 rounded shadow transition">
-                        CREATE POSTS
-                    </button>
+                  
                 </div>
 
                 <!-- Blank A4 Paper Area -->
@@ -353,15 +350,7 @@
         }
 
         // Action for "Create Posts" button
-        function createPostAction() {
-            const title = document.getElementById('a4Content').querySelector('h1')?.textContent || "Untitled Post";
-            const textContent = document.getElementById('a4Content').querySelector('.prose, .whitespace-pre-wrap')?.innerText || "";
-            
-            document.getElementById('postTitle').value = title;
-            document.getElementById('postContent').value = textContent;
-            
-            alert('A4 workspace content successfully transferred to Content Editor panel.');
-        }
+     
 
         // Distribute button action - smooth scroll down
         function distributeContent() {
