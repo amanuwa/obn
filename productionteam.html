@@ -240,141 +240,172 @@
     <!-- JavaScript Session and Interaction Logic -->
     <script>
         // Logged-in session username matches your theme reference
-        const currentLoggedInUser = "kenenisa";
+       // Logged-in session username obtained from the previous login page (via localStorage or sessionStorage)
+const currentLoggedInUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
 
-        // Mock draft database with sender, receiver, send_time, status, draft_name, content
-        const draftsDatabase = [
-            { id: 1, draft_name: "Breaking News: Global Energy Summit", sender_name: "Desk Editor Sarah", receiver_name: "kenenisa", send_time: "2026-08-18 08:30 AM", status: "read", content: "Delegates have reached a preliminary accord on cross-border grid sharing following late-night negotiations." },
-            { id: 2, draft_name: "Investigative Brief: Logistics Anomaly", sender_name: "Chief Investigator David", receiver_name: "kenenisa", send_time: "2026-08-18 09:45 AM", status: "read", content: "Flight logs indicate alternative routing patterns deployed during the airspace advisory window." },
-            { id: 3, draft_name: "Unread Confidential Draft", sender_name: "Director", receiver_name: "kenenisa", send_time: "2026-08-18 10:15 AM", status: "unread", content: "This item remains unread and should be filtered out." },
-            { id: 4, draft_name: "Economic Bulletin Q3 Forecast", sender_name: "Markets Editor Emma", receiver_name: "kenenisa", send_time: "2026-08-18 10:50 AM", status: "read", content: "Quarterly figures confirm strong resilience across tech and supply sectors despite inflationary headwinds." }
-        ];
+// Function to fetch and update drafts from Supabase database every 10 seconds
+async function fetchDraftsFromSupabase() {
+    try {
+        let filteredDrafts = [];
 
-        // Initialize Page on Load
-        window.addEventListener('DOMContentLoaded', () => {
-            // Display logged-in user name top right (only name with theme tag)
-            document.getElementById('loggedInUserDisplay').textContent = currentLoggedInUser;
+        // Check if supabaseClient is available globally (initialized from config.js)
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            // Query Supabase table named 'drafts' with specific filters
+            const { data, error } = await supabaseClient
+                .from('drafts')
+                .select('*')
+                .eq('receiver_name', currentLoggedInUser)
+                .eq('status', 'read');
 
-            // Filter notifications: receiver_name matches loggedInUser AND status == 'read'
-            const filteredDrafts = draftsDatabase.filter(d => d.receiver_name === currentLoggedInUser && d.status === 'read');
-            
-            // Update Notification Badge count
-            document.getElementById('notifBadge').textContent = filteredDrafts.length;
-
-            // Render Notification List
-            const notifListEl = document.getElementById('notifList');
-            notifListEl.innerHTML = '';
-
-            if (filteredDrafts.length === 0) {
-                notifListEl.innerHTML = '<div class="px-4 py-3 text-xs font-mono text-gray-500 text-center">No read drafts found.</div>';
-            } else {
-                filteredDrafts.forEach(draft => {
-                    const item = document.createElement('div');
-                    item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition";
-                    item.onclick = () => selectDraft(draft);
-                    item.innerHTML = `
-                        <p class="text-xs font-mono font-bold text-gray-200">${draft.draft_name}</p>
-                        <p class="text-[10px] font-mono text-gray-400 mt-1">SENDER: ${draft.sender_name} | TIME: ${draft.send_time}</p>
-                    `;
-                    notifListEl.appendChild(item);
-                });
-            }
-        });
-
-        // Toggle Notification Dropdown Visibility
-        function toggleNotifications() {
-            const dropdown = document.getElementById('notifDropdown');
-            dropdown.classList.toggle('hidden');
-        }
-
-        // When a user selects a draft from notifications
-        function selectDraft(draft) {
-            document.getElementById('notifDropdown').classList.add('hidden');
-
-            // Render onto left A4 workspace
-            const a4Content = document.getElementById('a4Content');
-            a4Content.innerHTML = `
-                <div class="border-b border-gray-200 pb-4 mb-4">
-                    <span class="text-[10px] font-mono font-bold text-cyan-600 uppercase tracking-widest">// DRAFT INBOX RECORD</span>
-                    <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${draft.draft_name}</h1>
-                    <p class="text-xs text-gray-500 mt-1 font-mono">Sender: ${draft.sender_name} | Received: ${draft.send_time}</p>
-                </div>
-                <div class="prose max-w-none text-gray-800 text-sm leading-relaxed font-sans">
-                    <p>${draft.content}</p>
-                </div>
-            `;
-
-            // Automatically populate right editor panel
-            document.getElementById('postTitle').value = draft.draft_name;
-            document.getElementById('postContent').value = draft.content;
-        }
-
-        // Load Local File into A4 Workspace (File Explorer action)
-        function loadLocalFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            document.getElementById('loadedFileName').textContent = file.name;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const content = e.target.result;
-                const a4Content = document.getElementById('a4Content');
-                a4Content.innerHTML = `
-                    <div class="border-b border-gray-200 pb-4 mb-4">
-                        <span class="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">// LOCAL FILE IMPORT</span>
-                        <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${file.name}</h1>
-                    </div>
-                    <div class="text-sm text-gray-800 whitespace-pre-wrap font-sans">${content}</div>
-                `;
-                document.getElementById('postTitle').value = file.name.replace(/\.[^/.]+$/, "");
-                document.getElementById('postContent').value = content;
-            };
-            reader.readAsText(file);
-        }
-
-        // Preview Image from Computer file explorer
-        function previewImage(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const container = document.getElementById('imagePreviewContainer');
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                container.innerHTML = `
-                    <img src="${e.target.result}" alt="Preview" class="h-28 object-contain rounded mx-auto">
-                    <span class="text-[10px] font-mono text-cyan-400">${file.name}</span>
-                `;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // Action for "Create Posts" button
-     
-
-        // Distribute button action - smooth scroll down
-        function distributeContent() {
-            const title = document.getElementById('postTitle').value;
-            const content = document.getElementById('postContent').value;
-            if(!title && !content) {
-                alert('Please provide title or main text content before distributing.');
+            if (error) {
+                console.error('Supabase query error:', error.message);
                 return;
             }
-            window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: 'smooth'
+            filteredDrafts = data || [];
+        } else {
+            console.warn('supabaseClient is not defined. Ensure config.js is loaded properly.');
+        }
+
+        // Update Notification Badge count
+        document.getElementById('notifBadge').textContent = filteredDrafts.length;
+
+        // Render Notification List
+        const notifListEl = document.getElementById('notifList');
+        notifListEl.innerHTML = '';
+
+        if (filteredDrafts.length === 0) {
+            notifListEl.innerHTML = '<div class="px-4 py-3 text-xs font-mono text-gray-500 text-center">No read drafts found.</div>';
+        } else {
+            filteredDrafts.forEach(draft => {
+                const item = document.createElement('div');
+                item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition";
+                item.onclick = () => selectDraft(draft);
+                item.innerHTML = `
+                    <p class="text-xs font-mono font-bold text-gray-200">${draft.draft_name}</p>
+                    <p class="text-[10px] font-mono text-gray-400 mt-1">SENDER: ${draft.sender_name} | TIME: ${draft.send_time}</p>
+                `;
+                notifListEl.appendChild(item);
             });
         }
+    } catch (err) {
+        console.error('Error fetching data:', err);
+    }
+}
 
-        // Individual platform publish action
-        function publishTo(platform) {
-            const title = document.getElementById('postTitle').value;
-            if(!title) {
-                alert('Please fill out the content editor before publishing.');
-                return;
-            }
-            alert(`Successfully queued post "${title}" for distribution on ${platform}!`);
-        }
+// Initialize Page on Load and set 10-second polling interval
+window.addEventListener('DOMContentLoaded', () => {
+    // Display logged-in user name top right
+    document.getElementById('loggedInUserDisplay').textContent = currentLoggedInUser;
+
+    // Initial fetch immediately on page load
+    fetchDraftsFromSupabase();
+
+    // Set interval to poll Supabase every 10 seconds (10000 milliseconds)
+    setInterval(fetchDraftsFromSupabase, 10000);
+});
+
+// Toggle Notification Dropdown Visibility
+function toggleNotifications() {
+    const dropdown = document.getElementById('notifDropdown');
+    dropdown.classList.toggle('hidden');
+}
+
+// When a user selects a draft from notifications
+function selectDraft(draft) {
+    document.getElementById('notifDropdown').classList.add('hidden');
+
+    // Render onto left A4 workspace
+    const a4Content = document.getElementById('a4Content');
+    a4Content.innerHTML = `
+        <div class="border-b border-gray-200 pb-4 mb-4">
+            <span class="text-[10px] font-mono font-bold text-cyan-600 uppercase tracking-widest">// DRAFT INBOX RECORD</span>
+            <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${draft.draft_name}</h1>
+            <p class="text-xs text-gray-500 mt-1 font-mono">Sender: ${draft.sender_name} | Received: ${draft.send_time}</p>
+        </div>
+        <div class="prose max-w-none text-gray-800 text-sm leading-relaxed font-sans">
+            <p>${draft.content}</p>
+        </div>
+    `;
+
+    // Automatically populate right editor panel
+    document.getElementById('postTitle').value = draft.draft_name;
+    document.getElementById('postContent').value = draft.content;
+}
+
+// Load Local File into A4 Workspace (File Explorer action)
+function loadLocalFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    document.getElementById('loadedFileName').textContent = file.name;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        const a4Content = document.getElementById('a4Content');
+        a4Content.innerHTML = `
+            <div class="border-b border-gray-200 pb-4 mb-4">
+                <span class="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">// LOCAL FILE IMPORT</span>
+                <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${file.name}</h1>
+            </div>
+            <div class="text-sm text-gray-800 whitespace-pre-wrap font-sans">${content}</div>
+        `;
+        document.getElementById('postTitle').value = file.name.replace(/\.[^/.]+$/, "");
+        document.getElementById('postContent').value = content;
+    };
+    reader.readAsText(file);
+}
+
+// Preview Image from Computer file explorer
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const container = document.getElementById('imagePreviewContainer');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        container.innerHTML = `
+            <img src="${e.target.result}" alt="Preview" class="h-28 object-contain rounded mx-auto">
+            <span class="text-[10px] font-mono text-cyan-400">${file.name}</span>
+        `;
+    };
+    reader.readAsDataURL(file);
+}
+
+// Action for "Create Posts" button
+function createPostAction() {
+    const title = document.getElementById('a4Content').querySelector('h1')?.textContent || "Untitled Post";
+    const textContent = document.getElementById('a4Content').querySelector('.prose, .whitespace-pre-wrap')?.innerText || "";
+    
+    document.getElementById('postTitle').value = title;
+    document.getElementById('postContent').value = textContent;
+    
+    alert('A4 workspace content successfully transferred to Content Editor panel.');
+}
+
+// Distribute button action - smooth scroll down
+function distributeContent() {
+    const title = document.getElementById('postTitle').value;
+    const content = document.getElementById('postContent').value;
+    if(!title && !content) {
+        alert('Please provide title or main text content before distributing.');
+        return;
+    }
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+    });
+}
+
+// Individual platform publish action
+function publishTo(platform) {
+    const title = document.getElementById('postTitle').value;
+    if(!title) {
+        alert('Please fill out the content editor before publishing.');
+        return;
+    }
+    alert(`Successfully queued post "${title}" for distribution on ${platform}!`);
+}
     </script>
 </body>
 </html>
