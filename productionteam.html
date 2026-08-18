@@ -3,535 +3,378 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Production Engine // Social Transformation Hub</title>
+    <title>Production Team Dashboard</title>
+    <!-- Tailwind CSS for modern, clean UI design -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Supabase JS Client CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
-        ::-webkit-scrollbar-thumb { background: #0ea5e9; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+        /* Custom A4 Paper Styling */
+        .a4-paper {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        @media print {
+            body { background: none; }
+            .no-print { display: none; }
+            .a4-paper { box-shadow: none; margin: 0; width: 100%; }
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-cyan-500 selection:text-black">
+<body class="bg-gray-100 font-sans antialiased">
 
-    <!-- Top Header Bar -->
-    <header class="border-b border-cyan-950/80 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-            <div class="w-3 h-3 rounded-full bg-cyan-400 animate-ping"></div>
-            <h1 class="text-xl font-bold tracking-wider text-cyan-400 uppercase font-mono">Production Engine // Social Hub</h1>
-        </div>
-
-        <div class="flex items-center space-x-6">
-            <!-- NOTIFICATION BELL & DROPDOWN -->
-            <div class="relative">
-                <button onclick="toggleNotificationDropdown()" class="relative p-2 text-slate-300 hover:text-cyan-400 transition cursor-pointer" title="View Notifications">
-                    <i class="fa-solid fa-bell text-xl"></i>
-                    <span id="notifBadge" class="absolute top-0 right-0 flex h-3 w-3 hidden">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                    </span>
-                </button>
-
-                <!-- Notification Dropdown Drawer -->
-                <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden z-50 font-mono">
-                    <div class="p-3 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
-                        <span class="text-xs text-slate-400 uppercase tracking-widest">// RECENT DRAFTS FEED</span>
-                        <span id="notifCount" class="text-[10px] text-cyan-400">0 items</span>
-                    </div>
-                    <div id="notifList" class="max-h-72 overflow-y-auto divide-y divide-slate-800/60 text-xs">
-                        <div class="p-4 text-center text-slate-500">Loading notifications from Supabase...</div>
-                    </div>
-                </div>
+    <!-- Top Navigation Bar / Session Control -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="text-xl font-bold text-indigo-600">ProductionHub</span>
+                <span class="text-xs bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded">Production Team</span>
             </div>
 
-            <!-- LOGGED-IN USERNAME (ONLY USERNAME) -->
-            <div class="flex items-center space-x-2.5 bg-slate-900 border border-cyan-900/60 rounded-lg px-3.5 py-1.5 shadow-inner">
-                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
-                <div class="flex flex-col">
-                    <span class="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Operator</span>
-                    <span id="loggedInUserDisplay" class="text-xs font-mono text-cyan-300 font-bold">Loading...</span>
+            <!-- Top Right Controls: Notifications & Logged-in User -->
+            <div class="flex items-center space-x-6">
+                <!-- Notifications Dropdown -->
+                <div class="relative">
+                    <button id="notifBtn" onclick="toggleNotifications()" class="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                        <!-- Unread Badge -->
+                        <span id="notifBadge" class="absolute top-1 right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">0</span>
+                    </button>
+
+                    <!-- Notifications Dropdown Menu -->
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
+                        <div class="px-4 py-2 border-b border-gray-100 font-semibold text-gray-700 text-sm">Draft Notifications</div>
+                        <div id="notifList" class="divide-y divide-gray-100 max-h-64 overflow-y-auto">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logged In User Display -->
+                <div class="flex items-center space-x-2 border-l pl-4 border-gray-200">
+                    <div class="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-sm" id="userAvatar">U</div>
+                    <span id="loggedInUserDisplay" class="text-sm font-medium text-gray-700">Loading...</span>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Workspace Layout -->
-    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
+    <!-- Main Workspace -->
+    <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <!-- Left Panel: Incoming Edited Payload Input (4 Cols) -->
-        <section class="lg:col-span-4 bg-slate-900/60 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-xl">
-            <div>
-                <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-                    <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 font-mono">
-                        <i class="fa-solid fa-file-pen text-cyan-400 mr-2"></i>Incoming Edited Payload
-                    </h2>
-                    <span class="text-xs text-slate-500 font-mono">From Editor Desk</span>
+        <!-- LEFT SIDE: A4 Paper Workspace (Span 7) -->
+        <section class="lg:col-span-7 flex flex-col space-y-4">
+            <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <!-- File Explorer Button for A4 Workspace -->
+                    <label class="cursor-pointer bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium px-4 py-2 rounded-md border border-gray-300 flex items-center space-x-2 transition">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                        <span>Open Local File</span>
+                        <input type="file" id="localFileLoader" class="hidden" onchange="loadLocalFile(event)">
+                    </label>
+                    <span id="loadedFileName" class="text-xs text-gray-500 italic">No file loaded</span>
                 </div>
+                <!-- Create Posts Button -->
+                <button onclick="createPostAction()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition">
+                    Create Posts
+                </button>
+            </div>
 
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-mono text-slate-400 mb-1">STORY HEADLINE / TITLE</label>
-                        <input type="text" id="inputHeadline" placeholder="Click notification bell or select draft..." 
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-cyan-100 focus:outline-none focus:border-cyan-500 transition">
+            <!-- Blank A4 Paper Area -->
+            <div class="overflow-x-auto pb-4">
+                <div id="a4Workspace" class="a4-paper text-gray-800 border border-gray-200 flex flex-col justify-between">
+                    <div id="a4Content" class="space-y-4">
+                        <div class="text-center text-gray-400 py-20 italic">
+                            Select a draft from notifications or load a file to populate the A4 workspace.
+                        </div>
                     </div>
-
-                    <div>
-                        <label class="block text-xs font-mono text-slate-400 mb-1">PRIMARY CATEGORY / DESK</label>
-                        <select id="inputCategory" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:outline-none focus:border-cyan-500">
-                            <option value="breaking">Breaking News</option>
-                            <option value="sports">Sports & Athletics</option>
-                            <option value="business">Business & Finance</option>
-                            <option value="tech">Technology & Innovation</option>
-                            <option value="politics">World Politics</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-mono text-slate-400 mb-1">FINAL EDITED BODY CONTENT</label>
-                        <textarea id="inputBody" rows="10" placeholder="Editor text content will automatically render here upon selecting a draft..." 
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-mono text-slate-400 mb-1">APPROVED HASHTAGS / KEYWORDS</label>
-                        <input type="text" id="inputTags" placeholder="#News #Breaking #Live" 
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-400 focus:outline-none focus:border-cyan-500">
+                    <div class="text-xs text-gray-400 text-center pt-8 border-t border-gray-100">
+                        A4 Production Preview Document
                     </div>
                 </div>
             </div>
-
-            <button onclick="generateSocialMediaPosts()" class="w-full mt-6 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:shadow-cyan-500/20 transition flex items-center justify-center space-x-2 cursor-pointer">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <span>GENERATE SOCIAL MEDIA POSTS</span>
-            </button>
         </section>
 
-        <!-- Right Panel: 6 Social Media Platform Cards (8 Cols) -->
-        <section class="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- RIGHT SIDE: Content Editor Panel (Span 5) -->
+        <section class="lg:col-span-5 bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col space-y-5">
+            <h2 class="text-lg font-bold text-gray-800 border-b pb-2">Content Editor</h2>
 
-            <!-- 1. TIKTOK PANEL -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-brands fa-tiktok text-xl text-pink-500"></i>
-                            <span class="font-bold text-sm">TikTok Studio</span>
-                        </div>
-                        <select id="tiktokAccount" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1 outline-none">
-                            <option value="main">@MediaMain_TikTok</option>
-                            <option value="sports">@SportsCentral_TT</option>
-                            <option value="business">@BizDesk_TikTok</option>
-                        </select>
-                    </div>
+            <!-- Title Text Box -->
+            <div class="flex flex-col space-y-1">
+                <label for="postTitle" class="text-sm font-semibold text-gray-600">Title</label>
+                <input type="text" id="postTitle" placeholder="Enter post title..." 
+                       class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+            </div>
 
-                    <div id="tiktokOutput" class="h-36 overflow-y-auto text-xs bg-slate-950/70 p-3 rounded border border-slate-800 text-slate-300 font-mono">
-                        <p class="text-slate-500 italic">No post generated yet.</p>
-                    </div>
-
-                    <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                        <input type="text" id="tiktokKeywords" placeholder="TikTok Keywords / Captions" class="w-full bg-slate-950 border border-slate-800 text-xs p-2 rounded text-pink-300 focus:border-pink-500 outline-none">
-                        
-                        <div class="grid grid-cols-2 gap-2 text-[10px]">
-                            <div>
-                                <label class="block text-slate-400 mb-0.5"><i class="fa-solid fa-video mr-1"></i>Video File</label>
-                                <input type="file" accept="video/*" class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded p-1">
-                            </div>
-                            <div>
-                                <label class="block text-slate-400 mb-0.5"><i class="fa-solid fa-music mr-1"></i>Audio File</label>
-                                <input type="file" accept="audio/*" class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded p-1">
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between pt-1">
-                            <label class="flex items-center text-xs text-pink-400 cursor-pointer">
-                                <input type="checkbox" id="tiktokTrendingAudio" class="mr-1.5 accent-pink-500"> Use TikTok Trend Audio
-                            </label>
-                            <button onclick="publishPost('TikTok')" class="bg-pink-600 hover:bg-pink-500 text-white text-xs px-3 py-1.5 rounded font-bold transition cursor-pointer">
-                                <i class="fa-solid fa-paper-plane mr-1"></i> Post TikTok
-                            </button>
-                        </div>
+            <!-- Image Panel with File Explorer Button -->
+            <div class="flex flex-col space-y-1">
+                <label class="text-sm font-semibold text-gray-600">Featured Image</label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 transition relative">
+                    <input type="file" id="imageFileLoader" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewImage(event)">
+                    <div id="imagePreviewContainer" class="flex flex-col items-center space-y-2">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span class="text-xs text-gray-500">Click or use file explorer to upload image</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 2. INSTAGRAM PANEL -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-brands fa-instagram text-xl text-fuchsia-500"></i>
-                            <span class="font-bold text-sm">Instagram Reel & Feed</span>
-                        </div>
-                        <select id="instagramAccount" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1 outline-none">
-                            <option value="main">@MediaOfficial_IG</option>
-                            <option value="sports">@SportsDesk_IG</option>
-                        </select>
-                    </div>
-
-                    <div id="instagramOutput" class="h-36 overflow-y-auto text-xs bg-slate-950/70 p-3 rounded border border-slate-800 text-slate-300">
-                        <p class="text-slate-500 italic">No post generated yet.</p>
-                    </div>
-
-                    <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                        <input type="text" id="instagramKeywords" placeholder="Instagram Tags & Keywords" class="w-full bg-slate-950 border border-slate-800 text-xs p-2 rounded text-fuchsia-300 focus:border-fuchsia-500 outline-none">
-                        
-                        <div class="grid grid-cols-2 gap-2 text-[10px]">
-                            <div>
-                                <label class="block text-slate-400 mb-0.5"><i class="fa-solid fa-video mr-1"></i>Reel Video</label>
-                                <input type="file" accept="video/*" class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded p-1">
-                            </div>
-                            <div>
-                                <label class="block text-slate-400 mb-0.5"><i class="fa-solid fa-music mr-1"></i>Audio Track</label>
-                                <input type="file" accept="audio/*" class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded p-1">
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end pt-1">
-                            <button onclick="publishPost('Instagram')" class="bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs px-3 py-1.5 rounded font-bold transition cursor-pointer">
-                                <i class="fa-solid fa-paper-plane mr-1"></i> Post Instagram
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            <!-- Bigger Text Box for Main Text Content -->
+            <div class="flex flex-col space-y-1 flex-grow">
+                <label for="postContent" class="text-sm font-semibold text-gray-600">Main Content</label>
+                <textarea id="postContent" rows="6" placeholder="Type or paste your main post content here..." 
+                          class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-y"></textarea>
             </div>
 
-            <!-- 3. FACEBOOK PANEL -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-brands fa-facebook text-xl text-blue-500"></i>
-                            <span class="font-bold text-sm">Facebook Page</span>
-                        </div>
-                        <select id="facebookAccount" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1 outline-none">
-                            <option value="main">Facebook Main Page</option>
-                            <option value="sports">Sports Hub Page</option>
-                        </select>
-                    </div>
-
-                    <div id="facebookOutput" class="h-36 overflow-y-auto text-xs bg-slate-950/70 p-3 rounded border border-slate-800 text-slate-300">
-                        <p class="text-slate-500 italic">No post generated yet.</p>
-                    </div>
-
-                    <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                        <input type="text" id="facebookKeywords" placeholder="Facebook Target Keywords" class="w-full bg-slate-950 border border-slate-800 text-xs p-2 rounded text-blue-300 focus:border-blue-500 outline-none">
-                        
-                        <div class="grid grid-cols-2 gap-2 text-[10px]">
-                            <div>
-                                <label class="block text-slate-400 mb-0.5"><i class="fa-solid fa-video mr-1"></i>Video Media</label>
-                                <input type="file" accept="video/*" class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded p-1">
-                            </div>
-                            <div>
-                                <label class="block text-slate-400 mb-0.5"><i class="fa-solid fa-music mr-1"></i>Background Audio</label>
-                                <input type="file" accept="audio/*" class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded p-1">
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end pt-1">
-                            <button onclick="publishPost('Facebook')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded font-bold transition cursor-pointer">
-                                <i class="fa-solid fa-paper-plane mr-1"></i> Post Facebook
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. YOUTUBE PANEL -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-brands fa-youtube text-xl text-red-500"></i>
-                            <span class="font-bold text-sm">YouTube Channel</span>
-                        </div>
-                        <select id="youtubeAccount" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1 outline-none">
-                            <option value="main">Main Channel HD</option>
-                            <option value="sports">Sports World YT</option>
-                        </select>
-                    </div>
-
-                    <div id="youtubeOutput" class="h-36 overflow-y-auto text-xs bg-slate-950/70 p-3 rounded border border-slate-800 text-slate-300 font-mono">
-                        <p class="text-slate-500 italic">No post generated yet.</p>
-                    </div>
-
-                    <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                        <input type="text" id="youtubeKeywords" placeholder="YouTube SEO Search Tags" class="w-full bg-slate-950 border border-slate-800 text-xs p-2 rounded text-red-300 focus:border-red-500 outline-none">
-                        
-                        <div class="grid grid-cols-2 gap-2 text-[10px]">
-                            <div>
-                                <label class="block text-slate-400 mb-0.5"><i class="fa-solid fa-video mr-1"></i>Video File</label>
-                                <input type="file" accept="video/*" class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded p-1">
-                            </div>
-                            <div>
-                                <label class="block text-slate-400 mb-0.5"><i class="fa-solid fa-music mr-1"></i>Audio/Podcast Track</label>
-                                <input type="file" accept="audio/*" class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded p-1">
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end pt-1">
-                            <button onclick="publishPost('YouTube')" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded font-bold transition cursor-pointer">
-                                <i class="fa-solid fa-paper-plane mr-1"></i> Post YouTube
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 5. TWITTER / X PANEL -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-brands fa-x-twitter text-xl text-slate-200"></i>
-                            <span class="font-bold text-sm">X (Twitter) Feed</span>
-                        </div>
-                        <select id="twitterAccount" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1 outline-none">
-                            <option value="main">@OfficialMedia_X</option>
-                            <option value="breaking">@BreakingAlerts_X</option>
-                        </select>
-                    </div>
-
-                    <div id="twitterOutput" class="h-36 overflow-y-auto text-xs bg-slate-950/70 p-3 rounded border border-slate-800 text-slate-300">
-                        <p class="text-slate-500 italic">No post generated yet.</p>
-                    </div>
-
-                    <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                        <input type="text" id="twitterKeywords" placeholder="X Keywords / Trending Hashtags" class="w-full bg-slate-950 border border-slate-800 text-xs p-2 rounded text-slate-200 focus:border-cyan-500 outline-none">
-                        
-                        <div class="grid grid-cols-2 gap-2 text-[10px]">
-                            <div>
-                                <label class="block text-slate-400 mb-0.5"><i class="fa-solid fa-video mr-1"></i>Video File</label>
-                                <input type="file" accept="video/*" class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded p-1">
-                            </div>
-                            <div>
-                                <label class="block text-slate-400 mb-0.5"><i class="fa-solid fa-music mr-1"></i>Audio File</label>
-                                <input type="file" accept="audio/*" class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded p-1">
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end pt-1">
-                            <button onclick="publishPost('X (Twitter)')" class="bg-slate-200 hover:bg-white text-slate-950 text-xs px-3 py-1.5 rounded font-bold transition cursor-pointer">
-                                <i class="fa-solid fa-paper-plane mr-1"></i> Post to X
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 6. TELEGRAM PANEL -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-brands fa-telegram text-xl text-sky-400"></i>
-                            <span class="font-bold text-sm">Telegram Channel</span>
-                        </div>
-                        <select id="telegramAccount" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1 outline-none">
-                            <option value="main">t.me/MediaNewsOfficial</option>
-                            <option value="sports">t.me/SportsAlertsDesk</option>
-                        </select>
-                    </div>
-
-                    <div id="telegramOutput" class="h-36 overflow-y-auto text-xs bg-slate-950/70 p-3 rounded border border-slate-800 text-slate-300">
-                        <p class="text-slate-500 italic">No post generated yet.</p>
-                    </div>
-
-                    <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                        <input type="text" id="telegramKeywords" placeholder="Telegram Keywords / Tags" class="w-full bg-slate-950 border border-slate-800 text-xs p-2 rounded text-sky-300 focus:border-sky-500 outline-none">
-                        
-                        <div class="grid grid-cols-2 gap-2 text-[10px]">
-                            <div>
-                                <label class="block text-slate-400 mb-0.5"><i class="fa-solid fa-video mr-1"></i>Video File</label>
-                                <input type="file" accept="video/*" class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded p-1">
-                            </div>
-                            <div>
-                                <label class="block text-slate-400 mb-0.5"><i class="fa-solid fa-music mr-1"></i>Voice / Audio</label>
-                                <input type="file" accept="audio/*" class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded p-1">
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end pt-1">
-                            <button onclick="publishPost('Telegram')" class="bg-sky-500 hover:bg-sky-400 text-white text-xs px-3 py-1.5 rounded font-bold transition cursor-pointer">
-                                <i class="fa-solid fa-paper-plane mr-1"></i> Broadcast Telegram
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            <!-- Distribute Button -->
+            <button onclick="distributeContent()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-md shadow transition flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3.316 3.316 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3.316 3.316 0 00-5.368-2.684z"></path>
+                </svg>
+                <span>Distribute</span>
+            </button>
         </section>
     </main>
 
-   <script type="module">
-    // Import the pre-initialized supabase client from your config.js
-    import { supabase } from './config.js';
+    <!-- BOTTOM SECTION: 6 Distribution Panels (Scrolled down section) -->
+    <section class="max-w-7xl mx-auto px-4 py-8 border-t border-gray-300 mt-12">
+        <h3 class="text-xl font-bold text-gray-800 mb-6">Multi-Platform Distribution Channels</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- TikTok Panel -->
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-8 h-8 bg-black text-white flex items-center justify-center rounded-full font-bold">TT</div>
+                        <h4 class="font-bold text-gray-800">TikTok</h4>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">Optimized for short vertical video and quick captions.</p>
+                </div>
+                <button onclick="publishTo('TikTok')" class="w-full bg-black hover:bg-gray-800 text-white text-xs font-semibold py-2 rounded transition">Publish to TikTok</button>
+            </div>
 
-    let fetchedDrafts = [];
+            <!-- Instagram Panel -->
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-8 h-8 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 text-white flex items-center justify-center rounded-full font-bold">IG</div>
+                        <h4 class="font-bold text-gray-800">Instagram</h4>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">Ready for feed posts, carousels, and stories.</p>
+                </div>
+                <button onclick="publishTo('Instagram')" class="w-full bg-pink-600 hover:bg-pink-700 text-white text-xs font-semibold py-2 rounded transition">Publish to Instagram</button>
+            </div>
 
-    // On Page Load: Retrieve user session from localStorage, URL parameter, or fallback
-    window.addEventListener('DOMContentLoaded', () => {
-        const sessionData = localStorage.getItem('userSession');
-        let currentEditorName = null;
+            <!-- Twitter Panel -->
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-8 h-8 bg-blue-400 text-white flex items-center justify-center rounded-full font-bold">TW</div>
+                        <h4 class="font-bold text-gray-800">Twitter / X</h4>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">Character-checked thread and media distribution.</p>
+                </div>
+                <button onclick="publishTo('Twitter')" class="w-full bg-blue-400 hover:bg-blue-500 text-white text-xs font-semibold py-2 rounded transition">Publish to Twitter</button>
+            </div>
 
-        if (sessionData) {
-            try {
-                const user = JSON.parse(sessionData);
-                currentEditorName = user.fullName || user.Journalist name || user.username || user.name || user.user_metadata?.full_name;
-            } catch (e) {
-                console.error("Session parse error", e);
-            }
-        }
+            <!-- Telegram Panel -->
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-8 h-8 bg-sky-500 text-white flex items-center justify-center rounded-full font-bold">TG</div>
+                        <h4 class="font-bold text-gray-800">Telegram</h4>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">Broadcast directly to channel subscribers.</p>
+                </div>
+                <button onclick="publishTo('Telegram')" class="w-full bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold py-2 rounded transition">Publish to Telegram</button>
+            </div>
 
-        // Fallbacks: URL parameter (?user=...) -> activeUser storage -> Operator
-        const urlParams = new URLSearchParams(window.location.search);
-        const loggedInUser = currentEditorName || urlParams.get('user') || localStorage.getItem('activeUser') || 'Operator';
-        
-        // Save to localStorage so it persists if they refresh the page
-        localStorage.setItem('activeUser', loggedInUser);
+            <!-- YouTube Panel -->
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-8 h-8 bg-red-600 text-white flex items-center justify-center rounded-full font-bold">YT</div>
+                        <h4 class="font-bold text-gray-800">YouTube</h4>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">Video description and community post scheduling.</p>
+                </div>
+                <button onclick="publishTo('YouTube')" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-2 rounded transition">Publish to YouTube</button>
+            </div>
 
-        // Display the logged-in username in the top right header
-        document.getElementById('loggedInUserDisplay').innerText = loggedInUser;
+            <!-- Facebook Panel -->
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-8 h-8 bg-blue-600 text-white flex items-center justify-center rounded-full font-bold">FB</div>
+                        <h4 class="font-bold text-gray-800">Facebook</h4>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">Page updates, link previews, and image posts.</p>
+                </div>
+                <button onclick="publishTo('Facebook')" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded transition">Publish to Facebook</button>
+            </div>
 
-        // Fetch notifications/payloads from Supabase
-        fetchUserPayloadsFromSupabase();
-    });
+        </div>
+    </section>
 
-    // Toggle Notification Drawer Dropdown
-    window.toggleNotificationDropdown = function() {
-        const dropdown = document.getElementById('notifDropdown');
-        dropdown.classList.toggle('hidden');
-    }
+    <!-- JavaScript Session and Interaction Logic -->
+    <script>
+        // 1. Simulated Session & Notification Mock Database
+        // In a real backend environment, session is handled server-side.
+        const currentLoggedInUser = "Alex Producer"; // Logged-in user session name
 
-    // Close dropdown when clicking outside
-    window.addEventListener('click', function(e) {
-        if (!e.target.closest('.relative')) {
-            document.getElementById('notifDropdown').classList.add('hidden');
-        }
-    });
+        // Mock draft database with sender, receiver, send_time, status, draft_name, content
+        const draftsDatabase = [
+            { id: 1, draft_name: "Summer Campaign Q3", sender_name: "Sarah Marketing", receiver_name: "Alex Producer", send_time: "2026-06-06 09:30 AM", status: "read", content: "Comprehensive overview of the Q3 summer promotional campaign assets and deliverables." },
+            { id: 2, draft_name: "Tech Review Script v2", sender_name: "David Editorial", receiver_name: "Alex Producer", send_time: "2026-06-06 11:15 AM", status: "read", content: "Final script notes for the upcoming hardware unboxing and review video segment." },
+            { id: 3, draft_name: "Unread Draft (Should Not Show)", sender_name: "Boss", receiver_name: "Alex Producer", send_time: "2026-06-06 01:00 PM", status: "unread", content: "This is unread." },
+            { id: 4, draft_name: "Podcast Show Notes Ep 42", sender_name: "Emma Audio", receiver_name: "Alex Producer", send_time: "2026-06-06 02:45 PM", status: "read", content: "Timestamps, guest links, and discussion topics for Episode 42." }
+        ];
 
-    // Fetch recent sent data from Supabase automatically
-    async function fetchUserPayloadsFromSupabase() {
-        const notifList = document.getElementById('notifList');
-        const notifBadge = document.getElementById('notifBadge');
-        const notifCount = document.getElementById('notifCount');
+        // Initialize Page on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Display logged-in user name top right
+            document.getElementById('loggedInUserDisplay').textContent = currentLoggedInUser;
+            document.getElementById('userAvatar').textContent = currentLoggedInUser.charAt(0);
 
-        try {
-            const { data, error } = await supabase
-                .from('live_trends')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(20);
+            // Filter notifications by receiver_name == loggedInUser AND status == 'read'
+            const filteredDrafts = draftsDatabase.filter(d => d.receiver_name === currentLoggedInUser && d.status === 'read');
+            
+            // Update Notification Badge
+            document.getElementById('notifBadge').textContent = filteredDrafts.length;
 
-            if (error) throw error;
+            // Render Notification List
+            const notifListEl = document.getElementById('notifList');
+            notifListEl.innerHTML = '';
 
-            fetchedDrafts = data || [];
-            notifCount.innerText = `${fetchedDrafts.length} items`;
-
-            if (fetchedDrafts.length > 0) {
-                notifBadge.classList.remove('hidden');
-                notifList.innerHTML = '';
-
-                fetchedDrafts.forEach((item, index) => {
-                    const draftName = item.keyword || item.draft_name || item.headline || 'Untitled Draft';
-                    const sender = item.sender || 'Operator';
-                    const timeSent = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
-
-                    notifList.innerHTML += `
-                        <div onclick="selectDraft(${index})" class="p-3 hover:bg-slate-800/60 transition-colors cursor-pointer">
-                            <div class="font-bold text-slate-200 truncate">${draftName}</div>
-                            <div class="flex items-center justify-between text-[10px] text-slate-400 mt-1 font-mono">
-                                <span>Sender: <strong class="text-cyan-400">${sender}</strong></span>
-                                <span class="text-slate-500">${timeSent}</span>
-                            </div>
-                        </div>
-                    `;
-                });
+            if (filteredDrafts.length === 0) {
+                notifListEl.innerHTML = '<div class="px-4 py-3 text-xs text-gray-500 text-center">No read drafts available.</div>';
             } else {
-                notifBadge.classList.add('hidden');
-                notifList.innerHTML = `<div class="p-4 text-center text-slate-500 font-mono">No recent drafts found</div>`;
+                filteredDrafts.forEach(draft => {
+                    const item = document.createElement('div');
+                    item.className = "px-4 py-3 hover:bg-gray-50 cursor-pointer transition";
+                    item.onclick = () => selectDraft(draft);
+                    item.innerHTML = `
+                        <p class="text-sm font-semibold text-gray-800">${draft.draft_name}</p>
+                        <p class="text-xs text-gray-500">From: ${draft.sender_name} | ${draft.send_time}</p>
+                    `;
+                    notifListEl.appendChild(item);
+                });
             }
+        });
 
-        } catch (err) {
-            console.error('Supabase fetch error:', err);
-            notifList.innerHTML = `<div class="p-4 text-center text-red-400 font-mono">Failed to load notifications</div>`;
-        }
-    }
-
-    window.selectDraft = function(index) {
-        const item = fetchedDrafts[index];
-        if (!item) return;
-
-        document.getElementById('inputHeadline').value = item.keyword || item.headline || '';
-        document.getElementById('inputBody').value = item.summary || item.body || '';
-        document.getElementById('inputTags').value = item.tags || '#BreakingNews #NewsDesk';
-        if (item.category) document.getElementById('inputCategory').value = item.category;
-
-        const tagVal = item.tags || '#News';
-        document.getElementById('tiktokKeywords').value = tagVal;
-        document.getElementById('instagramKeywords').value = tagVal;
-        document.getElementById('facebookKeywords').value = tagVal;
-        document.getElementById('youtubeKeywords').value = tagVal;
-        document.getElementById('twitterKeywords').value = tagVal;
-        document.getElementById('telegramKeywords').value = tagVal;
-
-        document.getElementById('notifDropdown').classList.add('hidden');
-    }
-
-    window.generateSocialMediaPosts = function() {
-        const headline = document.getElementById('inputHeadline').value.trim();
-        const body = document.getElementById('inputBody').value.trim();
-        const tags = document.getElementById('inputTags').value.trim();
-
-        if (!headline || !body) {
-            alert("Please ensure both Headline and Body content are filled.");
-            return;
+        // Toggle Notification Dropdown Visibility
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notifDropdown');
+            dropdown.classList.toggle('hidden');
         }
 
-        document.getElementById('tiktokOutput').innerHTML = `
-            <p class="text-pink-400 font-bold">[SCRIPT HOOK]</p>
-            <p>"${headline.toUpperCase()}"</p>
-            <p class="text-pink-400 font-bold mt-2">[BODY COVERAGE]</p>
-            <p>${body.substring(0, 220)}...</p>
-            <p class="text-slate-400 mt-2">${tags} #TikTokShorts</p>
-        `;
+        // When a user selects a draft from notifications
+        function selectDraft(draft) {
+            // Close dropdown
+            document.getElementById('notifDropdown').classList.add('hidden');
 
-        document.getElementById('instagramOutput').innerHTML = `
-            <p class="font-bold text-slate-100">${headline}</p>
-            <p class="mt-1">${body.substring(0, 280)}...</p>
-            <p class="text-fuchsia-400 font-mono mt-2">${tags} #InstaDaily</p>
-        `;
+            // Populate A4 Workspace Left Side
+            const a4Content = document.getElementById('a4Content');
+            a4Content.innerHTML = `
+                <div class="border-b pb-4 mb-4">
+                    <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">Draft Source</span>
+                    <h1 class="text-2xl font-bold text-gray-900 mt-1">${draft.draft_name}</h1>
+                    <p class="text-xs text-gray-500 mt-1">Sender: <span class="font-medium text-gray-700">${draft.sender_name}</span> | Received: ${draft.send_time}</p>
+                </div>
+                <div class="prose max-w-none text-gray-700 text-sm leading-relaxed">
+                    <p>${draft.content}</p>
+                </div>
+            `;
 
-        document.getElementById('facebookOutput').innerHTML = `
-            <p class="font-bold text-blue-400">📰 ${headline}</p>
-            <p class="mt-1">${body}</p>
-            <p class="text-blue-300 font-mono mt-2">${tags}</p>
-        `;
+            // Automatically auto-populate right-side editor panel
+            document.getElementById('postTitle').value = draft.draft_name;
+            document.getElementById('postContent').value = draft.content;
+        }
 
-        document.getElementById('youtubeOutput').innerHTML = `
-            <p class="text-red-400 font-bold">[TITLE]: ${headline}</p>
-            <p class="mt-1">[DESCRIPTION]: ${body.substring(0, 250)}...</p>
-            <p class="text-slate-500 text-[10px] mt-2">TAGS: ${headline.toLowerCase().split(' ').join(', ')}</p>
-        `;
+        // Load Local File into A4 Workspace (File Explorer action)
+        function loadLocalFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-        document.getElementById('twitterOutput').innerHTML = `
-            <p class="font-semibold text-slate-100">🚨 ${headline}</p>
-            <p class="mt-1">${body.substring(0, 180)}...</p>
-            <p class="text-cyan-400 font-mono mt-2">${tags}</p>
-        `;
+            document.getElementById('loadedFileName').textContent = file.name;
 
-        document.getElementById('telegramOutput').innerHTML = `
-            <p class="font-bold text-sky-400">📢 BROADCAST: ${headline}</p>
-            <p class="mt-1">${body}</p>
-            <p class="text-sky-300 font-mono mt-2">${tags} t.me/NewsChannel</p>
-        `;
-    }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const a4Content = document.getElementById('a4Content');
+                a4Content.innerHTML = `
+                    <div class="border-b pb-4 mb-4">
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Local File Import</span>
+                        <h1 class="text-xl font-bold text-gray-900 mt-1">${file.name}</h1>
+                    </div>
+                    <div class="text-sm text-gray-700 whitespace-pre-wrap">${content}</div>
+                `;
+                // Also populate right panel text box
+                document.getElementById('postTitle').value = file.name.replace(/\.[^/.]+$/, "");
+                document.getElementById('postContent').value = content;
+            };
+            reader.readAsText(file);
+        }
 
-    window.publishPost = function(platform) {
-        alert(`[SUCCESS] Post dispatched to ${platform} pipeline!`);
-    }
-</script>
+        // Preview Image from Computer file explorer
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const container = document.getElementById('imagePreviewContainer');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                container.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview" class="h-32 object-contain rounded-md mx-auto">
+                    <span class="text-xs text-indigo-600 font-medium">${file.name}</span>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Action for "Create Posts" button
+        function createPostAction() {
+            const title = document.getElementById('a4Content').querySelector('h1')?.textContent || "Untitled Post";
+            const textContent = document.getElementById('a4Content').querySelector('.prose, .whitespace-pre-wrap')?.innerText || "";
+            
+            document.getElementById('postTitle').value = title;
+            document.getElementById('postContent').value = textContent;
+            
+            alert('Draft data successfully moved to the Content Editor panel!');
+        }
+
+        // Distribute button action
+        function distributeContent() {
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postContent').value;
+            if(!title && !content) {
+                alert('Please enter title or content before distributing.');
+                return;
+            }
+            // Scroll down smoothly to the 6 panels section
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        // Individual platform publish action
+        function publishTo(platform) {
+            const title = document.getElementById('postTitle').value;
+            if(!title) {
+                alert('Please provide content in the editor before publishing.');
+                return;
+            }
+            alert(`Successfully queued post "${title}" for distribution to ${platform}!`);
+        }
+    </script>
 </body>
 </html>
