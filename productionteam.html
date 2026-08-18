@@ -759,6 +759,7 @@ window.createPostAction = function() {
 let mainEditorImageSrc = null;
 
 // Track main featured image selection from the editor panel file input
+// Track main featured image selection from the editor panel file input
 window.loadMainEditorImage = function(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -767,11 +768,13 @@ window.loadMainEditorImage = function(event) {
     reader.onload = function(e) {
         mainEditorImageSrc = e.target.result;
         
-        // Display in main editor preview box
-        const previewBox = document.getElementById('mainEditorImagePreview');
-        if (previewBox) {
-            previewBox.src = mainEditorImageSrc;
-            previewBox.classList.remove('hidden');
+        // Find the image container or preview element in the top panel
+        const container = document.getElementById('imagePreviewContainer');
+        if (container) {
+            // Clear previous content and show the image preview
+            container.innerHTML = `
+                <img src="${mainEditorImageSrc}" class="w-full h-48 object-cover rounded-lg" alt="Featured Preview">
+            `;
         }
     };
     reader.readAsDataURL(file);
