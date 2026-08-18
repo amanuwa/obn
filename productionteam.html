@@ -95,6 +95,14 @@
                             <input type="file" id="localFileLoader" class="hidden" onchange="loadLocalFile(event)">
                         </label>
                         <span id="loadedFileName" class="text-xs font-mono text-gray-500">// Draft Workspace</span>
+<!-- Clear Workspace Button -->
+                        <button onclick="clearWorkspace()" class="bg-[#1f2937] hover:bg-red-900/40 text-gray-300 hover:text-red-400 text-xs font-mono px-3 py-2 rounded border border-gray-700 flex items-center space-x-2 transition">
+                            <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            <span>Clear</span>
+                        </button>
+                        
                     </div>
                   
                 </div>
@@ -466,6 +474,26 @@ window.publishTo = function(platform) {
         return;
     }
     alert(`Successfully queued post "${title}" for distribution on ${platform}! (Webhook Gateway: ${N8N_Preparepage_GATEWAY_WEBHOOK})`);
+};
+
+      window.clearWorkspace = function() {
+    // Reset A4 paper back to empty state
+    const a4Content = document.getElementById('a4Content');
+    a4Content.innerHTML = `
+        <div class="text-center text-gray-400 py-32 italic font-sans text-base">
+            Select a draft from notifications or insert a file to populate workspace.
+        </div>
+    `;
+
+    // Clear file name display
+    const fileNameEl = document.getElementById('loadedFileName');
+    if (fileNameEl) fileNameEl.textContent = "// Draft Workspace";
+
+    // Clear right-side content editor text boxes
+    const postTitleEl = document.getElementById('postTitle');
+    const postContentEl = document.getElementById('postContent');
+    if (postTitleEl) postTitleEl.value = '';
+    if (postContentEl) postContentEl.value = '';
 };
 </script>
 </body>
