@@ -781,10 +781,10 @@ window.loadMainEditorImage = function(event) {
 };
 
 // Distribute content from the main editor to all social media panels
-window.distributeContentToPlatforms = function() {
+window.distributeContent = function() {
     // 1. Grab values from the main editor panel
-    const mainTitleEl = document.getElementById('postTitle'); // Adjust ID if your main title input has a different ID
-    const mainBodyEl = document.getElementById('postContent'); // Adjust ID if your main body textarea has a different ID
+    const mainTitleEl = document.getElementById('postTitle'); 
+    const mainBodyEl = document.getElementById('postContent'); 
     
     const titleText = mainTitleEl ? mainTitleEl.value : '';
     const bodyText = mainBodyEl ? mainBodyEl.value : '';
@@ -808,7 +808,7 @@ window.distributeContentToPlatforms = function() {
 
         // Apply Image & Platform-Specific Resizing/Aspect Ratio
         if (mainEditorImageSrc) {
-            const previewImg = card.querySelector('.preview-img');
+            const previewImg = card.querySelector('img.preview-img') || card.querySelector('img');
             const placeholder = card.querySelector('.placeholder-text');
             const container = card.querySelector('.image-display-container');
             const badge = card.querySelector('.aspect-badge');
@@ -824,22 +824,20 @@ window.distributeContentToPlatforms = function() {
                 badge.classList.remove('hidden');
             }
 
-            // Determine platform type from card header to resize container accordingly
-            const headerText = card.querySelector('h4').textContent.toLowerCase();
+            // Safely find the heading or text describing the platform name
+            const headerEl = card.querySelector('h3') || card.querySelector('h4') || card.querySelector('.platform-name');
+            const headerText = headerEl ? headerEl.textContent.toLowerCase() : '';
             
             if (container) {
                 container.classList.remove('h-48', 'h-56', 'h-72');
                 
                 if (headerText.includes('tiktok') || headerText.includes('youtube')) {
-                    // Vertical 9:16 layout for TikTok/Shorts
                     container.classList.add('h-72');
                     if (badge) badge.textContent = "Resized: 9:16 Vertical";
                 } else if (headerText.includes('instagram')) {
-                    // Square 1:1 layout for Instagram Feed
                     container.classList.add('h-56');
                     if (badge) badge.textContent = "Resized: 1:1 Square";
                 } else {
-                    // Standard Landscape 16:9 for Twitter/Facebook/Telegram
                     container.classList.add('h-48');
                     if (badge) badge.textContent = "Resized: 16:9 Landscape";
                 }
@@ -847,7 +845,7 @@ window.distributeContentToPlatforms = function() {
         }
     });
 
-    alert('Content successfully distributed, synchronized, and resized across all platforms!');
+    alert('Content and image successfully distributed and resized!');
 };
 // Individual platform publish action
 window.publishTo = function(platform) {
