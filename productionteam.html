@@ -276,11 +276,11 @@ async function fetchDraftsFromSupabase() {
         let filteredDrafts = [];
 
         if (supabase) {
-            const { data, error } = await supabase
-                .from('drafts')
-                .select('*')
-                .eq('receiver_name', currentLoggedInUser)
-                .eq('status', 'read');
+           const { data, error } = await supabase
+    .from('editorial_submissions')
+    .select('*')
+    .eq('receiver_name', currentLoggedInUser)
+    .eq('status', 'read');
 
             if (error) {
                 console.error('Supabase query error:', error.message);
