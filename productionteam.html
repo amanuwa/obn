@@ -3,251 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Production Team Dashboard</title>
-    <!-- Tailwind CSS for modern, clean UI design -->
+    <title>Journalist Preparation Studio - Production Dashboard</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        body {
+            background-color: #0b0f19;
+            color: #94a3b8;
+        }
         /* Custom A4 Paper Styling */
         .a4-paper {
             width: 210mm;
             min-height: 297mm;
             padding: 20mm;
             margin: 0 auto;
-            background: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background: #ffffff;
+            color: #1f2937;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
         }
-        @media print {
-            body { background: none; }
-            .no-print { display: none; }
-            .a4-paper { box-shadow: none; margin: 0; width: 100%; }
+        /* Custom scrollbars for dark theme */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans antialiased">
+<body class="font-sans antialiased min-h-screen flex flex-col justify-between">
 
-    <!-- Top Navigation Bar / Session Control -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <span class="text-xl font-bold text-indigo-600">ProductionHub</span>
-                <span class="text-xs bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded">Production Team</span>
-            </div>
+    <div>
+        <!-- Top Navigation Bar -->
+        <header class="border-b border-gray-800 bg-[#0b0f19] sticky top-0 z-50">
+            <div class="max-w-full px-6 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="text-cyan-400 font-mono text-xs tracking-wider">// JOURNALIST PREPARATION STUDIO</span>
+                </div>
 
-            <!-- Top Right Controls: Notifications & Logged-in User -->
-            <div class="flex items-center space-x-6">
-                <!-- Notifications Dropdown -->
-                <div class="relative">
-                    <button id="notifBtn" onclick="toggleNotifications()" class="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                        </svg>
-                        <!-- Unread Badge -->
-                        <span id="notifBadge" class="absolute top-1 right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">0</span>
-                    </button>
+                <!-- Top Right Controls: Notifications & Logged-in User (Only User Name) -->
+                <div class="flex items-center space-x-6">
+                    <!-- Notifications Dropdown -->
+                    <div class="relative">
+                        <button id="notifBtn" onclick="toggleNotifications()" class="flex items-center space-x-2 bg-[#111827] hover:bg-gray-800 text-gray-300 px-3 py-1.5 rounded border border-gray-800 text-xs font-mono transition">
+                            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <span>NOTIFICATIONS</span>
+                            <span id="notifBadge" class="bg-cyan-500 text-black text-[10px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+                        </button>
 
-                    <!-- Notifications Dropdown Menu -->
-                    <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
-                        <div class="px-4 py-2 border-b border-gray-100 font-semibold text-gray-700 text-sm">Draft Notifications</div>
-                        <div id="notifList" class="divide-y divide-gray-100 max-h-64 overflow-y-auto">
-                            <!-- Populated dynamically via JS -->
+                        <!-- Notifications Dropdown Menu -->
+                        <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 bg-[#111827] border border-gray-800 rounded-lg shadow-2xl py-2 z-50">
+                            <div class="px-4 py-2 border-b border-gray-800 font-mono text-xs text-cyan-400">DRAFT INBOX (FILTERED: READ)</div>
+                            <div id="notifList" class="divide-y divide-gray-800 max-h-64 overflow-y-auto">
+                                <!-- Populated dynamically via JS -->
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Logged In User Display -->
-                <div class="flex items-center space-x-2 border-l pl-4 border-gray-200">
-                    <div class="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-sm" id="userAvatar">U</div>
-                    <span id="loggedInUserDisplay" class="text-sm font-medium text-gray-700">Loading...</span>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Workspace -->
-    <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        <!-- LEFT SIDE: A4 Paper Workspace (Span 7) -->
-        <section class="lg:col-span-7 flex flex-col space-y-4">
-            <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <div class="flex items-center space-x-3">
-                    <!-- File Explorer Button for A4 Workspace -->
-                    <label class="cursor-pointer bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium px-4 py-2 rounded-md border border-gray-300 flex items-center space-x-2 transition">
-                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                        </svg>
-                        <span>Open Local File</span>
-                        <input type="file" id="localFileLoader" class="hidden" onchange="loadLocalFile(event)">
-                    </label>
-                    <span id="loadedFileName" class="text-xs text-gray-500 italic">No file loaded</span>
-                </div>
-                <!-- Create Posts Button -->
-                <button onclick="createPostAction()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition">
-                    Create Posts
-                </button>
-            </div>
-
-            <!-- Blank A4 Paper Area -->
-            <div class="overflow-x-auto pb-4">
-                <div id="a4Workspace" class="a4-paper text-gray-800 border border-gray-200 flex flex-col justify-between">
-                    <div id="a4Content" class="space-y-4">
-                        <div class="text-center text-gray-400 py-20 italic">
-                            Select a draft from notifications or load a file to populate the A4 workspace.
-                        </div>
-                    </div>
-                    <div class="text-xs text-gray-400 text-center pt-8 border-t border-gray-100">
-                        A4 Production Preview Document
+                    <!-- Logged In User Name Display Only -->
+                    <div class="flex items-center space-x-2 border-l border-gray-800 pl-6">
+                        <span class="text-xs font-mono text-gray-400">ACTIVE:</span>
+                        <span id="loggedInUserDisplay" class="text-sm font-mono font-bold text-cyan-400">kenenisa</span>
                     </div>
                 </div>
             </div>
-        </section>
+        </header>
 
-        <!-- RIGHT SIDE: Content Editor Panel (Span 5) -->
-        <section class="lg:col-span-5 bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col space-y-5">
-            <h2 class="text-lg font-bold text-gray-800 border-b pb-2">Content Editor</h2>
-
-            <!-- Title Text Box -->
-            <div class="flex flex-col space-y-1">
-                <label for="postTitle" class="text-sm font-semibold text-gray-600">Title</label>
-                <input type="text" id="postTitle" placeholder="Enter post title..." 
-                       class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-            </div>
-
-            <!-- Image Panel with File Explorer Button -->
-            <div class="flex flex-col space-y-1">
-                <label class="text-sm font-semibold text-gray-600">Featured Image</label>
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 transition relative">
-                    <input type="file" id="imageFileLoader" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewImage(event)">
-                    <div id="imagePreviewContainer" class="flex flex-col items-center space-y-2">
-                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        <span class="text-xs text-gray-500">Click or use file explorer to upload image</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bigger Text Box for Main Text Content -->
-            <div class="flex flex-col space-y-1 flex-grow">
-                <label for="postContent" class="text-sm font-semibold text-gray-600">Main Content</label>
-                <textarea id="postContent" rows="6" placeholder="Type or paste your main post content here..." 
-                          class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-y"></textarea>
-            </div>
-
-            <!-- Distribute Button -->
-            <button onclick="distributeContent()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-md shadow transition flex items-center justify-center space-x-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3.316 3.316 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3.316 3.316 0 00-5.368-2.684z"></path>
-                </svg>
-                <span>Distribute</span>
-            </button>
-        </section>
-    </main>
-
-    <!-- BOTTOM SECTION: 6 Distribution Panels (Scrolled down section) -->
-    <section class="max-w-7xl mx-auto px-4 py-8 border-t border-gray-300 mt-12">
-        <h3 class="text-xl font-bold text-gray-800 mb-6">Multi-Platform Distribution Channels</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Main Workspace -->
+        <main class="max-w-full px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            <!-- TikTok Panel -->
-            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center space-x-3 mb-3">
-                        <div class="w-8 h-8 bg-black text-white flex items-center justify-center rounded-full font-bold">TT</div>
-                        <h4 class="font-bold text-gray-800">TikTok</h4>
+            <!-- LEFT SIDE: A4 Paper Workspace (Span 7) -->
+            <section class="lg:col-span-7 flex flex-col space-y-4">
+                <div class="flex items-center justify-between bg-[#111827] p-3 rounded-lg border border-gray-800">
+                    <div class="flex items-center space-x-3">
+                        <!-- File Explorer Button for A4 Workspace -->
+                        <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-200 text-xs font-mono px-3 py-2 rounded border border-gray-700 flex items-center space-x-2 transition">
+                            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                            </svg>
+                            <span>Insert File</span>
+                            <input type="file" id="localFileLoader" class="hidden" onchange="loadLocalFile(event)">
+                        </label>
+                        <span id="loadedFileName" class="text-xs font-mono text-gray-500">// Draft Workspace</span>
                     </div>
-                    <p class="text-xs text-gray-500 mb-4">Optimized for short vertical video and quick captions.</p>
+                    <!-- Create Posts Button -->
+                    <button onclick="createPostAction()" class="bg-cyan-600 hover:bg-cyan-500 text-black text-xs font-mono font-bold px-4 py-2 rounded shadow transition">
+                        CREATE POSTS
+                    </button>
                 </div>
-                <button onclick="publishTo('TikTok')" class="w-full bg-black hover:bg-gray-800 text-white text-xs font-semibold py-2 rounded transition">Publish to TikTok</button>
-            </div>
 
-            <!-- Instagram Panel -->
-            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center space-x-3 mb-3">
-                        <div class="w-8 h-8 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 text-white flex items-center justify-center rounded-full font-bold">IG</div>
-                        <h4 class="font-bold text-gray-800">Instagram</h4>
+                <!-- Blank A4 Paper Area -->
+                <div class="overflow-x-auto pb-4">
+                    <div id="a4Workspace" class="a4-paper flex flex-col justify-between">
+                        <div id="a4Content" class="space-y-4">
+                            <div class="text-center text-gray-400 py-32 italic font-sans text-base">
+                                Select a draft from notifications or insert a file to populate workspace.
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400 text-center pt-8 border-t border-gray-200 font-mono">
+                            PRODUCTION A4 PREVIEW WORKSPACE
+                        </div>
                     </div>
-                    <p class="text-xs text-gray-500 mb-4">Ready for feed posts, carousels, and stories.</p>
                 </div>
-                <button onclick="publishTo('Instagram')" class="w-full bg-pink-600 hover:bg-pink-700 text-white text-xs font-semibold py-2 rounded transition">Publish to Instagram</button>
-            </div>
+            </section>
 
-            <!-- Twitter Panel -->
-            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center space-x-3 mb-3">
-                        <div class="w-8 h-8 bg-blue-400 text-white flex items-center justify-center rounded-full font-bold">TW</div>
-                        <h4 class="font-bold text-gray-800">Twitter / X</h4>
+            <!-- RIGHT SIDE: Content Editor Panel (Span 5) -->
+            <section class="lg:col-span-5 bg-[#111827] p-6 rounded-lg border border-gray-800 flex flex-col space-y-5">
+                <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// CONTENT EDITOR PANEL</h2>
+
+                <!-- Title Text Box -->
+                <div class="flex flex-col space-y-1">
+                    <label for="postTitle" class="text-xs font-mono text-gray-400">TITLE</label>
+                    <input type="text" id="postTitle" placeholder="Enter post title..." 
+                           class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 focus:outline-none focus:border-cyan-500 text-sm font-sans">
+                </div>
+
+                <!-- Image Panel with File Explorer Button -->
+                <div class="flex flex-col space-y-1">
+                    <label class="text-xs font-mono text-gray-400">FEATURED IMAGE (LOCAL EXPLORER)</label>
+                    <div class="border-2 border-dashed border-gray-800 rounded-lg p-4 text-center hover:border-gray-700 transition relative bg-[#0b0f19]">
+                        <input type="file" id="imageFileLoader" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewImage(event)">
+                        <div id="imagePreviewContainer" class="flex flex-col items-center space-y-2">
+                            <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="text-xs font-mono text-gray-500">Click or browse image from computer</span>
+                        </div>
                     </div>
-                    <p class="text-xs text-gray-500 mb-4">Character-checked thread and media distribution.</p>
                 </div>
-                <button onclick="publishTo('Twitter')" class="w-full bg-blue-400 hover:bg-blue-500 text-white text-xs font-semibold py-2 rounded transition">Publish to Twitter</button>
-            </div>
 
-            <!-- Telegram Panel -->
-            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center space-x-3 mb-3">
-                        <div class="w-8 h-8 bg-sky-500 text-white flex items-center justify-center rounded-full font-bold">TG</div>
-                        <h4 class="font-bold text-gray-800">Telegram</h4>
+                <!-- Bigger Text Box for Main Text Content -->
+                <div class="flex flex-col space-y-1 flex-grow">
+                    <label for="postContent" class="text-xs font-mono text-gray-400">MAIN CONTENT TEXT</label>
+                    <textarea id="postContent" rows="6" placeholder="Type or paste main post text here..." 
+                              class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 focus:outline-none focus:border-cyan-500 text-sm font-sans resize-y"></textarea>
+                </div>
+
+                <!-- Distribute Button -->
+                <button onclick="distributeContent()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-black font-mono font-bold py-2.5 rounded shadow transition flex items-center justify-center space-x-2 text-xs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3.316 3.316 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3.316 3.316 0 00-5.368-2.684z"></path>
+                    </svg>
+                    <span>DISTRIBUTE CONTENT</span>
+                </button>
+            </section>
+        </main>
+
+        <!-- BOTTOM SECTION: 6 Distribution Panels (Scrolled down section) -->
+        <section class="max-w-full px-6 py-8 border-t border-gray-800 mt-12 bg-[#0b0f19]">
+            <h3 class="text-xs font-mono text-cyan-400 tracking-wider mb-6">// MULTI-PLATFORM DISTRIBUTION CHANNELS</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- TikTok Panel -->
+                <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-white flex items-center justify-center rounded font-mono text-xs font-bold">TT</div>
+                            <h4 class="font-mono text-sm text-gray-200">TikTok Channel</h4>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4 font-sans">Short-form video layout and captions feed.</p>
                     </div>
-                    <p class="text-xs text-gray-500 mb-4">Broadcast directly to channel subscribers.</p>
+                    <button onclick="publishTo('TikTok')" class="w-full bg-gray-900 hover:bg-gray-800 text-gray-200 border border-gray-700 text-xs font-mono py-2 rounded transition">Publish to TikTok</button>
                 </div>
-                <button onclick="publishTo('Telegram')" class="w-full bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold py-2 rounded transition">Publish to Telegram</button>
-            </div>
 
-            <!-- YouTube Panel -->
-            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center space-x-3 mb-3">
-                        <div class="w-8 h-8 bg-red-600 text-white flex items-center justify-center rounded-full font-bold">YT</div>
-                        <h4 class="font-bold text-gray-800">YouTube</h4>
+                <!-- Instagram Panel -->
+                <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-pink-400 flex items-center justify-center rounded font-mono text-xs font-bold">IG</div>
+                            <h4 class="font-mono text-sm text-gray-200">Instagram Studio</h4>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4 font-sans">Feed post, story and carousel integration.</p>
                     </div>
-                    <p class="text-xs text-gray-500 mb-4">Video description and community post scheduling.</p>
+                    <button onclick="publishTo('Instagram')" class="w-full bg-gray-900 hover:bg-gray-800 text-pink-400 border border-gray-700 text-xs font-mono py-2 rounded transition">Publish to Instagram</button>
                 </div>
-                <button onclick="publishTo('YouTube')" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-2 rounded transition">Publish to YouTube</button>
-            </div>
 
-            <!-- Facebook Panel -->
-            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center space-x-3 mb-3">
-                        <div class="w-8 h-8 bg-blue-600 text-white flex items-center justify-center rounded-full font-bold">FB</div>
-                        <h4 class="font-bold text-gray-800">Facebook</h4>
+                <!-- Twitter Panel -->
+                <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-cyan-400 flex items-center justify-center rounded font-mono text-xs font-bold">TW</div>
+                            <h4 class="font-mono text-sm text-gray-200">Twitter / X Stream</h4>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4 font-sans">Character checked microblog and media attachments.</p>
                     </div>
-                    <p class="text-xs text-gray-500 mb-4">Page updates, link previews, and image posts.</p>
+                    <button onclick="publishTo('Twitter')" class="w-full bg-gray-900 hover:bg-gray-800 text-cyan-400 border border-gray-700 text-xs font-mono py-2 rounded transition">Publish to Twitter</button>
                 </div>
-                <button onclick="publishTo('Facebook')" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded transition">Publish to Facebook</button>
-            </div>
 
-        </div>
-    </section>
+                <!-- Telegram Panel -->
+                <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-sky-400 flex items-center justify-center rounded font-mono text-xs font-bold">TG</div>
+                            <h4 class="font-mono text-sm text-gray-200">Telegram Channel</h4>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4 font-sans">Direct subscriber announcement feed stream.</p>
+                    </div>
+                    <button onclick="publishTo('Telegram')" class="w-full bg-gray-900 hover:bg-gray-800 text-sky-400 border border-gray-700 text-xs font-mono py-2 rounded transition">Publish to Telegram</button>
+                </div>
+
+                <!-- YouTube Panel -->
+                <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-red-500 flex items-center justify-center rounded font-mono text-xs font-bold">YT</div>
+                            <h4 class="font-mono text-sm text-gray-200">YouTube Studio</h4>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4 font-sans">Video descriptions, tags and community posts.</p>
+                    </div>
+                    <button onclick="publishTo('YouTube')" class="w-full bg-gray-900 hover:bg-gray-800 text-red-500 border border-gray-700 text-xs font-mono py-2 rounded transition">Publish to YouTube</button>
+                </div>
+
+                <!-- Facebook Panel -->
+                <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-blue-500 flex items-center justify-center rounded font-mono text-xs font-bold">FB</div>
+                            <h4 class="font-mono text-sm text-gray-200">Facebook Page</h4>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4 font-sans">Page updates, link previews, and media posts.</p>
+                    </div>
+                    <button onclick="publishTo('Facebook')" class="w-full bg-gray-900 hover:bg-gray-800 text-blue-500 border border-gray-700 text-xs font-mono py-2 rounded transition">Publish to Facebook</button>
+                </div>
+
+            </div>
+        </section>
+    </div>
 
     <!-- JavaScript Session and Interaction Logic -->
     <script>
-        // 1. Simulated Session & Notification Mock Database
-        // In a real backend environment, session is handled server-side.
-        const currentLoggedInUser = "Alex Producer"; // Logged-in user session name
+        // Logged-in session username matches your theme reference
+        const currentLoggedInUser = "kenenisa";
 
         // Mock draft database with sender, receiver, send_time, status, draft_name, content
         const draftsDatabase = [
-            { id: 1, draft_name: "Summer Campaign Q3", sender_name: "Sarah Marketing", receiver_name: "Alex Producer", send_time: "2026-06-06 09:30 AM", status: "read", content: "Comprehensive overview of the Q3 summer promotional campaign assets and deliverables." },
-            { id: 2, draft_name: "Tech Review Script v2", sender_name: "David Editorial", receiver_name: "Alex Producer", send_time: "2026-06-06 11:15 AM", status: "read", content: "Final script notes for the upcoming hardware unboxing and review video segment." },
-            { id: 3, draft_name: "Unread Draft (Should Not Show)", sender_name: "Boss", receiver_name: "Alex Producer", send_time: "2026-06-06 01:00 PM", status: "unread", content: "This is unread." },
-            { id: 4, draft_name: "Podcast Show Notes Ep 42", sender_name: "Emma Audio", receiver_name: "Alex Producer", send_time: "2026-06-06 02:45 PM", status: "read", content: "Timestamps, guest links, and discussion topics for Episode 42." }
+            { id: 1, draft_name: "Breaking News: Global Energy Summit", sender_name: "Desk Editor Sarah", receiver_name: "kenenisa", send_time: "2026-08-18 08:30 AM", status: "read", content: "Delegates have reached a preliminary accord on cross-border grid sharing following late-night negotiations." },
+            { id: 2, draft_name: "Investigative Brief: Logistics Anomaly", sender_name: "Chief Investigator David", receiver_name: "kenenisa", send_time: "2026-08-18 09:45 AM", status: "read", content: "Flight logs indicate alternative routing patterns deployed during the airspace advisory window." },
+            { id: 3, draft_name: "Unread Confidential Draft", sender_name: "Director", receiver_name: "kenenisa", send_time: "2026-08-18 10:15 AM", status: "unread", content: "This item remains unread and should be filtered out." },
+            { id: 4, draft_name: "Economic Bulletin Q3 Forecast", sender_name: "Markets Editor Emma", receiver_name: "kenenisa", send_time: "2026-08-18 10:50 AM", status: "read", content: "Quarterly figures confirm strong resilience across tech and supply sectors despite inflationary headwinds." }
         ];
 
         // Initialize Page on Load
         window.addEventListener('DOMContentLoaded', () => {
-            // Display logged-in user name top right
+            // Display logged-in user name top right (only name with theme tag)
             document.getElementById('loggedInUserDisplay').textContent = currentLoggedInUser;
-            document.getElementById('userAvatar').textContent = currentLoggedInUser.charAt(0);
 
-            // Filter notifications by receiver_name == loggedInUser AND status == 'read'
+            // Filter notifications: receiver_name matches loggedInUser AND status == 'read'
             const filteredDrafts = draftsDatabase.filter(d => d.receiver_name === currentLoggedInUser && d.status === 'read');
             
-            // Update Notification Badge
+            // Update Notification Badge count
             document.getElementById('notifBadge').textContent = filteredDrafts.length;
 
             // Render Notification List
@@ -255,15 +269,15 @@
             notifListEl.innerHTML = '';
 
             if (filteredDrafts.length === 0) {
-                notifListEl.innerHTML = '<div class="px-4 py-3 text-xs text-gray-500 text-center">No read drafts available.</div>';
+                notifListEl.innerHTML = '<div class="px-4 py-3 text-xs font-mono text-gray-500 text-center">No read drafts found.</div>';
             } else {
                 filteredDrafts.forEach(draft => {
                     const item = document.createElement('div');
-                    item.className = "px-4 py-3 hover:bg-gray-50 cursor-pointer transition";
+                    item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition";
                     item.onclick = () => selectDraft(draft);
                     item.innerHTML = `
-                        <p class="text-sm font-semibold text-gray-800">${draft.draft_name}</p>
-                        <p class="text-xs text-gray-500">From: ${draft.sender_name} | ${draft.send_time}</p>
+                        <p class="text-xs font-mono font-bold text-gray-200">${draft.draft_name}</p>
+                        <p class="text-[10px] font-mono text-gray-400 mt-1">SENDER: ${draft.sender_name} | TIME: ${draft.send_time}</p>
                     `;
                     notifListEl.appendChild(item);
                 });
@@ -278,23 +292,22 @@
 
         // When a user selects a draft from notifications
         function selectDraft(draft) {
-            // Close dropdown
             document.getElementById('notifDropdown').classList.add('hidden');
 
-            // Populate A4 Workspace Left Side
+            // Render onto left A4 workspace
             const a4Content = document.getElementById('a4Content');
             a4Content.innerHTML = `
-                <div class="border-b pb-4 mb-4">
-                    <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">Draft Source</span>
-                    <h1 class="text-2xl font-bold text-gray-900 mt-1">${draft.draft_name}</h1>
-                    <p class="text-xs text-gray-500 mt-1">Sender: <span class="font-medium text-gray-700">${draft.sender_name}</span> | Received: ${draft.send_time}</p>
+                <div class="border-b border-gray-200 pb-4 mb-4">
+                    <span class="text-[10px] font-mono font-bold text-cyan-600 uppercase tracking-widest">// DRAFT INBOX RECORD</span>
+                    <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${draft.draft_name}</h1>
+                    <p class="text-xs text-gray-500 mt-1 font-mono">Sender: ${draft.sender_name} | Received: ${draft.send_time}</p>
                 </div>
-                <div class="prose max-w-none text-gray-700 text-sm leading-relaxed">
+                <div class="prose max-w-none text-gray-800 text-sm leading-relaxed font-sans">
                     <p>${draft.content}</p>
                 </div>
             `;
 
-            // Automatically auto-populate right-side editor panel
+            // Automatically populate right editor panel
             document.getElementById('postTitle').value = draft.draft_name;
             document.getElementById('postContent').value = draft.content;
         }
@@ -311,13 +324,12 @@
                 const content = e.target.result;
                 const a4Content = document.getElementById('a4Content');
                 a4Content.innerHTML = `
-                    <div class="border-b pb-4 mb-4">
-                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Local File Import</span>
-                        <h1 class="text-xl font-bold text-gray-900 mt-1">${file.name}</h1>
+                    <div class="border-b border-gray-200 pb-4 mb-4">
+                        <span class="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">// LOCAL FILE IMPORT</span>
+                        <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${file.name}</h1>
                     </div>
-                    <div class="text-sm text-gray-700 whitespace-pre-wrap">${content}</div>
+                    <div class="text-sm text-gray-800 whitespace-pre-wrap font-sans">${content}</div>
                 `;
-                // Also populate right panel text box
                 document.getElementById('postTitle').value = file.name.replace(/\.[^/.]+$/, "");
                 document.getElementById('postContent').value = content;
             };
@@ -333,8 +345,8 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 container.innerHTML = `
-                    <img src="${e.target.result}" alt="Preview" class="h-32 object-contain rounded-md mx-auto">
-                    <span class="text-xs text-indigo-600 font-medium">${file.name}</span>
+                    <img src="${e.target.result}" alt="Preview" class="h-28 object-contain rounded mx-auto">
+                    <span class="text-[10px] font-mono text-cyan-400">${file.name}</span>
                 `;
             };
             reader.readAsDataURL(file);
@@ -348,18 +360,17 @@
             document.getElementById('postTitle').value = title;
             document.getElementById('postContent').value = textContent;
             
-            alert('Draft data successfully moved to the Content Editor panel!');
+            alert('A4 workspace content successfully transferred to Content Editor panel.');
         }
 
-        // Distribute button action
+        // Distribute button action - smooth scroll down
         function distributeContent() {
             const title = document.getElementById('postTitle').value;
             const content = document.getElementById('postContent').value;
             if(!title && !content) {
-                alert('Please enter title or content before distributing.');
+                alert('Please provide title or main text content before distributing.');
                 return;
             }
-            // Scroll down smoothly to the 6 panels section
             window.scrollTo({
                 top: document.body.scrollHeight,
                 behavior: 'smooth'
@@ -370,10 +381,10 @@
         function publishTo(platform) {
             const title = document.getElementById('postTitle').value;
             if(!title) {
-                alert('Please provide content in the editor before publishing.');
+                alert('Please fill out the content editor before publishing.');
                 return;
             }
-            alert(`Successfully queued post "${title}" for distribution to ${platform}!`);
+            alert(`Successfully queued post "${title}" for distribution on ${platform}!`);
         }
     </script>
 </body>
