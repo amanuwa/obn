@@ -239,9 +239,33 @@
 
     <!-- JavaScript Session and Interaction Logic -->
     <script>
-        // Logged-in session username matches your theme reference
-       // Logged-in session username obtained from the previous login page (via localStorage or sessionStorage)
-const currentLoggedInUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+// Global variable for the current logged-in user (initialized empty or via session loader)
+let currentLoggedInUser = "";
+
+// Function to load and display the logged-in user's name from session storage
+function loadLoggedUserName() {
+    const sessionData = localStorage.getItem('userSession');
+    if (!sessionData) return;
+
+    try {
+        const user = JSON.parse(sessionData);
+        // Extracts name using common property keys
+        const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name;
+
+        if (loggedInName) {
+            currentLoggedInUser = loggedInName; // Update global user variable
+
+            // Update top-right display element
+            const nameEl = document.getElementById('loggedInUserDisplay');
+            if (nameEl) nameEl.innerText = loggedInName;
+        }
+    } catch (e) {
+        console.error("Error parsing user session for display:", e);
+    }
+}
+
+// Call session loader immediately when the script runs
+loadLoggedUserName();
 
 // Function to fetch and update drafts from Supabase database every 10 seconds
 async function fetchDraftsFromSupabase() {
@@ -250,7 +274,7 @@ async function fetchDraftsFromSupabase() {
 
         // Check if supabaseClient is available globally (initialized from config.js)
         if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-            // Query Supabase table named 'drafts' with specific filters
+            // Query Supabase table named 'drafts' using the dynamic logged-in user
             const { data, error } = await supabaseClient
                 .from('drafts')
                 .select('*')
@@ -294,8 +318,9 @@ async function fetchDraftsFromSupabase() {
 
 // Initialize Page on Load and set 10-second polling interval
 window.addEventListener('DOMContentLoaded', () => {
-    // Display logged-in user name top right
-    document.getElementById('loggedInUserDisplay').textContent = currentLoggedInUser;
+    // Ensure UI reflects the loaded session user name immediately
+    const nameEl = document.getElementById('loggedInUserDisplay');
+    if (nameEl) nameEl.textContent = currentLoggedInUser;
 
     // Initial fetch immediately on page load
     fetchDraftsFromSupabase();
