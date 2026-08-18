@@ -239,183 +239,194 @@
 
     <!-- JavaScript Session and Interaction Logic -->
   <script type="module">
-    import { supabaseClient, N8N_Preparepage_GATEWAY_WEBHOOK } from './config.js';
+// Import gateway webhook or config variables from config.js
+import { N8N_Preparepage_GATEWAY_WEBHOOK } from './config.js';
 
-    // Global variable for the current logged-in user
-    let currentLoggedInUser = "";
+// Global variable for the current logged-in user
+let currentLoggedInUser = "";
 
-    // Function to load and display the logged-in user's name from session storage
-    function loadLoggedUserName() {
-        const sessionData = localStorage.getItem('userSession');
-        if (!sessionData) return;
+// Function to load and display the logged-in user's name from session storage
+function loadLoggedUserName() {
+    const sessionData = localStorage.getItem('userSession');
+    if (!sessionData) return;
 
-        try {
-            const user = JSON.parse(sessionData);
-            const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name;
+    try {
+        const user = JSON.parse(sessionData);
+        const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name;
 
-            if (loggedInName) {
-                currentLoggedInUser = loggedInName;
-                const nameEl = document.getElementById('loggedInUserDisplay');
-                if (nameEl) nameEl.innerText = loggedInName;
-            }
-        } catch (e) {
-            console.error("Error parsing user session for display:", e);
+        if (loggedInName) {
+            currentLoggedInUser = loggedInName;
+
+            // Update top-right display element
+            const nameEl = document.getElementById('loggedInUserDisplay');
+            if (nameEl) nameEl.innerText = loggedInName;
         }
+    } catch (e) {
+        console.error("Error parsing user session for display:", e);
     }
+}
 
-    // Call session loader immediately when the script runs
-    loadLoggedUserName();
+// Call session loader immediately when the script runs
+loadLoggedUserName();
 
-    // Function to fetch and update drafts from Supabase database every 10 seconds
-    async function fetchDraftsFromSupabase() {
-        try {
-            let filteredDrafts = [];
+// Function to fetch and update drafts from Supabase database every 10 seconds
+async function fetchDraftsFromSupabase() {
+    try {
+        let filteredDrafts = [];
 
-            if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-                const { data, error } = await supabaseClient
-                    .from('drafts')
-                    .select('*')
-                    .eq('receiver_name', currentLoggedInUser)
-                    .eq('status', 'read');
+        // Check if supabaseClient is available globally or imported
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            const { data, error } = await supabaseClient
+                .from('drafts')
+                .select('*')
+                .eq('receiver_name', currentLoggedInUser)
+                .eq('status', 'read');
 
-                if (error) {
-                    console.error('Supabase query error:', error.message);
-                    return;
-                }
-                filteredDrafts = data || [];
-            } else {
-                console.warn('supabaseClient is not defined.');
+            if (error) {
+                console.error('Supabase query error:', error.message);
+                return;
             }
-
-            // Update Notification Badge count
-            document.getElementById('notifBadge').textContent = filteredDrafts.length;
-
-            // Render Notification List
-            const notifListEl = document.getElementById('notifList');
-            notifListEl.innerHTML = '';
-
-            if (filteredDrafts.length === 0) {
-                notifListEl.innerHTML = '<div class="px-4 py-3 text-xs font-mono text-gray-500 text-center">No read drafts found.</div>';
-            } else {
-                filteredDrafts.forEach(draft => {
-                    const item = document.createElement('div');
-                    item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition";
-                    item.onclick = () => selectDraft(draft);
-                    item.innerHTML = `
-                        <p class="text-xs font-mono font-bold text-gray-200">${draft.draft_name}</p>
-                        <p class="text-[10px] font-mono text-gray-400 mt-1">SENDER: ${draft.sender_name} | TIME: ${draft.send_time}</p>
-                    `;
-                    notifListEl.appendChild(item);
-                });
-            }
-        } catch (err) {
-            console.error('Error fetching data:', err);
+            filteredDrafts = data || [];
+        } else {
+            console.warn('supabaseClient is not defined.');
         }
+
+        // Update Notification Badge count
+        document.getElementById('notifBadge').textContent = filteredDrafts.length;
+
+        // Render Notification List
+        const notifListEl = document.getElementById('notifList');
+        notifListEl.innerHTML = '';
+
+        if (filteredDrafts.length === 0) {
+            notifListEl.innerHTML = '<div class="px-4 py-3 text-xs font-mono text-gray-500 text-center">No read drafts found.</div>';
+        } else {
+            filteredDrafts.forEach(draft => {
+                const item = document.createElement('div');
+                item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition";
+                item.onclick = () => selectDraft(draft);
+                item.innerHTML = `
+                    <p class="text-xs font-mono font-bold text-gray-200">${draft.draft_name}</p>
+                    <p class="text-[10px] font-mono text-gray-400 mt-1">SENDER: ${draft.sender_name} | TIME: ${draft.send_time}</p>
+                `;
+                notifListEl.appendChild(item);
+            });
+        }
+    } catch (err) {
+        console.error('Error fetching data:', err);
     }
+}
 
-    // Initialize Page on Load and set 10-second polling interval
-    window.addEventListener('DOMContentLoaded', () => {
-        const nameEl = document.getElementById('loggedInUserDisplay');
-        if (nameEl) nameEl.textContent = currentLoggedInUser;
+// Initialize Page on Load and set 10-second polling interval
+window.addEventListener('DOMContentLoaded', () => {
+    const nameEl = document.getElementById('loggedInUserDisplay');
+    if (nameEl) nameEl.textContent = currentLoggedInUser;
 
-        fetchDraftsFromSupabase();
-        setInterval(fetchDraftsFromSupabase, 10000);
-    });
+    fetchDraftsFromSupabase();
+    setInterval(fetchDraftsFromSupabase, 10000);
+});
 
-    // Expose functions globally so HTML inline onclick/onchange handlers can access them
-    window.toggleNotifications = function() {
-        const dropdown = document.getElementById('notifDropdown');
-        dropdown.classList.toggle('hidden');
-    };
+// Toggle Notification Dropdown Visibility
+function toggleNotifications() {
+    const dropdown = document.getElementById('notifDropdown');
+    dropdown.classList.toggle('hidden');
+}
+window.toggleNotifications = toggleNotifications; // Expose to global scope for HTML inline onclicks
 
-    window.selectDraft = function(draft) {
-        document.getElementById('notifDropdown').classList.add('hidden');
+// When a user selects a draft from notifications
+function selectDraft(draft) {
+    document.getElementById('notifDropdown').classList.add('hidden');
 
+    const a4Content = document.getElementById('a4Content');
+    a4Content.innerHTML = `
+        <div class="border-b border-gray-200 pb-4 mb-4">
+            <span class="text-[10px] font-mono font-bold text-cyan-600 uppercase tracking-widest">// DRAFT INBOX RECORD</span>
+            <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${draft.draft_name}</h1>
+            <p class="text-xs text-gray-500 mt-1 font-mono">Sender: ${draft.sender_name} | Received: ${draft.send_time}</p>
+        </div>
+        <div class="prose max-w-none text-gray-800 text-sm leading-relaxed font-sans">
+            <p>${draft.content}</p>
+        </div>
+    `;
+
+    document.getElementById('postTitle').value = draft.draft_name;
+    document.getElementById('postContent').value = draft.content;
+}
+
+// Load Local File into A4 Workspace
+window.loadLocalFile = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    document.getElementById('loadedFileName').textContent = file.name;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
         const a4Content = document.getElementById('a4Content');
         a4Content.innerHTML = `
             <div class="border-b border-gray-200 pb-4 mb-4">
-                <span class="text-[10px] font-mono font-bold text-cyan-600 uppercase tracking-widest">// DRAFT INBOX RECORD</span>
-                <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${draft.draft_name}</h1>
-                <p class="text-xs text-gray-500 mt-1 font-mono">Sender: ${draft.sender_name} | Received: ${draft.send_time}</p>
+                <span class="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">// LOCAL FILE IMPORT</span>
+                <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${file.name}</h1>
             </div>
-            <div class="prose max-w-none text-gray-800 text-sm leading-relaxed font-sans">
-                <p>${draft.content}</p>
-            </div>
+            <div class="text-sm text-gray-800 whitespace-pre-wrap font-sans">${content}</div>
         `;
-
-        document.getElementById('postTitle').value = draft.draft_name;
-        document.getElementById('postContent').value = draft.content;
+        document.getElementById('postTitle').value = file.name.replace(/\.[^/.]+$/, "");
+        document.getElementById('postContent').value = content;
     };
+    reader.readAsText(file);
+};
 
-    window.loadLocalFile = function(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+// Preview Image from Computer file explorer
+window.previewImage = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-        document.getElementById('loadedFileName').textContent = file.name;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const content = e.target.result;
-            const a4Content = document.getElementById('a4Content');
-            a4Content.innerHTML = `
-                <div class="border-b border-gray-200 pb-4 mb-4">
-                    <span class="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">// LOCAL FILE IMPORT</span>
-                    <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${file.name}</h1>
-                </div>
-                <div class="text-sm text-gray-800 whitespace-pre-wrap font-sans">${content}</div>
-            `;
-            document.getElementById('postTitle').value = file.name.replace(/\.[^/.]+$/, "");
-            document.getElementById('postContent').value = content;
-        };
-        reader.readAsText(file);
+    const container = document.getElementById('imagePreviewContainer');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        container.innerHTML = `
+            <img src="${e.target.result}" alt="Preview" class="h-28 object-contain rounded mx-auto">
+            <span class="text-[10px] font-mono text-cyan-400">${file.name}</span>
+        `;
     };
+    reader.readAsDataURL(file);
+};
 
-    window.previewImage = function(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+// Action for "Create Posts" button
+window.createPostAction = function() {
+    const title = document.getElementById('a4Content').querySelector('h1')?.textContent || "Untitled Post";
+    const textContent = document.getElementById('a4Content').querySelector('.prose, .whitespace-pre-wrap')?.innerText || "";
+    
+    document.getElementById('postTitle').value = title;
+    document.getElementById('postContent').value = textContent;
+    
+    alert('A4 workspace content successfully transferred to Content Editor panel.');
+};
 
-        const container = document.getElementById('imagePreviewContainer');
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            container.innerHTML = `
-                <img src="${e.target.result}" alt="Preview" class="h-28 object-contain rounded mx-auto">
-                <span class="text-[10px] font-mono text-cyan-400">${file.name}</span>
-            `;
-        };
-        reader.readAsDataURL(file);
-    };
+// Distribute button action
+window.distributeContent = function() {
+    const title = document.getElementById('postTitle').value;
+    const content = document.getElementById('postContent').value;
+    if(!title && !content) {
+        alert('Please provide title or main text content before distributing.');
+        return;
+    }
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+    });
+};
 
-    window.createPostAction = function() {
-        const title = document.getElementById('a4Content').querySelector('h1')?.textContent || "Untitled Post";
-        const textContent = document.getElementById('a4Content').querySelector('.prose, .whitespace-pre-wrap')?.innerText || "";
-        
-        document.getElementById('postTitle').value = title;
-        document.getElementById('postContent').value = textContent;
-        
-        alert('A4 workspace content successfully transferred to Content Editor panel.');
-    };
-
-    window.distributeContent = function() {
-        const title = document.getElementById('postTitle').value;
-        const content = document.getElementById('postContent').value;
-        if(!title && !content) {
-            alert('Please provide title or main text content before distributing.');
-            return;
-        }
-        window.scrollTo({
-            top: document.body.scrollHeight,
-            behavior: 'smooth'
-        });
-    };
-
-    window.publishTo = function(platform) {
-        const title = document.getElementById('postTitle').value;
-        if(!title) {
-            alert('Please fill out the content editor before publishing.');
-            return;
-        }
-        alert(`Successfully queued post "${title}" for distribution on ${platform}! (Webhook: ${N8N_Preparepage_GATEWAY_WEBHOOK})`);
-    };
+// Individual platform publish action
+window.publishTo = function(platform) {
+    const title = document.getElementById('postTitle').value;
+    if(!title) {
+        alert('Please fill out the content editor before publishing.');
+        return;
+    }
+    alert(`Successfully queued post "${title}" for distribution on ${platform}! (Webhook Gateway: ${N8N_Preparepage_GATEWAY_WEBHOOK})`);
+};
 </script>
 </body>
 </html>
