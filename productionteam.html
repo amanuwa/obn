@@ -274,9 +274,8 @@ async function fetchDraftsFromSupabase() {
     try {
         let filteredDrafts = [];
 
-        // Check if supabaseClient is available globally (initialized from config.js)
+        // Check if supabaseClient is available globally or imported
         if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-            // Query Supabase table named 'drafts' using the dynamic logged-in user
             const { data, error } = await supabaseClient
                 .from('drafts')
                 .select('*')
@@ -289,7 +288,7 @@ async function fetchDraftsFromSupabase() {
             }
             filteredDrafts = data || [];
         } else {
-            console.warn('supabaseClient is not defined. Ensure config.js is loaded properly.');
+            console.warn('supabaseClient is not defined.');
         }
 
         // Update Notification Badge count
