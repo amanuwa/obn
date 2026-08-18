@@ -165,84 +165,232 @@
         </main>
 
         <!-- BOTTOM SECTION: 6 Distribution Panels (Scrolled down section) -->
-        <section class="max-w-full px-6 py-8 border-t border-gray-800 mt-12 bg-[#0b0f19]">
-            <h3 class="text-xs font-mono text-cyan-400 tracking-wider mb-6">// MULTI-PLATFORM DISTRIBUTION CHANNELS</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                
-                <!-- TikTok Panel -->
-                <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center space-x-3 mb-3">
-                            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-white flex items-center justify-center rounded font-mono text-xs font-bold">TT</div>
-                            <h4 class="font-mono text-sm text-gray-200">TikTok Channel</h4>
-                        </div>
-                        <p class="text-xs text-gray-500 mb-4 font-sans">Short-form video layout and captions feed.</p>
-                    </div>
-                    <button onclick="publishTo('TikTok')" class="w-full bg-gray-900 hover:bg-gray-800 text-gray-200 border border-gray-700 text-xs font-mono py-2 rounded transition">Publish to TikTok</button>
+      <section class="max-w-full px-6 py-8 border-t border-gray-800 mt-12 bg-[#0b0f19]">
+    <h3 class="text-xs font-mono text-cyan-400 tracking-wider mb-6">// MULTI-PLATFORM DISTRIBUTION CHANNELS</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- TikTok Panel -->
+        <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+            <div>
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-white flex items-center justify-center rounded font-mono text-xs font-bold">TT</div>
+                    <h4 class="font-mono text-sm text-gray-200">TikTok Channel</h4>
                 </div>
-
-                <!-- Instagram Panel -->
-                <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center space-x-3 mb-3">
-                            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-pink-400 flex items-center justify-center rounded font-mono text-xs font-bold">IG</div>
-                            <h4 class="font-mono text-sm text-gray-200">Instagram Studio</h4>
-                        </div>
-                        <p class="text-xs text-gray-500 mb-4 font-sans">Feed post, story and carousel integration.</p>
-                    </div>
-                    <button onclick="publishTo('Instagram')" class="w-full bg-gray-900 hover:bg-gray-800 text-pink-400 border border-gray-700 text-xs font-mono py-2 rounded transition">Publish to Instagram</button>
-                </div>
-
-                <!-- Twitter Panel -->
-                <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center space-x-3 mb-3">
-                            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-cyan-400 flex items-center justify-center rounded font-mono text-xs font-bold">TW</div>
-                            <h4 class="font-mono text-sm text-gray-200">Twitter / X Stream</h4>
-                        </div>
-                        <p class="text-xs text-gray-500 mb-4 font-sans">Character checked microblog and media attachments.</p>
-                    </div>
-                    <button onclick="publishTo('Twitter')" class="w-full bg-gray-900 hover:bg-gray-800 text-cyan-400 border border-gray-700 text-xs font-mono py-2 rounded transition">Publish to Twitter</button>
-                </div>
-
-                <!-- Telegram Panel -->
-                <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center space-x-3 mb-3">
-                            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-sky-400 flex items-center justify-center rounded font-mono text-xs font-bold">TG</div>
-                            <h4 class="font-mono text-sm text-gray-200">Telegram Channel</h4>
-                        </div>
-                        <p class="text-xs text-gray-500 mb-4 font-sans">Direct subscriber announcement feed stream.</p>
-                    </div>
-                    <button onclick="publishTo('Telegram')" class="w-full bg-gray-900 hover:bg-gray-800 text-sky-400 border border-gray-700 text-xs font-mono py-2 rounded transition">Publish to Telegram</button>
-                </div>
-
-                <!-- YouTube Panel -->
-                <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center space-x-3 mb-3">
-                            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-red-500 flex items-center justify-center rounded font-mono text-xs font-bold">YT</div>
-                            <h4 class="font-mono text-sm text-gray-200">YouTube Studio</h4>
-                        </div>
-                        <p class="text-xs text-gray-500 mb-4 font-sans">Video descriptions, tags and community posts.</p>
-                    </div>
-                    <button onclick="publishTo('YouTube')" class="w-full bg-gray-900 hover:bg-gray-800 text-red-500 border border-gray-700 text-xs font-mono py-2 rounded transition">Publish to YouTube</button>
-                </div>
-
-                <!-- Facebook Panel -->
-                <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center space-x-3 mb-3">
-                            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-blue-500 flex items-center justify-center rounded font-mono text-xs font-bold">FB</div>
-                            <h4 class="font-mono text-sm text-gray-200">Facebook Page</h4>
-                        </div>
-                        <p class="text-xs text-gray-500 mb-4 font-sans">Page updates, link previews, and media posts.</p>
-                    </div>
-                    <button onclick="publishTo('Facebook')" class="w-full bg-gray-900 hover:bg-gray-800 text-blue-500 border border-gray-700 text-xs font-mono py-2 rounded transition">Publish to Facebook</button>
-                </div>
-
+                <p class="text-xs text-gray-500 font-sans">Short-form video layout and captions feed.</p>
             </div>
-        </section>
+            <!-- Multiple Image Upload -->
+            <div class="flex flex-col space-y-2">
+                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
+                    📂 Select Multiple Images
+                    <input type="file" class="hidden" multiple accept="image/*" onchange="previewMultipleImages(event, this)">
+                </label>
+                <div class="image-preview-grid grid grid-cols-3 gap-2 bg-gray-900/50 p-2 rounded min-h-[50px] border border-dashed border-gray-700">
+                    <span class="text-[10px] text-gray-500 font-mono col-span-3 text-center self-center">No images selected</span>
+                </div>
+            </div>
+            <!-- Title Field -->
+            <div>
+                <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
+                <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none">
+            </div>
+            <!-- Audio Upload -->
+            <div>
+                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-2 py-1.5 rounded border border-gray-700 flex items-center justify-center space-x-2 transition">
+                    <span>🎵 Select Audio</span>
+                    <input type="file" class="hidden" accept="audio/*" onchange="loadAudioFile(event, this)">
+                </label>
+                <span class="audio-file-name text-[10px] font-mono text-gray-500 mt-1 block truncate">No audio selected</span>
+            </div>
+            <!-- Tags Field -->
+            <div>
+                <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
+                <input type="text" placeholder="e.g. news, trending" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none">
+            </div>
+            <button onclick="publishTo('TikTok')" class="w-full bg-gray-900 hover:bg-gray-800 text-white border border-gray-700 text-xs font-mono py-2 rounded transition font-bold">Publish to TikTok</button>
+        </div>
+
+        <!-- Instagram Panel -->
+        <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+            <div>
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-pink-400 flex items-center justify-center rounded font-mono text-xs font-bold">IG</div>
+                    <h4 class="font-mono text-sm text-gray-200">Instagram Studio</h4>
+                </div>
+                <p class="text-xs text-gray-500 font-sans">Feed post, story and carousel integration.</p>
+            </div>
+            <div class="flex flex-col space-y-2">
+                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
+                    📂 Select Multiple Images
+                    <input type="file" class="hidden" multiple accept="image/*" onchange="previewMultipleImages(event, this)">
+                </label>
+                <div class="image-preview-grid grid grid-cols-3 gap-2 bg-gray-900/50 p-2 rounded min-h-[50px] border border-dashed border-gray-700">
+                    <span class="text-[10px] text-gray-500 font-mono col-span-3 text-center self-center">No images selected</span>
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
+                <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-pink-500 outline-none">
+            </div>
+            <div>
+                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-2 py-1.5 rounded border border-gray-700 flex items-center justify-center space-x-2 transition">
+                    <span>🎵 Select Audio</span>
+                    <input type="file" class="hidden" accept="audio/*" onchange="loadAudioFile(event, this)">
+                </label>
+                <span class="audio-file-name text-[10px] font-mono text-gray-500 mt-1 block truncate">No audio selected</span>
+            </div>
+            <div>
+                <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
+                <input type="text" placeholder="e.g. photography, lifestyle" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-pink-500 outline-none">
+            </div>
+            <button onclick="publishTo('Instagram')" class="w-full bg-gray-900 hover:bg-gray-800 text-pink-400 border border-gray-700 text-xs font-mono py-2 rounded transition font-bold">Publish to Instagram</button>
+        </div>
+
+        <!-- Twitter Panel -->
+        <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+            <div>
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-cyan-400 flex items-center justify-center rounded font-mono text-xs font-bold">TW</div>
+                    <h4 class="font-mono text-sm text-gray-200">Twitter / X Stream</h4>
+                </div>
+                <p class="text-xs text-gray-500 font-sans">Character checked microblog and media attachments.</p>
+            </div>
+            <div class="flex flex-col space-y-2">
+                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
+                    📂 Select Multiple Images
+                    <input type="file" class="hidden" multiple accept="image/*" onchange="previewMultipleImages(event, this)">
+                </label>
+                <div class="image-preview-grid grid grid-cols-3 gap-2 bg-gray-900/50 p-2 rounded min-h-[50px] border border-dashed border-gray-700">
+                    <span class="text-[10px] text-gray-500 font-mono col-span-3 text-center self-center">No images selected</span>
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
+                <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none">
+            </div>
+            <div>
+                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-2 py-1.5 rounded border border-gray-700 flex items-center justify-center space-x-2 transition">
+                    <span>🎵 Select Audio</span>
+                    <input type="file" class="hidden" accept="audio/*" onchange="loadAudioFile(event, this)">
+                </label>
+                <span class="audio-file-name text-[10px] font-mono text-gray-500 mt-1 block truncate">No audio selected</span>
+            </div>
+            <div>
+                <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
+                <input type="text" placeholder="e.g. breaking, update" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none">
+            </div>
+            <button onclick="publishTo('Twitter')" class="w-full bg-gray-900 hover:bg-gray-800 text-cyan-400 border border-gray-700 text-xs font-mono py-2 rounded transition font-bold">Publish to Twitter</button>
+        </div>
+
+        <!-- Telegram Panel -->
+        <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+            <div>
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-sky-400 flex items-center justify-center rounded font-mono text-xs font-bold">TG</div>
+                    <h4 class="font-mono text-sm text-gray-200">Telegram Channel</h4>
+                </div>
+                <p class="text-xs text-gray-500 font-sans">Direct subscriber announcement feed stream.</p>
+            </div>
+            <div class="flex flex-col space-y-2">
+                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
+                    📂 Select Multiple Images
+                    <input type="file" class="hidden" multiple accept="image/*" onchange="previewMultipleImages(event, this)">
+                </label>
+                <div class="image-preview-grid grid grid-cols-3 gap-2 bg-gray-900/50 p-2 rounded min-h-[50px] border border-dashed border-gray-700">
+                    <span class="text-[10px] text-gray-500 font-mono col-span-3 text-center self-center">No images selected</span>
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
+                <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-sky-500 outline-none">
+            </div>
+            <div>
+                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-2 py-1.5 rounded border border-gray-700 flex items-center justify-center space-x-2 transition">
+                    <span>🎵 Select Audio</span>
+                    <input type="file" class="hidden" accept="audio/*" onchange="loadAudioFile(event, this)">
+                </label>
+                <span class="audio-file-name text-[10px] font-mono text-gray-500 mt-1 block truncate">No audio selected</span>
+            </div>
+            <div>
+                <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
+                <input type="text" placeholder="e.g. announcement" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-sky-500 outline-none">
+            </div>
+            <button onclick="publishTo('Telegram')" class="w-full bg-gray-900 hover:bg-gray-800 text-sky-400 border border-gray-700 text-xs font-mono py-2 rounded transition font-bold">Publish to Telegram</button>
+        </div>
+
+        <!-- YouTube Panel -->
+        <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+            <div>
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-red-500 flex items-center justify-center rounded font-mono text-xs font-bold">YT</div>
+                    <h4 class="font-mono text-sm text-gray-200">YouTube Studio</h4>
+                </div>
+                <p class="text-xs text-gray-500 font-sans">Video descriptions, tags and community posts.</p>
+            </div>
+            <div class="flex flex-col space-y-2">
+                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
+                    📂 Select Multiple Images
+                    <input type="file" class="hidden" multiple accept="image/*" onchange="previewMultipleImages(event, this)">
+                </label>
+                <div class="image-preview-grid grid grid-cols-3 gap-2 bg-gray-900/50 p-2 rounded min-h-[50px] border border-dashed border-gray-700">
+                    <span class="text-[10px] text-gray-500 font-mono col-span-3 text-center self-center">No images selected</span>
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
+                <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-red-500 outline-none">
+            </div>
+            <div>
+                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-2 py-1.5 rounded border border-gray-700 flex items-center justify-center space-x-2 transition">
+                    <span>🎵 Select Audio</span>
+                    <input type="file" class="hidden" accept="audio/*" onchange="loadAudioFile(event, this)">
+                </label>
+                <span class="audio-file-name text-[10px] font-mono text-gray-500 mt-1 block truncate">No audio selected</span>
+            </div>
+            <div>
+                <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
+                <input type="text" placeholder="e.g. video, podcast" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-red-500 outline-none">
+            </div>
+            <button onclick="publishTo('YouTube')" class="w-full bg-gray-900 hover:bg-gray-800 text-red-500 border border-gray-700 text-xs font-mono py-2 rounded transition font-bold">Publish to YouTube</button>
+        </div>
+
+        <!-- Facebook Panel -->
+        <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+            <div>
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-blue-500 flex items-center justify-center rounded font-mono text-xs font-bold">FB</div>
+                    <h4 class="font-mono text-sm text-gray-200">Facebook Page</h4>
+                </div>
+                <p class="text-xs text-gray-500 font-sans">Page updates, link previews, and media posts.</p>
+            </div>
+            <div class="flex flex-col space-y-2">
+                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
+                    📂 Select Multiple Images
+                    <input type="file" class="hidden" multiple accept="image/*" onchange="previewMultipleImages(event, this)">
+                </label>
+                <div class="image-preview-grid grid grid-cols-3 gap-2 bg-gray-900/50 p-2 rounded min-h-[50px] border border-dashed border-gray-700">
+                    <span class="text-[10px] text-gray-500 font-mono col-span-3 text-center self-center">No images selected</span>
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
+                <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-2 py-1.5 rounded border border-gray-700 flex items-center justify-center space-x-2 transition">
+                    <span>🎵 Select Audio</span>
+                    <input type="file" class="hidden" accept="audio/*" onchange="loadAudioFile(event, this)">
+                </label>
+                <span class="audio-file-name text-[10px] font-mono text-gray-500 mt-1 block truncate">No audio selected</span>
+            </div>
+            <div>
+                <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
+                <input type="text" placeholder="e.g. community, update" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-blue-500 outline-none">
+            </div>
+            <button onclick="publishTo('Facebook')" class="w-full bg-gray-900 hover:bg-gray-800 text-blue-500 border border-gray-700 text-xs font-mono py-2 rounded transition font-bold">Publish to Facebook</button>
+        </div>
+
+    </div>
+</section>
     </div>
 
     <!-- JavaScript Session and Interaction Logic -->
