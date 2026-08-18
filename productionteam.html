@@ -983,7 +983,48 @@ window.loadAudioFileCompact = function(event, inputElement) {
         audioInput.classList.add('text-cyan-400');
     }
 };
+// Open Image Inspection Modal
+window.openImageModal = function(containerElement) {
+    const img = containerElement.querySelector('.preview-img');
+    if (!img || img.classList.contains('hidden') || !img.src) return;
 
+    const card = containerElement.closest('.bg-\\[\\#111827\\]');
+    const headerEl = card.querySelector('h3') || card.querySelector('h4') || card.querySelector('.platform-name');
+    const platformName = headerEl ? headerEl.textContent : 'Platform';
+
+    const modal = document.getElementById('imagePreviewModal');
+    const modalTitle = document.getElementById('modalPlatformTitle');
+    const modalContainer = document.getElementById('modalImageContainer');
+    const dimText = document.getElementById('modalImageDimensions');
+
+    modalTitle.textContent = `Inspecting Fit for: ${platformName}`;
+    
+    // Create an image object to measure native dimensions
+    const measureImg = new Image();
+    measureImg.src = img.src;
+    measureImg.onload = function() {
+        dimText.textContent = `Original File Resolution: ${measureImg.naturalWidth} x ${measureImg.naturalHeight} pixels`;
+    };
+
+    // Set modal container height/style based on platform for realistic preview
+    modalContainer.className = "w-full flex items-center justify-center overflow-hidden bg-black/50 rounded border border-gray-800 ";
+    if (platformName.toLowerCase().includes('tiktok') || platformName.toLowerCase().includes('youtube')) {
+        modalContainer.classList.add('h-96'); // Tall vertical container check
+    } else if (platformName.toLowerCase().includes('instagram')) {
+        modalContainer.classList.add('h-80'); // Square-ish check
+    } else {
+        modalContainer.classList.add('h-64'); // Landscape check
+    }
+
+    modalContainer.innerHTML = `<img src="${img.src}" class="w-full h-full object-contain" alt="Modal Preview">`;
+    modal.classList.remove('hidden');
+};
+
+// Close Modal
+window.closeImageModal = function() {
+    const modal = document.getElementById('imagePreviewModal');
+    if (modal) modal.classList.add('hidden');
+};
 // Handle Publish action with account dropdown and field values
 window.publishTo = function(platformName, buttonElement) {
     const card = buttonElement.closest('.bg-\\[\\#111827\\]');
