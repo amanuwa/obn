@@ -771,28 +771,43 @@ window.publishTo = function(platform) {
     if (postTitleEl) postTitleEl.value = '';
     if (postContentEl) postContentEl.value = '';
           // Toggle multi-select property on file input based on checkbox
+
+};
+      // Cache map for storing image carousels per card
+let cardImageCache = new WeakMap();
+
+// Enable or disable multiple selection based on the checkbox state
 window.toggleMultiImageMode = function(checkbox) {
     const card = checkbox.closest('.bg-\\[\\#111827\\]');
     const fileInput = card.querySelector('.image-file-input');
-    if (checkbox.checked) {
-        fileInput.multiple = true;
-    } else {
-        fileInput.multiple = false;
-        fileInput.value = '';
-    }
-};
+    
+    // Dynamically toggle the multiple attribute property
+    fileInput.multiple = checkbox.checked;
+    
+    // Clear out any previously selected file values when switching modes
+    fileInput.value = '';
+    cardImageCache.delete(card);
 
-// Handle Image Selection and Carousel state
-let cardImageCache = new WeakMap();
-
-window.handleImageSelection = function(event, inputElement) {
-    const files = event.target.files;
-    const card = inputElement.closest('.bg-\\[\\#111827\\]');
+    // Reset preview box view back to default
     const previewImg = card.querySelector('.preview-img');
     const placeholder = card.querySelector('.placeholder-text');
     const prevBtn = card.querySelector('.carousel-prev');
     const nextBtn = card.querySelector('.carousel-next');
+    
+    if (previewImg && placeholder) {
+        previewImg.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        placeholder.textContent = "No image selected";
+    }
+    if (prevBtn) prevBtn.classList.add('hidden');
+    if (nextBtn) nextBtn.classList.add('hidden');
+};
 
+// Handle file explorer image selection
+window.handleImageSelection = function(event, inputElement) {
+    const files = event.target.files;
+    const card = inputElement.closest('.bg-\\[\\#111827\\]');
+    
     if (!files || files.length === 0) return;
 
     let imageArray = [];
@@ -812,6 +827,7 @@ window.handleImageSelection = function(event, inputElement) {
     });
 };
 
+// Render active image and control navigation visibility
 function showCurrentImage(card) {
     const data = cardImageCache.get(card);
     const previewImg = card.querySelector('.preview-img');
@@ -825,7 +841,7 @@ function showCurrentImage(card) {
     previewImg.classList.remove('hidden');
     placeholder.classList.add('hidden');
 
-    // Show or hide next/previous buttons if more than 1 image
+    // Show carousel buttons ONLY if more than 1 image is loaded
     if (data.images.length > 1) {
         prevBtn.classList.remove('hidden');
         nextBtn.classList.remove('hidden');
@@ -835,6 +851,7 @@ function showCurrentImage(card) {
     }
 }
 
+// Slide through carousel images
 window.slideImage = function(direction, btn) {
     const card = btn.closest('.bg-\\[\\#111827\\]');
     const data = cardImageCache.get(card);
@@ -861,6 +878,33 @@ window.loadAudioFileCompact = function(event, inputElement) {
         audioInput.classList.add('text-cyan-400');
     }
 };
+
+// Handle Publish action with account dropdown and field values
+window.publishTo = function(platformName, buttonElement) {
+    const card = buttonElement.closest('.bg-\\[\\#111827\\]');
+    
+    const title = card.querySelector('.platform-title').value;
+    const tags = card.querySelector('.platform-tags').value;
+    const selectedAccount = card.querySelector('.account-select').value;
+    const audioName = card.querySelector('.audio-filename-input').value;
+    
+    const imageData = cardImageCache.get(card);
+    const imageCount = imageData ? imageData.images.length : 0;
+
+    if (!selectedAccount) {
+        alert(`Please select an account to publish to ${platformName}.`);
+        return;
+    }
+
+    console.log(`Publishing to ${platformName}:`, {
+        account: selectedAccount,
+        title: title,
+        tags: tags,
+        audio: audioName,
+        totalImages: imageCount
+    });
+
+    alert(`Successfully queued post for ${platformName} using account: ${selectedAccount}!`);
 };
 </script>
 </body>
