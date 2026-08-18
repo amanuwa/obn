@@ -753,18 +753,93 @@ window.createPostAction = function() {
     alert('A4 workspace content successfully transferred to Content Editor panel.');
 };
 
-// Distribute button action
+// Global variable to hold the main editor's featured image data
+let mainEditorImageSrc = null;
+
+// Track main featured image selection from the editor panel file input
+window.loadMainEditorImage = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        mainEditorImageSrc = e.target.result;
+        
+        // Display in main editor preview box
+        const previewBox = document.getElementById('mainEditorImagePreview');
+        if (previewBox) {
+            previewBox.src = mainEditorImageSrc;
+            previewBox.classList.remove('hidden');
+        }
+    };
+    reader.readAsDataURL(file);
+};
+
+// Distribute content from the main editor to all social media panels
 window.distributeContent = function() {
-    const title = document.getElementById('postTitle').value;
-    const content = document.getElementById('postContent').value;
-    if(!title && !content) {
-        alert('Please provide title or main text content before distributing.');
+    // 1. Grab values from the main editor panel
+    const mainTitleEl = document.getElementById('postTitle'); 
+    const mainBodyEl = document.getElementById('postContent'); 
+    
+    const titleText = mainTitleEl ? mainTitleEl.value : '';
+    const bodyText = mainBodyEl ? mainBodyEl.value : '';
+
+    if (!titleText && !bodyText && !mainEditorImageSrc) {
+        alert('Please fill out the title, content body, or upload a featured image first.');
         return;
     }
-    window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: 'smooth'
+
+    // 2. Loop through all social media distribution cards
+    const platformCards = document.querySelectorAll('.bg-\\[\\#111827\\]');
+
+    platformCards.forEach(card => {
+        // Fill Title
+        const platformTitleInput = card.querySelector('.platform-title');
+        if (platformTitleInput) platformTitleInput.value = titleText;
+
+        // Fill Description / Body
+        const platformBodyInput = card.querySelector('.platform-body');
+        if (platformBodyInput) platformBodyInput.value = bodyText;
+
+        // Apply Image & Platform-Specific Resizing/Aspect Ratio
+        if (mainEditorImageSrc) {
+            const previewImg = card.querySelector('.preview-img');
+            const placeholder = card.querySelector('.placeholder-text');
+            const container = card.querySelector('.image-display-container');
+            const badge = card.querySelector('.aspect-badge');
+
+            if (previewImg) {
+                previewImg.src = mainEditorImageSrc;
+                previewImg.classList.remove('hidden');
+            }
+            if (placeholder) {
+                placeholder.classList.add('hidden');
+            }
+            if (badge) {
+                badge.classList.remove('hidden');
+            }
+
+            // Determine platform type from card header to resize container accordingly
+            const headerText = card.querySelector('h4').textContent.toLowerCase();
+            
+            if (container) {
+                container.classList.remove('h-48', 'h-56', 'h-72');
+                
+                if (headerText.includes('tiktok') || headerText.includes('youtube')) {
+                    container.classList.add('h-72');
+                    if (badge) badge.textContent = "Resized: 9:16 Vertical";
+                } else if (headerText.includes('instagram')) {
+                    container.classList.add('h-56');
+                    if (badge) badge.textContent = "Resized: 1:1 Square";
+                } else {
+                    container.classList.add('h-48');
+                    if (badge) badge.textContent = "Resized: 16:9 Landscape";
+                }
+            }
+        }
     });
+
+    alert('Content successfully distributed, synchronized, and resized across all platforms!');
 };
 
 // Individual platform publish action
