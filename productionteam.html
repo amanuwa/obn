@@ -352,24 +352,46 @@ function toggleNotifications() {
 window.toggleNotifications = toggleNotifications; // Expose to global scope for HTML inline onclicks
 
 // When a user selects a draft from notifications
+// When a user selects a draft from notifications
 function selectDraft(draft) {
     document.getElementById('notifDropdown').classList.add('hidden');
 
+    // Extract content from the 'pages' jsonb column safely
+    let pageContent = "";
+    if (draft.pages) {
+        if (Array.isArray(draft.pages)) {
+            pageContent = draft.pages.join("\n");
+        } else if (typeof draft.pages === 'string') {
+            pageContent = draft.pages;
+        } else {
+            pageContent = JSON.stringify(draft.pages);
+        }
+    }
+
+    const titleText = draft.title || `Editorial Submission (${draft.sender_name})`;
+
+    // Render onto left A4 workspace
     const a4Content = document.getElementById('a4Content');
     a4Content.innerHTML = `
         <div class="border-b border-gray-200 pb-4 mb-4">
-            <span class="text-[10px] font-mono font-bold text-cyan-600 uppercase tracking-widest">// DRAFT INBOX RECORD</span>
-            <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${draft.draft_name}</h1>
-            <p class="text-xs text-gray-500 mt-1 font-mono">Sender: ${draft.sender_name} | Received: ${draft.send_time}</p>
+            <span class="text-[10px] font-mono font-bold text-cyan-600 uppercase tracking-widest">// EDITORIAL SUBMISSION RECORD</span>
+            <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${titleText}</h1>
+            <p class="text-xs text-gray-500 mt-1 font-mono">Sender: ${draft.sender_name} | Target Role: ${draft.target_role}</p>
         </div>
         <div class="prose max-w-none text-gray-800 text-sm leading-relaxed font-sans">
-            <p>${draft.content}</p>
+            ${pageContent}
         </div>
     `;
 
-    document.getElementById('postTitle').value = draft.draft_name;
-    document.getElementById('postContent').value = draft.content;
+    // Automatically populate right editor panel text boxes
+    document.getElementById('postTitle').value = titleText;
+    
+    // Strip HTML tags for the text area plain input if needed, or set raw pageContent
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = pageContent;
+    document.getElementById('postContent').value = tempDiv.textContent || tempDiv.innerText || pageContent;
 }
+window.selectDraft = selectDraft;
 
 // Load Local File into A4 Workspace
 window.loadLocalFile = function(event) {
