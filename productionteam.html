@@ -711,59 +711,13 @@ function selectDraft(draft) {
 }
 window.selectDraft = selectDraft;
 
-// Load Local File into A4 Workspace
-window.loadLocalFile = function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
 
-    document.getElementById('loadedFileName').textContent = file.name;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const content = e.target.result;
-        const a4Content = document.getElementById('a4Content');
-        a4Content.innerHTML = `
-            <div class="border-b border-gray-200 pb-4 mb-4">
-                <span class="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">// LOCAL FILE IMPORT</span>
-                <h1 class="text-xl font-bold text-gray-900 mt-1 font-sans">${file.name}</h1>
-            </div>
-            <div class="text-sm text-gray-800 whitespace-pre-wrap font-sans">${content}</div>
-        `;
-        document.getElementById('postTitle').value = file.name.replace(/\.[^/.]+$/, "");
-        document.getElementById('postContent').value = content;
-    };
-    reader.readAsText(file);
-};
 
 // Preview Image from Computer file explorer
-window.previewImage = function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
 
-    const container = document.getElementById('imagePreviewContainer');
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        container.innerHTML = `
-            <img src="${e.target.result}" alt="Preview" class="h-28 object-contain rounded mx-auto">
-            <span class="text-[10px] font-mono text-cyan-400">${file.name}</span>
-        `;
-    };
-    reader.readAsDataURL(file);
-};
 
-// Action for "Create Posts" button
-window.createPostAction = function() {
-    const title = document.getElementById('a4Content').querySelector('h1')?.textContent || "Untitled Post";
-    const textContent = document.getElementById('a4Content').querySelector('.prose, .whitespace-pre-wrap')?.innerText || "";
-    
-    document.getElementById('postTitle').value = title;
-    document.getElementById('postContent').value = textContent;
-    
-    alert('A4 workspace content successfully transferred to Content Editor panel.');
-};
 
-// Global variable to hold the main editor's featured image data
-// Global variable to hold the main editor's featured image data
+
 // Global variable to hold the main editor's featured image data
 let mainEditorImageSrc = null;
 
@@ -908,98 +862,7 @@ window.publishTo = function(platform) {
           // Toggle multi-select property on file input based on checkbox
 
 };
-      // Cache map for storing image carousels per card
-let cardImageCache = new WeakMap();
-
-// Enable or disable multiple selection based on the checkbox state
-window.toggleMultiImageMode = function(checkbox) {
-    const card = checkbox.closest('.bg-\\[\\#111827\\]');
-    const fileInput = card.querySelector('.image-file-input');
-    
-    // Dynamically toggle the multiple attribute property
-    fileInput.multiple = checkbox.checked;
-    
-    // Clear out any previously selected file values when switching modes
-    fileInput.value = '';
-    cardImageCache.delete(card);
-
-    // Reset preview box view back to default
-    const previewImg = card.querySelector('.preview-img');
-    const placeholder = card.querySelector('.placeholder-text');
-    const prevBtn = card.querySelector('.carousel-prev');
-    const nextBtn = card.querySelector('.carousel-next');
-    
-    if (previewImg && placeholder) {
-        previewImg.classList.add('hidden');
-        placeholder.classList.remove('hidden');
-        placeholder.textContent = "No image selected";
-    }
-    if (prevBtn) prevBtn.classList.add('hidden');
-    if (nextBtn) nextBtn.classList.add('hidden');
-};
-
-// Handle file explorer image selection
-window.handleImageSelection = function(event, inputElement) {
-    const files = event.target.files;
-    const card = inputElement.closest('.bg-\\[\\#111827\\]');
-    
-    if (!files || files.length === 0) return;
-
-    let imageArray = [];
-    let loadedCount = 0;
-
-    Array.from(files).forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            imageArray[index] = e.target.result;
-            loadedCount++;
-            if (loadedCount === files.length) {
-                cardImageCache.set(card, { images: imageArray, currentIndex: 0 });
-                showCurrentImage(card);
-            }
-        };
-        reader.readAsDataURL(file);
-    });
-};
-
-// Render active image and control navigation visibility
-function showCurrentImage(card) {
-    const data = cardImageCache.get(card);
-    const previewImg = card.querySelector('.preview-img');
-    const placeholder = card.querySelector('.placeholder-text');
-    const prevBtn = card.querySelector('.carousel-prev');
-    const nextBtn = card.querySelector('.carousel-next');
-
-    if (!data || data.images.length === 0) return;
-
-    previewImg.src = data.images[data.currentIndex];
-    previewImg.classList.remove('hidden');
-    placeholder.classList.add('hidden');
-
-    // Show carousel buttons ONLY if more than 1 image is loaded
-    if (data.images.length > 1) {
-        prevBtn.classList.remove('hidden');
-        nextBtn.classList.remove('hidden');
-    } else {
-        prevBtn.classList.add('hidden');
-        nextBtn.classList.add('hidden');
-    }
-}
-
-// Slide through carousel images
-window.slideImage = function(direction, btn) {
-    const card = btn.closest('.bg-\\[\\#111827\\]');
-    const data = cardImageCache.get(card);
-    if (!data) return;
-
-    data.currentIndex += direction;
-    if (data.currentIndex < 0) {
-        data.currentIndex = data.images.length - 1;
-    } else if (data.currentIndex >= data.images.length) {
-        data.currentIndex = 0;
-    }
-    showCurrentImage(card);
-};
+      
 
 // Handle Audio file name update inside textfield
 window.loadAudioFileCompact = function(event, inputElement) {
