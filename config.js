@@ -14,7 +14,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 export const N8N_CONTENT_URL = 'https://corsproxy.io/?https://terminal-n8n-gateway.onrender.com/webhook/register-journalist';
 
 
-export const GOOGLE_SCRIPT_URL ='https://script.google.com/macros/s/AKfycby6MNjWnEFsH5zl6S4CcMiWLn3myELAVOabuK7lFMAcA5Nhz6r5xBvNVvNbC9vkNHhY/exec';
+export const GOOGLE_SCRIPT_URL ='https://script.google.com/macros/s/AKfycbywACeG-LnaZO28Lwf3szrJpjwQUPlObLMnkaP7s6etdnl3-KOSx_ZPQ7PW80xcEHM/exec';
 
  export const N8N_GATEWAY_WEBHOOK ='https://unreached-oboe-evade.ngrok-free.dev/webhook/staritofhormuz';
  export const postautomation ='https://unreached-oboe-evade.ngrok-free.dev/webhook-test/postAutomation';
