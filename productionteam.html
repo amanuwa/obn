@@ -1051,31 +1051,22 @@ window.publishTo = async function(platformName, buttonElement) {
         return;
     }
 
-    // Prepare payload including the mediaUrl and audio track
-    const payload = {
-        account: selectedAccount, // e.g., "tiktok account 1"
+    const queryParams = new URLSearchParams({
+        account: selectedAccount,
         title: title,
         mediaUrl: mediaUrl,
         description: description,
         tags: tags,
         audio: audioName
-    };
-
-    console.log("Submitting payload:", payload);
+    });
 
     try {
-        // Send as a standard POST request
-        await fetch(GOOGLE_SCRIPT_URL, {
+        await fetch(`${GOOGLE_SCRIPT_URL}?${queryParams.toString()}`, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
+            mode: 'no-cors'
         });
 
         alert(`Successfully queued post for ${platformName} using account: ${selectedAccount}!`);
-
     } catch (error) {
         console.error('Connection error:', error);
         alert('Failed to connect to Google Sheets.');
