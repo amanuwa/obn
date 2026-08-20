@@ -182,25 +182,26 @@
                     <h4 class="font-mono text-sm text-gray-200">TikTok Channel</h4>
                 </div>
                 <label class="flex items-center space-x-1.5 cursor-pointer text-[10px] font-mono text-gray-400">
-                    <input type="checkbox" class="multi-toggle accent-cyan-500 rounded bg-gray-900 border-gray-700" onchange="toggleMultiImageMode(this)">
+                   <input type="checkbox" class="multi-toggle accent-cyan-500 rounded bg-gray-900 border-gray-700" onchange="toggleMultiImageMode(this)">
                     <span>Multi-Image</span>
                 </label>
             </div>
             <p class="text-xs text-gray-500 font-sans">Short-form video layout and captions feed.</p>
+<div class="flex flex-col space-y-2">
+    <!-- Container for dynamic URL input boxes -->
+    <div class="url-inputs-container flex flex-col space-y-1">
+        <input type="text" class="media-url-input w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white focus:border-cyan-500 outline-none" placeholder="Paste image or video URL..." oninput="handleDynamicMediaInputs(this)">
+    </div>
 
-            <div class="flex flex-col space-y-2">
-               <div class="image-display-container relative w-full h-48 bg-gray-900 border border-dashed border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModal(this)">
-                    <span class="placeholder-text text-xs text-gray-500 font-mono">No image selected / Video</span>
-                    <img class="preview-img hidden w-full h-full object-cover" src="" alt="Preview">
-                    <button onclick="slideImage(-1, this)" class="carousel-prev hidden absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">‹</button>
-                    <button onclick="slideImage(1, this)" class="carousel-next hidden absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">›</button>
-                </div>
-                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
-                    📂 Select Image(s)/ Video
-                 
-                    <input type="file" class="image-file-input hidden" accept="image/*,video/*" onchange="handleImageSelection(event, this)">
-                </label>
-            </div>
+    <!-- "Add Image" button (hidden by default until Multi-Image checkbox is ticked) -->
+    <button type="button" class="add-image-btn hidden text-xs font-mono text-cyan-400 hover:text-cyan-300 self-start mt-1" onclick="addNewImageUrlBox(this)">+ Add Image (Up to 10)</button>
+
+    <!-- Image / Video Display Panel -->
+    <div class="image-display-container relative w-full h-48 bg-gray-900 border border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModalFromCard(this)">
+        <span class="placeholder-text text-xs text-gray-500 font-mono">Image/Video preview will render here</span>
+        <div id="imagePreviewContainer" class="w-full h-full flex items-center justify-center"></div>
+    </div>
+</div>
 
             <div>
                 <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
@@ -921,6 +922,57 @@ window.closeImageModal = function() {
 // Handle Publish action with account dropdown and field values
 // Handle Publish action with account dropdown and field values
 // Adjust path to config.js if needed
+      // Toggle visibility of the "+ Add Image" button and manage extra input boxes
+window.toggleMultiImageMode = function(checkbox) {
+    const card = checkbox.closest('.bg-\\[\\#111827\\]') || checkbox.closest('div');
+    const addBtn = card.querySelector('.add-image-btn');
+    const inputsContainer = card.querySelector('.url-inputs-container');
+
+    if (checkbox.checked) {
+        if (addBtn) addBtn.classList.remove('hidden');
+    } else {
+        if (addBtn) addBtn.classList.add('hidden');
+        // Remove extra input boxes when multi-image is unticked, leaving only the first one
+        if (inputsContainer) {
+            const inputs = inputsContainer.querySelectorAll('input');
+            inputs.forEach((inp, idx) => {
+                if (idx > 0) inp.parentElement.remove();
+            });
+            if (inputs.length > 0) {
+                handleDynamicMediaInputs(inputs[0]);
+            }
+        }
+    }
+};
+
+// Dynamically add a new URL input box (up to 10 max)
+window.addNewImageUrlBox = function(button) {
+    const card = button.closest('.bg-\\[\\#111827\\]') || button.closest('div');
+    const inputsContainer = card.querySelector('.url-inputs-container');
+    const currentInputs = inputsContainer.querySelectorAll('input');
+
+    if (currentInputs.length >= 10) {
+        alert('Maximum limit of 10 image URLs reached.');
+        return;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex items-center space-x-1 mt-1';
+    wrapper.innerHTML = `
+        <input type="text" class="media-url-input w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white focus:border-cyan-500 outline-none" placeholder="Paste next image URL..." oninput="handleDynamicMediaInputs(this)">
+        <button type="button" onclick="removeImageUrlBox(this)" class="text-red-400 hover:text-red-300 px-2 text-xs font-bold">&times;</button>
+    `;
+    inputsContainer.appendChild(wrapper);
+};
+
+// Remove an individual URL input box
+window.removeImageUrlBox = function(deleteBtn) {
+    const wrapper = deleteBtn.parentElement;
+    const card = wrapper.closest('.bg-\\[\\#111827\\]') || wrapper.closest('div');
+    wrapper.remove();
+    const firstInput = card.querySelector('.media-url-input');
+    if (firstInput) handleDynamicMediaInputs(firstInput);
+};
 
 window.publishTo = async function(platformName, buttonElement) {
     const card = buttonElement.closest('.bg-\\[\\#111827\\]');
