@@ -794,13 +794,23 @@ window.distributeContent = function() {
     // 1. Grab values from the main editor panel
     const mainTitleEl = document.getElementById('postTitle'); 
     const mainBodyEl = document.getElementById('postContent'); 
+    const mainMediaInput = document.querySelector('.media-url-input');
     
     const titleText = mainTitleEl ? mainTitleEl.value : '';
     const bodyText = mainBodyEl ? mainBodyEl.value : '';
+    let mainUrl = mainMediaInput ? mainMediaInput.value.trim() : '';
 
-    if (!titleText && !bodyText && !mainEditorImageSrc) {
-        alert('Please fill out the title, content body, or upload a featured image first.');
+    if (!titleText && !bodyText && !mainUrl) {
+        alert('Please fill out the title, content body, or provide a media URL first.');
         return;
+    }
+
+    // Process Google Drive link conversion for the main media url if present
+    if (mainUrl.includes('drive.google.com')) {
+        const match = mainUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+            mainUrl = `https://lh3.googleusercontent.com/d/${match[1]}`;
+        }
     }
 
     // 2. Loop through all social media distribution cards
@@ -815,17 +825,16 @@ window.distributeContent = function() {
         const platformBodyInput = card.querySelector('.platform-body');
         if (platformBodyInput) platformBodyInput.value = bodyText;
 
-        // Apply Image & Platform-Specific Resizing/Aspect Ratio
-        if (mainEditorImageSrc) {
-            const previewImg = card.querySelector('img.preview-img') || card.querySelector('img');
+        // Fill Media URL Input on the Card
+        const cardMediaInput = card.querySelector('.media-url-input');
+        if (cardMediaInput) cardMediaInput.value = mainUrl;
+
+        // Apply Media & Platform-Specific Resizing/Aspect Ratio
+        if (mainUrl) {
+            const previewContainer = card.querySelector('#imagePreviewContainer') || card.querySelector('.image-display-container');
             const placeholder = card.querySelector('.placeholder-text');
-            const container = card.querySelector('.image-display-container');
             const badge = card.querySelector('.aspect-badge');
 
-            if (previewImg) {
-                previewImg.src = mainEditorImageSrc;
-                previewImg.classList.remove('hidden');
-            }
             if (placeholder) {
                 placeholder.classList.add('hidden');
             }
@@ -833,28 +842,40 @@ window.distributeContent = function() {
                 badge.classList.remove('hidden');
             }
 
-            // Safely find the heading or text describing the platform name
+            // Render video or image based on file format extension
+            if (previewContainer) {
+                if (mainUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
+                    previewContainer.innerHTML = `<video src="${mainUrl}" controls class="w-full h-full object-cover rounded"></video>`;
+                } else {
+                    previewContainer.innerHTML = `<img src="${mainUrl}" class="w-full h-full object-cover rounded" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-xs text-red-400 font-mono\'>Failed to load media preview</span>';">`;
+                }
+            }
+
+            // Safely find the heading or text describing the platform name for sizing
             const headerEl = card.querySelector('h3') || card.querySelector('h4') || card.querySelector('.platform-name');
             const headerText = headerEl ? headerEl.textContent.toLowerCase() : '';
             
-            if (container) {
-                container.classList.remove('h-48', 'h-56', 'h-72');
+            if (previewContainer) {
+                previewContainer.classList.remove('h-48', 'h-56', 'h-72');
                 
                 if (headerText.includes('tiktok') || headerText.includes('youtube')) {
-                    container.classList.add('h-72');
+                    previewContainer.classList.add('h-72');
                     if (badge) badge.textContent = "Resized: 9:16 Vertical";
                 } else if (headerText.includes('instagram')) {
-                    container.classList.add('h-56');
+                    previewContainer.classList.add('h-56');
                     if (badge) badge.textContent = "Resized: 1:1 Square";
                 } else {
-                    container.classList.add('h-48');
+                    previewContainer.classList.add('h-48');
                     if (badge) badge.textContent = "Resized: 16:9 Landscape";
                 }
             }
+
+            // Save to cache for publishing
+            cardImageCache.set(card, { images: [mainUrl] });
         }
     });
 
-    alert('Content and image successfully distributed and resized!');
+    alert('Content, media URL, and frames successfully distributed and resized!');
 };
 // Individual platform publish action
 window.publishTo = function(platform) {
