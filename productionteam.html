@@ -1061,7 +1061,7 @@ window.publishTo = async function(platformName, buttonElement) {
         tags: tags,
         audio: audioName
     };
-
+console.log(payload);
     try {
         // Pulling the Web App URL directly from the imported GOOGLE_SCRIPT_URL
         await fetch(GOOGLE_SCRIPT_URL, {
