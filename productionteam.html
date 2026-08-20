@@ -1107,8 +1107,8 @@ window.publishTo = async function(platformName, buttonElement) {
     }
 };
 
- window.handleMediaUrlInput = function(inputElement) {
-    const url = inputElement.value.trim();
+window.handleMediaUrlInput = function(inputElement) {
+    let url = inputElement.value.trim();
     const card = inputElement.closest('.bg-\\[\\#111827\\]') || inputElement.closest('div');
     const previewContainer = card.querySelector('#imagePreviewContainer');
 
@@ -1123,14 +1123,23 @@ window.publishTo = async function(platformName, buttonElement) {
         return;
     }
 
-    // Check if video or image and render instantly
+    // Automatically convert standard Google Drive share links into direct image view links
+    if (url.includes('drive.google.com')) {
+        const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+            const fileId = match[1];
+            url = `https://lh3.googleusercontent.com/d/fileId=${fileId}`; // or use direct export format
+        }
+    }
+
+    // Render preview instantly
     if (url.match(/\.(mp4|webm|ogg|mov)$/i)) {
         previewContainer.innerHTML = `<video src="${url}" controls class="w-full h-full object-cover rounded"></video>`;
     } else {
-        previewContainer.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded" onerror="this.onerror=null; this.src=''; this.parentElement.innerHTML='<span class=\'text-xs text-red-400 font-mono\'>Invalid Image URL</span>';">`;
+        previewContainer.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-xs text-red-400 font-mono\'>Failed to load image. Ensure it is public.</span>';">`;
     }
 
-    // Save URL to cache and ensure publishTo grabs it
+    // Save direct URL to cache and payload
     cardImageCache.set(card, { images: [url] });
 };
 </script>
