@@ -1041,8 +1041,27 @@ window.publishTo = async function(platformName, buttonElement) {
     const selectedAccount = card.querySelector('.account-select').value; 
     const audioName = card.querySelector('.audio-filename-input').value;
 
+    // Robust image source fallback collector
     const imageData = cardImageCache.get(card);
-    const mediaUrl = card.querySelector('.media-url-input')?.value || (imageData?.images[0] || '');
+    let mediaUrl = card.querySelector('.media-url-input')?.value || '';
+    
+    if (!mediaUrl && imageData) {
+        if (typeof imageData === 'string') {
+            mediaUrl = imageData;
+        } else if (imageData.images && imageData.images.length > 0) {
+            mediaUrl = imageData.images[0];
+        } else if (imageData.file) {
+            mediaUrl = imageData.file.name;
+        }
+    }
+    
+    // Fallback to checking the displayed image preview tag if still empty
+    if (!mediaUrl) {
+        const previewImg = card.querySelector('img');
+        if (previewImg && previewImg.src) {
+            mediaUrl = previewImg.src;
+        }
+    }
 
     if (!selectedAccount) {
         alert(`Please select an account to publish to ${platformName}.`);
