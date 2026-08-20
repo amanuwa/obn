@@ -833,6 +833,7 @@ window.openImageModalFromCard = function(container) {
 
 // Preview Image from Computer file explorer
 // Handle audio URL input, Google Drive conversion, and duration tracking
+// Handle audio URL input, Google Drive conversion, and duration tracking
 window.handleAudioUrlInput = function(inputElement) {
     let rawUrl = inputElement.value.trim();
     const card = inputElement.closest('.bg-\\[\\#111827\\]') || inputElement.closest('div');
@@ -858,6 +859,22 @@ window.handleAudioUrlInput = function(inputElement) {
     if (audioPlayer) {
         audioPlayer.src = directAudioUrl;
         audioPlayer.load();
+    }
+};
+
+// Automatically calculate and display track length once metadata loads
+window.updateAudioDuration = function(audioElement) {
+    const card = audioElement.closest('.bg-\\[\\#111827\\]') || audioElement.closest('div');
+    const durationDisplay = card.querySelector('.audio-duration-display');
+
+    if (isNaN(audioElement.duration)) return;
+
+    const minutes = Math.floor(audioElement.duration / 60);
+    const seconds = Math.floor(audioElement.duration % 60);
+    const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+    if (durationDisplay) {
+        durationDisplay.textContent = `Duration: ${formattedTime}`;
     }
 };
 
