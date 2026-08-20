@@ -1091,33 +1091,43 @@ window.removeImageUrlBox = function(deleteBtn) {
 };
 
 window.publishTo = async function(platformName, buttonElement) {
-    const card = buttonElement.closest('.bg-\\[\\#111827\\]');
+    const card = buttonElement.closest('.bg-\\[\\#111827\\]') || buttonElement.closest('div');
 
     const title = card.querySelector('.platform-title').value;
     const description = card.querySelector('.platform-body')?.value || '';
     const tags = card.querySelector('.platform-tags').value;
     const selectedAccount = card.querySelector('.account-select').value; 
-    const audioName = card.querySelector('.audio-filename-input').value;
+    const audioName = card.querySelector('.audio-filename-input')?.value || '';
 
-    // Robust image source fallback collector
-    const imageData = cardImageCache.get(card);
-    let mediaUrl = card.querySelector('.media-url-input')?.value || '';
-    
-    if (!mediaUrl && imageData) {
-        if (typeof imageData === 'string') {
-            mediaUrl = imageData;
-        } else if (imageData.images && imageData.images.length > 0) {
-            mediaUrl = imageData.images[0];
-        } else if (imageData.file) {
-            mediaUrl = imageData.file.name;
+    // Check if Multi-Image is enabled
+    const multiCheckbox = card.querySelector('.multi-toggle') || card.querySelector('.multi-image-checkbox');
+    const isMulti = multiCheckbox ? multiCheckbox.checked : false;
+
+    // Collect all input values from the card's dynamic media boxes
+    const inputElements = card.querySelectorAll('.media-url-input');
+    let urls = [];
+
+    inputElements.forEach(inp => {
+        let val = inp.value.trim();
+        if (val) {
+            // Convert Google Drive links automatically
+            if (val.includes('drive.google.com')) {
+                const match = val.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) {
+                    val = `https://lh3.googleusercontent.com/d/${match[1]}`;
+                }
+            }
+            urls.push(val);
         }
-    }
-    
-    // Fallback to checking the displayed image preview tag if still empty
-    if (!mediaUrl) {
-        const previewImg = card.querySelector('img');
-        if (previewImg && previewImg.src) {
-            mediaUrl = previewImg.src;
+    });
+
+    // If multi-image is NOT ticked, take only the first URL. If ticked, take all URLs (as an array or comma-separated string depending on your workflow preference).
+    let finalMediaValue = '';
+    if (urls.length > 0) {
+        if (isMulti) {
+            finalMediaValue = urls; // Sends the full array of image URLs to your webhook
+        } else {
+            finalMediaValue = urls[0]; // Sends only the first image URL
         }
     }
 
@@ -1135,7 +1145,7 @@ window.publishTo = async function(platformName, buttonElement) {
         platform: platformName,
         account: selectedAccount,
         title: title,
-        mediaUrl: mediaUrl,
+        mediaUrl: finalMediaValue, // Now correctly contains either 1 URL or all URLs based on the checkbox!
         description: description,
         tags: tags,
         audio: audioName,
@@ -1152,7 +1162,7 @@ window.publishTo = async function(platformName, buttonElement) {
             body: JSON.stringify(payload)
         });
 
-        alert(`Successfully queued post for ${platformName} using account: ${selectedAccount}!`);
+        alert(`Successfully queued post for ${platformName}!`);
     } catch (error) {
         console.error('Webhook connection error:', error);
         alert('Failed to connect to the workflow.');
