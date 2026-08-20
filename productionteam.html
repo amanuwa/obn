@@ -712,7 +712,123 @@ function selectDraft(draft) {
 }
 window.selectDraft = selectDraft;
 
+// Initialize global cache and index trackers
+window.cardImageCache = window.cardImageCache || new Map();
+window.cardImageIndices = window.cardImageIndices || new Map();
 
+// 1. Define missing dynamic input handler
+window.handleDynamicMediaInputs = function(inputElement) {
+    const card = inputElement.closest('.bg-\\[\\#111827\\]') || inputElement.closest('div');
+    const inputElements = card.querySelectorAll('.media-url-input');
+    
+    let urls = [];
+    inputElements.forEach(inp => {
+        let val = inp.value.trim();
+        if (val) {
+            if (val.includes('drive.google.com')) {
+                const match = val.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) {
+                    val = `https://lh3.googleusercontent.com/d/${match[1]}`;
+                }
+            }
+            urls.push(val);
+        }
+    });
+
+    window.cardImageCache.set(card, { images: urls });
+    if (!window.cardImageIndices.has(card)) {
+        window.cardImageIndices.set(card, 0);
+    }
+
+    renderCardPreview(card, urls);
+};
+
+// 2. Define card preview render function
+window.renderCardPreview = function(card, urls) {
+    const previewContainer = card.querySelector('#imagePreviewContainer');
+    const placeholder = card.querySelector('.placeholder-text');
+    const multiCheckbox = card.querySelector('.multi-toggle') || card.querySelector('.multi-image-checkbox');
+    const isMulti = multiCheckbox ? multiCheckbox.checked : false;
+
+    if (!previewContainer) return;
+
+    if (urls.length === 0) {
+        if (placeholder) placeholder.classList.remove('hidden');
+        previewContainer.innerHTML = '';
+        return;
+    }
+
+    if (placeholder) placeholder.classList.add('hidden');
+
+    let currentIndex = window.cardImageIndices.get(card) || 0;
+    if (currentIndex >= urls.length) currentIndex = urls.length - 1;
+    if (currentIndex < 0) currentIndex = 0;
+    window.cardImageIndices.set(card, currentIndex);
+
+    const currentUrl = urls[currentIndex];
+    let mediaHtml = '';
+
+    if (currentUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
+        mediaHtml = `<video src="${currentUrl}" controls class="w-full h-full object-cover rounded cursor-pointer"></video>`;
+    } else {
+        mediaHtml = `<img src="${currentUrl}" class="w-full h-full object-cover rounded cursor-pointer" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-xs text-red-400 font-mono\'>Failed to load</span>';">`;
+    }
+
+    if (isMulti && urls.length > 1) {
+        previewContainer.innerHTML = `
+            <div class="relative w-full h-full flex items-center justify-center">
+                ${mediaHtml}
+                <button type="button" onclick="slideCardImages(event, this, -1)" class="absolute left-1 bg-black/70 text-white px-2 py-1 rounded-full text-xs hover:bg-black">&#10094;</button>
+                <button type="button" onclick="slideCardImages(event, this, 1)" class="absolute right-1 bg-black/70 text-white px-2 py-1 rounded-full text-xs hover:bg-black">&#10095;</button>
+                <span class="absolute bottom-1 right-2 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded">${currentIndex + 1} / ${urls.length}</span>
+            </div>
+        `;
+    } else {
+        previewContainer.innerHTML = mediaHtml;
+    }
+};
+
+// 3. Define slide handler
+window.slideCardImages = function(event, btn, direction) {
+    event.stopPropagation();
+    const card = btn.closest('.bg-\\[\\#111827\\]') || btn.closest('div');
+    const data = window.cardImageCache.get(card);
+    if (!data || !data.images) return;
+
+    let currentIndex = window.cardImageIndices.get(card) || 0;
+    currentIndex += direction;
+    if (currentIndex >= data.images.length) currentIndex = 0;
+    if (currentIndex < 0) currentIndex = data.images.length - 1;
+
+    window.cardImageIndices.set(card, currentIndex);
+    renderCardPreview(card, data.images);
+};
+
+// 4. Modal Preview Handler
+window.openImageModalFromCard = function(container) {
+    const card = container.closest('.bg-\\[\\#111827\\]') || container.closest('div');
+    const data = window.cardImageCache.get(card);
+    if (!data || !data.images || data.images.length === 0) return;
+
+    let currentIndex = window.cardImageIndices.get(card) || 0;
+    let url = data.images[currentIndex];
+    
+    let modal = document.getElementById('globalImageModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'globalImageModal';
+        modal.className = 'fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4';
+        modal.innerHTML = `
+            <div class="relative max-w-4xl max-h-full flex items-center justify-center">
+                <button onclick="document.getElementById('globalImageModal').style.display='none'" class="absolute -top-10 right-0 text-white text-sm font-bold bg-gray-800 px-3 py-1 rounded hover:bg-gray-700">&times; Close</button>
+                <img id="modalFullImg" src="" class="max-w-full max-h-[85vh] object-contain rounded shadow-lg">
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    document.getElementById('modalFullImg').src = url;
+    modal.style.display = 'flex';
+};
 
 // Preview Image from Computer file explorer
 
