@@ -1053,15 +1053,15 @@ window.publishTo = async function(platformName, buttonElement) {
     }
 
     // Prepare payload including the audio track
-//     const payload = {
-//         account: selectedAccount, // e.g., "tiktok account 1"
-//         title: title,
-//         mediaUrl: mediaUrl,
-//         description: description,
-//         tags: tags,
-//         audio: audioName
-//     };
-// console.log(payload);
+    const payload = {
+        account: selectedAccount, // e.g., "tiktok account 1"
+        title: title,
+       mediaUrl: mediaUrl,
+        description: description,
+/       tags: tags,
+        audio: audioName
+     };
+console.log(payload);
 try {
     // Build query parameters from your payload object
     const queryParams = new URLSearchParams({
