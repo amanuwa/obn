@@ -1028,31 +1028,60 @@ window.closeImageModal = function() {
     if (modal) modal.classList.add('hidden');
 };
 // Handle Publish action with account dropdown and field values
-window.publishTo = function(platformName, buttonElement) {
+// Handle Publish action with account dropdown and field values
+window.publishTo = async function(platformName, buttonElement) {
     const card = buttonElement.closest('.bg-\\[\\#111827\\]');
-    
+
     const title = card.querySelector('.platform-title').value;
+    const description = card.querySelector('.platform-body')?.value || '';
     const tags = card.querySelector('.platform-tags').value;
-    const selectedAccount = card.querySelector('.account-select').value;
+    const selectedAccount = card.querySelector('.account-select').value; 
     const audioName = card.querySelector('.audio-filename-input').value;
-    
+
     const imageData = cardImageCache.get(card);
     const imageCount = imageData ? imageData.images.length : 0;
+    const mediaUrl = card.querySelector('.media-url-input')?.value || (imageData?.images[0] || '');
 
     if (!selectedAccount) {
         alert(`Please select an account to publish to ${platformName}.`);
         return;
     }
 
-    console.log(`Publishing to ${platformName}:`, {
-        account: selectedAccount,
-        title: title,
-        tags: tags,
-        audio: audioName,
-        totalImages: imageCount
-    });
+    if (!title) {
+        alert('Please enter a post title.');
+        return;
+    }
 
-    alert(`Successfully queued post for ${platformName} using account: ${selectedAccount}!`);
+    // Prepare payload including the audio track
+    const payload = {
+        account: selectedAccount, // e.g., "tiktok account 1"
+        title: title,
+        mediaUrl: mediaUrl,
+        description: description,
+        tags: tags,
+        audio: audioName
+    };
+
+    try {
+        // Pulling the Web App URL directly from the imported GOOGLE_SCRIPT_URL
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            alert(`Successfully queued post for ${platformName} using account: ${selectedAccount}!`);
+        } else if (result.status === 'duplicate') {
+            alert('Blocked: This content already exists in the system (redundancy prevented)!');
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Connection error:', error);
+        alert('Failed to connect to Google Sheets.');
+    }
 };
 </script>
     <!-- Full-Screen Image Inspection Modal -->
