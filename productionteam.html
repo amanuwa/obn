@@ -550,7 +550,8 @@
   <script type="module">
 // Import gateway webhook or config variables from config.js
 import { supabase, N8N_Preparepage_GATEWAY_WEBHOOK } from './config.js';
-import { postautomation } from './config.js';
+//import { postautomation } from './config.js';
+      import { postautomation } from './config.js'; 
       import { GOOGLE_SCRIPT_URL } from './config.js';
       //postautomation 
 // Global variable for the current logged-in user
@@ -1029,6 +1030,8 @@ window.closeImageModal = function() {
 };
 // Handle Publish action with account dropdown and field values
 // Handle Publish action with account dropdown and field values
+// Adjust path to config.js if needed
+
 window.publishTo = async function(platformName, buttonElement) {
     const card = buttonElement.closest('.bg-\\[\\#111827\\]');
 
@@ -1051,27 +1054,31 @@ window.publishTo = async function(platformName, buttonElement) {
         return;
     }
 
-    const queryParams = new URLSearchParams({
+    const payload = {
+        platform: platformName,
         account: selectedAccount,
         title: title,
         mediaUrl: mediaUrl,
         description: description,
         tags: tags,
-        audio: audioName
-    });
+        audio: audioName,
+        timestamp: new Date().toISOString()
+    };
 
     try {
-        await fetch(`${GOOGLE_SCRIPT_URL}?${queryParams.toString()}`, {
+        await fetch(postautomation, {
             method: 'POST',
-            mode: 'no-cors'
-            
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
         });
-        console.log(queryParams);
 
         alert(`Successfully queued post for ${platformName} using account: ${selectedAccount}!`);
     } catch (error) {
-        console.error('Connection error:', error);
-        alert('Failed to connect to Google Sheets.');
+        console.error('Webhook connection error:', error);
+        alert('Failed to connect to the workflow.');
     }
 };
 </script>
