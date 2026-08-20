@@ -212,16 +212,17 @@
             <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
             <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
         </div>
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track</label>
-                <div class="flex items-center space-x-2">
-                    <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 transition whitespace-nowrap">
-                        🎵 Audio
-                        <input type="file" class="hidden" accept="audio/*" onchange="loadAudioFileCompact(event, this)">
-                    </label>
-                    <input type="text" readonly placeholder="No audio selected" class="audio-filename-input w-full bg-gray-900 border border-gray-700 text-gray-400 text-xs rounded px-2 py-2 outline-none font-mono">
-                </div>
-            </div>
+          <div>
+    <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track URL</label>
+    <input type="text" placeholder="Paste Google Drive audio URL..." class="audio-url-input w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 focus:border-cyan-500 outline-none" oninput="handleAudioUrlInput(this)">
+    
+    <!-- Audio player and duration display -->
+    <div class="flex items-center justify-between bg-gray-900/60 border border-gray-800 rounded p-1.5 mt-1">
+        <span class="audio-duration-display text-[11px] font-mono text-cyan-400">Duration: --:--</span>
+        <audio class="hidden-audio-player hidden" preload="metadata" onloadedmetadata="updateAudioDuration(this)"></audio>
+        <span class="text-[10px] font-mono text-gray-500">Auto-reads length</span>
+    </div>
+</div>
 
             <div>
                 <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
@@ -831,7 +832,50 @@ window.openImageModalFromCard = function(container) {
 };
 
 // Preview Image from Computer file explorer
+// Handle audio URL input, Google Drive conversion, and duration tracking
+window.handleAudioUrlInput = function(inputElement) {
+    let rawUrl = inputElement.value.trim();
+    const card = inputElement.closest('.bg-\\[\\#111827\\]') || inputElement.closest('div');
+    const audioPlayer = card.querySelector('.hidden-audio-player');
+    const durationDisplay = card.querySelector('.audio-duration-display');
 
+    if (!rawUrl) {
+        if (durationDisplay) durationDisplay.textContent = 'Duration: --:--';
+        if (audioPlayer) audioPlayer.src = '';
+        return;
+    }
+
+    // Convert Google Drive share links into direct links for Zapier
+    let directAudioUrl = rawUrl;
+    if (rawUrl.includes('drive.google.com')) {
+        const match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+            directAudioUrl = `https://lh3.googleusercontent.com/d/${match[1]}`;
+        }
+    }
+
+    // Load into hidden audio element to read metadata/length
+    if (audioPlayer) {
+        audioPlayer.src = directAudioUrl;
+        audioPlayer.load();
+    }
+};
+
+// Automatically calculate and display track length once metadata loads
+window.updateAudioDuration = function(audioElement) {
+    const card = audioElement.closest('.bg-\\[\\#111827\\]') || audioElement.closest('div');
+    const durationDisplay = card.querySelector('.audio-duration-display');
+
+    if (isNaN(audioElement.duration)) return;
+
+    const minutes = Math.floor(audioElement.duration / 60);
+    const seconds = Math.floor(audioElement.duration % 60);
+    const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+    if (durationDisplay) {
+        durationDisplay.textContent = `Duration: ${formattedTime}`;
+    }
+};
 
 
 
@@ -1097,7 +1141,17 @@ window.publishTo = async function(platformName, buttonElement) {
     const description = card.querySelector('.platform-body')?.value || '';
     const tags = card.querySelector('.platform-tags').value;
     const selectedAccount = card.querySelector('.account-select').value; 
-    const audioName = card.querySelector('.audio-filename-input')?.value || '';
+
+    // Grab and process Audio URL from input
+    const audioInput = card.querySelector('.audio-url-input');
+    let audioUrl = audioInput ? audioInput.value.trim() : '';
+
+    if (audioUrl.includes('drive.google.com')) {
+        const match = audioUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+            audioUrl = `https://lh3.googleusercontent.com/d/${match[1]}`;
+        }
+    }
 
     // Check if Multi-Image is enabled
     const multiCheckbox = card.querySelector('.multi-toggle') || card.querySelector('.multi-image-checkbox');
@@ -1121,13 +1175,13 @@ window.publishTo = async function(platformName, buttonElement) {
         }
     });
 
-    // If multi-image is NOT ticked, take only the first URL. If ticked, take all URLs (as an array or comma-separated string depending on your workflow preference).
+    // If multi-image is NOT ticked, take only the first URL. If ticked, take all URLs.
     let finalMediaValue = '';
     if (urls.length > 0) {
         if (isMulti) {
-            finalMediaValue = urls; // Sends the full array of image URLs to your webhook
+            finalMediaValue = urls; 
         } else {
-            finalMediaValue = urls[0]; // Sends only the first image URL
+            finalMediaValue = urls[0]; 
         }
     }
 
@@ -1145,10 +1199,10 @@ window.publishTo = async function(platformName, buttonElement) {
         platform: platformName,
         account: selectedAccount,
         title: title,
-        mediaUrl: finalMediaValue, // Now correctly contains either 1 URL or all URLs based on the checkbox!
+        mediaUrl: finalMediaValue,
         description: description,
         tags: tags,
-        audio: audioName,
+        audio: audioUrl, // Now sends the clean converted Zapier-friendly audio link
         timestamp: new Date().toISOString()
     };
 
