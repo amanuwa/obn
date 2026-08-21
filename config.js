@@ -14,10 +14,10 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 export const N8N_CONTENT_URL = 'https://corsproxy.io/?https://terminal-n8n-gateway.onrender.com/webhook/register-journalist';
 
 
-export const GOOGLE_SCRIPT_URL ='https://script.google.com/macros/s/AKfycbwHRHhrpr3eg8Orkz_x4wPYrVK6t1jP2UsWQ6fvjYGEf5Jk2nx946QIhdawhuc3htJE/exec';
+//export const GOOGLE_SCRIPT_URL ='https://script.google.com/macros/s/AKfycbwHRHhrpr3eg8Orkz_x4wPYrVK6t1jP2UsWQ6fvjYGEf5Jk2nx946QIhdawhuc3htJE/exec';
 
  export const N8N_GATEWAY_WEBHOOK ='https://unreached-oboe-evade.ngrok-free.dev/webhook/staritofhormuz';
- export const postautomation ='https://unreached-oboe-evade.ngrok-free.dev/webhook-test/postAutomation';
+ export const postautomation ='https://unreached-oboe-evade.ngrok-free.dev/webhook/postAutomation';
 
 //export const N8N_Preparepage_GATEWAY_WEBHOOK = 'https://unreached-oboe-evade.ngrok-free.dev/webhook/08759d33-7b7f-4236-ae61-1d98b4a30815';
 export const N8N_Preparepage_GATEWAY_WEBHOOK = 'https://unreached-oboe-evade.ngrok-free.dev/webhook-test/08759d33-7b7f-4236-ae61-1d98b4a30815';
