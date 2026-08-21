@@ -240,7 +240,7 @@
         </div>
 
         <!-- 2. Instagram Panel -->
-        <!-- Updated Instagram Panel -->
+<!-- Updated Instagram Studio Panel -->
 <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
     <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
@@ -255,16 +255,19 @@
     <p class="text-xs text-gray-500 font-sans">Feed post, story and carousel integration.</p>
 
     <div class="flex flex-col space-y-2">
-        <div class="image-display-container relative w-full h-48 bg-gray-900 border border-dashed border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModal(this)">
-            <span class="placeholder-text text-xs text-gray-500 font-mono">No image selected / Video</span>
-            <img class="preview-img hidden w-full h-full object-cover" src="" alt="Preview">
-            <button onclick="slideImage(-1, this)" class="carousel-prev hidden absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">‹</button>
-            <button onclick="slideImage(1, this)" class="carousel-next hidden absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">›</button>
+        <!-- Container for dynamic URL input boxes -->
+        <div class="url-inputs-container flex flex-col space-y-1">
+            <input type="text" class="media-url-input w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white focus:border-pink-500 outline-none" placeholder="Paste image or video URL..." oninput="handleDynamicMediaInputs(this)">
         </div>
-        <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
-            📂 Select Image(s)/ Video
-            <input type="file" class="image-file-input hidden" accept="image/*,video/*" onchange="handleImageSelection(event, this)">
-        </label>
+
+        <!-- "Add Image" button (hidden by default until Multi-Image checkbox is ticked) -->
+        <button type="button" class="add-image-btn hidden text-xs font-mono text-pink-400 hover:text-pink-300 self-start mt-1" onclick="addNewImageUrlBox(this)">+ Add Image (Up to 10)</button>
+
+        <!-- Image / Video Display Panel -->
+        <div class="image-display-container relative w-full h-48 bg-gray-900 border border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModalFromCard(this)">
+            <span class="placeholder-text text-xs text-gray-500 font-mono">Image/Video preview will render here</span>
+            <div id="imagePreviewContainer" class="w-full h-full flex items-center justify-center"></div>
+        </div>
     </div>
 
     <div>
@@ -272,7 +275,11 @@
         <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-pink-500 outline-none">
     </div>
 
-    <!-- New Audio URL Input layout -->
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
+        <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-pink-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
+    </div>
+
     <div>
         <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track URL</label>
         <input type="text" placeholder="Paste Google Drive audio URL..." class="audio-url-input w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 focus:border-pink-500 outline-none" oninput="handleAudioUrlInput(this)">
@@ -282,11 +289,6 @@
             <audio class="hidden-audio-player hidden" preload="metadata" onloadedmetadata="updateAudioDuration(this)"></audio>
             <span class="text-[10px] font-mono text-gray-500">Auto-reads length</span>
         </div>
-    </div>
-
-    <div>
-        <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
-        <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-pink-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
     </div>
 
     <div>
@@ -303,9 +305,8 @@
         </select>
     </div>
 </div>
-
         <!-- 3. Twitter / X Panel -->
-     <!-- Updated Twitter / X Panel -->
+<!-- Updated Twitter / X Stream Panel -->
 <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
     <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
@@ -320,16 +321,19 @@
     <p class="text-xs text-gray-500 font-sans">Character checked microblog and media attachments.</p>
 
     <div class="flex flex-col space-y-2">
-        <div class="image-display-container relative w-full h-48 bg-gray-900 border border-dashed border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModal(this)">
-            <span class="placeholder-text text-xs text-gray-500 font-mono">No image selected / Video</span>
-            <img class="preview-img hidden w-full h-full object-cover" src="" alt="Preview">
-            <button onclick="slideImage(-1, this)" class="carousel-prev hidden absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">‹</button>
-            <button onclick="slideImage(1, this)" class="carousel-next hidden absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">›</button>
+        <!-- Container for dynamic URL input boxes -->
+        <div class="url-inputs-container flex flex-col space-y-1">
+            <input type="text" class="media-url-input w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white focus:border-cyan-500 outline-none" placeholder="Paste image or video URL..." oninput="handleDynamicMediaInputs(this)">
         </div>
-        <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
-            📂 Select Image(s) / Video
-            <input type="file" class="image-file-input hidden" accept="image/*,video/*" onchange="handleImageSelection(event, this)">
-        </label>
+
+        <!-- "Add Image" button (hidden by default until Multi-Image checkbox is ticked) -->
+        <button type="button" class="add-image-btn hidden text-xs font-mono text-cyan-400 hover:text-cyan-300 self-start mt-1" onclick="addNewImageUrlBox(this)">+ Add Image (Up to 10)</button>
+
+        <!-- Image / Video Display Panel -->
+        <div class="image-display-container relative w-full h-48 bg-gray-900 border border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModalFromCard(this)">
+            <span class="placeholder-text text-xs text-gray-500 font-mono">Image/Video preview will render here</span>
+            <div id="imagePreviewContainer" class="w-full h-full flex items-center justify-center"></div>
+        </div>
     </div>
 
     <div>
@@ -342,7 +346,6 @@
         <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
     </div>
         
-    <!-- New Audio URL Input layout -->
     <div>
         <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track URL</label>
         <input type="text" placeholder="Paste Google Drive audio URL..." class="audio-url-input w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 focus:border-cyan-500 outline-none" oninput="handleAudioUrlInput(this)">
@@ -368,7 +371,6 @@
         </select>
     </div>
 </div>
-
         <!-- 4. Telegram Panel -->
       <!-- Updated Telegram Panel -->
 <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
