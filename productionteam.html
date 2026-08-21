@@ -619,17 +619,37 @@ async function fetchDraftsFromSupabase() {
         let filteredDrafts = [];
 
         if (supabase) {
-           const { data, error } = await supabase
-    .from('editorial_submissions')
-    .select('*')
-    .eq('receiver_name', currentLoggedInUser)
-    .eq('status', 'read');
+            // 1. Fetch titles/identifiers of items that have already been posted to the new archive table
+            const { data: postedData, error: postedError } = await supabase
+                .from('posted_content') // Update this to match your exact posted content table name if different
+                .select('title'); // or draft_name, depending on what identifier you store
+
+            if (postedError) {
+                console.error('Error fetching posted archive:', postedError.message);
+            }
+
+            // Create an array list of already-posted identifiers for filtering
+            const postedIdentifiers = postedData ? postedData.map(item => item.title || item.draft_name) : [];
+
+            // 2. Fetch unread/read drafts assigned to the current user
+            const { data, error } = await supabase
+                .from('editorial_submissions')
+                .select('*')
+                .eq('receiver_name', currentLoggedInUser)
+                .eq('status', 'read');
 
             if (error) {
                 console.error('Supabase query error:', error.message);
                 return;
             }
-            filteredDrafts = data || [];
+
+            // 3. Filter out submissions whose titles already exist in the posted content archive table
+            const rawDrafts = data || [];
+            filteredDrafts = rawDrafts.filter(draft => {
+                const identifier = draft.title || `Submission from ${draft.sender_name}`;
+                return !postedIdentifiers.includes(identifier);
+            });
+
         } else {
             console.warn('Supabase client is not initialized.');
         }
@@ -644,31 +664,18 @@ async function fetchDraftsFromSupabase() {
         if (filteredDrafts.length === 0) {
             notifListEl.innerHTML = '<div class="px-4 py-3 text-xs font-mono text-gray-500 text-center">No read drafts found.</div>';
         } else {
-            // Inside fetchDraftsFromSupabase(), update how the list items are built:
-filteredDrafts.forEach(draft => {
-    const item = document.createElement('div');
-    item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition";
-    item.onclick = () => selectDraft(draft);
-    
-    // Fallback title since there is no draft_name column in editorial_submissions
-    const displayTitle = draft.title || `Submission from ${draft.sender_name}`;
-    const displayTime = draft.created_at ? new Date(draft.created_at).toLocaleTimeString() : "Recent";
-
-    item.innerHTML = `
-        <p class="text-xs font-mono font-bold text-gray-200">${displayTitle}</p>
-        <p class="text-[10px] font-mono text-gray-400 mt-1">SENDER: ${draft.sender_name} | TIME: ${displayTime}</p>
-    `;
-    notifListEl.appendChild(item);
-});
-
-            
+            // Build list items safely (consolidated rendering loop)
             filteredDrafts.forEach(draft => {
                 const item = document.createElement('div');
-                item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition";
+                item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition border-b border-gray-800/50";
                 item.onclick = () => selectDraft(draft);
+                
+                const displayTitle = draft.title || `Submission from ${draft.sender_name}`;
+                const displayTime = draft.created_at ? new Date(draft.created_at).toLocaleTimeString() : "Recent";
+
                 item.innerHTML = `
-                    <p class="text-xs font-mono font-bold text-gray-200">${draft.draft_name}</p>
-                    <p class="text-[10px] font-mono text-gray-400 mt-1">SENDER: ${draft.sender_name} | TIME: ${draft.send_time}</p>
+                    <p class="text-xs font-mono font-bold text-gray-200">${displayTitle}</p>
+                    <p class="text-[10px] font-mono text-gray-400 mt-1">SENDER: ${draft.sender_name} | TIME: ${displayTime}</p>
                 `;
                 notifListEl.appendChild(item);
             });
@@ -692,9 +699,8 @@ function toggleNotifications() {
     const dropdown = document.getElementById('notifDropdown');
     dropdown.classList.toggle('hidden');
 }
-window.toggleNotifications = toggleNotifications; // Expose to global scope for HTML inline onclicks
+window.toggleNotifications = toggleNotifications;
 
-// When a user selects a draft from notifications
 // When a user selects a draft from notifications
 function selectDraft(draft) {
     document.getElementById('notifDropdown').classList.add('hidden');
@@ -729,7 +735,6 @@ function selectDraft(draft) {
     // Automatically populate right editor panel text boxes
     document.getElementById('postTitle').value = titleText;
     
-    // Strip HTML tags for the text area plain input if needed, or set raw pageContent
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = pageContent;
     document.getElementById('postContent').value = tempDiv.textContent || tempDiv.innerText || pageContent;
@@ -854,8 +859,7 @@ window.openImageModalFromCard = function(container) {
     modal.style.display = 'flex';
 };
 
-// Preview Image from Computer file explorer
-// Handle audio URL input, Google Drive conversion, and duration tracking
+
 // Handle audio URL input, Google Drive conversion, and duration tracking
 window.handleAudioUrlInput = function(inputElement) {
     let rawUrl = inputElement.value.trim();
