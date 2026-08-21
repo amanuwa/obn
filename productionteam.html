@@ -240,317 +240,338 @@
         </div>
 
         <!-- 2. Instagram Panel -->
-        <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-pink-400 flex items-center justify-center rounded font-mono text-xs font-bold">IG</div>
-                    <h4 class="font-mono text-sm text-gray-200">Instagram Studio</h4>
-                </div>
-                <label class="flex items-center space-x-1.5 cursor-pointer text-[10px] font-mono text-gray-400">
-                    <input type="checkbox" class="multi-toggle accent-pink-500 rounded bg-gray-900 border-gray-700" onchange="toggleMultiImageMode(this)">
-                    <span>Multi-Image</span>
-                </label>
-            </div>
-            <p class="text-xs text-gray-500 font-sans">Feed post, story and carousel integration.</p>
-
-            <div class="flex flex-col space-y-2">
-               <div class="image-display-container relative w-full h-48 bg-gray-900 border border-dashed border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModal(this)">
-                    <span class="placeholder-text text-xs text-gray-500 font-mono">No image selected / Video</span>
-                    <img class="preview-img hidden w-full h-full object-cover" src="" alt="Preview">
-                    <button onclick="slideImage(-1, this)" class="carousel-prev hidden absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">‹</button>
-                    <button onclick="slideImage(1, this)" class="carousel-next hidden absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">›</button>
-                </div>
-                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
-                    📂 Select Image(s)/ Video
-                   <input type="file" class="image-file-input hidden" accept="image/*,video/*" onchange="handleImageSelection(event, this)">
-                </label>
-            </div>
-
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
-                <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-pink-500 outline-none">
-            </div>
-
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track</label>
-                <div class="flex items-center space-x-2">
-                    <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 transition whitespace-nowrap">
-                        🎵 Audio
-                        <input type="file" class="hidden" accept="audio/*" onchange="loadAudioFileCompact(event, this)">
-                    </label>
-                    <input type="text" readonly placeholder="No audio selected" class="audio-filename-input w-full bg-gray-900 border border-gray-700 text-gray-400 text-xs rounded px-2 py-2 outline-none font-mono">
-                </div>
-            </div>
-<!-- Insert it right here around line 320/321 -->
-        <div>
-            <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
-            <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
+        <!-- Updated Instagram Panel -->
+<div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-pink-400 flex items-center justify-center rounded font-mono text-xs font-bold">IG</div>
+            <h4 class="font-mono text-sm text-gray-200">Instagram Studio</h4>
         </div>
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
-                <input type="text" placeholder="e.g. photography, lifestyle" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-pink-500 outline-none">
-            </div>
+        <label class="flex items-center space-x-1.5 cursor-pointer text-[10px] font-mono text-gray-400">
+            <input type="checkbox" class="multi-toggle accent-pink-500 rounded bg-gray-900 border-gray-700" onchange="toggleMultiImageMode(this)">
+            <span>Multi-Image</span>
+        </label>
+    </div>
+    <p class="text-xs text-gray-500 font-sans">Feed post, story and carousel integration.</p>
 
-            <div class="flex items-center space-x-2 pt-2">
-                <button onclick="publishTo('Instagram', this)" class="bg-gray-900 hover:bg-gray-800 text-pink-400 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to Instagram</button>
-                <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-pink-500">
-                    <option value="">Select Account...</option>
-                    <option value="account_1"> instagram  account 1</option>
-                    <option value="account_2"> instagram  account 2</option>
-                </select>
-            </div>
+    <div class="flex flex-col space-y-2">
+        <div class="image-display-container relative w-full h-48 bg-gray-900 border border-dashed border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModal(this)">
+            <span class="placeholder-text text-xs text-gray-500 font-mono">No image selected / Video</span>
+            <img class="preview-img hidden w-full h-full object-cover" src="" alt="Preview">
+            <button onclick="slideImage(-1, this)" class="carousel-prev hidden absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">‹</button>
+            <button onclick="slideImage(1, this)" class="carousel-next hidden absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">›</button>
         </div>
+        <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
+            📂 Select Image(s)/ Video
+            <input type="file" class="image-file-input hidden" accept="image/*,video/*" onchange="handleImageSelection(event, this)">
+        </label>
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
+        <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-pink-500 outline-none">
+    </div>
+
+    <!-- New Audio URL Input layout -->
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track URL</label>
+        <input type="text" placeholder="Paste Google Drive audio URL..." class="audio-url-input w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 focus:border-pink-500 outline-none" oninput="handleAudioUrlInput(this)">
+        
+        <div class="flex items-center justify-between bg-gray-900/60 border border-gray-800 rounded p-1.5 mt-1">
+            <span class="audio-duration-display text-[11px] font-mono text-pink-400">Duration: --:--</span>
+            <audio class="hidden-audio-player hidden" preload="metadata" onloadedmetadata="updateAudioDuration(this)"></audio>
+            <span class="text-[10px] font-mono text-gray-500">Auto-reads length</span>
+        </div>
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
+        <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-pink-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
+        <input type="text" placeholder="e.g. photography, lifestyle" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-pink-500 outline-none">
+    </div>
+
+    <div class="flex items-center space-x-2 pt-2">
+        <button onclick="publishTo('Instagram', this)" class="bg-gray-900 hover:bg-gray-800 text-pink-400 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to Instagram</button>
+        <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-pink-500">
+            <option value="">Select Account...</option>
+            <option value="account_1">instagram account 1</option>
+            <option value="account_2">instagram account 2</option>
+        </select>
+    </div>
+</div>
 
         <!-- 3. Twitter / X Panel -->
-        <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-cyan-400 flex items-center justify-center rounded font-mono text-xs font-bold">TW</div>
-                    <h4 class="font-mono text-sm text-gray-200">Twitter / X Stream</h4>
-                </div>
-                <label class="flex items-center space-x-1.5 cursor-pointer text-[10px] font-mono text-gray-400">
-                    <input type="checkbox" class="multi-toggle accent-cyan-500 rounded bg-gray-900 border-gray-700" onchange="toggleMultiImageMode(this)">
-                    <span>Multi-Image</span>
-                </label>
-            </div>
-            <p class="text-xs text-gray-500 font-sans">Character checked microblog and media attachments.</p>
-
-            <div class="flex flex-col space-y-2">
-              <div class="image-display-container relative w-full h-48 bg-gray-900 border border-dashed border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModal(this)">
-                    <span class="placeholder-text text-xs text-gray-500 font-mono">No image selected / Video</span>
-                    <img class="preview-img hidden w-full h-full object-cover" src="" alt="Preview">
-                    <button onclick="slideImage(-1, this)" class="carousel-prev hidden absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">‹</button>
-                    <button onclick="slideImage(1, this)" class="carousel-next hidden absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">›</button>
-                </div>
-                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
-                    📂 Select Image(s) / Video
-                  <input type="file" class="image-file-input hidden" accept="image/*,video/*" onchange="handleImageSelection(event, this)">
-                </label>
-            </div>
-
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
-                <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none">
-            </div>
-<!-- Insert it right here around line 320/321 -->
-        <div>
-            <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
-            <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
+     <!-- Updated Twitter / X Panel -->
+<div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-cyan-400 flex items-center justify-center rounded font-mono text-xs font-bold">TW</div>
+            <h4 class="font-mono text-sm text-gray-200">Twitter / X Stream</h4>
         </div>
-            
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track</label>
-                <div class="flex items-center space-x-2">
-                    <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 transition whitespace-nowrap">
-                        🎵 Audio
-                        <input type="file" class="hidden" accept="audio/*" onchange="loadAudioFileCompact(event, this)">
-                    </label>
-                    <input type="text" readonly placeholder="No audio selected" class="audio-filename-input w-full bg-gray-900 border border-gray-700 text-gray-400 text-xs rounded px-2 py-2 outline-none font-mono">
-                </div>
-            </div>
+        <label class="flex items-center space-x-1.5 cursor-pointer text-[10px] font-mono text-gray-400">
+            <input type="checkbox" class="multi-toggle accent-cyan-500 rounded bg-gray-900 border-gray-700" onchange="toggleMultiImageMode(this)">
+            <span>Multi-Image</span>
+        </label>
+    </div>
+    <p class="text-xs text-gray-500 font-sans">Character checked microblog and media attachments.</p>
 
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
-                <input type="text" placeholder="e.g. breaking, update" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none">
-            </div>
-
-            <div class="flex items-center space-x-2 pt-2">
-                <button onclick="publishTo('Twitter', this)" class="bg-gray-900 hover:bg-gray-800 text-cyan-400 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to Twitter</button>
-                <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-cyan-500">
-                    <option value="">Select Account...</option>
-                    <option value="account_1"> twitter  account 1</option>
-                    <option value="account_2"> twitter  account 2</option>
-                </select>
-            </div>
+    <div class="flex flex-col space-y-2">
+        <div class="image-display-container relative w-full h-48 bg-gray-900 border border-dashed border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModal(this)">
+            <span class="placeholder-text text-xs text-gray-500 font-mono">No image selected / Video</span>
+            <img class="preview-img hidden w-full h-full object-cover" src="" alt="Preview">
+            <button onclick="slideImage(-1, this)" class="carousel-prev hidden absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">‹</button>
+            <button onclick="slideImage(1, this)" class="carousel-next hidden absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">›</button>
         </div>
+        <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
+            📂 Select Image(s) / Video
+            <input type="file" class="image-file-input hidden" accept="image/*,video/*" onchange="handleImageSelection(event, this)">
+        </label>
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
+        <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none">
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
+        <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
+    </div>
+        
+    <!-- New Audio URL Input layout -->
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track URL</label>
+        <input type="text" placeholder="Paste Google Drive audio URL..." class="audio-url-input w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 focus:border-cyan-500 outline-none" oninput="handleAudioUrlInput(this)">
+        
+        <div class="flex items-center justify-between bg-gray-900/60 border border-gray-800 rounded p-1.5 mt-1">
+            <span class="audio-duration-display text-[11px] font-mono text-cyan-400">Duration: --:--</span>
+            <audio class="hidden-audio-player hidden" preload="metadata" onloadedmetadata="updateAudioDuration(this)"></audio>
+            <span class="text-[10px] font-mono text-gray-500">Auto-reads length</span>
+        </div>
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
+        <input type="text" placeholder="e.g. breaking, update" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none">
+    </div>
+
+    <div class="flex items-center space-x-2 pt-2">
+        <button onclick="publishTo('Twitter', this)" class="bg-gray-900 hover:bg-gray-800 text-cyan-400 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to Twitter</button>
+        <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-cyan-500">
+            <option value="">Select Account...</option>
+            <option value="account_1">twitter account 1</option>
+            <option value="account_2">twitter account 2</option>
+        </select>
+    </div>
+</div>
 
         <!-- 4. Telegram Panel -->
-        <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-sky-400 flex items-center justify-center rounded font-mono text-xs font-bold">TG</div>
-                    <h4 class="font-mono text-sm text-gray-200">Telegram Channel</h4>
-                </div>
-                <label class="flex items-center space-x-1.5 cursor-pointer text-[10px] font-mono text-gray-400">
-                    <input type="checkbox" class="multi-toggle accent-sky-500 rounded bg-gray-900 border-gray-700" onchange="toggleMultiImageMode(this)">
-                    <span>Multi-Image</span>
-                </label>
-            </div>
-            <p class="text-xs text-gray-500 font-sans">Direct subscriber announcement feed stream.</p>
-
-            <div class="flex flex-col space-y-2">
-              <div class="image-display-container relative w-full h-48 bg-gray-900 border border-dashed border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModal(this)">
-                    <span class="placeholder-text text-xs text-gray-500 font-mono">No image selected / Video</span>
-                    <img class="preview-img hidden w-full h-full object-cover" src="" alt="Preview">
-                    <button onclick="slideImage(-1, this)" class="carousel-prev hidden absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">‹</button>
-                    <button onclick="slideImage(1, this)" class="carousel-next hidden absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">›</button>
-                </div>
-                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
-                    📂 Select Image(s) / Video
-                 <input type="file" class="image-file-input hidden" accept="image/*,video/*" onchange="handleImageSelection(event, this)">
-                </label>
-            </div>
-
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
-                <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-sky-500 outline-none">
-            </div>
-<!-- Insert it right here around line 320/321 -->
-        <div>
-            <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
-            <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
+      <!-- Updated Telegram Panel -->
+<div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-sky-400 flex items-center justify-center rounded font-mono text-xs font-bold">TG</div>
+            <h4 class="font-mono text-sm text-gray-200">Telegram Channel</h4>
         </div>
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track</label>
-                <div class="flex items-center space-x-2">
-                    <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 transition whitespace-nowrap">
-                        🎵 Audio
-                        <input type="file" class="hidden" accept="audio/*" onchange="loadAudioFileCompact(event, this)">
-                    </label>
-                    <input type="text" readonly placeholder="No audio selected" class="audio-filename-input w-full bg-gray-900 border border-gray-700 text-gray-400 text-xs rounded px-2 py-2 outline-none font-mono">
-                </div>
-            </div>
+        <label class="flex items-center space-x-1.5 cursor-pointer text-[10px] font-mono text-gray-400">
+            <input type="checkbox" class="multi-toggle accent-sky-500 rounded bg-gray-900 border-gray-700" onchange="toggleMultiImageMode(this)">
+            <span>Multi-Image</span>
+        </label>
+    </div>
+    <p class="text-xs text-gray-500 font-sans">Direct subscriber announcement feed stream.</p>
 
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
-                <input type="text" placeholder="e.g. announcement" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-sky-500 outline-none">
-            </div>
-
-            <div class="flex items-center space-x-2 pt-2">
-                <button onclick="publishTo('Telegram', this)" class="bg-gray-900 hover:bg-gray-800 text-sky-400 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to Telegram</button>
-                <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-sky-500">
-                    <option value="">Select Account...</option>
-                    <option value="account_1"> telegram  channel 1</option>
-                    <option value="account_2"> telegram  channel 2</option>
-                </select>
-            </div>
+    <div class="flex flex-col space-y-2">
+        <!-- Container for dynamic URL input boxes -->
+        <div class="url-inputs-container flex flex-col space-y-1">
+            <input type="text" class="media-url-input w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white focus:border-sky-500 outline-none" placeholder="Paste image or video URL..." oninput="handleDynamicMediaInputs(this)">
         </div>
+
+        <!-- "Add Image" button (hidden by default until Multi-Image checkbox is ticked) -->
+        <button type="button" class="add-image-btn hidden text-xs font-mono text-sky-400 hover:text-sky-300 self-start mt-1" onclick="addNewImageUrlBox(this)">+ Add Image (Up to 10)</button>
+
+        <!-- Image / Video Display Panel -->
+        <div class="image-display-container relative w-full h-48 bg-gray-900 border border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModalFromCard(this)">
+            <span class="placeholder-text text-xs text-gray-500 font-mono">Image/Video preview will render here</span>
+            <div id="imagePreviewContainer" class="w-full h-full flex items-center justify-center"></div>
+        </div>
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
+        <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-sky-500 outline-none">
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
+        <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-sky-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
+    </div>
+        
+    <!-- New Audio URL Input layout -->
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track URL</label>
+        <input type="text" placeholder="Paste Google Drive audio URL..." class="audio-url-input w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 focus:border-sky-500 outline-none" oninput="handleAudioUrlInput(this)">
+        
+        <div class="flex items-center justify-between bg-gray-900/60 border border-gray-800 rounded p-1.5 mt-1">
+            <span class="audio-duration-display text-[11px] font-mono text-sky-400">Duration: --:--</span>
+            <audio class="hidden-audio-player hidden" preload="metadata" onloadedmetadata="updateAudioDuration(this)"></audio>
+            <span class="text-[10px] font-mono text-gray-500">Auto-reads length</span>
+        </div>
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
+        <input type="text" placeholder="e.g. announcement" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-sky-500 outline-none">
+    </div>
+
+    <div class="flex items-center space-x-2 pt-2">
+        <button onclick="publishTo('Telegram', this)" class="bg-gray-900 hover:bg-gray-800 text-sky-400 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to Telegram</button>
+        <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-sky-500">
+            <option value="">Select Account...</option>
+            <option value="account_1">telegram channel 1</option>
+            <option value="account_2">telegram channel 2</option>
+        </select>
+    </div>
+</div>
 
         <!-- 5. YouTube Panel -->
-        <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-red-500 flex items-center justify-center rounded font-mono text-xs font-bold">YT</div>
-                    <h4 class="font-mono text-sm text-gray-200">YouTube Studio</h4>
-                </div>
-                <label class="flex items-center space-x-1.5 cursor-pointer text-[10px] font-mono text-gray-400">
-                    <input type="checkbox" class="multi-toggle accent-red-500 rounded bg-gray-900 border-gray-700" onchange="toggleMultiImageMode(this)">
-                    <span>Multi-Image</span>
-                </label>
-            </div>
-            <p class="text-xs text-gray-500 font-sans">Video descriptions, tags and community posts.</p>
-
-            <div class="flex flex-col space-y-2">
-           <div class="image-display-container relative w-full h-48 bg-gray-900 border border-dashed border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModal(this)">
-                    <span class="placeholder-text text-xs text-gray-500 font-mono">No image selected / Video</span>
-                    <img class="preview-img hidden w-full h-full object-cover" src="" alt="Preview">
-                    <button onclick="slideImage(-1, this)" class="carousel-prev hidden absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">‹</button>
-                    <button onclick="slideImage(1, this)" class="carousel-next hidden absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">›</button>
-                </div>
-                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
-                    📂 Select Image(s) / Video
-            <input type="file" class="image-file-input hidden" accept="image/*,video/*" onchange="handleImageSelection(event, this)">
-                </label>
-            </div>
-
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
-                <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-red-500 outline-none">
-            </div>
-<!-- Insert it right here around line 320/321 -->
-        <div>
-            <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
-            <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
+<!-- Updated YouTube Studio Panel -->
+<div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-red-500 flex items-center justify-center rounded font-mono text-xs font-bold">YT</div>
+            <h4 class="font-mono text-sm text-gray-200">YouTube Studio</h4>
         </div>
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track</label>
-                <div class="flex items-center space-x-2">
-                    <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 transition whitespace-nowrap">
-                        🎵 Audio
-                        <input type="file" class="hidden" accept="audio/*" onchange="loadAudioFileCompact(event, this)">
-                    </label>
-                    <input type="text" readonly placeholder="No audio selected" class="audio-filename-input w-full bg-gray-900 border border-gray-700 text-gray-400 text-xs rounded px-2 py-2 outline-none font-mono">
-                </div>
-            </div>
+        <label class="flex items-center space-x-1.5 cursor-pointer text-[10px] font-mono text-gray-400">
+            <input type="checkbox" class="multi-toggle accent-red-500 rounded bg-gray-900 border-gray-700" onchange="toggleMultiImageMode(this)">
+            <span>Multi-Image</span>
+        </label>
+    </div>
+    <p class="text-xs text-gray-500 font-sans">Video descriptions, tags and community posts.</p>
 
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
-                <input type="text" placeholder="e.g. video, podcast" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-red-500 outline-none">
-            </div>
-
-            <div class="flex items-center space-x-2 pt-2">
-                <button onclick="publishTo('YouTube', this)" class="bg-gray-900 hover:bg-gray-800 text-red-500 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to YouTube</button>
-                <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-red-500">
-                    <option value="">Select Account...</option>
-                    <option value="account_1"> youtube account 1</option>
-                    <option value="account_2"> youtube account 2</option>
-                </select>
-            </div>
+    <div class="flex flex-col space-y-2">
+        <!-- Container for dynamic URL input boxes -->
+        <div class="url-inputs-container flex flex-col space-y-1">
+            <input type="text" class="media-url-input w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white focus:border-red-500 outline-none" placeholder="Paste image or video URL..." oninput="handleDynamicMediaInputs(this)">
         </div>
+
+        <!-- "Add Image" button (hidden by default until Multi-Image checkbox is ticked) -->
+        <button type="button" class="add-image-btn hidden text-xs font-mono text-red-400 hover:text-red-300 self-start mt-1" onclick="addNewImageUrlBox(this)">+ Add Image (Up to 10)</button>
+
+        <!-- Image / Video Display Panel -->
+        <div class="image-display-container relative w-full h-48 bg-gray-900 border border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModalFromCard(this)">
+            <span class="placeholder-text text-xs text-gray-500 font-mono">Image/Video preview will render here</span>
+            <div id="imagePreviewContainer" class="w-full h-full flex items-center justify-center"></div>
+        </div>
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
+        <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-red-500 outline-none">
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
+        <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
+    </div>
+        
+    <!-- New Audio URL Input layout -->
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track URL</label>
+        <input type="text" placeholder="Paste Google Drive audio URL..." class="audio-url-input w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 focus:border-red-500 outline-none" oninput="handleAudioUrlInput(this)">
+        
+        <div class="flex items-center justify-between bg-gray-900/60 border border-gray-800 rounded p-1.5 mt-1">
+            <span class="audio-duration-display text-[11px] font-mono text-red-500">Duration: --:--</span>
+            <audio class="hidden-audio-player hidden" preload="metadata" onloadedmetadata="updateAudioDuration(this)"></audio>
+            <span class="text-[10px] font-mono text-gray-500">Auto-reads length</span>
+        </div>
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
+        <input type="text" placeholder="e.g. video, podcast" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-red-500 outline-none">
+    </div>
+
+    <div class="flex items-center space-x-2 pt-2">
+        <button onclick="publishTo('YouTube', this)" class="bg-gray-900 hover:bg-gray-800 text-red-500 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to YouTube</button>
+        <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-red-500">
+            <option value="">Select Account...</option>
+            <option value="account_1">youtube account 1</option>
+            <option value="account_2">youtube account 2</option>
+        </select>
+    </div>
+</div>
 
         <!-- 6. Facebook Panel -->
-        <div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-blue-500 flex items-center justify-center rounded font-mono text-xs font-bold">FB</div>
-                    <h4 class="font-mono text-sm text-gray-200">Facebook Page</h4>
-                </div>
-                <label class="flex items-center space-x-1.5 cursor-pointer text-[10px] font-mono text-gray-400">
-                    <input type="checkbox" class="multi-toggle accent-blue-500 rounded bg-gray-900 border-gray-700" onchange="toggleMultiImageMode(this)">
-                    <span>Multi-Image</span>
-                </label>
-            </div>
-            <p class="text-xs text-gray-500 font-sans">Page updates, link previews, and media posts.</p>
-
-            <div class="flex flex-col space-y-2">
-              <div class="image-display-container relative w-full h-48 bg-gray-900 border border-dashed border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModal(this)">
-                    <span class="placeholder-text text-xs text-gray-500 font-mono">No image selected / Video</span>
-                    <img class="preview-img hidden w-full h-full object-cover" src="" alt="Preview">
-                    <button onclick="slideImage(-1, this)" class="carousel-prev hidden absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">‹</button>
-                    <button onclick="slideImage(1, this)" class="carousel-next hidden absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white px-2 py-1 rounded text-xs font-mono">›</button>
-                </div>
-                <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 text-center transition">
-                    📂 Select Image(s) / Video
-           <input type="file" class="image-file-input hidden" accept="image/*,video/*" onchange="handleImageSelection(event, this)">
-                </label>
-            </div>
-
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
-                <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-blue-500 outline-none">
-            </div>
-<!-- Insert it right here around line 320/321 -->
-        <div>
-            <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
-            <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
+        <!-- Updated Facebook Page Panel -->
+<div class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-gray-900 border border-gray-700 text-blue-500 flex items-center justify-center rounded font-mono text-xs font-bold">FB</div>
+            <h4 class="font-mono text-sm text-gray-200">Facebook Page</h4>
         </div>
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track</label>
-                <div class="flex items-center space-x-2">
-                    <label class="cursor-pointer bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-xs font-mono px-3 py-2 rounded border border-gray-700 transition whitespace-nowrap">
-                        🎵 Audio
-                        <input type="file" class="hidden" accept="audio/*" onchange="loadAudioFileCompact(event, this)">
-                    </label>
-                    <input type="text" readonly placeholder="No audio selected" class="audio-filename-input w-full bg-gray-900 border border-gray-700 text-gray-400 text-xs rounded px-2 py-2 outline-none font-mono">
-                </div>
-            </div>
-
-            <div>
-                <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
-                <input type="text" placeholder="e.g. community, update" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-blue-500 outline-none">
-            </div>
-
-            <div class="flex items-center space-x-2 pt-2">
-                <button onclick="publishTo('Facebook', this)" class="bg-gray-900 hover:bg-gray-800 text-blue-500 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to Facebook</button>
-                <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-blue-500">
-                    <option value="">Select Account...</option>
-                    <option value="account_1">Facebook Page (OBN English)</option>
-                    <option value="account_2">Facebook Page (Afaan Oromoo)</option>
-                </select>
-            </div>
-        </div>
-
+        <label class="flex items-center space-x-1.5 cursor-pointer text-[10px] font-mono text-gray-400">
+            <input type="checkbox" class="multi-toggle accent-blue-500 rounded bg-gray-900 border-gray-700" onchange="toggleMultiImageMode(this)">
+            <span>Multi-Image</span>
+        </label>
     </div>
+    <p class="text-xs text-gray-500 font-sans">Page updates, link previews, and media posts.</p>
+
+    <div class="flex flex-col space-y-2">
+        <!-- Container for dynamic URL input boxes -->
+        <div class="url-inputs-container flex flex-col space-y-1">
+            <input type="text" class="media-url-input w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white focus:border-blue-500 outline-none" placeholder="Paste image or video URL..." oninput="handleDynamicMediaInputs(this)">
+        </div>
+
+        <!-- "Add Image" button (hidden by default until Multi-Image checkbox is ticked) -->
+        <button type="button" class="add-image-btn hidden text-xs font-mono text-blue-400 hover:text-blue-300 self-start mt-1" onclick="addNewImageUrlBox(this)">+ Add Image (Up to 10)</button>
+
+        <!-- Image / Video Display Panel -->
+        <div class="image-display-container relative w-full h-48 bg-gray-900 border border-gray-700 rounded-lg flex flex-col items-center justify-center overflow-hidden cursor-pointer" onclick="openImageModalFromCard(this)">
+            <span class="placeholder-text text-xs text-gray-500 font-mono">Image/Video preview will render here</span>
+            <div id="imagePreviewContainer" class="w-full h-full flex items-center justify-center"></div>
+        </div>
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Post Title</label>
+        <input type="text" placeholder="Enter title..." class="platform-title w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-blue-500 outline-none">
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Post Description / Caption</label>
+        <textarea rows="4" placeholder="Write your post content here..." class="platform-body w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-cyan-500 outline-none resize-none overflow-y-auto max-h-32"></textarea>
+    </div>
+        
+    <!-- New Audio URL Input layout -->
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase mb-1 block">Audio Track URL</label>
+        <input type="text" placeholder="Paste Google Drive audio URL..." class="audio-url-input w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 focus:border-blue-500 outline-none" oninput="handleAudioUrlInput(this)">
+        
+        <div class="flex items-center justify-between bg-gray-900/60 border border-gray-800 rounded p-1.5 mt-1">
+            <span class="audio-duration-display text-[11px] font-mono text-blue-500">Duration: --:--</span>
+            <audio class="hidden-audio-player hidden" preload="metadata" onloadedmetadata="updateAudioDuration(this)"></audio>
+            <span class="text-[10px] font-mono text-gray-500">Auto-reads length</span>
+        </div>
+    </div>
+
+    <div>
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Tags</label>
+        <input type="text" placeholder="e.g. community, update" class="platform-tags w-full bg-gray-900 border border-gray-700 text-gray-200 text-xs rounded p-2 mt-1 focus:border-blue-500 outline-none">
+    </div>
+
+    <div class="flex items-center space-x-2 pt-2">
+        <button onclick="publishTo('Facebook', this)" class="bg-gray-900 hover:bg-gray-800 text-blue-500 border border-gray-700 text-xs font-mono px-4 py-2 rounded transition font-bold whitespace-nowrap">Publish to Facebook</button>
+        <select class="account-select w-full bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono rounded p-2 outline-none focus:border-blue-500">
+            <option value="">Select Account...</option>
+            <option value="account_1">Facebook Page (OBN English)</option>
+            <option value="account_2">Facebook Page (Afaan Oromoo)</option>
+        </select>
+    </div>
+</div>
 </section>
     </div>
 
