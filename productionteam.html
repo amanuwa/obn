@@ -1053,16 +1053,23 @@ window.publishTo = async function(platformName, buttonElement) {
     const tags = card.querySelector('.platform-tags').value;
     const selectedAccount = card.querySelector('.account-select').value; 
 
+    // Helper function to turn any Google Drive link into a Buffer-friendly direct link
+    function getBufferDownloadUrl(url) {
+        if (!url) return '';
+        if (url.includes('drive.google.com')) {
+            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) {
+                // This forces a direct file download stream that Buffer accepts
+                return `https://drive.google.com/uc?export=download&confirm=no_antivirus&id=${match[1]}`;
+            }
+        }
+        return url;
+    }
+
     // Grab and process Audio URL from input
     const audioInput = card.querySelector('.audio-url-input');
     let audioUrl = audioInput ? audioInput.value.trim() : '';
-
-    if (audioUrl.includes('drive.google.com')) {
-        const match = audioUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-        if (match && match[1]) {
-            audioUrl = `https://lh3.googleusercontent.com/d/${match[1]}`;
-        }
-    }
+    audioUrl = getBufferDownloadUrl(audioUrl); // Converted for Buffer
 
     // Check if Multi-Image is enabled
     const multiCheckbox = card.querySelector('.multi-toggle') || card.querySelector('.multi-image-checkbox');
@@ -1075,13 +1082,8 @@ window.publishTo = async function(platformName, buttonElement) {
     inputElements.forEach(inp => {
         let val = inp.value.trim();
         if (val) {
-            // Convert Google Drive links automatically
-            if (val.includes('drive.google.com')) {
-                const match = val.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                if (match && match[1]) {
-                    val = `https://lh3.googleusercontent.com/d/${match[1]}`;
-                }
-            }
+            // Convert Google Drive links into the direct-download format for Buffer/Zapier
+            val = getBufferDownloadUrl(val);
             urls.push(val);
         }
     });
@@ -1113,7 +1115,7 @@ window.publishTo = async function(platformName, buttonElement) {
         mediaUrl: finalMediaValue,
         description: description,
         tags: tags,
-        audio: audioUrl, // Now sends the clean converted Zapier-friendly audio link
+        audio: audioUrl,
         timestamp: new Date().toISOString()
     };
 
