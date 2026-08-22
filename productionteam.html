@@ -1118,6 +1118,7 @@ window.publishTo = async function(platformName, buttonElement) {
         audio: audioUrl,
         timestamp: new Date().toISOString()
     };
+    console.log(payload);
 
     try {
         await fetch(postautomation, {
