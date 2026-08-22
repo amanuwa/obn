@@ -1053,23 +1053,24 @@ window.publishTo = async function(platformName, buttonElement) {
     const tags = card.querySelector('.platform-tags').value;
     const selectedAccount = card.querySelector('.account-select').value; 
 
-    // Helper function to turn any Google Drive link into a Buffer-friendly direct link
-    function getBufferDownloadUrl(url) {
+    // Bulletproof function to convert Google Drive links
+    function getWorkingUrl(url) {
         if (!url) return '';
-        if (url.includes('drive.google.com')) {
-            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        // If it's a Google Drive link, extract the ID safely
+        if (url.includes('drive.google.com') || url.includes('googleusercontent.com')) {
+            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
             if (match && match[1]) {
-                // This forces a direct file download stream that Buffer accepts
-                return `https://drive.google.com/uc?export=download&confirm=no_antivirus&id=${match[1]}`;
+                // Return standard direct download link format
+                return `https://drive.google.com/uc?export=download&id=${match[1]}`;
             }
         }
         return url;
     }
 
-    // Grab and process Audio URL from input
+    // Grab and process Audio URL
     const audioInput = card.querySelector('.audio-url-input');
     let audioUrl = audioInput ? audioInput.value.trim() : '';
-    audioUrl = getBufferDownloadUrl(audioUrl); // Converted for Buffer
+    audioUrl = getWorkingUrl(audioUrl);
 
     // Check if Multi-Image is enabled
     const multiCheckbox = card.querySelector('.multi-toggle') || card.querySelector('.multi-image-checkbox');
@@ -1082,13 +1083,11 @@ window.publishTo = async function(platformName, buttonElement) {
     inputElements.forEach(inp => {
         let val = inp.value.trim();
         if (val) {
-            // Convert Google Drive links into the direct-download format for Buffer/Zapier
-            val = getBufferDownloadUrl(val);
+            val = getWorkingUrl(val);
             urls.push(val);
         }
     });
 
-    // If multi-image is NOT ticked, take only the first URL. If ticked, take all URLs.
     let finalMediaValue = '';
     if (urls.length > 0) {
         if (isMulti) {
@@ -1120,9 +1119,11 @@ window.publishTo = async function(platformName, buttonElement) {
     };
 
     try {
+        console.log("Sending payload to workflow:", payload);
+
+        // Removed 'no-cors' so we can actually see if the request succeeds or throws an error
         await fetch(postautomation, {
             method: 'POST',
-            mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -1132,7 +1133,7 @@ window.publishTo = async function(platformName, buttonElement) {
         alert(`Successfully queued post for ${platformName}!`);
     } catch (error) {
         console.error('Webhook connection error:', error);
-        alert('Failed to connect to the workflow.');
+        alert('Failed to connect to the workflow. Check console for details.');
     }
 };
       window.clearWorkspace = function() {
