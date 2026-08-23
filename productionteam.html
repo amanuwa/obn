@@ -1187,7 +1187,7 @@ window.publishTo = async function(platformName, buttonElement) {
     const selectedAccount = card.querySelector('.account-select').value; 
 
     // Robust Google Drive Link Converter for Buffer & Zapier
-function getBufferDownloadUrl(url, fileType = 'video') {
+function getBufferDownloadUrl(url) {
     if (!url) return '';
     let fileId = '';
     
@@ -1201,13 +1201,8 @@ function getBufferDownloadUrl(url, fileType = 'video') {
     }
     
     if (fileId) {
-        if (fileType === 'video') {
-            // Videos need a direct stream endpoint that bypasses web player wrappers
-            return `https://drive.google.com/uc?export=download&confirm=t&id=${fileId}`;
-        } else {
-            // Images display cleanly using the view endpoint
-            return `https://drive.google.com/uc?export=view&id=${fileId}`;
-        }
+        // Universal view stream endpoint for both images and videos
+        return `https://drive.google.com/uc?export=view&id=${fileId}`;
     }
     return url;
 }
