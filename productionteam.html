@@ -1243,18 +1243,19 @@ window.publishTo = async function(platformName, buttonElement) {
         return;
     }
 
-    // 1. Check if this post title already exists in Supabase to block duplicates
+    // 1. Check if both Title AND Description already exist in Supabase to block duplicates
     try {
         const { data: existingPosts, error: checkError } = await supabase
             .from('posted_content')
-            .select('title')
+            .select('title, description')
             .eq('title', title.trim())
+            .eq('description', description)
             .limit(1);
 
         if (checkError) {
             console.error('Error checking duplicate posts:', checkError);
         } else if (existingPosts && existingPosts.length > 0) {
-            alert(`Duplicate Warning: "${title}" has already been posted or queued!`);
+            alert(`Duplicate Warning: A post with this exact title and description has already been posted or queued!`);
             return; // Stops execution so it doesn't duplicate
         }
     } catch (err) {
@@ -1282,7 +1283,7 @@ window.publishTo = async function(platformName, buttonElement) {
             body: JSON.stringify(payload)
         });
 
-        // 2. INSERT INTO SUPABASE: Mapped directly to your table's exact column names
+        // 2. INSERT INTO SUPABASE: Saves matching details into your exact table schema columns
         const { error: insertError } = await supabase
             .from('posted_content')
             .insert([{
