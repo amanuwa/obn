@@ -1237,7 +1237,56 @@ window.publishTo = async function(platformName, buttonElement) {
         alert('Please enter a post title.');
         return;
     }
+if (!title) {
+        alert('Please enter a post title.');
+        return;
+    }
 
+    // --- CHECK IF ALREADY POSTED ---
+    try {
+        const { data: existingPosts, error: checkError } = await supabase
+            .from('posted_content')
+            .select('title')
+            .eq('title', title.trim())
+            .limit(1);
+
+        if (checkError) {
+            console.error('Error checking duplicate posts:', checkError);
+        } else if (existingPosts && existingPosts.length > 0) {
+            alert(`Duplicate Warning: "${title}" has already been posted or queued!`);
+            return; // Stops the function so it doesn't post again
+        }
+    } catch (err) {
+        console.error('Supabase check failed:', err);
+    }
+    // ---------------------------------
+
+    const payload = {
+        platform: platformName,
+        account: selectedAccount,
+        title: title.trim(),
+        mediaUrl: finalMediaValue,
+        description: description,
+        tags: tags.trim(),
+        audio: audioUrl,
+        timestamp: new Date().toISOString()
+    };
+
+    try {
+        await fetch(postautomation, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        // Archive posted content to Supabase so it registers as "posted" next time
+        await supabase.from('posted_content').insert([{ title: title.trim(), platform: platformName }]);
+
+        alert(`Successfully queued post for ${platformName}!`);
+    } catch (error) {
+        console.error('Webhook connection error:', error);
+        alert('Failed to connect to the workflow.');
+    }
     // ==========================================
     // 1. DUPLICATE CHECK GOES RIGHT HERE:
     // ==========================================
