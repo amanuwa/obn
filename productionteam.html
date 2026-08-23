@@ -1243,7 +1243,7 @@ window.publishTo = async function(platformName, buttonElement) {
         return;
     }
 
-    // Check if this post title already exists in Supabase to block duplicates
+    // 1. Check if this post title already exists in Supabase to block duplicates
     try {
         const { data: existingPosts, error: checkError } = await supabase
             .from('posted_content')
@@ -1282,8 +1282,22 @@ window.publishTo = async function(platformName, buttonElement) {
             body: JSON.stringify(payload)
         });
 
-        // Insert record into Supabase so it's registered as posted
-        await supabase.from('posted_content').insert([{ title: title.trim(), platform: platformName }]);
+        // 2. INSERT INTO SUPABASE: Mapped directly to your table's exact column names
+        const { error: insertError } = await supabase
+            .from('posted_content')
+            .insert([{
+                title: title.trim(),
+                "video url/ image": finalMediaValue,
+                description: description,
+                tags: tags.trim(),
+                status: "posted",
+                audio: audioUrl,
+                date: new Date().toISOString()
+            }]);
+
+        if (insertError) {
+            console.error('Error saving to posted_content table:', insertError);
+        }
 
         alert(`Successfully queued post for ${platformName}!`);
     } catch (error) {
