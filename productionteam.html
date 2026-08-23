@@ -1186,34 +1186,41 @@ window.publishTo = async function(platformName, buttonElement) {
     const tags = card.querySelector('.platform-tags').value;
     const selectedAccount = card.querySelector('.account-select').value; 
 
-    // Helper function to turn Google Drive links into direct-download URLs
+    // Robust Google Drive Link Converter for Buffer & Zapier
     function getBufferDownloadUrl(url) {
         if (!url) return '';
-        if (url.includes('drive.google.com')) {
+        let fileId = '';
+        
+        if (url.includes('/d/')) {
             const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-            if (match && match[1]) {
-                return `https://drive.google.com/uc?export=download&confirm=no_antivirus&id=${match[1]}`;
-            }
+            if (match && match[1]) fileId = match[1];
+        } else if (url.includes('id=')) {
+            const match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) fileId = match[1];
+        }
+        
+        if (fileId) {
+            return `https://drive.google.com/uc?export=download&confirm=no_antivirus&id=${fileId}`;
         }
         return url;
     }
 
-    // Clean up description text to prevent run-on formatting or missing spaces
+    // Clean up description text to prevent run-on formatting
     description = description
         .replace(/([a-z])([A-Z])/g, '$1 $2')
         .replace(/Scraped Segment/g, '\n\n• Scraped Segment: ')
         .trim();
 
-    // Grab and process Audio URL
+    // Process Audio URL
     const audioInput = card.querySelector('.audio-url-input');
     let audioUrl = audioInput ? audioInput.value.trim() : '';
     audioUrl = getBufferDownloadUrl(audioUrl); 
 
-    // Check if Multi-Image is enabled
+    // Check if Multi-Image/Carousel is enabled
     const multiCheckbox = card.querySelector('.multi-toggle') || card.querySelector('.multi-image-checkbox');
     const isMulti = multiCheckbox ? multiCheckbox.checked : false;
 
-    // Collect and format all media URLs
+    // Collect and convert all media URLs (Images or Videos)
     const inputElements = card.querySelectorAll('.media-url-input');
     let urls = [];
 
@@ -1227,7 +1234,7 @@ window.publishTo = async function(platformName, buttonElement) {
     let finalMediaValue = '';
     if (urls.length > 0) {
         if (isMulti) {
-            finalMediaValue = urls.join(', '); // Clean comma-separated string for multi-image
+            finalMediaValue = urls.join(', '); // Clean comma-separated string for multi-media
         } else {
             finalMediaValue = urls[0]; 
         }
@@ -1243,7 +1250,7 @@ window.publishTo = async function(platformName, buttonElement) {
         return;
     }
 
-    // 1. Check if both Title AND Description already exist in Supabase to block duplicates
+    // Check Supabase for duplicates (Title + Description)
     try {
         const { data: existingPosts, error: checkError } = await supabase
             .from('posted_content')
@@ -1256,13 +1263,13 @@ window.publishTo = async function(platformName, buttonElement) {
             console.error('Error checking duplicate posts:', checkError);
         } else if (existingPosts && existingPosts.length > 0) {
             alert(`Duplicate Warning: A post with this exact title and description has already been posted or queued!`);
-            return; // Stops execution so it doesn't duplicate
+            return; 
         }
     } catch (err) {
         console.error('Supabase check failed:', err);
     }
 
-    // Construct the payload for the webhook
+    // Construct Payload for Webhook (Zapier / Buffer)
     const payload = {
         platform: platformName,
         account: selectedAccount,
@@ -1283,7 +1290,7 @@ window.publishTo = async function(platformName, buttonElement) {
             body: JSON.stringify(payload)
         });
 
-        // 2. INSERT INTO SUPABASE: Saves matching details into your exact table schema columns
+        // Insert log into Supabase table
         const { error: insertError } = await supabase
             .from('posted_content')
             .insert([{
