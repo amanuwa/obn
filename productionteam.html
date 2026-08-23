@@ -1187,10 +1187,11 @@ window.publishTo = async function(platformName, buttonElement) {
     const selectedAccount = card.querySelector('.account-select').value; 
 
     // Robust Google Drive Link Converter for Buffer & Zapier
-    function getBufferDownloadUrl(url) {
+function getBufferDownloadUrl(url) {
         if (!url) return '';
         let fileId = '';
         
+        // Extract the File ID from standard Google Drive links
         if (url.includes('/d/')) {
             const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
             if (match && match[1]) fileId = match[1];
@@ -1200,7 +1201,8 @@ window.publishTo = async function(platformName, buttonElement) {
         }
         
         if (fileId) {
-            return `https://drive.google.com/uc?export=download&confirm=no_antivirus&id=${fileId}`;
+            // Using the /uc?export=view format allows automated servers to read the stream directly
+            return `https://drive.google.com/uc?export=view&id=${fileId}`;
         }
         return url;
     }
