@@ -8,9 +8,10 @@ export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-// Direct ngrok tunnel pipeline with zero proxy interference
-//export const N8N_CONTENT_URL = 'https://unreached-oboe-evade.ngrok-free.dev/webhook/register-journalist';
-// Direct ngrok tunnel pipeline with zero proxy interference
+// Cloudinary Configuration for Media Processing
+export const CLOUDINARY_CLOUD_NAME = 'dxvzzdaln';
+export const CLOUDINARY_API_KEY = '691637858758474';
+export const CLOUDINARY_API_SECRET = 'jRip-w_yqGliPNbDtx-d01lHnjU'; // Paste your secret here
 export const N8N_CONTENT_URL = 'https://corsproxy.io/?https://terminal-n8n-gateway.onrender.com/webhook/register-journalist';
 
 
