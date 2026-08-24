@@ -1247,11 +1247,29 @@ window.publishTo = async function(platformName, buttonElement) {
         });
 
         let finalMediaValue = '';
+        let calculatedDataType = 'video'; // default fallback
+
         if (urls.length > 0) {
-            if (isMulti) {
+            const firstUrl = urls[0].toLowerCase();
+            const isVideoFile = firstUrl.includes('.mp4') || firstUrl.includes('.mov') || firstUrl.includes('.quicktime') || firstUrl.includes('video');
+
+            if (isMulti || urls.length > 1) {
                 finalMediaValue = urls.join(', '); 
+                calculatedDataType = 'multiple image';
+            } else if (!isVideoFile && (firstUrl.includes('.jpg') || firstUrl.includes('.png') || firstUrl.includes('.jpeg') || firstUrl.includes('image') || firstUrl.includes('uc?export=view'))) {
+                finalMediaValue = urls[0];
+                calculatedDataType = 'single image';
             } else {
-                finalMediaValue = urls[0]; 
+                if (isMulti) {
+                    finalMediaValue = urls.join(', ');
+                    calculatedDataType = 'multiple image';
+                } else if (urls.length === 1 && !isVideoFile) {
+                    finalMediaValue = urls[0];
+                    calculatedDataType = 'single image';
+                } else {
+                    finalMediaValue = urls[0];
+                    calculatedDataType = 'video';
+                }
             }
         }
 
@@ -1284,12 +1302,13 @@ window.publishTo = async function(platformName, buttonElement) {
             console.error('Supabase check failed:', err);
         }
 
-        // Construct Payload for Webhook (Zapier / Buffer)
+        // 1. Construct Payload for Webhook (Sends 'dataType' to Google Sheet / Zapier)
         const payload = {
             platform: platformName,
             account: selectedAccount,
             title: title.trim(),
             mediaUrl: finalMediaValue,
+            dataType: calculatedDataType, 
             description: description,
             tags: tags.trim(),
             audio: audioUrl,
@@ -1304,12 +1323,15 @@ window.publishTo = async function(platformName, buttonElement) {
             body: JSON.stringify(payload)
         });
 
-        // Insert log into Supabase table
+        // 2. Insert log into Supabase table (Sends 'dataType' to Supabase table as well)
+        // Note: Make sure you have a column named `data_type` or `dataType` in your Supabase table, 
+        // or match the key name exactly to what your Supabase table column is called!
         const { error: insertError } = await supabase
             .from('posted_content')
             .insert([{
                 title: title.trim(),
                 "video url/ image": finalMediaValue,
+                dataType: calculatedDataType, // Added here for Supabase
                 description: description,
                 tags: tags.trim(),
                 status: "posted",
