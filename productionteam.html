@@ -1179,111 +1179,123 @@ window.removeImageUrlBox = function(deleteBtn) {
 };
 
 window.publishTo = async function(platformName, buttonElement) {
+    // 1. Double-click prevention & processing lock
+    if (buttonElement.dataset.submitting === "true") {
+        alert("Please wait! Your post is already being processed. Do not click multiple times.");
+        return;
+    }
+
     const card = buttonElement.closest('.bg-\\[\\#111827\\]') || buttonElement.closest('div');
 
-    const title = card.querySelector('.platform-title').value;
-    let description = card.querySelector('.platform-body')?.value || '';
-    const tags = card.querySelector('.platform-tags').value;
-    const selectedAccount = card.querySelector('.account-select').value; 
-
-    // Robust Google Drive Link Converter for Buffer & Zapier
-function getBufferDownloadUrl(url) {
-    if (!url) return '';
-    let fileId = '';
-    
-    // Extract the File ID from standard Google Drive links
-    if (url.includes('/d/')) {
-        const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-        if (match && match[1]) fileId = match[1];
-    } else if (url.includes('id=')) {
-        const match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-        if (match && match[1]) fileId = match[1];
-    }
-    
-    if (fileId) {
-        // Universal view stream endpoint for both images and videos
-        return `https://drive.google.com/uc?export=view&id=${fileId}`;
-    }
-    return url;
-}
-
-    // Clean up description text to prevent run-on formatting
-    description = description
-        .replace(/([a-z])([A-Z])/g, '$1 $2')
-        .replace(/Scraped Segment/g, '\n\n• Scraped Segment: ')
-        .trim();
-
-    // Process Audio URL
-    const audioInput = card.querySelector('.audio-url-input');
-    let audioUrl = audioInput ? audioInput.value.trim() : '';
-    audioUrl = getBufferDownloadUrl(audioUrl); 
-
-    // Check if Multi-Image/Carousel is enabled
-    const multiCheckbox = card.querySelector('.multi-toggle') || card.querySelector('.multi-image-checkbox');
-    const isMulti = multiCheckbox ? multiCheckbox.checked : false;
-
-    // Collect and convert all media URLs (Images or Videos)
-    const inputElements = card.querySelectorAll('.media-url-input');
-    let urls = [];
-
-    inputElements.forEach(inp => {
-        let val = inp.value.trim();
-        if (val) {
-            urls.push(getBufferDownloadUrl(val));
-        }
-    });
-
-    let finalMediaValue = '';
-    if (urls.length > 0) {
-        if (isMulti) {
-            finalMediaValue = urls.join(', '); // Clean comma-separated string for multi-media
-        } else {
-            finalMediaValue = urls[0]; 
-        }
-    }
-
-    if (!selectedAccount) {
-        alert(`Please select an account to publish to ${platformName}.`);
-        return;
-    }
-
-    if (!title) {
-        alert('Please enter a post title.');
-        return;
-    }
-
-    // Check Supabase for duplicates (Title + Description)
-    try {
-        const { data: existingPosts, error: checkError } = await supabase
-            .from('posted_content')
-            .select('title, description')
-            .eq('title', title.trim())
-            .eq('description', description)
-            .limit(1);
-
-        if (checkError) {
-            console.error('Error checking duplicate posts:', checkError);
-        } else if (existingPosts && existingPosts.length > 0) {
-            alert(`Duplicate Warning: A post with this exact title and description has already been posted or queued!`);
-            return; 
-        }
-    } catch (err) {
-        console.error('Supabase check failed:', err);
-    }
-
-    // Construct Payload for Webhook (Zapier / Buffer)
-    const payload = {
-        platform: platformName,
-        account: selectedAccount,
-        title: title.trim(),
-        mediaUrl: finalMediaValue,
-        description: description,
-        tags: tags.trim(),
-        audio: audioUrl,
-        timestamp: new Date().toISOString()
-    };
+    // Lock the button instantly
+    buttonElement.dataset.submitting = "true";
+    buttonElement.disabled = true;
+    const originalText = buttonElement.innerText;
+    buttonElement.innerText = "Processing...";
+    buttonElement.style.opacity = "0.6";
+    buttonElement.style.cursor = "not-allowed";
 
     try {
+        const title = card.querySelector('.platform-title').value;
+        let description = card.querySelector('.platform-body')?.value || '';
+        const tags = card.querySelector('.platform-tags').value;
+        const selectedAccount = card.querySelector('.account-select').value; 
+
+        // Robust Google Drive Link Converter for Buffer & Zapier
+        function getBufferDownloadUrl(url) {
+            if (!url) return '';
+            let fileId = '';
+            
+            if (url.includes('/d/')) {
+                const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) fileId = match[1];
+            } else if (url.includes('id=')) {
+                const match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) fileId = match[1];
+            }
+            
+            if (fileId) {
+                return `https://drive.google.com/uc?export=view&id=${fileId}`;
+            }
+            return url;
+        }
+
+        // Clean up description text to prevent run-on formatting
+        description = description
+            .replace(/([a-z])([A-Z])/g, '$1 $2')
+            .replace(/Scraped Segment/g, '\n\n• Scraped Segment: ')
+            .trim();
+
+        // Process Audio URL
+        const audioInput = card.querySelector('.audio-url-input');
+        let audioUrl = audioInput ? audioInput.value.trim() : '';
+        audioUrl = getBufferDownloadUrl(audioUrl); 
+
+        // Check if Multi-Image/Carousel is enabled
+        const multiCheckbox = card.querySelector('.multi-toggle') || card.querySelector('.multi-image-checkbox');
+        const isMulti = multiCheckbox ? multiCheckbox.checked : false;
+
+        // Collect and convert all media URLs (Images or Videos)
+        const inputElements = card.querySelectorAll('.media-url-input');
+        let urls = [];
+
+        inputElements.forEach(inp => {
+            let val = inp.value.trim();
+            if (val) {
+                urls.push(getBufferDownloadUrl(val));
+            }
+        });
+
+        let finalMediaValue = '';
+        if (urls.length > 0) {
+            if (isMulti) {
+                finalMediaValue = urls.join(', '); 
+            } else {
+                finalMediaValue = urls[0]; 
+            }
+        }
+
+        if (!selectedAccount) {
+            alert(`Please select an account to publish to ${platformName}.`);
+            return;
+        }
+
+        if (!title) {
+            alert('Please enter a post title.');
+            return;
+        }
+
+        // Check Supabase for duplicates (Title + Description)
+        try {
+            const { data: existingPosts, error: checkError } = await supabase
+                .from('posted_content')
+                .select('title, description')
+                .eq('title', title.trim())
+                .eq('description', description)
+                .limit(1);
+
+            if (checkError) {
+                console.error('Error checking duplicate posts:', checkError);
+            } else if (existingPosts && existingPosts.length > 0) {
+                alert(`Duplicate Warning: A post with this exact title and description has already been posted or queued!`);
+                return; 
+            }
+        } catch (err) {
+            console.error('Supabase check failed:', err);
+        }
+
+        // Construct Payload for Webhook (Zapier / Buffer)
+        const payload = {
+            platform: platformName,
+            account: selectedAccount,
+            title: title.trim(),
+            mediaUrl: finalMediaValue,
+            description: description,
+            tags: tags.trim(),
+            audio: audioUrl,
+            timestamp: new Date().toISOString()
+        };
+
         await fetch(postautomation, {
             method: 'POST',
             headers: {
@@ -1313,6 +1325,13 @@ function getBufferDownloadUrl(url) {
     } catch (error) {
         console.error('Webhook connection error:', error);
         alert('Failed to connect to the workflow.');
+    } finally {
+        // Always unlock the button whether it succeeds or fails
+        buttonElement.dataset.submitting = "false";
+        buttonElement.disabled = false;
+        buttonElement.innerText = originalText;
+        buttonElement.style.opacity = "1";
+        buttonElement.style.cursor = "pointer";
     }
 };
 
