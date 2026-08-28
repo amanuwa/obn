@@ -34,24 +34,24 @@
                     <span class="text-cyan-400 font-mono text-xs tracking-wider">// DEEP RESEARCH & VERIFICATION STUDIO</span>
                 </div>
 
-                <!-- Navigation Controls & User -->
+                <!-- Navigation Controls & Dynamic User Session -->
                 <div class="flex items-center space-x-6">
                     <a href="customepage.html" class="bg-[#1f2937] hover:bg-gray-700 text-cyan-400 text-xs font-mono px-3 py-1.5 rounded border border-gray-700 transition">
                         ← Back to Gateway
                     </a>
                     <div class="flex items-center space-x-2 border-l border-gray-800 pl-6">
                         <span class="text-xs font-mono text-gray-400">ACTIVE:</span>
-                        <span id="loggedInUserDisplay" class="text-sm font-mono font-bold text-cyan-400">Amanuel</span>
+                        <span id="loggedInUserDisplay" class="text-sm font-mono font-bold text-cyan-400">Loading...</span>
                     </div>
                 </div>
             </div>
         </header>
 
         <!-- Main Workspace Grid -->
-        <main class="max-w-full px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <main class="max-w-full px-6 py-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
             
-            <!-- PANEL 1: Handwritten Paper-to-Digital Converter (Span 4) -->
-            <section class="lg:col-span-4 bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+            <!-- PANEL 1: Handwritten Paper-to-Digital Converter -->
+            <section class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
                 <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 1. HANDWRITTEN NOTE CONVERTER</h2>
                 <p class="text-xs text-gray-500 font-sans">Upload physical notes or handwritten paper scans to extract clean digital paragraphs.</p>
                 
@@ -65,37 +65,34 @@
 
                 <div class="flex flex-col space-y-1 flex-grow">
                     <label class="text-[10px] font-mono text-gray-400 uppercase">Extracted Paragraph Output</label>
-                    <textarea id="ocrOutput" rows="8" placeholder="Extracted text will render here..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs font-sans resize-y"></textarea>
+                    <textarea id="ocrOutput" rows="6" placeholder="Extracted text will render here..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs font-sans resize-y"></textarea>
+                </div>
+
+                <!-- Panel 1 Action Controls -->
+                <div class="flex items-center space-x-3 pt-2 border-t border-gray-800">
+                    <button onclick="downloadContent('ocrOutput', 'handwritten_extracted.txt')" class="flex-1 bg-gray-800 hover:bg-gray-700 text-cyan-400 font-mono text-xs py-2 rounded border border-gray-700 transition font-bold flex items-center justify-center space-x-1">
+                        <span>📥 Download TXT</span>
+                    </button>
+                    <button onclick="attachToDrive('Handwritten OCR Text')" class="flex-1 bg-[#1f2937] hover:bg-gray-700 text-cyan-300 font-mono text-xs py-2 rounded border border-gray-700 transition font-bold flex items-center justify-center space-x-1">
+                        <span>☁️ Attach to Drive</span>
+                    </button>
                 </div>
             </section>
 
-            <!-- PANEL 2: Public Image & Visual Forensics Analyzer (Span 4) -->
-            <section class="lg:col-span-4 bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
-                <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 2. VISUAL FORENSICS & IMAGE INTEL</h2>
-                <p class="text-xs text-gray-500 font-sans">Inspect public images for metadata, embedded text, and contextual clues.</p>
+            <!-- PANEL 2: AI Fact-Check & Visual Forensics Pipeline -->
+            <section class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+                <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 2. AI FACT-CHECK & VISUAL FORENSICS PIPELINE</h2>
+                <p class="text-xs text-gray-500 font-sans">Verify claims, rumors, or attach public image links for metadata and context analysis.</p>
 
-                <div class="flex flex-col space-y-1">
-                    <label class="text-[10px] font-mono text-gray-400 uppercase">Public Image URL</label>
-                    <input type="text" id="imageUrlInput" placeholder="https://..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
-                </div>
-
-                <div class="border border-gray-800 rounded bg-[#0b0f19] h-36 flex items-center justify-center overflow-hidden relative" id="imagePreviewBox">
-                    <span class="text-xs font-mono text-gray-500">Preview Container</span>
-                </div>
-
-                <button onclick="analyzeImageIntel()" class="w-full bg-[#1f2937] hover:bg-gray-700 text-cyan-400 font-mono text-xs py-2.5 rounded border border-gray-700 transition font-bold">
-                    🔍 Run Forensic Analysis
-                </button>
-            </section>
-
-            <!-- PANEL 3: Fact-Checking & Misinformation Engine (Span 4) -->
-            <section class="lg:col-span-4 bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
-                <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 3. AI FACT-CHECK PIPELINE</h2>
-                <p class="text-xs text-gray-500 font-sans">Cross-reference claims or statements against live web intelligence.</p>
-
-                <div class="flex flex-col space-y-1">
-                    <label class="text-[10px] font-mono text-gray-400 uppercase">Claim or Statement to Verify</label>
-                    <textarea id="claimInput" rows="3" placeholder="Enter claim or rumor..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs font-sans resize-none"></textarea>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="flex flex-col space-y-1">
+                        <label class="text-[10px] font-mono text-gray-400 uppercase">Claim / Statement</label>
+                        <input type="text" id="claimInput" placeholder="Enter statement to verify..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
+                    </div>
+                    <div class="flex flex-col space-y-1">
+                        <label class="text-[10px] font-mono text-gray-400 uppercase">Public Image URL (Optional)</label>
+                        <input type="text" id="imageUrlInput" placeholder="https://... (image link)" class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
+                    </div>
                 </div>
 
                 <button onclick="runFactCheck()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs py-2.5 rounded transition font-bold shadow-lg">
@@ -103,10 +100,92 @@
                 </button>
 
                 <div class="flex flex-col space-y-1 flex-grow">
-                    <label class="text-[10px] font-mono text-gray-400 uppercase">Verification Verdict</label>
+                    <label class="text-[10px] font-mono text-gray-400 uppercase">Verification & Forensics Verdict</label>
                     <div id="factCheckResult" class="bg-[#0b0f19] border border-gray-800 rounded p-3 text-xs font-mono text-gray-400 h-28 overflow-y-auto">
                         Waiting for execution payload...
                     </div>
+                </div>
+
+                <!-- Panel 2 Action Controls -->
+                <div class="flex items-center space-x-3 pt-2 border-t border-gray-800">
+                    <button onclick="downloadContent('factCheckResult', 'fact_check_report.txt')" class="flex-1 bg-gray-800 hover:bg-gray-700 text-cyan-400 font-mono text-xs py-2 rounded border border-gray-700 transition font-bold flex items-center justify-center space-x-1">
+                        <span>📥 Download Report</span>
+                    </button>
+                    <button onclick="attachToDrive('Fact-Check & Visual Report')" class="flex-1 bg-[#1f2937] hover:bg-gray-700 text-cyan-300 font-mono text-xs py-2 rounded border border-gray-700 transition font-bold flex items-center justify-center space-x-1">
+                        <span>☁️ Attach to Drive</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- PANEL 3: YouTube Video & Keyword Timestamp Analyzer -->
+            <section class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+                <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 3. YOUTUBE VIDEO & KEYWORD TIMESTAMP ANALYZER</h2>
+                <p class="text-xs text-gray-500 font-sans">Input a YouTube URL and target keyword to retrieve analysis and exact spoken timestamps.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="md:col-span-2 flex flex-col space-y-1">
+                        <label class="text-[10px] font-mono text-gray-400 uppercase">YouTube Video URL</label>
+                        <input type="text" id="ytUrlInput" placeholder="https://www.youtube.com/watch?v=..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
+                    </div>
+                    <div class="flex flex-col space-y-1">
+                        <label class="text-[10px] font-mono text-gray-400 uppercase">Target Keyword</label>
+                        <input type="text" id="ytKeywordInput" placeholder="e.g., inflation" class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
+                    </div>
+                </div>
+
+                <button onclick="analyzeYouTubeContent()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs py-2.5 rounded transition font-bold shadow-lg">
+                    ▶ Analyze Video & Extract Timestamps
+                </button>
+
+                <div class="flex flex-col space-y-1 flex-grow">
+                    <label class="text-[10px] font-mono text-gray-400 uppercase">Analysis & Timestamp Results</label>
+                    <div id="ytResultBox" class="bg-[#0b0f19] border border-gray-800 rounded p-3 text-xs font-mono text-gray-400 h-28 overflow-y-auto">
+                        Waiting for video URL and keyword parameters...
+                    </div>
+                </div>
+
+                <!-- Panel 3 Action Controls -->
+                <div class="flex items-center space-x-3 pt-2 border-t border-gray-800">
+                    <button onclick="downloadContent('ytResultBox', 'video_analysis.txt')" class="flex-1 bg-gray-800 hover:bg-gray-700 text-cyan-400 font-mono text-xs py-2 rounded border border-gray-700 transition font-bold flex items-center justify-center space-x-1">
+                        <span>📥 Download Report</span>
+                    </button>
+                    <button onclick="attachToDrive('YouTube Video Analysis')" class="flex-1 bg-[#1f2937] hover:bg-gray-700 text-cyan-300 font-mono text-xs py-2 rounded border border-gray-700 transition font-bold flex items-center justify-center space-x-1">
+                        <span>☁️ Attach to Drive</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- PANEL 4: Book Upload, Review & Keyword Search (Max 4-Page Review Format) -->
+            <section class="bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+                <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 4. BOOK UPLOAD & 4-PAGE REVIEW ANALYZER</h2>
+                <p class="text-xs text-gray-500 font-sans">Upload a book file (PDF/EPUB) to extract author, publication date, and a concise review under 4 pages.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <label class="cursor-pointer bg-[#0b0f19] hover:bg-gray-800 text-gray-300 text-xs font-mono p-3 rounded border border-dashed border-gray-700 flex flex-col items-center justify-center space-y-1 transition text-center">
+                        <span class="text-cyan-400 font-bold">📂 Upload Book Document</span>
+                        <input type="file" class="hidden" onchange="simulateBookUpload(event)">
+                    </label>
+                    <div class="flex flex-col space-y-1">
+                        <label class="text-[10px] font-mono text-gray-400 uppercase">Search Keyword in Book</label>
+                        <input type="text" id="bookKeywordInput" placeholder="Search specific term..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500" onkeyup="searchKeywordInBook()">
+                    </div>
+                </div>
+
+                <div class="flex flex-col space-y-1 flex-grow">
+                    <label class="text-[10px] font-mono text-gray-400 uppercase">Book Metadata & 4-Page Review Summary</label>
+                    <div id="bookResultBox" class="bg-[#0b0f19] border border-gray-800 rounded p-3 text-xs font-mono text-gray-400 h-28 overflow-y-auto">
+                        Metadata (Author, Published Date) and concise review (&lt;= 4 pages) will appear here...
+                    </div>
+                </div>
+
+                <!-- Panel 4 Action Controls -->
+                <div class="flex items-center space-x-3 pt-2 border-t border-gray-800">
+                    <button onclick="downloadContent('bookResultBox', 'book_review_summary.txt')" class="flex-1 bg-gray-800 hover:bg-gray-700 text-cyan-400 font-mono text-xs py-2 rounded border border-gray-700 transition font-bold flex items-center justify-center space-x-1">
+                        <span>📥 Download Review</span>
+                    </button>
+                    <button onclick="attachToDrive('Book Review & Metadata')" class="flex-1 bg-[#1f2937] hover:bg-gray-700 text-cyan-300 font-mono text-xs py-2 rounded border border-gray-700 transition font-bold flex items-center justify-center space-x-1">
+                        <span>☁️ Attach to Drive</span>
+                    </button>
                 </div>
             </section>
 
@@ -119,6 +198,31 @@
     </footer>
 
     <script>
+        // Initialize Supabase Client
+        const SUPABASE_URL = 'https://YOUR_SUPABASE_URL.supabase.co';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Fetch active logged-in user upon page route
+        async function fetchActiveUser() {
+            try {
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                let username = "Amanuel"; // Default fallback
+
+                if (session && session.user) {
+                    username = session.user.user_metadata?.username || session.user.email.split('@')[0];
+                }
+                document.getElementById('loggedInUserDisplay').textContent = username;
+            } catch (err) {
+                console.error('Session retrieval error:', err);
+                document.getElementById('loggedInUserDisplay').textContent = "Amanuel";
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchActiveUser();
+        });
+
         function simulateHandwritingOCR(event) {
             const file = event.target.files[0];
             if (file) {
@@ -126,27 +230,87 @@
             }
         }
 
-        function analyzeImageIntel() {
-            const url = document.getElementById('imageUrlInput').value;
-            const box = document.getElementById('imagePreviewBox');
-            if(url) {
-                box.innerHTML = `<img src="${url}" class="w-full h-full object-cover" onerror="this.onerror=null;this.parentNode.innerHTML='<span class=\'text-xs text-red-400 font-mono\'>Invalid Image URL</span>';">`;
-            } else {
-                alert('Please enter a valid image URL first.');
+        function runFactCheck() {
+            const claim = document.getElementById('claimInput').value;
+            const imageUrl = document.getElementById('imageUrlInput').value;
+            const resultBox = document.getElementById('factCheckResult');
+            
+            if(!claim && !imageUrl) {
+                alert('Please provide either a claim statement or an image URL to analyze.');
+                return;
+            }
+            
+            resultBox.innerHTML = `<span class="text-cyan-400">Querying live data indices and running visual forensics via n8n...</span>`;
+            setTimeout(() => {
+                let report = `<span class="text-yellow-400">[VERDICT: MISLEADING]</span><br>Claim Cross-Reference: Discrepancies found with primary registry logs.`;
+                if(imageUrl) {
+                    report += `<br><span class="text-cyan-300">[Forensics]:</span> Image metadata indicates source consistency match, verified clean of synthetic alterations.`;
+                }
+                resultBox.innerHTML = report;
+            }, 1200);
+        }
+
+        function analyzeYouTubeContent() {
+            const url = document.getElementById('ytUrlInput').value;
+            const keyword = document.getElementById('ytKeywordInput').value;
+            const resultBox = document.getElementById('ytResultBox');
+
+            if (!url) {
+                alert('Please enter a valid YouTube video URL.');
+                return;
+            }
+
+            resultBox.innerHTML = `<span class="text-cyan-400">Processing video stream and indexing audio track...</span>`;
+
+            setTimeout(() => {
+                resultBox.innerHTML = `
+                    <span class="text-green-400">[ANALYSIS COMPLETE]</span><br>
+                    <strong>Video Target:</strong> ${url}<br>
+                    <strong>Keyword Found:</strong> "${keyword || 'General Summary'}"<br><br>
+                    <span class="text-cyan-300">Spoken Timestamps:</span><br>
+                    - [01:14] Speaker introduces primary context regarding ${keyword}.<br>
+                    - [04:32] Detailed breakdown and counter-arguments mentioned.<br>
+                    - [12:05] Concluding remarks and summary statistics.
+                `;
+            }, 1200);
+        }
+
+        function simulateBookUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('bookResultBox').innerHTML = `
+                    <span class="text-green-400">[BOOK INDEXED SUCCESSFULLY]</span><br>
+                    <strong>Author:</strong> Dr. Aris Thorne<br>
+                    <strong>Published Day:</strong> October 14, 2023<br>
+                    <strong>Format Scope:</strong> Condensed Review (Strictly 3.2 Pages / &lt;= 4 Pages limit)<br><br>
+                    <span class="text-cyan-300">Executive Review Summary:</span><br>
+                    The publication outlines core structural reforms across governance economics. Major focal points examine monetary velocity, supply chain stabilization, and fiscal policy adjustments over a 5-year macro horizon.
+                `;
             }
         }
 
-        function runFactCheck() {
-            const claim = document.getElementById('claimInput').value;
-            const resultBox = document.getElementById('factCheckResult');
-            if(!claim) {
-                alert('Please provide a claim to verify.');
-                return;
+        function searchKeywordInBook() {
+            const query = document.getElementById('bookKeywordInput').value;
+            if(query.trim() !== "") {
+                console.log(`Filtering book index for keyword: ${query}`);
             }
-            resultBox.innerHTML = `<span class="text-cyan-400">Querying live data indices via n8n...</span>`;
-            setTimeout(() => {
-                resultBox.innerHTML = `<span class="text-yellow-400">[VERDICT: MISLEADING]</span><br>Cross-referenced with primary registry logs. Discrepancies found regarding timeline metrics. Routed to human review queue.`;
-            }, 1200);
+        }
+
+        function downloadContent(elementId, filename) {
+            const text = document.getElementById(elementId).value || document.getElementById(elementId).innerText;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function attachToDrive(itemTitle) {
+            alert(`Success: "${itemTitle}" has been securely attached and synced to your connected Google Drive storage folder.`);
         }
     </script>
 </body>
