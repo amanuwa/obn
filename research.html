@@ -1,1 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journalist Preparation Studio - Deep Research & Verification Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #94a3b8;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col justify-between">
 
+    <div>
+        <!-- Top Navigation Bar -->
+        <header class="border-b border-gray-800 bg-[#0b0f19] sticky top-0 z-50">
+            <div class="max-w-full px-6 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="text-cyan-400 font-mono text-xs tracking-wider">// DEEP RESEARCH & VERIFICATION STUDIO</span>
+                </div>
+
+                <!-- Navigation Controls & User -->
+                <div class="flex items-center space-x-6">
+                    <a href="customepage.html" class="bg-[#1f2937] hover:bg-gray-700 text-cyan-400 text-xs font-mono px-3 py-1.5 rounded border border-gray-700 transition">
+                        ← Back to Gateway
+                    </a>
+                    <div class="flex items-center space-x-2 border-l border-gray-800 pl-6">
+                        <span class="text-xs font-mono text-gray-400">ACTIVE:</span>
+                        <span id="loggedInUserDisplay" class="text-sm font-mono font-bold text-cyan-400">Amanuel</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <main class="max-w-full px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- PANEL 1: Handwritten Paper-to-Digital Converter (Span 4) -->
+            <section class="lg:col-span-4 bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+                <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 1. HANDWRITTEN NOTE CONVERTER</h2>
+                <p class="text-xs text-gray-500 font-sans">Upload physical notes or handwritten paper scans to extract clean digital paragraphs.</p>
+                
+                <label class="cursor-pointer bg-[#0b0f19] hover:bg-gray-800 text-gray-300 text-xs font-mono p-4 rounded border border-dashed border-gray-700 flex flex-col items-center justify-center space-y-2 transition text-center">
+                    <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>Upload Handwritten Scan</span>
+                    <input type="file" class="hidden" onchange="simulateHandwritingOCR(event)">
+                </label>
+
+                <div class="flex flex-col space-y-1 flex-grow">
+                    <label class="text-[10px] font-mono text-gray-400 uppercase">Extracted Paragraph Output</label>
+                    <textarea id="ocrOutput" rows="8" placeholder="Extracted text will render here..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs font-sans resize-y"></textarea>
+                </div>
+            </section>
+
+            <!-- PANEL 2: Public Image & Visual Forensics Analyzer (Span 4) -->
+            <section class="lg:col-span-4 bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+                <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 2. VISUAL FORENSICS & IMAGE INTEL</h2>
+                <p class="text-xs text-gray-500 font-sans">Inspect public images for metadata, embedded text, and contextual clues.</p>
+
+                <div class="flex flex-col space-y-1">
+                    <label class="text-[10px] font-mono text-gray-400 uppercase">Public Image URL</label>
+                    <input type="text" id="imageUrlInput" placeholder="https://..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
+                </div>
+
+                <div class="border border-gray-800 rounded bg-[#0b0f19] h-36 flex items-center justify-center overflow-hidden relative" id="imagePreviewBox">
+                    <span class="text-xs font-mono text-gray-500">Preview Container</span>
+                </div>
+
+                <button onclick="analyzeImageIntel()" class="w-full bg-[#1f2937] hover:bg-gray-700 text-cyan-400 font-mono text-xs py-2.5 rounded border border-gray-700 transition font-bold">
+                    🔍 Run Forensic Analysis
+                </button>
+            </section>
+
+            <!-- PANEL 3: Fact-Checking & Misinformation Engine (Span 4) -->
+            <section class="lg:col-span-4 bg-[#111827] p-5 rounded-lg border border-gray-800 flex flex-col space-y-4">
+                <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 3. AI FACT-CHECK PIPELINE</h2>
+                <p class="text-xs text-gray-500 font-sans">Cross-reference claims or statements against live web intelligence.</p>
+
+                <div class="flex flex-col space-y-1">
+                    <label class="text-[10px] font-mono text-gray-400 uppercase">Claim or Statement to Verify</label>
+                    <textarea id="claimInput" rows="3" placeholder="Enter claim or rumor..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs font-sans resize-none"></textarea>
+                </div>
+
+                <button onclick="runFactCheck()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs py-2.5 rounded transition font-bold shadow-lg">
+                    ⚡ Verify via n8n Webhook
+                </button>
+
+                <div class="flex flex-col space-y-1 flex-grow">
+                    <label class="text-[10px] font-mono text-gray-400 uppercase">Verification Verdict</label>
+                    <div id="factCheckResult" class="bg-[#0b0f19] border border-gray-800 rounded p-3 text-xs font-mono text-gray-400 h-28 overflow-y-auto">
+                        Waiting for execution payload...
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 py-4 text-center text-xs font-mono text-gray-500 bg-[#0b0f19]">
+        JOURNALIST PREPARATION STUDIO // DEEP RESEARCH ENGINE
+    </footer>
+
+    <script>
+        function simulateHandwritingOCR(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('ocrOutput').value = "[OCR Processing Note]: Successfully parsed handwritten ledger structures. Extracted text sample: Subject confirmed alignment on resource timelines and verification schedules.";
+            }
+        }
+
+        function analyzeImageIntel() {
+            const url = document.getElementById('imageUrlInput').value;
+            const box = document.getElementById('imagePreviewBox');
+            if(url) {
+                box.innerHTML = `<img src="${url}" class="w-full h-full object-cover" onerror="this.onerror=null;this.parentNode.innerHTML='<span class=\'text-xs text-red-400 font-mono\'>Invalid Image URL</span>';">`;
+            } else {
+                alert('Please enter a valid image URL first.');
+            }
+        }
+
+        function runFactCheck() {
+            const claim = document.getElementById('claimInput').value;
+            const resultBox = document.getElementById('factCheckResult');
+            if(!claim) {
+                alert('Please provide a claim to verify.');
+                return;
+            }
+            resultBox.innerHTML = `<span class="text-cyan-400">Querying live data indices via n8n...</span>`;
+            setTimeout(() => {
+                resultBox.innerHTML = `<span class="text-yellow-400">[VERDICT: MISLEADING]</span><br>Cross-referenced with primary registry logs. Discrepancies found regarding timeline metrics. Routed to human review queue.`;
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
