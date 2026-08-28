@@ -66,15 +66,6 @@
                         <label class="text-[10px] font-mono text-gray-400 uppercase">Extracted Paragraph Output</label>
                         <textarea id="ocrOutput" rows="3" placeholder="Extracted text will render here..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs font-sans resize-y"></textarea>
                     </div>
-
-                    <div class="flex items-center space-x-2 pt-1 border-t border-gray-800">
-                        <button onclick="downloadContent('ocrOutput', 'handwritten_extracted.txt')" class="bg-gray-800 hover:bg-gray-700 text-cyan-400 font-mono text-[10px] px-3 py-1.5 rounded border border-gray-700 transition font-bold">
-                            📥 Download
-                        </button>
-                        <button onclick="attachToDrive('Handwritten OCR Text')" class="bg-[#1f2937] hover:bg-gray-700 text-cyan-300 font-mono text-[10px] px-3 py-1.5 rounded border border-gray-700 transition font-bold">
-                            ☁️ Attach to Drive
-                        </button>
-                    </div>
                 </section>
 
                 <!-- PANEL 2: AI Fact-Check & Visual Forensics Pipeline -->
@@ -82,28 +73,19 @@
                     <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 2. AI FACT-CHECK & VISUAL FORENSICS PIPELINE</h2>
 
                     <div class="flex flex-col space-y-1">
-                        <div class="flex justify-between items-center">
-                            <label class="text-[10px] font-mono text-gray-400 uppercase">Claim / Statement</label>
-                            <button onclick="runFactCheck('verify')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-[10px] px-2 py-0.5 rounded font-bold">Verify</button>
+                        <label class="text-[10px] font-mono text-gray-400 uppercase">Claim / Statement</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="claimInput" placeholder="Enter statement to verify..." class="flex-grow px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
+                            <button onclick="runFactCheck('verify')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Verify</button>
                         </div>
-                        <input type="text" id="claimInput" placeholder="Enter statement to verify..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
                     </div>
 
                     <div class="flex flex-col space-y-1">
-                        <div class="flex justify-between items-center">
-                            <label class="text-[10px] font-mono text-gray-400 uppercase">Public Image URL (Optional)</label>
-                            <button onclick="runFactCheck('analyse')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-[10px] px-2 py-0.5 rounded font-bold">Analyse</button>
+                        <label class="text-[10px] font-mono text-gray-400 uppercase">Public Image URL (Optional)</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="imageUrlInput" placeholder="https://... (image link)" class="flex-grow px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
+                            <button onclick="runFactCheck('analyse')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Analyse</button>
                         </div>
-                        <input type="text" id="imageUrlInput" placeholder="https://... (image link)" class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
-                    </div>
-
-                    <div class="flex items-center space-x-2 pt-1 border-t border-gray-800">
-                        <button onclick="downloadContent('activeResultView', 'fact_check_report.txt')" class="bg-gray-800 hover:bg-gray-700 text-cyan-400 font-mono text-[10px] px-3 py-1.5 rounded border border-gray-700 transition font-bold">
-                            📥 Download
-                        </button>
-                        <button onclick="attachToDrive('Fact-Check & Visual Report')" class="bg-[#1f2937] hover:bg-gray-700 text-cyan-300 font-mono text-[10px] px-3 py-1.5 rounded border border-gray-700 transition font-bold">
-                            ☁️ Attach to Drive
-                        </button>
                     </div>
                 </section>
 
@@ -112,28 +94,19 @@
                     <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 3. VIDEO ANALYSIS AND KEYWORD TIMESTAMP ANALYZER</h2>
 
                     <div class="flex flex-col space-y-1">
-                        <div class="flex justify-between items-center">
-                            <label class="text-[10px] font-mono text-gray-400 uppercase">Any public video url</label>
-                            <button onclick="analyzeYouTubeContent('url')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-[10px] px-2 py-0.5 rounded font-bold">Analyse</button>
+                        <label class="text-[10px] font-mono text-gray-400 uppercase">Any public video url</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="ytUrlInput" placeholder="https://www.youtube.com/watch?v=..." class="flex-grow px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
+                            <button onclick="analyzeYouTubeContent('url')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Analyse</button>
                         </div>
-                        <input type="text" id="ytUrlInput" placeholder="https://www.youtube.com/watch?v=..." class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
                     </div>
 
                     <div class="flex flex-col space-y-1">
-                        <div class="flex justify-between items-center">
-                            <label class="text-[10px] font-mono text-gray-400 uppercase">Target Keyword</label>
-                            <button onclick="analyzeYouTubeContent('keyword')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-[10px] px-2 py-0.5 rounded font-bold">Search</button>
+                        <label class="text-[10px] font-mono text-gray-400 uppercase">Target Keyword</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="ytKeywordInput" placeholder="e.g., inflation" class="flex-grow px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
+                            <button onclick="analyzeYouTubeContent('keyword')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Search</button>
                         </div>
-                        <input type="text" id="ytKeywordInput" placeholder="e.g., inflation" class="px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
-                    </div>
-
-                    <div class="flex items-center space-x-2 pt-1 border-t border-gray-800">
-                        <button onclick="downloadContent('activeResultView', 'video_analysis.txt')" class="bg-gray-800 hover:bg-gray-700 text-cyan-400 font-mono text-[10px] px-3 py-1.5 rounded border border-gray-700 transition font-bold">
-                            📥 Download
-                        </button>
-                        <button onclick="attachToDrive('Video Analysis Report')" class="bg-[#1f2937] hover:bg-gray-700 text-cyan-300 font-mono text-[10px] px-3 py-1.5 rounded border border-gray-700 transition font-bold">
-                            ☁️ Attach to Drive
-                        </button>
                     </div>
                 </section>
 
@@ -141,37 +114,39 @@
                 <section class="bg-[#111827] p-4 rounded-lg border border-gray-800 flex flex-col space-y-3">
                     <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 4. BOOK UPLOAD & 4-PAGE REVIEW ANALYZER</h2>
 
-                    <div class="grid grid-cols-2 gap-2">
-                        <label class="cursor-pointer bg-[#0b0f19] hover:bg-gray-800 text-gray-300 text-xs font-mono p-2 rounded border border-dashed border-gray-700 flex flex-col items-center justify-center transition text-center">
-                            <span class="text-cyan-400 text-[11px]">📂 Upload Book</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <label class="cursor-pointer bg-[#0b0f19] hover:bg-gray-800 text-gray-300 text-xs font-mono p-3 rounded border border-dashed border-gray-700 flex flex-col items-center justify-center transition text-center">
+                            <span class="text-cyan-400 text-xs">📂 Upload Book</span>
                             <input type="file" class="hidden" onchange="simulateBookUpload(event)">
                         </label>
                         <div class="flex flex-col space-y-1">
-                            <div class="flex justify-between items-center">
-                                <label class="text-[10px] font-mono text-gray-400 uppercase">Search Keyword</label>
-                                <button onclick="searchKeywordInBook()" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-[10px] px-2 py-0.5 rounded font-bold">Search</button>
+                            <label class="text-[10px] font-mono text-gray-400 uppercase">Search Keyword</label>
+                            <div class="flex space-x-2">
+                                <input type="text" id="bookKeywordInput" placeholder="Search term..." class="flex-grow px-2 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
+                                <button onclick="searchKeywordInBook()" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-3 py-2 rounded font-bold whitespace-nowrap">Search</button>
                             </div>
-                            <input type="text" id="bookKeywordInput" placeholder="Search term..." class="px-2 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
                         </div>
-                    </div>
-
-                    <div class="flex items-center space-x-2 pt-1 border-t border-gray-800">
-                        <button onclick="downloadContent('activeResultView', 'book_review_summary.txt')" class="bg-gray-800 hover:bg-gray-700 text-cyan-400 font-mono text-[10px] px-3 py-1.5 rounded border border-gray-700 transition font-bold">
-                            📥 Download
-                        </button>
-                        <button onclick="attachToDrive('Book Review & Metadata')" class="bg-[#1f2937] hover:bg-gray-700 text-cyan-300 font-mono text-[10px] px-3 py-1.5 rounded border border-gray-700 transition font-bold">
-                            ☁️ Attach to Drive
-                        </button>
                     </div>
                 </section>
 
             </div>
 
-            <!-- RIGHT COLUMN: Wide Scrollable Result Displaying Panel -->
+            <!-- RIGHT COLUMN: Wide Scrollable Result Displaying Panel with single bottom download/attach buttons -->
             <section class="lg:col-span-7 bg-[#111827] p-6 rounded-lg border border-gray-800 flex flex-col h-full overflow-hidden">
                 <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2 mb-4 uppercase">// Master Output & Execution Feed</h2>
-                <div id="activeResultView" class="bg-[#0b0f19] border border-gray-800 rounded p-4 text-xs font-mono text-gray-300 flex-grow overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                
+                <div id="activeResultView" class="bg-[#0b0f19] border border-gray-800 rounded p-4 text-xs font-mono text-gray-300 flex-grow overflow-y-auto whitespace-pre-wrap leading-relaxed mb-4">
                     Select actions or run payloads on the left panels to stream comprehensive outputs here...
+                </div>
+
+                <!-- Single Download and Attach controls placed beneath the right panel -->
+                <div class="flex items-center space-x-3 pt-3 border-t border-gray-800">
+                    <button onclick="downloadContent('activeResultView', 'execution_report.txt')" class="flex-1 bg-gray-800 hover:bg-gray-700 text-cyan-400 font-mono text-xs py-2 rounded border border-gray-700 transition font-bold flex items-center justify-center space-x-1">
+                        <span>📥 Download Report</span>
+                    </button>
+                    <button onclick="attachToDrive('Master Studio Execution Feed')" class="flex-1 bg-[#1f2937] hover:bg-gray-700 text-cyan-300 font-mono text-xs py-2 rounded border border-gray-700 transition font-bold flex items-center justify-center space-x-1">
+                        <span>☁️ Attach to Drive</span>
+                    </button>
                 </div>
             </section>
 
@@ -192,10 +167,8 @@
         // Fetch active logged-in user upon page route precisely matching session requirements
         async function fetchActiveUser() {
             try {
-                // Check local storage or session cookies commonly stored by Supabase auth
                 let username = null;
                 
-                // Inspect localStorage for Supabase session data
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
                     if (key && key.includes('supabase.auth.token')) {
@@ -208,7 +181,6 @@
                     }
                 }
 
-                // Fallback to async client call if not found directly in localStorage
                 if (!username) {
                     const { data: { session } } = await supabaseClient.auth.getSession();
                     if (session?.user) {
@@ -216,7 +188,6 @@
                     }
                 }
 
-                // Final fallback if no active auth session token is present in current test view
                 if (!username) {
                     username = "Amanuel"; 
                 }
