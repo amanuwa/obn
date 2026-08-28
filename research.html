@@ -250,6 +250,18 @@
                 resultBox.innerHTML = `<span class="text-red-400">Webhook transmission error: ${err.message}</span>`;
             }
         };
+        window.triggerVideoWebhook = function(actionType) {
+            const videoUrl = document.getElementById('ytUrlInput').value.trim();
+            const resultBox = document.getElementById('activeResultView');
+
+            if (!videoUrl) {
+                resultBox.innerHTML = `<span class="text-red-400">Error: Please enter a public video url before running this action.</span>`;
+                return;
+            }
+
+            const keyword = document.getElementById('ytKeywordInput').value.trim();
+            triggerWebhook(actionType, { url: videoUrl, keyword: keyword });
+        };
 
         window.downloadContent = function(elementId, filename) {
             const text = document.getElementById(elementId).innerText || document.getElementById(elementId).value;
