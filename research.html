@@ -91,25 +91,25 @@
                 </section>
 
                 <!-- PANEL 3: Video Analysis and Keyword Timestamp Analyzer -->
-                <section class="bg-[#111827] p-4 rounded-lg border border-gray-800 flex flex-col space-y-3">
-                    <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 3. VIDEO ANALYSIS AND KEYWORD TIMESTAMP ANALYZER</h2>
+               <section class="bg-[#111827] p-4 rounded-lg border border-gray-800 flex flex-col space-y-3">
+    <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 3. VIDEO ANALYSIS AND KEYWORD TIMESTAMP ANALYZER</h2>
 
-                    <div class="flex flex-col space-y-1">
-                        <label class="text-[10px] font-mono text-gray-400 uppercase">Any public video url</label>
-                        <div class="flex space-x-2">
-                            <input type="text" id="ytUrlInput" placeholder="https://www.youtube.com/watch?v=..." class="flex-grow px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
-                            <button onclick="triggerWebhook('video_analyse', { url: document.getElementById('ytUrlInput').value })" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Analyse</button>
-                        </div>
-                    </div>
+    <div class="flex flex-col space-y-1">
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Any public video url</label>
+        <div class="flex space-x-2">
+            <input type="text" id="ytUrlInput" placeholder="https://www.youtube.com/watch?v=..." class="flex-grow px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
+            <button onclick="triggerVideoWebhook('video_analyse')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Analyse</button>
+        </div>
+    </div>
 
-                    <div class="flex flex-col space-y-1">
-                        <label class="text-[10px] font-mono text-gray-400 uppercase">Target Keyword</label>
-                        <div class="flex space-x-2">
-                            <input type="text" id="ytKeywordInput" placeholder="e.g., inflation" class="flex-grow px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
-                            <button onclick="triggerWebhook('video_keyword_search', { keyword: document.getElementById('ytKeywordInput').value })" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Search</button>
-                        </div>
-                    </div>
-                </section>
+    <div class="flex flex-col space-y-1">
+        <label class="text-[10px] font-mono text-gray-400 uppercase">Target Keyword</label>
+        <div class="flex space-x-2">
+            <input type="text" id="ytKeywordInput" placeholder="e.g., inflation" class="flex-grow px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
+            <button onclick="triggerVideoWebhook('video_keyword_search')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Search</button>
+        </div>
+    </div>
+</section>
 
                 <!-- PANEL 4: Book Upload & 4-Page Review Analyzer -->
                 <section class="bg-[#111827] p-4 rounded-lg border border-gray-800 flex flex-col space-y-3">
