@@ -59,8 +59,9 @@
                     
                     <label class="cursor-pointer bg-[#0b0f19] hover:bg-gray-800 text-gray-300 text-xs font-mono p-3 rounded border border-dashed border-gray-700 flex flex-col items-center justify-center space-y-1 transition text-center">
                         <span class="text-cyan-400">Upload Handwritten Scan</span>
-                        <input type="file" class="hidden" onchange="simulateHandwritingOCR(event)">
+                        <input type="file" id="ocrFileInput" class="hidden" onchange="handleFileSelection('ocrFileInput', 'ocrFileName')">
                     </label>
+                    <span id="ocrFileName" class="text-[10px] font-mono text-gray-500 italic">No file chosen</span>
 
                     <div class="flex flex-col space-y-1">
                         <label class="text-[10px] font-mono text-gray-400 uppercase">Extracted Paragraph Output</label>
@@ -76,7 +77,7 @@
                         <label class="text-[10px] font-mono text-gray-400 uppercase">Claim / Statement</label>
                         <div class="flex space-x-2">
                             <input type="text" id="claimInput" placeholder="Enter statement to verify..." class="flex-grow px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
-                            <button onclick="runFactCheck('verify')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Verify</button>
+                            <button onclick="triggerWebhook('fact_check_verify', { claim: document.getElementById('claimInput').value })" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Verify</button>
                         </div>
                     </div>
 
@@ -84,7 +85,7 @@
                         <label class="text-[10px] font-mono text-gray-400 uppercase">Public Image URL (Optional)</label>
                         <div class="flex space-x-2">
                             <input type="text" id="imageUrlInput" placeholder="https://... (image link)" class="flex-grow px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
-                            <button onclick="runFactCheck('analyse')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Analyse</button>
+                            <button onclick="triggerWebhook('fact_check_analyse', { imageUrl: document.getElementById('imageUrlInput').value })" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Analyse</button>
                         </div>
                     </div>
                 </section>
@@ -97,7 +98,7 @@
                         <label class="text-[10px] font-mono text-gray-400 uppercase">Any public video url</label>
                         <div class="flex space-x-2">
                             <input type="text" id="ytUrlInput" placeholder="https://www.youtube.com/watch?v=..." class="flex-grow px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
-                            <button onclick="analyzeYouTubeContent('url')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Analyse</button>
+                            <button onclick="triggerWebhook('video_analyse', { url: document.getElementById('ytUrlInput').value })" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Analyse</button>
                         </div>
                     </div>
 
@@ -105,7 +106,7 @@
                         <label class="text-[10px] font-mono text-gray-400 uppercase">Target Keyword</label>
                         <div class="flex space-x-2">
                             <input type="text" id="ytKeywordInput" placeholder="e.g., inflation" class="flex-grow px-3 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
-                            <button onclick="analyzeYouTubeContent('keyword')" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Search</button>
+                            <button onclick="triggerWebhook('video_keyword_search', { keyword: document.getElementById('ytKeywordInput').value })" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-4 py-2 rounded font-bold whitespace-nowrap">Search</button>
                         </div>
                     </div>
                 </section>
@@ -115,15 +116,18 @@
                     <h2 class="text-xs font-mono text-cyan-400 tracking-wider border-b border-gray-800 pb-2">// 4. BOOK UPLOAD & 4-PAGE REVIEW ANALYZER</h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <label class="cursor-pointer bg-[#0b0f19] hover:bg-gray-800 text-gray-300 text-xs font-mono p-3 rounded border border-dashed border-gray-700 flex flex-col items-center justify-center transition text-center">
-                            <span class="text-cyan-400 text-xs">📂 Upload Book</span>
-                            <input type="file" class="hidden" onchange="simulateBookUpload(event)">
-                        </label>
+                        <div class="flex flex-col space-y-1">
+                            <label class="cursor-pointer bg-[#0b0f19] hover:bg-gray-800 text-gray-300 text-xs font-mono p-3 rounded border border-dashed border-gray-700 flex flex-col items-center justify-center transition text-center h-full">
+                                <span class="text-cyan-400 text-xs">📂 Upload Book</span>
+                                <input type="file" id="bookFileInput" class="hidden" onchange="handleFileSelection('bookFileInput', 'bookFileName')">
+                            </label>
+                            <span id="bookFileName" class="text-[10px] font-mono text-gray-500 italic">No file chosen</span>
+                        </div>
                         <div class="flex flex-col space-y-1">
                             <label class="text-[10px] font-mono text-gray-400 uppercase">Search Keyword</label>
                             <div class="flex space-x-2">
                                 <input type="text" id="bookKeywordInput" placeholder="Search term..." class="flex-grow px-2 py-2 bg-[#0b0f19] border border-gray-800 rounded text-gray-200 text-xs outline-none focus:border-cyan-500">
-                                <button onclick="searchKeywordInBook()" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-3 py-2 rounded font-bold whitespace-nowrap">Search</button>
+                                <button onclick="triggerWebhook('book_keyword_search', { query: document.getElementById('bookKeywordInput').value })" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs px-3 py-2 rounded font-bold whitespace-nowrap">Search</button>
                             </div>
                         </div>
                     </div>
@@ -158,17 +162,13 @@
         JOURNALIST PREPARATION STUDIO // DEEP RESEARCH ENGINE
     </footer>
 
-    <script>
-        // Initialize Supabase Client using standard environment parameters or local config
-        const SUPABASE_URL = 'https://YOUR_SUPABASE_URL.supabase.co';
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    <script type="module">
+        import { researchpage, SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Fetch active logged-in user upon page route precisely matching session requirements
         async function fetchActiveUser() {
             try {
                 let username = null;
-                
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
                     if (key && key.includes('supabase.auth.token')) {
@@ -203,78 +203,55 @@
             fetchActiveUser();
         });
 
-        function simulateHandwritingOCR(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const text = "[OCR PROCESSING LOG]: Successfully parsed handwritten ledger structures.\n\nExtracted paragraph content:\nSubject confirmed complete alignment on resource allocation timelines and multi-tier verification schedules across regional desks.";
-                document.getElementById('ocrOutput').value = text;
-                document.getElementById('activeResultView').innerHTML = `<span class="text-green-400">=== HANDWRITTEN NOTE CONVERTER OUTPUT ===</span>\n\n${text}`;
+        window.handleFileSelection = function(inputId, labelId) {
+            const fileInput = document.getElementById(inputId);
+            const label = document.getElementById(labelId);
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                label.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Data = e.target.result;
+                    if (inputId === 'ocrFileInput') {
+                        triggerWebhook('handwriting_ocr_upload', { filename: file.name, fileData: base64Data });
+                    } else if (inputId === 'bookFileInput') {
+                        triggerWebhook('book_upload', { filename: file.name, fileData: base64Data });
+                    }
+                };
+                reader.readAsDataURL(file);
             }
-        }
+        };
 
-        function runFactCheck(mode) {
-            const claim = document.getElementById('claimInput').value;
-            const imageUrl = document.getElementById('imageUrlInput').value;
+        window.triggerWebhook = async function(actionType, extraPayload = {}) {
             const resultBox = document.getElementById('activeResultView');
+            const username = document.getElementById('loggedInUserDisplay').textContent;
             
-            resultBox.innerHTML = `<span class="text-cyan-400">Executing ${mode.toUpperCase()} request via n8n intelligence webhook...</span>`;
-            
-            setTimeout(() => {
-                let report = `<span class="text-yellow-400">=== AI FACT-CHECK & FORENSICS REPORT (${mode.toUpperCase()}) ===</span>\n\n`;
-                if(claim) report += `Claim Analyzed: "${claim}"\nVerdict: Verified Misleading. Contradicts primary registry entries.\n\n`;
-                if(imageUrl) report += `Image URL Analyzed: ${imageUrl}\nForensics: Metadata verified authentic, zero synthetic generation signatures detected.`;
-                if(!claim && !imageUrl) report += `No active claim or image URL provided for evaluation.`;
-                resultBox.innerHTML = report;
-            }, 1000);
-        }
+            resultBox.innerHTML = `<span class="text-cyan-400">Dispatching [${actionType}] payload to research webhook...</span>`;
 
-        function analyzeYouTubeContent(mode) {
-            const url = document.getElementById('ytUrlInput').value;
-            const keyword = document.getElementById('ytKeywordInput').value;
-            const resultBox = document.getElementById('activeResultView');
+            try {
+                const response = await fetch(researchpage, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: actionType,
+                        user: username,
+                        timestamp: new Date().toISOString(),
+                        ...extraPayload
+                    })
+                });
 
-            resultBox.innerHTML = `<span class="text-cyan-400">Processing video multi-modal stream (${mode}) via pipeline...</span>`;
-
-            setTimeout(() => {
-                resultBox.innerHTML = `
-                    <span class="text-green-400">=== VIDEO ANALYSIS & TIMESTAMP REPORT ===</span><br><br>
-                    <strong>Video Target:</strong> ${url || 'Not provided'}<br>
-                    <strong>Target Keyword:</strong> "${keyword || 'General Stream'}"<br><br>
-                    <span class="text-cyan-300">Indexed Spoken Timestamps:</span><br>
-                    - [01:14] Primary reference context established by speaker.<br>
-                    - [04:32] Detailed empirical breakdown corresponding to query parameters.<br>
-                    - [12:05] Closing summary and analytical conclusion.
-                `;
-            }, 1000);
-        }
-
-        function simulateBookUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                document.getElementById('activeResultView').innerHTML = `
-                    <span class="text-green-400">=== BOOK UPLOAD & REVIEW (MAX 4 PAGES) ===</span><br><br>
-                    <strong>Author:</strong> Dr. Aris Thorne<br>
-                    <strong>Published Date:</strong> October 14, 2023<br>
-                    <strong>Document Scope:</strong> Condensed Analytical Review (3.2 Pages / Under 4-Page Limit)<br><br>
-                    <span class="text-cyan-300">Executive Synthesis:</span><br>
-                    The publication outlines comprehensive structural shifts across international monetary frameworks, tracing currency velocity, supply chain resiliency vectors, and policy adaptations over a 5-year macroscopic horizon.
-                `;
+                const data = await response.json();
+                resultBox.innerHTML = `<span class="text-green-400">=== WEBHOOK RESPONSE (${actionType.toUpperCase()}) ===</span>\n\n${JSON.stringify(data, null, 2)}`;
+                
+                if (actionType === 'handwriting_ocr_upload' && data.extractedText) {
+                    document.getElementById('ocrOutput').value = data.extractedText;
+                }
+            } catch (err) {
+                resultBox.innerHTML = `<span class="text-red-400">Webhook transmission error: ${err.message}</span>`;
             }
-        }
+        };
 
-        function searchKeywordInBook() {
-            const query = document.getElementById('bookKeywordInput').value;
-            const resultBox = document.getElementById('activeResultView');
-            resultBox.innerHTML = `
-                <span class="text-cyan-400">=== BOOK INDEX SEARCH RESULT ===</span><br><br>
-                <strong>Keyword Queried:</strong> "${query}"<br>
-                <strong>Occurrences Found:</strong> 4 matches across Chapter 2 and Chapter 4.<br>
-                - [Page 14] "...significant correlation with ${query} fluctuations..."<br>
-                - [Page 38] "...direct intervention mechanisms regarding ${query}..."
-            `;
-        }
-
-        function downloadContent(elementId, filename) {
+        window.downloadContent = function(elementId, filename) {
             const text = document.getElementById(elementId).innerText || document.getElementById(elementId).value;
             const blob = new Blob([text], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -285,11 +262,11 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-        }
+        };
 
-        function attachToDrive(itemTitle) {
+        window.attachToDrive = function(itemTitle) {
             alert(`Success: "${itemTitle}" has been securely attached and synced to your connected Google Drive storage folder.`);
-        }
+        };
     </script>
 </body>
 </html>
