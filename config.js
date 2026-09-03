@@ -23,7 +23,7 @@ export const GOOGLE_SCRIPT_URL ='https://script.google.com/macros/s/AKfycbwHRHhr
 export const researchpage  = 'https://unreached-oboe-evade.ngrok-free.dev/webhook-test/researchpage';
 export const N8N_Preparepage_GATEWAY_WEBHOOK = 'https://unreached-oboe-evade.ngrok-free.dev/webhook-test/08759d33-7b7f-4236-ae61-1d98b4a30815';
 
-export const N8N_sport_GATEWAY_WEBHOOK='https://unreached-oboe-evade.ngrok-free.dev/webhook/sport';
+export const N8N_sport_GATEWAY_WEBHOOK='https://unreached-oboe-evade.ngrok-free.dev/webhook-test/sport';
 // ========================================================
 // 🚧 DEVELOPMENT ROUTER OVERRIDE
 // ========================================================
