@@ -579,60 +579,78 @@
         }
 
         function renderSportsOutput(items) {
-            let targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
-            if (!targetEl) return;
+    let targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
+    if (!targetEl) return;
 
-            if (!Array.isArray(items) || items.length === 0) {
-                targetEl.innerHTML = `<div class="p-4 text-amber-400 font-mono text-xs border border-amber-800/40 bg-amber-950/20 rounded-lg">// Workflow returned empty match data.</div>`;
-                return;
-            }
+    if (!Array.isArray(items) || items.length === 0) {
+        targetEl.innerHTML = `<div class="p-4 text-amber-400 font-mono text-xs border border-amber-800/40 bg-amber-950/20 rounded-lg">// Workflow returned empty match data.</div>`;
+        return;
+    }
 
-            targetEl.innerHTML = `
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center px-1 border-b border-slate-800 pb-2">
-                        <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-bold">// SCRAPED MATCH FIXTURES (${items.length})</span>
-                        <span class="text-[10px] font-mono text-slate-400">${items[0]?.matchDate || 'LIVE DATA'}</span>
-                    </div>
+    targetEl.innerHTML = `
+        <div class="space-y-3">
+            <div class="flex justify-between items-center px-1 border-b border-slate-800 pb-2">
+                <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-bold">// SCRAPED MATCH FIXTURES (${items.length})</span>
+                <span class="text-[10px] font-mono text-slate-400">LIVE DATA</span>
+            </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                        ${items.map(m => {
-                            const home = m.homeTeam || m.title || 'Home Team';
-                            const away = m.awayTeam || 'Away Team';
-                            const score = m.result || 'VS';
-                            const round = m.round || 'Fixture';
-                            const time = m.kickOffTime || '--:--';
-                            const matchUrl = m.matchUrl || '#';
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                ${items.map(m => {
+                    const home = m.homeTeam || m.title || 'Home Team';
+                    const away = m.awayTeam || 'Away Team';
+                    const score = m.result || 'VS';
+                    const round = m.round || 'Fixture';
+                    const matchUrl = m.matchUrl || '#';
 
-                            return `
-                                <div class="bg-slate-900/90 border border-emerald-800/50 hover:border-emerald-400 p-3.5 rounded-xl transition-all shadow-lg flex flex-col justify-between group">
-                                    <div class="flex justify-between items-center text-[10px] font-mono text-slate-400 mb-2 border-b border-slate-800/80 pb-1.5">
-                                        <span class="text-emerald-400 font-bold">${round.toUpperCase()}</span>
-                                        <span class="bg-slate-800 px-2 py-0.5 rounded text-slate-300">⏱ ${time}</span>
-                                    </div>
+                    // Parse "2026-07-01 12:00" string reliably across all browsers
+                    let matchDate = '';
+                    let time = '--:--';
 
-                                    <div class="flex items-center justify-between my-2 px-1">
-                                        <div class="w-2/5 text-right font-bold text-xs text-slate-100 truncate">${home}</div>
-                                        <div class="px-2.5 py-1 bg-emerald-950/80 border border-emerald-500/40 rounded-lg text-emerald-300 font-mono text-xs font-bold tracking-wider shadow-inner">
-                                            ${score}
-                                        </div>
-                                        <div class="w-2/5 text-left font-bold text-xs text-slate-100 truncate">${away}</div>
-                                    </div>
+                    if (m.dateTime) {
+                        const parts = m.dateTime.trim().split(' ');
+                        if (parts.length >= 2) {
+                            matchDate = parts[0]; // "2026-07-01"
+                            time = parts[1];      // "12:00"
+                        } else if (parts.length === 1) {
+                            matchDate = parts[0];
+                        }
+                    } else {
+                        time = m.kickOffTime || '--:--';
+                    }
 
-                                    ${matchUrl !== '#' ? `
-                                        <div class="mt-2 pt-2 border-t border-slate-800/60 flex justify-end">
-                                            <button onclick="executeScraperWorkflow({ page: 'sports_detail', matchUrl: '${matchUrl}' })" 
-                                                    class="text-[10px] font-mono font-bold text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 hover:underline cursor-pointer">
-                                                TELEMETRY STATS ↗
-                                            </button>
-                                        </div>
-                                    ` : ''}
+                    return `
+                        <div class="bg-slate-900/90 border border-emerald-800/50 hover:border-emerald-400 p-3.5 rounded-xl transition-all shadow-lg flex flex-col justify-between group">
+                            <div class="flex justify-between items-center text-[10px] font-mono text-slate-400 mb-2 border-b border-slate-800/80 pb-1.5">
+                                <span class="text-emerald-400 font-bold">${round.toUpperCase()}</span>
+                                <div class="flex items-center gap-1.5 bg-slate-800 px-2 py-0.5 rounded text-slate-300">
+                                    ${matchDate ? `<span>📅 ${matchDate}</span><span class="text-slate-600">|</span>` : ''}
+                                    <span>⏱ ${time}</span>
                                 </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            `;
-        }
+                            </div>
+
+                            <div class="flex items-center justify-between my-2 px-1">
+                                <div class="w-2/5 text-right font-bold text-xs text-slate-100 truncate">${home}</div>
+                                <div class="px-2.5 py-1 bg-emerald-950/80 border border-emerald-500/40 rounded-lg text-emerald-300 font-mono text-xs font-bold tracking-wider shadow-inner">
+                                    ${score}
+                                </div>
+                                <div class="w-2/5 text-left font-bold text-xs text-slate-100 truncate">${away}</div>
+                            </div>
+
+                            ${matchUrl !== '#' ? `
+                                <div class="mt-2 pt-2 border-t border-slate-800/60 flex justify-end">
+                                    <button onclick="executeScraperWorkflow({ page: 'sports_detail', matchUrl: '${matchUrl}' })" 
+                                            class="text-[10px] font-mono font-bold text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 hover:underline cursor-pointer">
+                                        TELEMETRY STATS ↗
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+}
 </script>
 </body>
 </html>
