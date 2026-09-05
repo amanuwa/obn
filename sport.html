@@ -625,29 +625,7 @@
             return core;
         }
 
-  function normalizeN8nPayload(rawData) {
-    if (!rawData) return null;
-
-    let root = Array.isArray(rawData) ? rawData[0] : rawData;
-    if (!root) return null;
-
-    let core = root;
-
-    // Traverse potential n8n wrapper layers
-    while (core && typeof core === 'object' && !Array.isArray(core)) {
-        if (core.item) core = core.item;
-        else if (core.json) core = core.json;
-        else if (core.body) core = core.body;
-        else if (core.data) core = core.data;
-        else break;
-    }
-
-    if (Array.isArray(core) && core.length === 1) {
-        core = core[0];
-    }
-
-    return core;
-}
+ 
 
         /**
          * Primary match list cards renderer.
