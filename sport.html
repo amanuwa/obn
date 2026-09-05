@@ -600,27 +600,29 @@
             }
         };
 
-        function normalizeN8nPayload(rawData) {
-            if (!rawData) return null;
+       function normalizeN8nPayload(rawData) {
+    if (!rawData) return null;
 
-            let root = Array.isArray(rawData) ? rawData[0] : rawData;
-            if (!root) return null;
+    let core = Array.isArray(rawData) ? rawData[0] : rawData;
+    if (!core) return null;
 
-            let core = root;
-            while (core && typeof core === 'object' && !Array.isArray(core)) {
-                if (core.item) core = core.item;
-                else if (core.json) core = core.json;
-                else if (core.body) core = core.body;
-                else if (core.data) core = core.data;
-                else break;
-            }
+    // Deeply traverse potential wrapper keys from n8n / Firecrawl / Scraper nodes
+    while (core && typeof core === 'object' && !Array.isArray(core)) {
+        if (core.output) core = core.output;
+        else if (core.match) core = core.match;
+        else if (core.item) core = core.item;
+        else if (core.json) core = core.json;
+        else if (core.body) core = core.body;
+        else if (core.data) core = core.data;
+        else break;
+    }
 
-            if (Array.isArray(core) && core.length === 1) {
-                core = core[0];
-            }
+    if (Array.isArray(core) && core.length === 1) {
+        core = core[0];
+    }
 
-            return core;
-        }
+    return core;
+}
 
         // --- PRIMARY DISPATCH RENDERER ---
         window.renderSportsOutput = function(data) {
@@ -716,139 +718,153 @@
         };
 
         // --- MATCH DETAIL RENDERER ---
-        window.renderSportsDetailOutput = function(detail, targetEl) {
-            if (!detail || typeof detail !== 'object') {
-                targetEl.innerHTML = `<div class="p-3 text-rose-400 font-mono text-xs">❌ Error: Invalid or empty detail payload received.</div>`;
-                return;
-            }
+    window.renderSportsDetailOutput = function(detail, targetEl) {
+    if (!detail || typeof detail !== 'object') {
+        targetEl.innerHTML = `<div class="p-3 text-rose-400 font-mono text-xs">❌ Error: Invalid or empty detail payload received.</div>`;
+        return;
+    }
 
-            const homeName = detail.homeTeam || detail.home_team || detail.home || detail.teams?.home || 'Home Team';
-            const awayName = detail.awayTeam || detail.away_team || detail.away || detail.teams?.away || 'Away Team';
-            const score = detail.matchResult || detail.result || detail.score || 
-                (detail.goalsHome !== undefined && detail.goalsAway !== undefined ? `${detail.goalsHome} - ${detail.goalsAway}` : '0 - 0');
-            const round = detail.round || detail.standings?.round || detail.league || 'MATCH TELEMETRY';
-            const date = detail.matchDate || detail.dateTime || detail.date || '';
+    // Unpack if still nested under .match or .output
+    const matchData = detail.match || detail.output || detail;
 
-            const goalsList = Array.isArray(detail.goals) ? detail.goals : (detail.events?.goals || []);
-            const subsList = Array.isArray(detail.substitutions) ? detail.substitutions : (detail.events?.substitutions || []);
+    // Team Names Extraction
+    const homeName = matchData.homeTeam || matchData.home_team || matchData.home || matchData.teams?.home?.name || matchData.teams?.home || 'Home Team';
+    const awayName = matchData.awayTeam || matchData.away_team || matchData.away || matchData.teams?.away?.name || matchData.teams?.away || 'Away Team';
+    
+    // Score Extraction
+    const score = matchData.matchResult || matchData.result || matchData.score || 
+        (matchData.goalsHome !== undefined && matchData.goalsAway !== undefined ? `${matchData.goalsHome} - ${matchData.goalsAway}` : 
+        (matchData.scoreHome !== undefined && matchData.scoreAway !== undefined ? `${matchData.scoreHome} - ${matchData.scoreAway}` : '0 - 0'));
+    
+    const round = matchData.round || matchData.league || matchData.competition || 'MATCH TELEMETRY';
+    const date = matchData.matchDate || matchData.dateTime || matchData.date || '';
 
-            const statsObj = detail.statistics || detail.stats || detail.matchStats || {};
+    // Events Extraction
+    const goalsList = Array.isArray(matchData.goals) ? matchData.goals : (matchData.events?.goals || []);
+    const subsList = Array.isArray(matchData.substitutions) ? matchData.substitutions : (matchData.events?.substitutions || []);
 
-            const extractStat = (key) => {
-                const rawStat = statsObj[key] || statsObj[key.toLowerCase()];
-                if (!rawStat) return { home: '0', away: '0' };
+    // Statistics Extraction
+    const statsObj = matchData.statistics || matchData.stats || matchData.matchStats || matchData.periodStatistics || {};
 
-                if (typeof rawStat === 'object' && !Array.isArray(rawStat)) {
-                    return {
-                        home: rawStat.home ?? rawStat.homeTeam ?? rawStat.team1 ?? '0',
-                        away: rawStat.away ?? rawStat.awayTeam ?? rawStat.team2 ?? '0'
-                    };
-                }
+    const extractStat = (key) => {
+        const rawStat = statsObj[key] || statsObj[key.toLowerCase()] || statsObj[key.replace(/([A-Z])/g, '_$1').toLowerCase()];
+        if (!rawStat) return { home: '0', away: '0' };
 
-                if (Array.isArray(rawStat)) {
-                    const h = rawStat.find(item => item.team === 'home' || item.side === 'home')?.value || '0';
-                    const a = rawStat.find(item => item.team === 'away' || item.side === 'away')?.value || '0';
-                    return { home: h, away: a };
-                }
-
-                return { home: '0', away: '0' };
+        if (typeof rawStat === 'object' && !Array.isArray(rawStat)) {
+            return {
+                home: rawStat.home ?? rawStat.homeTeam ?? rawStat.team1 ?? '0',
+                away: rawStat.away ?? rawStat.awayTeam ?? rawStat.team2 ?? '0'
             };
+        }
 
-            const posFull = extractStat('ballPossession') || extractStat('possession');
-            const shots = extractStat('totalShots') || extractStat('shots');
-            const shotsOnTarget = extractStat('shotsOnTarget');
-            const shotsOffTarget = extractStat('shotsOffTarget');
-            const corners = extractStat('cornerKicks') || extractStat('corners');
-            const offsides = extractStat('offsides');
-            const fouls = extractStat('fouls');
+        if (Array.isArray(rawStat)) {
+            const h = rawStat.find(item => item.team === 'home' || item.side === 'home')?.value || rawStat[0] || '0';
+            const a = rawStat.find(item => item.team === 'away' || item.side === 'away')?.value || rawStat[1] || '0';
+            return { home: h, away: a };
+        }
 
-            targetEl.innerHTML = `
-                <div class="space-y-4 font-sans text-slate-200">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-2 font-mono">
-                        <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">// MATCH TELEMETRY MATRIX</span>
-                        <button onclick="handleBackToFixtures()" class="text-[10px] text-slate-400 hover:text-emerald-400 underline cursor-pointer">
-                            ← BACK TO FIXTURES
-                        </button>
+        if (typeof rawStat === 'string' || typeof rawStat === 'number') {
+            return { home: String(rawStat), away: '0' };
+        }
+
+        return { home: '0', away: '0' };
+    };
+
+    const posFull = extractStat('ballPossession') || extractStat('possession');
+    const shots = extractStat('totalShots') || extractStat('shots');
+    const shotsOnTarget = extractStat('shotsOnTarget');
+    const shotsOffTarget = extractStat('shotsOffTarget');
+    const corners = extractStat('cornerKicks') || extractStat('corners');
+    const offsides = extractStat('offsides');
+    const fouls = extractStat('fouls');
+
+    targetEl.innerHTML = `
+        <div class="space-y-4 font-sans text-slate-200">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2 font-mono">
+                <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">// MATCH TELEMETRY MATRIX</span>
+                <button onclick="handleBackToFixtures()" class="text-[10px] text-slate-400 hover:text-emerald-400 underline cursor-pointer">
+                    ← BACK TO FIXTURES
+                </button>
+            </div>
+
+            <div class="bg-slate-900/90 border border-emerald-800/60 rounded-xl p-4 text-center shadow-xl">
+                <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase mb-1">${round} ${date ? `• ${date}` : ''}</div>
+                <div class="flex items-center justify-between my-3 px-4">
+                    <div class="w-2/5 text-right font-extrabold text-base md:text-lg text-slate-100">${homeName}</div>
+                    <div class="px-3 py-1.5 bg-emerald-950 border border-emerald-500/50 rounded-lg text-emerald-300 font-mono text-base font-black shadow-inner">
+                        ${score}
+                    </div>
+                    <div class="w-2/5 text-left font-extrabold text-base md:text-lg text-slate-100">${awayName}</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-4">
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+                        <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-2 flex items-center gap-1.5">
+                            ⚽ GOAL INCIDENTS
+                        </div>
+                        ${goalsList.length > 0 ? `
+                            <div class="space-y-2 text-xs">
+                                ${goalsList.map(g => `
+                                    <div class="flex justify-between items-center bg-slate-800/40 px-2.5 py-1.5 rounded border border-slate-800">
+                                        <span class="font-mono text-emerald-400 font-bold w-10">${g.minute || g.time || ''}'</span>
+                                        <span class="font-bold text-slate-200 flex-1">${g.scorer || g.player || g.name || 'Goal'}</span>
+                                        <span class="text-[10px] font-mono text-slate-400">${g.team || ''}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `<div class="text-[11px] font-mono text-slate-500 italic">No goals reported</div>`}
                     </div>
 
-                    <div class="bg-slate-900/90 border border-emerald-800/60 rounded-xl p-4 text-center shadow-xl">
-                        <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase mb-1">${round} ${date ? `• ${date}` : ''}</div>
-                        <div class="flex items-center justify-between my-3 px-4">
-                            <div class="w-2/5 text-right font-extrabold text-base md:text-lg text-slate-100">${homeName}</div>
-                            <div class="px-3 py-1.5 bg-emerald-950 border border-emerald-500/50 rounded-lg text-emerald-300 font-mono text-base font-black shadow-inner">
-                                ${score}
-                            </div>
-                            <div class="w-2/5 text-left font-extrabold text-base md:text-lg text-slate-100">${awayName}</div>
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+                        <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-2 flex items-center gap-1.5">
+                            🔄 SUBSTITUTIONS
                         </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-4">
-                            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
-                                <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-2 flex items-center gap-1.5">
-                                    ⚽ GOAL INCIDENTS
-                                </div>
-                                ${goalsList.length > 0 ? `
-                                    <div class="space-y-2 text-xs">
-                                        ${goalsList.map(g => `
-                                            <div class="flex justify-between items-center bg-slate-800/40 px-2.5 py-1.5 rounded border border-slate-800">
-                                                <span class="font-mono text-emerald-400 font-bold w-10">${g.minute || g.time || ''}'</span>
-                                                <span class="font-bold text-slate-200 flex-1">${g.scorer || g.player || 'Goal'}</span>
-                                                <span class="text-[10px] font-mono text-slate-400">${g.team || ''}</span>
-                                            </div>
-                                        `).join('')}
+                        ${subsList.length > 0 ? `
+                            <div class="space-y-2 text-xs">
+                                ${subsList.map(s => `
+                                    <div class="flex justify-between items-center bg-slate-800/40 px-2.5 py-1.5 rounded border border-slate-800">
+                                        <span class="font-mono text-amber-400 font-bold w-10">${s.minute || s.time || ''}'</span>
+                                        <div class="flex-1 text-slate-300">
+                                            <span class="text-emerald-400">IN:</span> ${s.playerIn || s.in || (typeof s === 'string' ? s : '-')} 
+                                            <span class="text-slate-500">|</span> 
+                                            <span class="text-rose-400">OUT:</span> ${s.playerOut || s.out || '-'}
+                                        </div>
                                     </div>
-                                ` : `<div class="text-[11px] font-mono text-slate-500 italic">No goals reported</div>`}
+                                `).join('')}
                             </div>
-
-                            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
-                                <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-2 flex items-center gap-1.5">
-                                    🔄 SUBSTITUTIONS
-                                </div>
-                                ${subsList.length > 0 ? `
-                                    <div class="space-y-2 text-xs">
-                                        ${subsList.map(s => `
-                                            <div class="flex justify-between items-center bg-slate-800/40 px-2.5 py-1.5 rounded border border-slate-800">
-                                                <span class="font-mono text-amber-400 font-bold w-10">${s.minute || s.time || ''}'</span>
-                                                <div class="flex-1 text-slate-300">
-                                                    <span class="text-emerald-400">IN:</span> ${s.playerIn || s.in || '-'} 
-                                                    <span class="text-slate-500">|</span> 
-                                                    <span class="text-rose-400">OUT:</span> ${s.playerOut || s.out || '-'}
-                                                </div>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                ` : `<div class="text-[11px] font-mono text-slate-500 italic">No substitutions recorded</div>`}
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 space-y-3">
-                            <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 flex items-center gap-1.5">
-                                📊 STATISTICAL METRICS
-                            </div>
-
-                            <div class="space-y-1.5 text-xs font-mono">
-                                <div class="text-[10px] text-slate-400 uppercase font-bold text-center">BALL POSSESSION</div>
-                                <div class="flex justify-between text-[11px]">
-                                    <span>${posFull.home}</span>
-                                    <span class="text-slate-400">Overall</span>
-                                    <span>${posFull.away}</span>
-                                </div>
-                            </div>
-
-                            <div class="border-t border-slate-800/80 pt-2 space-y-2 text-xs font-mono">
-                                <div class="flex justify-between items-center"><span class="text-emerald-400 font-bold">${shots.home}</span><span class="text-slate-400">Total Shots</span><span class="text-emerald-400 font-bold">${shots.away}</span></div>
-                                <div class="flex justify-between items-center"><span>${shotsOnTarget.home}</span><span class="text-slate-400">Shots on Target</span><span>${shotsOnTarget.away}</span></div>
-                                <div class="flex justify-between items-center"><span>${shotsOffTarget.home}</span><span class="text-slate-400">Shots off Target</span><span>${shotsOffTarget.away}</span></div>
-                                <div class="flex justify-between items-center"><span>${corners.home}</span><span class="text-slate-400">Corner Kicks</span><span>${corners.away}</span></div>
-                                <div class="flex justify-between items-center"><span>${offsides.home}</span><span class="text-slate-400">Offsides</span><span>${offsides.away}</span></div>
-                                <div class="flex justify-between items-center"><span>${fouls.home}</span><span class="text-slate-400">Fouls</span><span>${fouls.away}</span></div>
-                            </div>
-                        </div>
+                        ` : `<div class="text-[11px] font-mono text-slate-500 italic">No substitutions recorded</div>`}
                     </div>
                 </div>
-            `;
-        };
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 space-y-3">
+                    <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 flex items-center gap-1.5">
+                        📊 STATISTICAL METRICS
+                    </div>
+
+                    <div class="space-y-1.5 text-xs font-mono">
+                        <div class="text-[10px] text-slate-400 uppercase font-bold text-center">BALL POSSESSION</div>
+                        <div class="flex justify-between text-[11px]">
+                            <span>${posFull.home}</span>
+                            <span class="text-slate-400">Overall</span>
+                            <span>${posFull.away}</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-800/80 pt-2 space-y-2 text-xs font-mono">
+                        <div class="flex justify-between items-center"><span class="text-emerald-400 font-bold">${shots.home}</span><span class="text-slate-400">Total Shots</span><span class="text-emerald-400 font-bold">${shots.away}</span></div>
+                        <div class="flex justify-between items-center"><span>${shotsOnTarget.home}</span><span class="text-slate-400">Shots on Target</span><span>${shotsOnTarget.away}</span></div>
+                        <div class="flex justify-between items-center"><span>${shotsOffTarget.home}</span><span class="text-slate-400">Shots off Target</span><span>${shotsOffTarget.away}</span></div>
+                        <div class="flex justify-between items-center"><span>${corners.home}</span><span class="text-slate-400">Corner Kicks</span><span>${corners.away}</span></div>
+                        <div class="flex justify-between items-center"><span>${offsides.home}</span><span class="text-slate-400">Offsides</span><span>${offsides.away}</span></div>
+                        <div class="flex justify-between items-center"><span>${fouls.home}</span><span class="text-slate-400">Fouls</span><span>${fouls.away}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+};
 </script>
 </body>
 </html>
