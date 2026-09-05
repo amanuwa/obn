@@ -566,91 +566,276 @@
             }
         };
 
+        /**
+         * Normalizes payload arrays and single detail objects.
+         */
         function normalizeN8nPayload(rawData) {
             let root = Array.isArray(rawData) ? rawData[0] : rawData;
-            if (!root) return [];
-            if (root.data && Array.isArray(root.data.matches)) return root.data.matches;
-
+            if (!root) return null;
+            
+            // Extract core data level
             let data = root.data || root.json || root.body || root.items || root.results || root;
-            if (Array.isArray(data)) return data;
-            if (data && Array.isArray(data.matches)) return data.matches;
-
-            return typeof data === 'object' ? [data] : [];
+            if (Array.isArray(data) && data.length === 1) {
+                data = data[0];
+            }
+            return data;
         }
 
-        function renderSportsOutput(items) {
-    let targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
-    if (!targetEl) return;
+        /**
+         * Routes between rendering match lists or detailed telemetry views.
+         */
+        function renderSportsOutput(data) {
+            const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
+            if (!targetEl) return;
 
-    if (!Array.isArray(items) || items.length === 0) {
-        targetEl.innerHTML = `<div class="p-4 text-amber-400 font-mono text-xs border border-amber-800/40 bg-amber-950/20 rounded-lg">// Workflow returned empty match data.</div>`;
-        return;
-    }
+            if (!data || (Array.isArray(data) && data.length === 0)) {
+                targetEl.innerHTML = `
+                    <div class="p-4 text-amber-400 font-mono text-xs border border-amber-800/40 bg-amber-950/20 rounded-lg">
+                        // Workflow returned empty match data.
+                    </div>`;
+                return;
+            }
 
-    targetEl.innerHTML = `
-        <div class="space-y-3">
-            <div class="flex justify-between items-center px-1 border-b border-slate-800 pb-2">
-                <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-bold">// SCRAPED MATCH FIXTURES (${items.length})</span>
-                <span class="text-[10px] font-mono text-slate-400">LIVE DATA</span>
-            </div>
+            // Check if object is a single match detail payload vs array list
+            const isDetail = !Array.isArray(data) && typeof data === 'object' && (data.statistics || data.lineups || data.goals || data.matchResult);
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                ${items.map(m => {
-                    const home = m.homeTeam || m.title || 'Home Team';
-                    const away = m.awayTeam || 'Away Team';
-                    const score = m.result || 'VS';
-                    const round = m.round || 'Fixture';
-                    const matchUrl = m.matchUrl || '#';
+            if (isDetail) {
+                renderSportsDetailOutput(data, targetEl);
+            } else if (Array.isArray(data)) {
+                window.fullMatchList = data;
+                renderSportsFixturesList(data, targetEl);
+            } else if (data.matches && Array.isArray(data.matches)) {
+                window.fullMatchList = data.matches;
+                renderSportsFixturesList(data.matches, targetEl);
+            }
+        }
 
-                    // Parse "2026-07-01 12:00" string reliably across all browsers
-                    let matchDate = '';
-                    let time = '--:--';
+        /**
+         * Renders the primary match list cards.
+         */
+        function renderSportsFixturesList(items, targetEl) {
+            targetEl.innerHTML = `
+                <div class="space-y-3 font-sans">
+                    <div class="flex justify-between items-center px-1 border-b border-slate-800 pb-2">
+                        <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-bold">// SCRAPED MATCH FIXTURES (${items.length})</span>
+                        <span class="text-[10px] font-mono text-slate-400">LIVE DATA</span>
+                    </div>
 
-                    if (m.dateTime) {
-                        const parts = m.dateTime.trim().split(' ');
-                        if (parts.length >= 2) {
-                            matchDate = parts[0]; // "2026-07-01"
-                            time = parts[1];      // "12:00"
-                        } else if (parts.length === 1) {
-                            matchDate = parts[0];
-                        }
-                    } else {
-                        time = m.kickOffTime || '--:--';
-                    }
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        ${items.map(m => {
+                            const home = m.homeTeam || m.title || 'Home Team';
+                            const away = m.awayTeam || 'Away Team';
+                            const score = m.result || m.matchResult || 'VS';
+                            const round = m.round || 'Fixture';
+                            const matchUrl = m.matchUrl || '#';
 
-                    return `
-                        <div class="bg-slate-900/90 border border-emerald-800/50 hover:border-emerald-400 p-3.5 rounded-xl transition-all shadow-lg flex flex-col justify-between group">
-                            <div class="flex justify-between items-center text-[10px] font-mono text-slate-400 mb-2 border-b border-slate-800/80 pb-1.5">
-                                <span class="text-emerald-400 font-bold">${round.toUpperCase()}</span>
-                                <div class="flex items-center gap-1.5 bg-slate-800 px-2 py-0.5 rounded text-slate-300">
-                                    ${matchDate ? `<span>📅 ${matchDate}</span><span class="text-slate-600">|</span>` : ''}
-                                    <span>⏱ ${time}</span>
+                            let matchDate = '';
+                            let time = '--:--';
+
+                            if (m.dateTime) {
+                                const parts = m.dateTime.trim().split(' ');
+                                if (parts.length >= 2) {
+                                    matchDate = parts[0];
+                                    time = parts[1];
+                                } else if (parts.length === 1) {
+                                    matchDate = parts[0];
+                                }
+                            } else if (m.kickOffTime) {
+                                time = m.kickOffTime;
+                            }
+
+                            return `
+                                <div class="bg-slate-900/90 border border-emerald-800/50 hover:border-emerald-400 p-3.5 rounded-xl transition-all shadow-lg flex flex-col justify-between group">
+                                    <div class="flex justify-between items-center text-[10px] font-mono text-slate-400 mb-2 border-b border-slate-800/80 pb-1.5">
+                                        <span class="text-emerald-400 font-bold">${round.toUpperCase()}</span>
+                                        <div class="flex items-center gap-1.5 bg-slate-800 px-2 py-0.5 rounded text-slate-300">
+                                            ${matchDate ? `<span>📅 ${matchDate}</span><span class="text-slate-600">|</span>` : ''}
+                                            <span>⏱ ${time}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-between my-2 px-1">
+                                        <div class="w-2/5 text-right font-bold text-xs text-slate-100 truncate">${home}</div>
+                                        <div class="px-2.5 py-1 bg-emerald-950/80 border border-emerald-500/40 rounded-lg text-emerald-300 font-mono text-xs font-bold tracking-wider shadow-inner">
+                                            ${score}
+                                        </div>
+                                        <div class="w-2/5 text-left font-bold text-xs text-slate-100 truncate">${away}</div>
+                                    </div>
+
+                                    ${matchUrl !== '#' ? `
+                                        <div class="mt-2 pt-2 border-t border-slate-800/60 flex justify-end">
+                                            <button onclick="executeScraperWorkflow({ page: 'sports_detail', matchUrl: '${matchUrl}' })" 
+                                                    class="text-[10px] font-mono font-bold text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 hover:underline cursor-pointer">
+                                                TELEMETRY STATS ↗
+                                            </button>
+                                        </div>
+                                    ` : ''}
                                 </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Detailed telemetry renderer for individual match pages.
+         */
+        function renderSportsDetailOutput(detail, targetEl) {
+            const homeName = detail.homeTeam || 'Home Team';
+            const awayName = detail.awayTeam || 'Away Team';
+            const score = detail.matchResult || detail.result || '0 - 0';
+            const round = detail.standings?.round || detail.round || 'MATCH TELEMETRY';
+            const date = detail.matchDate || detail.dateTime || '';
+
+            const homeRank = detail.standings?.homeTeamStanding ? (typeof detail.standings.homeTeamStanding === 'object' ? JSON.stringify(detail.standings.homeTeamStanding) : detail.standings.homeTeamStanding) : null;
+            const awayRank = detail.standings?.awayTeamStanding ? (typeof detail.standings.awayTeamStanding === 'object' ? JSON.stringify(detail.standings.awayTeamStanding) : detail.standings.awayTeamStanding) : null;
+
+            const getStat = (statObj) => {
+                if (!statObj) return { home: '0', away: '0' };
+                if (typeof statObj === 'object') return { home: statObj.home ?? '0', away: statObj.away ?? '0' };
+                return { home: '0', away: '0' };
+            };
+
+            const posFull = getStat(detail.statistics?.ballPossession?.fullMatch || detail.statistics?.ballPossession);
+            const pos1st = getStat(detail.statistics?.ballPossession?.firstHalf);
+            const pos2nd = getStat(detail.statistics?.ballPossession?.secondHalf);
+            const shots = getStat(detail.statistics?.totalShots);
+            const shotsOnTarget = getStat(detail.statistics?.shotsOnTarget);
+            const shotsOffTarget = getStat(detail.statistics?.shotsOffTarget);
+            const corners = getStat(detail.statistics?.cornerKicks);
+            const offsides = getStat(detail.statistics?.offsides);
+            const fouls = getStat(detail.statistics?.fouls);
+
+            targetEl.innerHTML = `
+                <div class="space-y-4 font-sans text-slate-200">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2 font-mono">
+                        <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">// MATCH TELEMETRY MATRIX</span>
+                        <button onclick="if(window.fullMatchList.length) { renderSportsFixturesList(window.fullMatchList, document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer')); } else { renderInternationalLeaguesMatrix(); }" class="text-[10px] text-slate-400 hover:text-emerald-400 underline cursor-pointer">
+                            ← BACK TO FIXTURES
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-900/90 border border-emerald-800/60 rounded-xl p-4 text-center shadow-xl">
+                        <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase mb-1">${round} ${date ? `• ${date}` : ''}</div>
+                        <div class="flex items-center justify-between my-3 px-4">
+                            <div class="w-2/5 text-right font-extrabold text-base md:text-lg text-slate-100">
+                                ${homeName}
+                                ${homeRank ? `<div class="text-[10px] font-mono text-emerald-500 font-normal">Rank: ${homeRank}</div>` : ''}
                             </div>
-
-                            <div class="flex items-center justify-between my-2 px-1">
-                                <div class="w-2/5 text-right font-bold text-xs text-slate-100 truncate">${home}</div>
-                                <div class="px-2.5 py-1 bg-emerald-950/80 border border-emerald-500/40 rounded-lg text-emerald-300 font-mono text-xs font-bold tracking-wider shadow-inner">
-                                    ${score}
-                                </div>
-                                <div class="w-2/5 text-left font-bold text-xs text-slate-100 truncate">${away}</div>
+                            <div class="px-3 py-1.5 bg-emerald-950 border border-emerald-500/50 rounded-lg text-emerald-300 font-mono text-base font-black shadow-inner">
+                                ${score}
                             </div>
-
-                            ${matchUrl !== '#' ? `
-                                <div class="mt-2 pt-2 border-t border-slate-800/60 flex justify-end">
-                                    <button onclick="executeScraperWorkflow({ page: 'sports_detail', matchUrl: '${matchUrl}' })" 
-                                            class="text-[10px] font-mono font-bold text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 hover:underline cursor-pointer">
-                                        TELEMETRY STATS ↗
-                                    </button>
-                                </div>
-                            ` : ''}
+                            <div class="w-2/5 text-left font-extrabold text-base md:text-lg text-slate-100">
+                                ${awayName}
+                                ${awayRank ? `<div class="text-[10px] font-mono text-emerald-500 font-normal">Rank: ${awayRank}</div>` : ''}
+                            </div>
                         </div>
-                    `;
-                }).join('')}
-            </div>
-        </div>
-    `;
-}
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-4">
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+                                <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-2 flex items-center gap-1.5">
+                                    ⚽ GOAL INCIDENTS
+                                </div>
+                                ${Array.isArray(detail.goals) && detail.goals.length > 0 ? `
+                                    <div class="space-y-2 text-xs">
+                                        ${detail.goals.map(g => `
+                                            <div class="flex justify-between items-center bg-slate-800/40 px-2.5 py-1.5 rounded border border-slate-800">
+                                                <span class="font-mono text-emerald-400 font-bold w-10">${g.minute || ''}</span>
+                                                <span class="font-bold text-slate-200 flex-1">${g.scorer || 'Goal'}</span>
+                                                <span class="text-[10px] font-mono text-slate-400">${g.team || ''}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : `<div class="text-[11px] font-mono text-slate-500 italic">No goals reported</div>`}
+                            </div>
+
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+                                <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-2 flex items-center gap-1.5">
+                                    🔄 SUBSTITUTIONS
+                                </div>
+                                ${Array.isArray(detail.substitutions) && detail.substitutions.length > 0 ? `
+                                    <div class="space-y-2 text-xs">
+                                        ${detail.substitutions.map(s => `
+                                            <div class="flex justify-between items-center bg-slate-800/40 px-2.5 py-1.5 rounded border border-slate-800">
+                                                <span class="font-mono text-amber-400 font-bold w-10">${s.minute || ''}</span>
+                                                <div class="flex-1 text-slate-300">
+                                                    <span class="text-emerald-400">IN:</span> ${s.playerIn || '-'} 
+                                                    <span class="text-slate-500">|</span> 
+                                                    <span class="text-rose-400">OUT:</span> ${s.playerOut || '-'}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : `<div class="text-[11px] font-mono text-slate-500 italic">No substitutions recorded</div>`}
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 space-y-3">
+                            <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 flex items-center gap-1.5">
+                                📊 STATISTICAL METRICS
+                            </div>
+
+                            <div class="space-y-1.5 text-xs font-mono">
+                                <div class="text-[10px] text-slate-400 uppercase font-bold text-center">BALL POSSESSION</div>
+                                <div class="flex justify-between text-[11px]">
+                                    <span>${posFull.home}</span>
+                                    <span class="text-slate-400">Overall</span>
+                                    <span>${posFull.away}</span>
+                                </div>
+                                <div class="flex justify-between text-[10px] text-slate-400 border-t border-slate-800/40 pt-1">
+                                    <span>1ST: ${pos1st.home}</span>
+                                    <span>2ND: ${pos2nd.home}</span>
+                                    <span>|</span>
+                                    <span>1ST: ${pos1st.away}</span>
+                                    <span>2ND: ${pos2nd.away}</span>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-slate-800/80 pt-2 space-y-2 text-xs font-mono">
+                                <div class="flex justify-between items-center"><span class="text-emerald-400 font-bold">${shots.home}</span><span class="text-slate-400">Total Shots</span><span class="text-emerald-400 font-bold">${shots.away}</span></div>
+                                <div class="flex justify-between items-center"><span>${shotsOnTarget.home}</span><span class="text-slate-400">Shots on Target</span><span>${shotsOnTarget.away}</span></div>
+                                <div class="flex justify-between items-center"><span>${shotsOffTarget.home}</span><span class="text-slate-400">Shots off Target</span><span>${shotsOffTarget.away}</span></div>
+                                <div class="flex justify-between items-center"><span>${corners.home}</span><span class="text-slate-400">Corner Kicks</span><span>${corners.away}</span></div>
+                                <div class="flex justify-between items-center"><span>${offsides.home}</span><span class="text-slate-400">Offsides</span><span>${offsides.away}</span></div>
+                                <div class="flex justify-between items-center"><span>${fouls.home}</span><span class="text-slate-400">Fouls</span><span>${fouls.away}</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${detail.lineups ? `
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+                            <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-3">
+                                📋 TEAM LINEUPS
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                <div class="space-y-1">
+                                    <div class="font-bold text-slate-200 border-b border-slate-800 pb-1 flex justify-between">
+                                        <span>${homeName}</span>
+                                        <span class="font-mono text-emerald-400">${detail.lineups.homeTeam?.formation || ''}</span>
+                                    </div>
+                                    ${Array.isArray(detail.lineups.homeTeam?.startingEleven) ? detail.lineups.homeTeam.startingEleven.map(p => `
+                                        <div class="text-slate-300 font-mono text-[11px]">${p.number ? `#${p.number}` : '•'} ${p.name || p} ${p.position ? `(${p.position})` : ''}</div>
+                                    `).join('') : '<div class="text-slate-500 italic text-[11px]">No lineup details</div>'}
+                                </div>
+
+                                <div class="space-y-1">
+                                    <div class="font-bold text-slate-200 border-b border-slate-800 pb-1 flex justify-between">
+                                        <span>${awayName}</span>
+                                        <span class="font-mono text-emerald-400">${detail.lineups.awayTeam?.formation || ''}</span>
+                                    </div>
+                                    ${Array.isArray(detail.lineups.awayTeam?.startingEleven) ? detail.lineups.awayTeam.startingEleven.map(p => `
+                                        <div class="text-slate-300 font-mono text-[11px]">${p.number ? `#${p.number}` : '•'} ${p.name || p} ${p.position ? `(${p.position})` : ''}</div>
+                                    `).join('') : '<div class="text-slate-500 italic text-[11px]">No lineup details</div>'}
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
 </script>
 </body>
 </html>
