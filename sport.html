@@ -193,6 +193,48 @@
     import { N8N_sport_GATEWAY_WEBHOOK } from './config.js';
         window.fullMatchList = [];
 
+        // --- FRONTEND TEMPORARY STORAGE & BACK NAVIGATION ---
+        function saveMatchesToStorage(matches) {
+            if (!Array.isArray(matches) || matches.length === 0) return;
+            window.fullMatchList = matches;
+            try {
+                sessionStorage.setItem('cached_sports_matches', JSON.stringify(matches));
+            } catch (e) {
+                console.warn('Unable to write to sessionStorage:', e);
+            }
+        }
+
+        function getStoredMatches() {
+            if (window.fullMatchList && window.fullMatchList.length > 0) {
+                return window.fullMatchList;
+            }
+            try {
+                const stored = sessionStorage.getItem('cached_sports_matches');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        window.fullMatchList = parsed;
+                        return parsed;
+                    }
+                }
+            } catch (e) {
+                console.warn('Unable to read from sessionStorage:', e);
+            }
+            return null;
+        }
+
+        window.handleBackToFixtures = function() {
+            const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
+            if (!targetEl) return;
+
+            const matches = getStoredMatches();
+            if (matches && matches.length > 0) {
+                renderSportsFixturesList(matches, targetEl);
+            } else {
+                renderInternationalLeaguesMatrix();
+            }
+        };
+
         // --- THREE.JS GLOBE ENGINE ---
         let scene, camera, renderer, globeParticles;
         const clock = new THREE.Clock();
@@ -438,10 +480,7 @@
                         <div class="text-[11px] text-slate-400 mt-0.5">Click a league button below to trigger the live scraping pipeline:</div>
                     </div>
 
-                    <!-- 4 LEAGUE BUTTONS GRID -->
                     <div id="leagueSelectionPanel" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        
-                        <!-- BUTTON 1: PREMIER LEAGUE -->
                         <button onclick="executeLeaguePipeline('Premier League', 'https://www.besoccer.com/competition/premier_league')" 
                                 class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
                             <div class="flex items-center gap-3">
@@ -454,7 +493,6 @@
                             <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
                         </button>
 
-                        <!-- BUTTON 2: UEFA CHAMPIONS LEAGUE -->
                         <button onclick="executeLeaguePipeline('UEFA Champions League', 'https://www.besoccer.com/competition/champions_league')" 
                                 class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
                             <div class="flex items-center gap-3">
@@ -467,7 +505,6 @@
                             <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
                         </button>
 
-                        <!-- BUTTON 3: SPAIN LALIGA -->
                         <button onclick="executeLeaguePipeline('Spain LaLiga', 'https://www.besoccer.com/competition/primera_division')" 
                                 class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
                             <div class="flex items-center gap-3">
@@ -480,7 +517,6 @@
                             <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
                         </button>
 
-                        <!-- BUTTON 4: OTHER EUROPEAN LEAGUES -->
                         <button onclick="executeLeaguePipeline('Ligue 1, Bundesliga, Serie A', 'https://www.besoccer.com/competition/serie_a')" 
                                 class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
                             <div class="flex items-center gap-3">
@@ -492,10 +528,8 @@
                             </div>
                             <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
                         </button>
-
                     </div>
 
-                    <!-- TARGET CARDS RENDER CONTAINER -->
                     <div id="sportsCardsContainer" class="mt-6"></div>
                 </div>
             `;
@@ -561,78 +595,74 @@
                 
                 const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
                 if (targetEl) {
-                    targetEl.innerHTML = `<div class="p-3 text-rose-500 font-mono text-xs border border-rose-900/50 bg-rose-950/30 rounded-lg">❌ Execution Error: ${err.message}<br><span class="text-slate-400 font-sans text-[11px] mt-1 block">Ensure N8N_GATEWAY_WEBHOOK is pointing to your active webhook URL at line 143.</span></div>`;
+                    targetEl.innerHTML = `<div class="p-3 text-rose-500 font-mono text-xs border border-rose-900/50 bg-rose-950/30 rounded-lg">❌ Execution Error: ${err.message}<br><span class="text-slate-400 font-sans text-[11px] mt-1 block">Ensure N8N_GATEWAY_WEBHOOK is pointing to your active webhook URL.</span></div>`;
                 }
             }
         };
 
         /**
-         * Normalizes payload arrays and single detail objects.
+         * Recursively unrolls nested n8n wrapper layers & metadata
          */
-   function normalizeN8nPayload(rawData) {
-    if (!rawData) return null;
+        function normalizeN8nPayload(rawData) {
+            if (!rawData) return null;
 
-    // Unroll outer array if present
-    let root = Array.isArray(rawData) ? rawData[0] : rawData;
-    if (!root) return null;
+            let root = Array.isArray(rawData) ? rawData[0] : rawData;
+            if (!root) return null;
 
-    // Traverse potential wrapper layers (item, json, body, data)
-    let core = root.item || root.json || root.body || root.data || root;
+            let core = root;
+            while (core && typeof core === 'object' && !Array.isArray(core)) {
+                if (core.item) core = core.item;
+                else if (core.json) core = core.json;
+                else if (core.body) core = core.body;
+                else if (core.data) core = core.data;
+                else break;
+            }
 
-    // Handle double-nested cases (e.g., root.item.json or root.data.item)
-    if (core && typeof core === 'object' && !Array.isArray(core)) {
-        if (core.item) core = core.item;
-        else if (core.json) core = core.json;
-    }
+            if (Array.isArray(core) && core.length === 1) {
+                core = core[0];
+            }
 
-    // If an array with a single detail object was returned, extract the first item
-    if (Array.isArray(core) && core.length === 1) {
-        core = core[0];
-    }
+            return core;
+        }
 
-    return core;
-}
+        function renderSportsOutput(data) {
+            const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
+            if (!targetEl) return;
 
-function renderSportsOutput(data) {
-    const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
-    if (!targetEl) return;
+            if (!data) {
+                targetEl.innerHTML = `
+                    <div class="p-4 text-amber-400 font-mono text-xs border border-amber-800/40 bg-amber-950/20 rounded-lg">
+                        // Workflow returned empty match data.
+                    </div>`;
+                return;
+            }
 
-    if (!data) {
-        targetEl.innerHTML = `
-            <div class="p-4 text-amber-400 font-mono text-xs border border-amber-800/40 bg-amber-950/20 rounded-lg">
-                // Workflow returned empty match data.
-            </div>`;
-        return;
-    }
+            const isDetailObject = typeof data === 'object' && !Array.isArray(data) && (
+                Boolean(data.statistics) || 
+                Boolean(data.lineups) || 
+                Boolean(data.goals) || 
+                Boolean(data.substitutions) ||
+                Boolean(data.matchResult) ||
+                Boolean(data.matchDate) ||
+                Boolean(data.coach) ||
+                Boolean(data.standings)
+            );
 
-    // Check if data is a detail match payload (including nested coach/lineup/matchResult fields)
-    const isDetailObject = typeof data === 'object' && !Array.isArray(data) && (
-        Boolean(data.statistics) || 
-        Boolean(data.lineups) || 
-        Boolean(data.goals) || 
-        Boolean(data.substitutions) ||
-        Boolean(data.matchResult) ||
-        Boolean(data.matchDate) ||
-        Boolean(data.coach) ||
-        Boolean(data.standings)
-    );
-
-    if (isDetailObject) {
-        renderSportsDetailOutput(data, targetEl);
-    } else if (Array.isArray(data)) {
-        window.fullMatchList = data;
-        renderSportsFixturesList(data, targetEl);
-    } else if (data.matches && Array.isArray(data.matches)) {
-        window.fullMatchList = data.matches;
-        renderSportsFixturesList(data.matches, targetEl);
-    } else {
-        // Direct fallback to detail renderer for single unclassified match objects
-        renderSportsDetailOutput(data, targetEl);
-    }
-}
+            if (isDetailObject) {
+                renderSportsDetailOutput(data, targetEl);
+            } else if (Array.isArray(data)) {
+                saveMatchesToStorage(data);
+                renderSportsFixturesList(data, targetEl);
+            } else if (data.matches && Array.isArray(data.matches)) {
+                saveMatchesToStorage(data.matches);
+                renderSportsFixturesList(data.matches, targetEl);
+            } else {
+                renderSportsDetailOutput(data, targetEl);
+            }
+        }
 
         /**
-         * Renders the primary match list cards.
+         * Primary match list cards renderer.
          */
         function renderSportsFixturesList(items, targetEl) {
             targetEl.innerHTML = `
@@ -644,11 +674,11 @@ function renderSportsOutput(data) {
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                         ${items.map(m => {
-                            const home = m.homeTeam || m.title || 'Home Team';
-                            const away = m.awayTeam || 'Away Team';
-                            const score = m.result || m.matchResult || 'VS';
+                            const home = m.homeTeam || m.home_team || m.home || m.title || 'Home Team';
+                            const away = m.awayTeam || m.away_team || m.away || 'Away Team';
+                            const score = m.result || m.matchResult || m.score || 'VS';
                             const round = m.round || 'Fixture';
-                            const matchUrl = m.matchUrl || '#';
+                            const matchUrl = m.matchUrl || m.url || '#';
 
                             let matchDate = '';
                             let time = '--:--';
@@ -663,6 +693,8 @@ function renderSportsOutput(data) {
                                 }
                             } else if (m.kickOffTime) {
                                 time = m.kickOffTime;
+                            } else if (m.date) {
+                                matchDate = m.date;
                             }
 
                             return `
@@ -700,39 +732,41 @@ function renderSportsOutput(data) {
         }
 
         /**
-         * Detailed telemetry renderer for individual match pages.
+         * Detailed telemetry renderer for match detail page.
          */
         function renderSportsDetailOutput(detail, targetEl) {
-            const homeName = detail.homeTeam || 'Home Team';
-            const awayName = detail.awayTeam || 'Away Team';
-            const score = detail.matchResult || detail.result || '0 - 0';
-            const round = detail.standings?.round || detail.round || 'MATCH TELEMETRY';
-            const date = detail.matchDate || detail.dateTime || '';
+            const homeName = detail.homeTeam || detail.home_team || detail.home || detail.teams?.home || 'Home Team';
+            const awayName = detail.awayTeam || detail.away_team || detail.away || detail.teams?.away || 'Away Team';
+            const score = detail.matchResult || detail.result || detail.score || (detail.goalsHome !== undefined ? `${detail.goalsHome} - ${detail.goalsAway}` : '0 - 0');
+            const round = detail.round || detail.standings?.round || detail.league || 'MATCH TELEMETRY';
+            const date = detail.matchDate || detail.dateTime || detail.date || '';
 
             const homeRank = detail.standings?.homeTeamStanding ? (typeof detail.standings.homeTeamStanding === 'object' ? JSON.stringify(detail.standings.homeTeamStanding) : detail.standings.homeTeamStanding) : null;
             const awayRank = detail.standings?.awayTeamStanding ? (typeof detail.standings.awayTeamStanding === 'object' ? JSON.stringify(detail.standings.awayTeamStanding) : detail.standings.awayTeamStanding) : null;
 
-            const getStat = (statObj) => {
-                if (!statObj) return { home: '0', away: '0' };
-                if (typeof statObj === 'object') return { home: statObj.home ?? '0', away: statObj.away ?? '0' };
+            const statsObj = detail.statistics || detail.stats || {};
+
+            const getStat = (stat) => {
+                if (!stat) return { home: '0', away: '0' };
+                if (typeof stat === 'object') return { home: stat.home ?? stat.homeTeam ?? '0', away: stat.away ?? stat.awayTeam ?? '0' };
                 return { home: '0', away: '0' };
             };
 
-            const posFull = getStat(detail.statistics?.ballPossession?.fullMatch || detail.statistics?.ballPossession);
-            const pos1st = getStat(detail.statistics?.ballPossession?.firstHalf);
-            const pos2nd = getStat(detail.statistics?.ballPossession?.secondHalf);
-            const shots = getStat(detail.statistics?.totalShots);
-            const shotsOnTarget = getStat(detail.statistics?.shotsOnTarget);
-            const shotsOffTarget = getStat(detail.statistics?.shotsOffTarget);
-            const corners = getStat(detail.statistics?.cornerKicks);
-            const offsides = getStat(detail.statistics?.offsides);
-            const fouls = getStat(detail.statistics?.fouls);
+            const posFull = getStat(statsObj.ballPossession?.fullMatch || statsObj.ballPossession || statsObj.possession);
+            const pos1st = getStat(statsObj.ballPossession?.firstHalf);
+            const pos2nd = getStat(statsObj.ballPossession?.secondHalf);
+            const shots = getStat(statsObj.totalShots || statsObj.shots);
+            const shotsOnTarget = getStat(statsObj.shotsOnTarget);
+            const shotsOffTarget = getStat(statsObj.shotsOffTarget);
+            const corners = getStat(statsObj.cornerKicks || statsObj.corners);
+            const offsides = getStat(statsObj.offsides);
+            const fouls = getStat(statsObj.fouls);
 
             targetEl.innerHTML = `
                 <div class="space-y-4 font-sans text-slate-200">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-2 font-mono">
                         <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">// MATCH TELEMETRY MATRIX</span>
-                        <button onclick="if(window.fullMatchList.length) { renderSportsFixturesList(window.fullMatchList, document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer')); } else { renderInternationalLeaguesMatrix(); }" class="text-[10px] text-slate-400 hover:text-emerald-400 underline cursor-pointer">
+                        <button onclick="handleBackToFixtures()" class="text-[10px] text-slate-400 hover:text-emerald-400 underline cursor-pointer">
                             ← BACK TO FIXTURES
                         </button>
                     </div>
@@ -765,7 +799,7 @@ function renderSportsOutput(data) {
                                         ${detail.goals.map(g => `
                                             <div class="flex justify-between items-center bg-slate-800/40 px-2.5 py-1.5 rounded border border-slate-800">
                                                 <span class="font-mono text-emerald-400 font-bold w-10">${g.minute || ''}</span>
-                                                <span class="font-bold text-slate-200 flex-1">${g.scorer || 'Goal'}</span>
+                                                <span class="font-bold text-slate-200 flex-1">${g.scorer || g.player || 'Goal'}</span>
                                                 <span class="text-[10px] font-mono text-slate-400">${g.team || ''}</span>
                                             </div>
                                         `).join('')}
@@ -783,9 +817,9 @@ function renderSportsOutput(data) {
                                             <div class="flex justify-between items-center bg-slate-800/40 px-2.5 py-1.5 rounded border border-slate-800">
                                                 <span class="font-mono text-amber-400 font-bold w-10">${s.minute || ''}</span>
                                                 <div class="flex-1 text-slate-300">
-                                                    <span class="text-emerald-400">IN:</span> ${s.playerIn || '-'} 
+                                                    <span class="text-emerald-400">IN:</span> ${s.playerIn || s.in || '-'} 
                                                     <span class="text-slate-500">|</span> 
-                                                    <span class="text-rose-400">OUT:</span> ${s.playerOut || '-'}
+                                                    <span class="text-rose-400">OUT:</span> ${s.playerOut || s.out || '-'}
                                                 </div>
                                             </div>
                                         `).join('')}
@@ -806,13 +840,6 @@ function renderSportsOutput(data) {
                                     <span class="text-slate-400">Overall</span>
                                     <span>${posFull.away}</span>
                                 </div>
-                                <div class="flex justify-between text-[10px] text-slate-400 border-t border-slate-800/40 pt-1">
-                                    <span>1ST: ${pos1st.home}</span>
-                                    <span>2ND: ${pos2nd.home}</span>
-                                    <span>|</span>
-                                    <span>1ST: ${pos1st.away}</span>
-                                    <span>2ND: ${pos2nd.away}</span>
-                                </div>
                             </div>
 
                             <div class="border-t border-slate-800/80 pt-2 space-y-2 text-xs font-mono">
@@ -825,35 +852,6 @@ function renderSportsOutput(data) {
                             </div>
                         </div>
                     </div>
-
-                    ${detail.lineups ? `
-                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
-                            <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-3">
-                                📋 TEAM LINEUPS
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                                <div class="space-y-1">
-                                    <div class="font-bold text-slate-200 border-b border-slate-800 pb-1 flex justify-between">
-                                        <span>${homeName}</span>
-                                        <span class="font-mono text-emerald-400">${detail.lineups.homeTeam?.formation || ''}</span>
-                                    </div>
-                                    ${Array.isArray(detail.lineups.homeTeam?.startingEleven) ? detail.lineups.homeTeam.startingEleven.map(p => `
-                                        <div class="text-slate-300 font-mono text-[11px]">${p.number ? `#${p.number}` : '•'} ${p.name || p} ${p.position ? `(${p.position})` : ''}</div>
-                                    `).join('') : '<div class="text-slate-500 italic text-[11px]">No lineup details</div>'}
-                                </div>
-
-                                <div class="space-y-1">
-                                    <div class="font-bold text-slate-200 border-b border-slate-800 pb-1 flex justify-between">
-                                        <span>${awayName}</span>
-                                        <span class="font-mono text-emerald-400">${detail.lineups.awayTeam?.formation || ''}</span>
-                                    </div>
-                                    ${Array.isArray(detail.lineups.awayTeam?.startingEleven) ? detail.lineups.awayTeam.startingEleven.map(p => `
-                                        <div class="text-slate-300 font-mono text-[11px]">${p.number ? `#${p.number}` : '•'} ${p.name || p} ${p.position ? `(${p.position})` : ''}</div>
-                                    `).join('') : '<div class="text-slate-500 italic text-[11px]">No lineup details</div>'}
-                                </div>
-                            </div>
-                        </div>
-                    ` : ''}
                 </div>
             `;
         }
