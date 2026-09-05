@@ -569,46 +569,67 @@
         /**
          * Normalizes payload arrays and single detail objects.
          */
-        function normalizeN8nPayload(rawData) {
-            let root = Array.isArray(rawData) ? rawData[0] : rawData;
-            if (!root) return null;
-            
-            // Extract core data level
-            let data = root.data || root.json || root.body || root.items || root.results || root;
-            if (Array.isArray(data) && data.length === 1) {
-                data = data[0];
-            }
-            return data;
-        }
+   function normalizeN8nPayload(rawData) {
+    if (!rawData) return null;
 
-        /**
-         * Routes between rendering match lists or detailed telemetry views.
-         */
-        function renderSportsOutput(data) {
-            const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
-            if (!targetEl) return;
+    // Unroll outer array if present
+    let root = Array.isArray(rawData) ? rawData[0] : rawData;
+    if (!root) return null;
 
-            if (!data || (Array.isArray(data) && data.length === 0)) {
-                targetEl.innerHTML = `
-                    <div class="p-4 text-amber-400 font-mono text-xs border border-amber-800/40 bg-amber-950/20 rounded-lg">
-                        // Workflow returned empty match data.
-                    </div>`;
-                return;
-            }
+    // Traverse potential wrapper layers (item, json, body, data)
+    let core = root.item || root.json || root.body || root.data || root;
 
-            // Check if object is a single match detail payload vs array list
-            const isDetail = !Array.isArray(data) && typeof data === 'object' && (data.statistics || data.lineups || data.goals || data.matchResult);
+    // Handle double-nested cases (e.g., root.item.json or root.data.item)
+    if (core && typeof core === 'object' && !Array.isArray(core)) {
+        if (core.item) core = core.item;
+        else if (core.json) core = core.json;
+    }
 
-            if (isDetail) {
-                renderSportsDetailOutput(data, targetEl);
-            } else if (Array.isArray(data)) {
-                window.fullMatchList = data;
-                renderSportsFixturesList(data, targetEl);
-            } else if (data.matches && Array.isArray(data.matches)) {
-                window.fullMatchList = data.matches;
-                renderSportsFixturesList(data.matches, targetEl);
-            }
-        }
+    // If an array with a single detail object was returned, extract the first item
+    if (Array.isArray(core) && core.length === 1) {
+        core = core[0];
+    }
+
+    return core;
+}
+
+function renderSportsOutput(data) {
+    const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
+    if (!targetEl) return;
+
+    if (!data) {
+        targetEl.innerHTML = `
+            <div class="p-4 text-amber-400 font-mono text-xs border border-amber-800/40 bg-amber-950/20 rounded-lg">
+                // Workflow returned empty match data.
+            </div>`;
+        return;
+    }
+
+    // Check if data is a detail match payload (including nested coach/lineup/matchResult fields)
+    const isDetailObject = typeof data === 'object' && !Array.isArray(data) && (
+        Boolean(data.statistics) || 
+        Boolean(data.lineups) || 
+        Boolean(data.goals) || 
+        Boolean(data.substitutions) ||
+        Boolean(data.matchResult) ||
+        Boolean(data.matchDate) ||
+        Boolean(data.coach) ||
+        Boolean(data.standings)
+    );
+
+    if (isDetailObject) {
+        renderSportsDetailOutput(data, targetEl);
+    } else if (Array.isArray(data)) {
+        window.fullMatchList = data;
+        renderSportsFixturesList(data, targetEl);
+    } else if (data.matches && Array.isArray(data.matches)) {
+        window.fullMatchList = data.matches;
+        renderSportsFixturesList(data.matches, targetEl);
+    } else {
+        // Direct fallback to detail renderer for single unclassified match objects
+        renderSportsDetailOutput(data, targetEl);
+    }
+}
 
         /**
          * Renders the primary match list cards.
