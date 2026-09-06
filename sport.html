@@ -690,6 +690,61 @@
     `;
 };
 
+    window.extractStat = function(statsContainer, statName) {
+    if (!statsContainer) return { home: 'N/A', away: 'N/A' };
+
+    // Format 1: Object with home/away direct keys (e.g., statsContainer.possession = { home: '55%', away: '45%' })
+    if (statsContainer[statName]) {
+        const item = statsContainer[statName];
+        if (typeof item === 'object') {
+            return {
+                home: item.home ?? item.homeTeam ?? item.team1 ?? 'N/A',
+                away: item.away ?? item.awayTeam ?? item.team2 ?? 'N/A'
+            };
+        }
+    }
+
+    // Format 2: Direct keys on statsContainer (e.g. home_possession / away_possession or homePossession / awayPossession)
+    const homeVal = statsContainer[`home_${statName}`] ?? statsContainer[`home${statName.charAt(0).toUpperCase() + statName.slice(1)}`]?.[statName] ?? statsContainer.homeTeam?.[statName] ?? statsContainer.home?.[statName];
+    const awayVal = statsContainer[`away_${statName}`] ?? statsContainer[`away${statName.charAt(0).toUpperCase() + statName.slice(1)}`]?.[statName] ?? statsContainer.awayTeam?.[statName] ?? statsContainer.away?.[statName];
+
+    if (homeVal !== undefined || awayVal !== undefined) {
+        return { home: homeVal ?? 'N/A', away: awayVal ?? 'N/A' };
+    }
+
+    // Format 3: Array format using 'team', 'side', or team names (e.g. [{ team: 'home', value: 10 }, { team: 'away', value: 5 }])
+    if (Array.isArray(statsContainer)) {
+        const statEntry = statsContainer.find(s => s.name?.toLowerCase() === statName.toLowerCase() || s.stat === statName);
+        if (statEntry) {
+            return {
+                home: statEntry.home ?? statEntry.homeValue ?? statEntry.team1 ?? 'N/A',
+                away: statEntry.away ?? statEntry.awayValue ?? statEntry.team2 ?? 'N/A'
+            };
+        }
+
+        const homeItem = statsContainer.find(s => s.team === 'home' || s.side === 'home' || s.team === 'team1');
+        const awayItem = statsContainer.find(s => s.team === 'away' || s.side === 'away' || s.team === 'team2');
+
+        if (homeItem || awayItem) {
+            return {
+                home: homeItem?.[statName] ?? homeItem?.value ?? 'N/A',
+                away: awayItem?.[statName] ?? awayItem?.value ?? 'N/A'
+            };
+        }
+    }
+
+    // Format 4: fullMatch object containing home/away structures
+    if (statsContainer.fullMatch) {
+        const fm = statsContainer.fullMatch;
+        return {
+            home: fm.home?.[statName] ?? fm.homeTeam?.[statName] ?? 'N/A',
+            away: fm.away?.[statName] ?? fm.awayTeam?.[statName] ?? 'N/A'
+        };
+    }
+
+    return { home: 'N/A', away: 'N/A' };
+};
+
         // --- MATCH DETAIL RENDERER ---
        window.renderSportsDetailOutput = function(detailObj, container) {
     // Console Log 3: Detail Object
