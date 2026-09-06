@@ -550,63 +550,55 @@
             });
         };
 
-      window.executeScraperWorkflow = async function(payload) {
-    const loader = document.getElementById('fullPageLoader');
-    const loaderTitle = document.getElementById('loaderTitle');
-    const loaderSubtext = document.getElementById('loaderSubtext');
+        window.executeScraperWorkflow = async function(payload) {
+            const loader = document.getElementById('fullPageLoader');
+            const loaderTitle = document.getElementById('loaderTitle');
+            const loaderSubtext = document.getElementById('loaderSubtext');
 
-    if (loader) {
-        if (loaderTitle) loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
-        if (loaderSubtext) loaderSubtext.innerText = payload.matchUrl 
-            ? `Fetching live match stats for selected fixture...` 
-            : `Fetching telemetry for: ${payload.selectedLeague || payload.query || 'request'}...`;
-        loader.classList.remove('hidden');
-        loader.classList.add('flex');
-    }
+            if (loader) {
+                if (loaderTitle) loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
+                if (loaderSubtext) loaderSubtext.innerText = payload.matchUrl 
+                    ? `Fetching live match stats for selected fixture...` 
+                    : `Fetching telemetry for: ${payload.selectedLeague || payload.query || 'request'}...`;
+                loader.classList.remove('hidden');
+                loader.classList.add('flex');
+            }
 
-    try {
-        const response = await fetch(N8N_sport_GATEWAY_WEBHOOK, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true'
-            },
-            body: JSON.stringify(payload)
-        });
+            try {
+                const response = await fetch(N8N_sport_GATEWAY_WEBHOOK, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-        if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
+                if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
-        const rawData = await response.json();
-        
-        // Console Log 1: Raw Response Data
-        console.log("[DEBUG] Pipeline Raw Response:", rawData);
+                const rawData = await response.json();
+                const cleanData = normalizeN8nPayload(rawData);
 
-        const cleanData = normalizeN8nPayload(rawData);
+                if (loader) {
+                    loader.classList.remove('flex');
+                    loader.classList.add('hidden');
+                }
 
-        // Console Log 2: Normalized Data
-        console.log("[DEBUG] Pipeline Normalized Data:", cleanData);
+                window.renderSportsOutput(cleanData);
 
-        if (loader) {
-            loader.classList.remove('flex');
-            loader.classList.add('hidden');
-        }
-
-        window.renderSportsOutput(cleanData, payload);
-
-    } catch (err) {
-        console.error("Pipeline Execution Error:", err);
-        if (loader) {
-            loader.classList.remove('flex');
-            loader.classList.add('hidden');
-        }
-        const output = document.getElementById('outputContainer');
-        if (output) {
-            output.innerHTML = `<div class="p-4 bg-rose-950/60 border border-rose-500/50 text-rose-300 rounded-lg font-mono text-xs">
-                [ERROR] Pipeline Execution Failed: ${err.message}
-            </div>`;
-        }
-    }
-};
+            } catch (err) {
+                console.error("Pipeline Fetch Error:", err);
+                if (loader) {
+                    loader.classList.remove('flex');
+                    loader.classList.add('hidden');
+                }
+                
+                const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
+                if (targetEl) {
+                    targetEl.innerHTML = `<div class="p-3 text-rose-500 font-mono text-xs border border-rose-900/50 bg-rose-950/30 rounded-lg">❌ Execution Error: ${err.message}<br><span class="text-slate-400 font-sans text-[11px] mt-1 block">Ensure N8N_GATEWAY_WEBHOOK is pointing to your active webhook URL.</span></div>`;
+                }
+            }
+        };
 
         function normalizeN8nPayload(rawData) {
             if (!rawData) return null;
@@ -631,194 +623,232 @@
         }
 
         // --- PRIMARY DISPATCH RENDERER ---
-      window.renderSportsOutput = function(data, payload = {}) {
-    const outputContainer = document.getElementById('outputContainer');
-    if (!outputContainer) return;
+        window.renderSportsOutput = function(data) {
+            const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
+            if (!targetEl) return;
 
-    if (!data || (Array.isArray(data) && data.length === 0)) {
-        outputContainer.innerHTML = `<div class="p-4 text-slate-400 italic">// No telemetry returned from pipeline workflow.</div>`;
-        return;
-    }
+            if (!data) {
+                targetEl.innerHTML = `<div class="p-4 text-amber-400 font-mono text-xs border border-amber-800/40 bg-amber-950/20 rounded-lg">// Workflow returned empty match data.</div>`;
+                return;
+            }
 
-    // Check if response is single match detail object or targeted for detailed view
-    const isDetailTarget = payload.targetMatrix === 'match_details' || payload.matchUrl;
-    const firstItem = Array.isArray(data) ? data[0] : data;
+            if (Array.isArray(data)) {
+                saveMatchesToStorage(data);
+                window.renderSportsFixturesList(data, targetEl);
+                return;
+            }
 
-    if (isDetailTarget || (firstItem && (firstItem.statistics || firstItem.stats || firstItem.events || firstItem.lineups))) {
-        window.renderSportsDetailOutput(firstItem, outputContainer);
-    } else {
-        const matchesArray = Array.isArray(data) ? data : [data];
-        saveMatchesToStorage(matchesArray);
-        window.renderSportsFixturesList(matchesArray, outputContainer);
-    }
-};
+            if (data.matches && Array.isArray(data.matches)) {
+                saveMatchesToStorage(data.matches);
+                window.renderSportsFixturesList(data.matches, targetEl);
+                return;
+            }
+
+            window.renderSportsDetailOutput(data, targetEl);
+        };
 
         // --- FIXTURES LIST RENDERER ---
-      window.renderSportsFixturesList = function(matches, container) {
-    if (!container) return;
+        window.renderSportsFixturesList = function(items, targetEl) {
+            targetEl.innerHTML = `
+                <div class="space-y-3 font-sans">
+                    <div class="flex justify-between items-center px-1 border-b border-slate-800 pb-2">
+                        <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-bold">// SCRAPED MATCH FIXTURES (${items.length})</span>
+                        <span class="text-[10px] font-mono text-slate-400">LIVE DATA</span>
+                    </div>
 
-    const cardsHtml = matches.map((match, idx) => {
-        // Safely escape URL using JSON.stringify to prevent broken attributes/syntax errors
-        const safeUrlPayload = match.matchUrl 
-            ? JSON.stringify({ matchUrl: match.matchUrl, targetMatrix: 'match_details' }).replace(/"/g, '&quot;')
-            : null;
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        ${items.map(m => {
+                            const home = m.homeTeam || m.home_team || m.home || m.title || 'Home Team';
+                            const away = m.awayTeam || m.away_team || m.away || 'Away Team';
+                            const score = m.result || m.matchResult || m.score || 'VS';
+                            const round = m.round || 'Fixture';
+                            const matchUrl = m.matchUrl || m.url || '#';
 
-        return `
-            <div class="bg-slate-900/80 border border-slate-800 hover:border-emerald-500/50 p-4 rounded-xl mb-3 flex justify-between items-center transition-all">
-                <div class="flex flex-col">
-                    <span class="text-[10px] text-emerald-400 font-mono mb-1">${match.round || match.league || 'Fixture'} • ${match.dateTime || match.date || 'TBD'}</span>
-                    <div class="text-sm font-bold text-slate-100">
-                        ${match.homeTeam || match.home || 'Home'} 
-                        <span class="text-emerald-500 px-1 font-mono">${match.result || match.score || 'vs'}</span> 
-                        ${match.awayTeam || match.away || 'Away'}
+                            let matchDate = '';
+                            let time = '--:--';
+
+                            if (m.dateTime) {
+                                const parts = m.dateTime.trim().split(' ');
+                                if (parts.length >= 2) {
+                                    matchDate = parts[0];
+                                    time = parts[1];
+                                } else if (parts.length === 1) {
+                                    matchDate = parts[0];
+                                }
+                            } else if (m.kickOffTime) {
+                                time = m.kickOffTime;
+                            } else if (m.date) {
+                                matchDate = m.date;
+                            }
+
+                            return `
+                                <div class="bg-slate-900/90 border border-emerald-800/50 hover:border-emerald-400 p-3.5 rounded-xl transition-all shadow-lg flex flex-col justify-between group">
+                                    <div class="flex justify-between items-center text-[10px] font-mono text-slate-400 mb-2 border-b border-slate-800/80 pb-1.5">
+                                        <span class="text-emerald-400 font-bold">${round.toUpperCase()}</span>
+                                        <div class="flex items-center gap-1.5 bg-slate-800 px-2 py-0.5 rounded text-slate-300">
+                                            ${matchDate ? `<span>📅 ${matchDate}</span><span class="text-slate-600">|</span>` : ''}
+                                            <span>⏱ ${time}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-between my-2 px-1">
+                                        <div class="w-2/5 text-right font-bold text-xs text-slate-100 truncate">${home}</div>
+                                        <div class="px-2.5 py-1 bg-emerald-950/80 border border-emerald-500/40 rounded-lg text-emerald-300 font-mono text-xs font-bold tracking-wider shadow-inner">
+                                            ${score}
+                                        </div>
+                                        <div class="w-2/5 text-left font-bold text-xs text-slate-100 truncate">${away}</div>
+                                    </div>
+
+                                    ${matchUrl !== '#' ? `
+                                        <div class="mt-2 pt-2 border-t border-slate-800/60 flex justify-end">
+                                            <button onclick="executeScraperWorkflow({ page: 'sports_detail', matchUrl: '${matchUrl}' })" 
+                                                    class="text-[10px] font-mono font-bold text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 hover:underline cursor-pointer">
+                                                TELEMETRY STATS ↗
+                                            </button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>
-                ${safeUrlPayload 
-                    ? `<button onclick="window.executeScraperWorkflow(${safeUrlPayload})" class="bg-emerald-950/80 hover:bg-emerald-600 border border-emerald-500 text-emerald-300 hover:text-white px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer">Telemetry →</button>` 
-                    : ''}
-            </div>
-        `;
-    }).join('');
-
-    container.innerHTML = `
-        <div class="mb-4">
-            <button onclick="window.handleBackToFixtures()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer">
-                ← Back to Selection
-            </button>
-        </div>
-        <div class="space-y-3">${cardsHtml}</div>
-    `;
-};
-
-    window.extractStat = function(statsContainer, statName) {
-    if (!statsContainer) return { home: 'N/A', away: 'N/A' };
-
-    // Format 1: Object with home/away direct keys (e.g., statsContainer.possession = { home: '55%', away: '45%' })
-    if (statsContainer[statName]) {
-        const item = statsContainer[statName];
-        if (typeof item === 'object') {
-            return {
-                home: item.home ?? item.homeTeam ?? item.team1 ?? 'N/A',
-                away: item.away ?? item.awayTeam ?? item.team2 ?? 'N/A'
-            };
-        }
-    }
-
-    // Format 2: Direct keys on statsContainer (e.g. home_possession / away_possession or homePossession / awayPossession)
-    const homeVal = statsContainer[`home_${statName}`] ?? statsContainer[`home${statName.charAt(0).toUpperCase() + statName.slice(1)}`]?.[statName] ?? statsContainer.homeTeam?.[statName] ?? statsContainer.home?.[statName];
-    const awayVal = statsContainer[`away_${statName}`] ?? statsContainer[`away${statName.charAt(0).toUpperCase() + statName.slice(1)}`]?.[statName] ?? statsContainer.awayTeam?.[statName] ?? statsContainer.away?.[statName];
-
-    if (homeVal !== undefined || awayVal !== undefined) {
-        return { home: homeVal ?? 'N/A', away: awayVal ?? 'N/A' };
-    }
-
-    // Format 3: Array format using 'team', 'side', or team names (e.g. [{ team: 'home', value: 10 }, { team: 'away', value: 5 }])
-    if (Array.isArray(statsContainer)) {
-        const statEntry = statsContainer.find(s => s.name?.toLowerCase() === statName.toLowerCase() || s.stat === statName);
-        if (statEntry) {
-            return {
-                home: statEntry.home ?? statEntry.homeValue ?? statEntry.team1 ?? 'N/A',
-                away: statEntry.away ?? statEntry.awayValue ?? statEntry.team2 ?? 'N/A'
-            };
-        }
-
-        const homeItem = statsContainer.find(s => s.team === 'home' || s.side === 'home' || s.team === 'team1');
-        const awayItem = statsContainer.find(s => s.team === 'away' || s.side === 'away' || s.team === 'team2');
-
-        if (homeItem || awayItem) {
-            return {
-                home: homeItem?.[statName] ?? homeItem?.value ?? 'N/A',
-                away: awayItem?.[statName] ?? awayItem?.value ?? 'N/A'
-            };
-        }
-    }
-
-    // Format 4: fullMatch object containing home/away structures
-    if (statsContainer.fullMatch) {
-        const fm = statsContainer.fullMatch;
-        return {
-            home: fm.home?.[statName] ?? fm.homeTeam?.[statName] ?? 'N/A',
-            away: fm.away?.[statName] ?? fm.awayTeam?.[statName] ?? 'N/A'
+            `;
         };
-    }
-
-    return { home: 'N/A', away: 'N/A' };
-};
 
         // --- MATCH DETAIL RENDERER ---
-       window.renderSportsDetailOutput = function(detailObj, container) {
-    // Console Log 3: Detail Object
-    console.log("[DEBUG] Rendering Detail Output for Object:", detailObj);
+        window.renderSportsDetailOutput = function(detail, targetEl) {
+            if (!detail || typeof detail !== 'object') {
+                targetEl.innerHTML = `<div class="p-3 text-rose-400 font-mono text-xs">❌ Error: Invalid or empty detail payload received.</div>`;
+                return;
+            }
 
-    if (!container) return;
+            const homeName = detail.homeTeam || detail.home_team || detail.home || detail.teams?.home || 'Home Team';
+            const awayName = detail.awayTeam || detail.away_team || detail.away || detail.teams?.away || 'Away Team';
+            const score = detail.matchResult || detail.result || detail.score || 
+                (detail.goalsHome !== undefined && detail.goalsAway !== undefined ? `${detail.goalsHome} - ${detail.goalsAway}` : '0 - 0');
+            const round = detail.round || detail.standings?.round || detail.league || 'MATCH TELEMETRY';
+            const date = detail.matchDate || detail.dateTime || detail.date || '';
 
-    const stats = detailObj.statistics || detailObj.stats || detailObj;
-    const homeTeam = detailObj.homeTeam || detailObj.home || detailObj.team1 || 'Home Team';
-    const awayTeam = detailObj.awayTeam || detailObj.away || detailObj.team2 || 'Away Team';
-    const score = detailObj.score || detailObj.result || 'vs';
+            const goalsList = Array.isArray(detail.goals) ? detail.goals : (detail.events?.goals || []);
+            const subsList = Array.isArray(detail.substitutions) ? detail.substitutions : (detail.events?.substitutions || []);
 
-    const possession = window.extractStat(stats, 'possession');
-    const shots = window.extractStat(stats, 'shots');
-    const shotsOnTarget = window.extractStat(stats, 'shotsOnTarget');
-    const corners = window.extractStat(stats, 'corners');
+            const statsObj = detail.statistics || detail.stats || detail.matchStats || {};
 
-    container.innerHTML = `
-        <div class="space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <button onclick="window.handleBackToFixtures()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer">
-                    ← Back to Fixtures
-                </button>
-                <span class="text-[10px] font-mono text-emerald-400">// MATCH TELEMETRY MATRIX</span>
-            </div>
+            const extractStat = (key) => {
+                const rawStat = statsObj[key] || statsObj[key.toLowerCase()];
+                if (!rawStat) return { home: '0', away: '0' };
 
-            <!-- Scoreboard Banner -->
-            <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl flex items-center justify-between text-center">
-                <div class="w-1/3 text-slate-100 font-bold text-sm md:text-base">${homeTeam}</div>
-                <div class="w-1/3 text-emerald-400 font-mono font-bold text-lg md:text-xl">${score}</div>
-                <div class="w-1/3 text-slate-100 font-bold text-sm md:text-base">${awayTeam}</div>
-            </div>
+                if (typeof rawStat === 'object' && !Array.isArray(rawStat)) {
+                    return {
+                        home: rawStat.home ?? rawStat.homeTeam ?? rawStat.team1 ?? '0',
+                        away: rawStat.away ?? rawStat.awayTeam ?? rawStat.team2 ?? '0'
+                    };
+                }
 
-            <!-- Telemetry Stats Panel -->
-            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl space-y-3 font-mono text-xs">
-                <h4 class="text-slate-400 uppercase tracking-wider text-[10px] mb-2 font-bold">// MATCH METRICS COMPARISON</h4>
-                
-                <!-- Metric Row: Ball Possession -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-slate-300 text-[11px]">
-                        <span>${possession.home}</span>
-                        <span class="text-slate-500 uppercase">Possession</span>
-                        <span>${possession.away}</span>
+                if (Array.isArray(rawStat)) {
+                    const h = rawStat.find(item => item.team === 'home' || item.side === 'home')?.value || '0';
+                    const a = rawStat.find(item => item.team === 'away' || item.side === 'away')?.value || '0';
+                    return { home: h, away: a };
+                }
+
+                return { home: '0', away: '0' };
+            };
+
+            const posFull = extractStat('ballPossession') || extractStat('possession');
+            const shots = extractStat('totalShots') || extractStat('shots');
+            const shotsOnTarget = extractStat('shotsOnTarget');
+            const shotsOffTarget = extractStat('shotsOffTarget');
+            const corners = extractStat('cornerKicks') || extractStat('corners');
+            const offsides = extractStat('offsides');
+            const fouls = extractStat('fouls');
+
+            targetEl.innerHTML = `
+                <div class="space-y-4 font-sans text-slate-200">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2 font-mono">
+                        <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">// MATCH TELEMETRY MATRIX</span>
+                        <button onclick="handleBackToFixtures()" class="text-[10px] text-slate-400 hover:text-emerald-400 underline cursor-pointer">
+                            ← BACK TO FIXTURES
+                        </button>
                     </div>
-                    <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden flex">
-                        <div class="bg-emerald-500 h-full" style="width: ${parseInt(possession.home) || 50}%"></div>
-                        <div class="bg-cyan-500 h-full flex-1"></div>
+
+                    <div class="bg-slate-900/90 border border-emerald-800/60 rounded-xl p-4 text-center shadow-xl">
+                        <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase mb-1">${round} ${date ? `• ${date}` : ''}</div>
+                        <div class="flex items-center justify-between my-3 px-4">
+                            <div class="w-2/5 text-right font-extrabold text-base md:text-lg text-slate-100">${homeName}</div>
+                            <div class="px-3 py-1.5 bg-emerald-950 border border-emerald-500/50 rounded-lg text-emerald-300 font-mono text-base font-black shadow-inner">
+                                ${score}
+                            </div>
+                            <div class="w-2/5 text-left font-extrabold text-base md:text-lg text-slate-100">${awayName}</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-4">
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+                                <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-2 flex items-center gap-1.5">
+                                    ⚽ GOAL INCIDENTS
+                                </div>
+                                ${goalsList.length > 0 ? `
+                                    <div class="space-y-2 text-xs">
+                                        ${goalsList.map(g => `
+                                            <div class="flex justify-between items-center bg-slate-800/40 px-2.5 py-1.5 rounded border border-slate-800">
+                                                <span class="font-mono text-emerald-400 font-bold w-10">${g.minute || g.time || ''}'</span>
+                                                <span class="font-bold text-slate-200 flex-1">${g.scorer || g.player || 'Goal'}</span>
+                                                <span class="text-[10px] font-mono text-slate-400">${g.team || ''}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : `<div class="text-[11px] font-mono text-slate-500 italic">No goals reported</div>`}
+                            </div>
+
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+                                <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-2 flex items-center gap-1.5">
+                                    🔄 SUBSTITUTIONS
+                                </div>
+                                ${subsList.length > 0 ? `
+                                    <div class="space-y-2 text-xs">
+                                        ${subsList.map(s => `
+                                            <div class="flex justify-between items-center bg-slate-800/40 px-2.5 py-1.5 rounded border border-slate-800">
+                                                <span class="font-mono text-amber-400 font-bold w-10">${s.minute || s.time || ''}'</span>
+                                                <div class="flex-1 text-slate-300">
+                                                    <span class="text-emerald-400">IN:</span> ${s.playerIn || s.in || '-'} 
+                                                    <span class="text-slate-500">|</span> 
+                                                    <span class="text-rose-400">OUT:</span> ${s.playerOut || s.out || '-'}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : `<div class="text-[11px] font-mono text-slate-500 italic">No substitutions recorded</div>`}
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 space-y-3">
+                            <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 flex items-center gap-1.5">
+                                📊 STATISTICAL METRICS
+                            </div>
+
+                            <div class="space-y-1.5 text-xs font-mono">
+                                <div class="text-[10px] text-slate-400 uppercase font-bold text-center">BALL POSSESSION</div>
+                                <div class="flex justify-between text-[11px]">
+                                    <span>${posFull.home}</span>
+                                    <span class="text-slate-400">Overall</span>
+                                    <span>${posFull.away}</span>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-slate-800/80 pt-2 space-y-2 text-xs font-mono">
+                                <div class="flex justify-between items-center"><span class="text-emerald-400 font-bold">${shots.home}</span><span class="text-slate-400">Total Shots</span><span class="text-emerald-400 font-bold">${shots.away}</span></div>
+                                <div class="flex justify-between items-center"><span>${shotsOnTarget.home}</span><span class="text-slate-400">Shots on Target</span><span>${shotsOnTarget.away}</span></div>
+                                <div class="flex justify-between items-center"><span>${shotsOffTarget.home}</span><span class="text-slate-400">Shots off Target</span><span>${shotsOffTarget.away}</span></div>
+                                <div class="flex justify-between items-center"><span>${corners.home}</span><span class="text-slate-400">Corner Kicks</span><span>${corners.away}</span></div>
+                                <div class="flex justify-between items-center"><span>${offsides.home}</span><span class="text-slate-400">Offsides</span><span>${offsides.away}</span></div>
+                                <div class="flex justify-between items-center"><span>${fouls.home}</span><span class="text-slate-400">Fouls</span><span>${fouls.away}</span></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Metric Row: Total Shots -->
-                <div class="flex justify-between items-center border-t border-slate-800/60 pt-2 text-slate-300">
-                    <span class="text-emerald-400 font-bold">${shots.home}</span>
-                    <span class="text-slate-500 uppercase text-[10px]">Total Shots</span>
-                    <span class="text-cyan-400 font-bold">${shots.away}</span>
-                </div>
-
-                <!-- Metric Row: Shots on Target -->
-                <div class="flex justify-between items-center border-t border-slate-800/60 pt-2 text-slate-300">
-                    <span class="text-emerald-400 font-bold">${shotsOnTarget.home}</span>
-                    <span class="text-slate-500 uppercase text-[10px]">Shots On Target</span>
-                    <span class="text-cyan-400 font-bold">${shotsOnTarget.away}</span>
-                </div>
-
-                <!-- Metric Row: Corners -->
-                <div class="flex justify-between items-center border-t border-slate-800/60 pt-2 text-slate-300">
-                    <span class="text-emerald-400 font-bold">${corners.home}</span>
-                    <span class="text-slate-500 uppercase text-[10px]">Corner Kicks</span>
-                    <span class="text-cyan-400 font-bold">${corners.away}</span>
-                </div>
-            </div>
-        </div>
-    `;
-};
+            `;
+        };
 </script>
 </body>
 </html>
