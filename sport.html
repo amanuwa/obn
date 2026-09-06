@@ -723,150 +723,40 @@
     };
 
     // --- MATCH DETAIL RENDERER ---
-    window.renderSportsDetailOutput = function(rawResponse, targetEl) {
-        if (!targetEl) targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
-        if (!targetEl) return;
+// --- DEBUG RENDERER: DISPLAYS RAW WORKFLOW JSON ---
+window.renderSportsDetailOutput = function(rawResponse, targetEl) {
+    const container = targetEl || document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
+    if (!container) return;
 
-        const payload = normalizeN8nPayload(rawResponse);
+    container.classList.remove('hidden');
+    container.style.display = 'block';
 
-        if (!payload || (!payload.homeTeam && !payload.home_team && !payload.team1)) {
-            targetEl.innerHTML = `<div class="p-4 text-amber-400 font-mono text-xs border border-amber-800/40 bg-amber-950/20 rounded-lg">// Error: Match details payload missing or incomplete.</div>`;
-            return;
-        }
+    const jsonString = JSON.stringify(rawResponse, null, 2);
 
-        const homeName = payload.homeTeam || payload.home_team || payload.team1 || 'Home Team';
-        const awayName = payload.awayTeam || payload.away_team || payload.team2 || 'Away Team';
-        const score = payload.matchResult || payload.result || payload.score || '0 - 0';
-        const matchDate = payload.matchDate || payload.date || '';
-        const round = payload.standings?.round || payload.round || 'MATCH TELEMETRY';
-
-        const goalsList = Array.isArray(payload.goals) ? payload.goals : [];
-        const subsList = Array.isArray(payload.substitutions) ? payload.substitutions : [];
-        const stats = payload.statistics || payload.stats || {};
-
-        const parseStat = (statObj) => {
-            if (!statObj) return { home: '0', away: '0' };
-            
-            if (statObj.fullMatch) {
-                return {
-                    home: statObj.fullMatch.home !== null && statObj.fullMatch.home !== undefined ? String(statObj.fullMatch.home) : '0',
-                    away: statObj.fullMatch.away !== null && statObj.fullMatch.away !== undefined ? String(statObj.fullMatch.away) : '0'
-                };
-            }
-
-            return {
-                home: statObj.home !== null && statObj.home !== undefined ? String(statObj.home) : '0',
-                away: statObj.away !== null && statObj.away !== undefined ? String(statObj.away) : '0'
-            };
-        };
-
-        const pos = parseStat(stats.ballPossession);
-        const shots = parseStat(stats.totalShots);
-        const shotsOnTarget = parseStat(stats.shotsOnTarget);
-        const shotsOffTarget = parseStat(stats.shotsOffTarget);
-        const corners = parseStat(stats.cornerKicks);
-        const offsides = parseStat(stats.offsides);
-        const fouls = parseStat(stats.fouls);
-
-        const renderStatBar = (label, stat) => {
-            const hVal = parseFloat(stat.home) || 0;
-            const aVal = parseFloat(stat.away) || 0;
-            const total = (hVal + aVal) || 1;
-            const hPct = Math.round((hVal / total) * 100);
-            const aPct = 100 - hPct;
-
-            return `
-                <div class="space-y-1">
-                    <div class="flex justify-between text-[11px] font-mono">
-                        <span class="text-emerald-400 font-bold">${stat.home}</span>
-                        <span class="text-slate-400">${label.toUpperCase()}</span>
-                        <span class="text-emerald-400 font-bold">${stat.away}</span>
-                    </div>
-                    <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden flex">
-                        <div class="bg-emerald-500 h-full transition-all duration-500" style="width: ${hPct}%"></div>
-                        <div class="bg-teal-700 h-full transition-all duration-500" style="width: ${aPct}%"></div>
-                    </div>
-                </div>
-            `;
-        };
-
-        targetEl.innerHTML = `
-            <div class="space-y-4 font-sans text-slate-200">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-2 font-mono">
-                    <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">// MATCH TELEMETRY MATRIX</span>
-                    <button onclick="handleBackToFixtures()" class="text-[10px] text-slate-400 hover:text-emerald-400 underline cursor-pointer">
-                        ← BACK TO FIXTURES
-                    </button>
-                </div>
-
-                <!-- Scoreboard -->
-                <div class="bg-slate-900/90 border border-emerald-800/60 rounded-xl p-4 text-center shadow-xl">
-                    <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase mb-1">${round} ${matchDate ? `• ${matchDate}` : ''}</div>
-                    <div class="flex items-center justify-between my-3 px-4">
-                        <div class="w-2/5 text-right font-extrabold text-base md:text-lg text-slate-100">${homeName}</div>
-                        <div class="px-3 py-1.5 bg-emerald-950 border border-emerald-500/50 rounded-lg text-emerald-300 font-mono text-base font-black shadow-inner">
-                            ${score}
-                        </div>
-                        <div class="w-2/5 text-left font-extrabold text-base md:text-lg text-slate-100">${awayName}</div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-4">
-                        <!-- Goals -->
-                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
-                            <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-2 flex items-center gap-1.5">
-                                ⚽ GOAL INCIDENTS
-                            </div>
-                            ${goalsList.length > 0 ? `
-                                <div class="space-y-2 text-xs">
-                                    ${goalsList.map(g => `
-                                        <div class="flex justify-between items-center bg-slate-800/40 px-2.5 py-1.5 rounded border border-slate-800">
-                                            <span class="font-mono text-emerald-400 font-bold w-10">${g.minute || ''}</span>
-                                            <span class="font-bold text-slate-200 flex-1">${g.scorer || 'Goal'}</span>
-                                            <span class="text-[10px] font-mono text-slate-400">${g.team || ''}</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            ` : `<div class="text-xs text-slate-500 font-mono italic">No goal telemetry recorded.</div>`}
-                        </div>
-
-                        <!-- Substitutions -->
-                        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
-                            <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-2 flex items-center gap-1.5">
-                                🔄 SUBSTITUTIONS
-                            </div>
-                            ${subsList.length > 0 ? `
-                                <div class="space-y-2 text-xs">
-                                    ${subsList.map(s => `
-                                        <div class="flex justify-between items-center bg-slate-800/40 px-2.5 py-1.5 rounded border border-slate-800">
-                                            <span class="font-mono text-emerald-400 font-bold w-10">${s.minute || ''}</span>
-                                            <span class="text-slate-300 flex-1">🟢 ${s.playerIn || ''} / 🔴 ${s.playerOut || ''}</span>
-                                            <span class="text-[10px] font-mono text-slate-400">${s.team || ''}</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            ` : `<div class="text-xs text-slate-500 font-mono italic">No substitution events registered.</div>`}
-                        </div>
-                    </div>
-
-                    <!-- Statistics Bar Chart Matrix -->
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 space-y-3">
-                        <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-1.5 mb-2">
-                            📊 MATCH STATISTICS
-                        </div>
-                        ${renderStatBar('Possession', pos)}
-                        ${renderStatBar('Total Shots', shots)}
-                        ${renderStatBar('Shots On Target', shotsOnTarget)}
-                        ${renderStatBar('Shots Off Target', shotsOffTarget)}
-                        ${renderStatBar('Corners', corners)}
-                        ${renderStatBar('Offsides', offsides)}
-                        ${renderStatBar('Fouls', fouls)}
-                    </div>
-                </div>
+    container.innerHTML = `
+        <div class="space-y-3 font-mono text-xs">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span class="text-emerald-400 font-bold">// RAW WORKFLOW PAYLOAD DEBUGGER</span>
+                <button onclick="handleBackToFixtures()" class="text-slate-400 hover:text-emerald-400 underline cursor-pointer">
+                    ← BACK TO FIXTURES
+                </button>
             </div>
-        `;
-    };
+            
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-4 overflow-x-auto">
+                <pre class="text-emerald-300 leading-relaxed">${escapeHtml(jsonString)}</pre>
+            </div>
+        </div>
+    `;
+};
+
+function escapeHtml(str) {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 </script>
 </body>
 </html>
