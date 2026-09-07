@@ -191,12 +191,10 @@
 
 <script type="module">
     import { N8N_sport_GATEWAY_WEBHOOK } from './config.js';
-
-    // --- GLOBAL STATE ---
     window.fullMatchList = [];
 
-    // --- STORAGE & RECOVERY LOGIC ---
-    window.saveMatchesToStorage = function(matches) {
+    // --- FRONTEND TEMPORARY STORAGE & BACK NAVIGATION ---
+    function saveMatchesToStorage(matches) {
         if (!Array.isArray(matches) || matches.length === 0) return;
         window.fullMatchList = matches;
         try {
@@ -204,9 +202,9 @@
         } catch (e) {
             console.warn('Unable to write to sessionStorage:', e);
         }
-    };
+    }
 
-    window.getStoredMatches = function() {
+    function getStoredMatches() {
         if (window.fullMatchList && window.fullMatchList.length > 0) {
             return window.fullMatchList;
         }
@@ -223,17 +221,17 @@
             console.warn('Unable to read from sessionStorage:', e);
         }
         return null;
-    };
+    }
 
     window.handleBackToFixtures = function() {
         const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
         if (!targetEl) return;
 
-        const matches = window.getStoredMatches();
+        const matches = getStoredMatches();
         if (matches && matches.length > 0) {
             window.renderSportsFixturesList(matches, targetEl);
         } else {
-            window.renderInternationalLeaguesMatrix();
+            renderInternationalLeaguesMatrix();
         }
     };
 
@@ -396,8 +394,82 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // --- PIPELINE & LEAGUE EXECUTORS ---
-    window.renderInternationalLeaguesMatrix = function() {
+    // --- CORE CONTROLLERS ---
+    window.addEventListener('DOMContentLoaded', () => {
+        initGlobeSystem();
+        
+        const stage = document.getElementById('backdropStage');
+        const appFrame = document.getElementById('mainAppFrame');
+
+        setTimeout(() => {
+            if (stage) stage.classList.add('dashboard-active');
+            if (appFrame) appFrame.classList.add('visible');
+        }, 3500);
+
+        document.querySelectorAll('.cat-check').forEach(cb => {
+            cb.addEventListener('change', (e) => handleCategoryTrigger(e.target));
+        });
+
+        const selectAllCat = document.getElementById('selectAllCatBtn');
+        if (selectAllCat) selectAllCat.addEventListener('click', () => toggleAll('.cat-check', true));
+
+        const selectAllLang = document.getElementById('selectAllLangBtn');
+        if (selectAllLang) selectAllLang.addEventListener('click', () => toggleAll('.lang-check', true));
+
+        const hotNewsBtn = document.getElementById('hotNewsBtn');
+        if (hotNewsBtn) {
+            hotNewsBtn.addEventListener('click', () => {
+                const topic = document.getElementById('hotNewsInput').value;
+                if (!topic) return;
+                const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+                window.executeScraperWorkflow({
+                    page: "sports",
+                    targetMatrix: "hot_news",
+                    query: topic,
+                    languages: selectedLangs,
+                    timestamp: new Date().toISOString()
+                });
+            });
+        }
+
+        const downloadBtn = document.getElementById('downloadBtn');
+        if (downloadBtn) downloadBtn.addEventListener('click', () => window.print());
+    });
+
+    function toggleAll(selector, isChecked) { 
+        document.querySelectorAll(selector).forEach(c => c.checked = isChecked); 
+        const eplCheck = document.getElementById('epl-check');
+        if (eplCheck && eplCheck.checked) handleCategoryTrigger(eplCheck);
+    }
+
+    async function handleCategoryTrigger(checkboxEl) {
+        if (!checkboxEl.checked) return;
+
+        const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
+        const sourceList = document.getElementById('activeSourceList');
+
+        if (sourceList) {
+            sourceList.innerHTML = mainCats.map(item => 
+                `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
+            ).join('');
+        }
+
+        if (checkboxEl.value === 'international') {
+            renderInternationalLeaguesMatrix();
+            return;
+        }
+
+        window.executeScraperWorkflow({
+            page: "sports",
+            targetMatrix: "sports_analytics",
+            categories: mainCats,
+            websites: ["https://www.besoccer.com/competition/premier_league_ethiopia"],
+            query: "Ethiopian Premier League fixtures and scores",
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    function renderInternationalLeaguesMatrix() {
         const output = document.getElementById('outputContainer');
         if (!output) return;
 
@@ -409,7 +481,7 @@
                 </div>
 
                 <div id="leagueSelectionPanel" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button onclick="window.executeLeaguePipeline('Premier League', 'https://www.besoccer.com/competition/premier_league')" 
+                    <button onclick="executeLeaguePipeline('Premier League', 'https://www.besoccer.com/competition/premier_league')" 
                             class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
                         <div class="flex items-center gap-3">
                             <span class="text-base">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
@@ -421,7 +493,7 @@
                         <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
                     </button>
 
-                    <button onclick="window.executeLeaguePipeline('UEFA Champions League', 'https://www.besoccer.com/competition/champions_league')" 
+                    <button onclick="executeLeaguePipeline('UEFA Champions League', 'https://www.besoccer.com/competition/champions_league')" 
                             class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
                         <div class="flex items-center gap-3">
                             <span class="text-base">🇪🇺</span>
@@ -433,7 +505,7 @@
                         <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
                     </button>
 
-                    <button onclick="window.executeLeaguePipeline('Spain LaLiga', 'https://www.besoccer.com/competition/primera_division')" 
+                    <button onclick="executeLeaguePipeline('Spain LaLiga', 'https://www.besoccer.com/competition/primera_division')" 
                             class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
                         <div class="flex items-center gap-3">
                             <span class="text-base">🇪🇸</span>
@@ -445,7 +517,7 @@
                         <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
                     </button>
 
-                    <button onclick="window.executeLeaguePipeline('Ligue 1, Bundesliga, Serie A', 'https://www.besoccer.com/competition/serie_a')" 
+                    <button onclick="executeLeaguePipeline('Ligue 1, Bundesliga, Serie A', 'https://www.besoccer.com/competition/serie_a')" 
                             class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
                         <div class="flex items-center gap-3">
                             <span class="text-base">🌍</span>
@@ -461,7 +533,7 @@
                 <div id="sportsCardsContainer" class="mt-6"></div>
             </div>
         `;
-    };
+    }
 
     window.executeLeaguePipeline = function(leagueName, targetUrl) {
         const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
@@ -528,488 +600,163 @@
         }
     };
 
-    // --- RECURSIVE DATA NORMALIZER ---
+    // --- RECURSIVE PAYLOAD UNWRAPPER ---
     function normalizeN8nPayload(rawData) {
         if (!rawData) return null;
+
         let target = rawData;
 
+        // Unroll outer single-item arrays
         while (Array.isArray(target) && target.length === 1) {
             target = target[0];
         }
 
+        // Recursively strip n8n object wrappers
         if (target && typeof target === 'object' && !Array.isArray(target)) {
             if (target.item) return normalizeN8nPayload(target.item);
             if (target.json) return normalizeN8nPayload(target.json);
             if (target.body) return normalizeN8nPayload(target.body);
+            if (target.data && typeof target.data === 'object' && !Array.isArray(target.data)) {
+                if (target.data.homeTeam || target.data.home_team || target.data.matches || target.data.fixtures) {
+                    return normalizeN8nPayload(target.data);
+                }
+            }
         }
 
         return target;
     }
 
-    function isMatchDetailPayload(data) {
-        if (!data || typeof data !== 'object') return false;
-        if (data.targetMatrix === 'match_detail' || data.type === 'match_detail' || data.matchDetail) return true;
-        if (data.stats || data.statistics || data.lineups || data.events || data.matchStats || data.timeline) return true;
-        if ((data.homeTeam || data.home) && (data.awayTeam || data.away) && (data.events || data.stats || data.summary || data.info)) return true;
-        return false;
-    }
+    // --- PRIMARY DISPATCH RENDERER ---
+    window.renderSportsOutput = function(data) {
+        const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
+        if (!targetEl) return;
 
-    function extractMatchList(data) {
-        if (!data) return [];
+        if (!data) {
+            targetEl.innerHTML = `<div class="p-4 text-amber-400 font-mono text-xs border border-amber-800/40 bg-amber-950/20 rounded-lg">// Workflow returned empty match data.</div>`;
+            return;
+        }
+
+        // ROUTE A: Multi-Match Arrays
         if (Array.isArray(data)) {
-            if (data.length > 0 && typeof data[0] === 'object') return data;
-            return [];
-        }
-        if (typeof data === 'object') {
-            const potentialKeys = ['matches', 'fixtures', 'data', 'matchList', 'extracted_data', 'results', 'output', 'items'];
-            for (const key of potentialKeys) {
-                if (Array.isArray(data[key]) && data[key].length > 0) {
-                    return data[key];
-                }
-            }
-            for (const k in data) {
-                if (data[k] && typeof data[k] === 'object') {
-                    const res = extractMatchList(data[k]);
-                    if (res.length > 0) return res;
-                }
-            }
-        }
-        return [];
-    }
-
-    function normalizeMatchObject(match) {
-        if (!match || typeof match !== 'object') return null;
-
-        const homeTeam = match.homeTeam || match.home_team || match.home || match.team1 || match.homeTeamName || 'Home Team';
-        const awayTeam = match.awayTeam || match.away_team || match.away || match.team2 || match.awayTeamName || 'Away Team';
-        
-        let homeScore = match.homeScore ?? match.home_score ?? match.scoreHome ?? match.homeGoals ?? match.score_home;
-        let awayScore = match.awayScore ?? match.away_score ?? match.scoreAway ?? match.awayGoals ?? match.score_away;
-
-        if ((homeScore === undefined || homeScore === null) && match.score) {
-            const parts = String(match.score).split(/[-:]/);
-            if (parts.length === 2) {
-                homeScore = parts[0].trim();
-                awayScore = parts[1].trim();
-            }
-        }
-
-        const matchDate = match.matchDate || match.date || match.time || match.kickoff || 'TBD';
-        const status = match.status || match.state || match.timeStatus || (homeScore !== undefined ? 'FINISHED' : 'SCHEDULED');
-        const matchUrl = match.matchUrl || match.url || match.link || match.href || match.detailsUrl || null;
-        const league = match.league || match.competition || match.tournament || '';
-
-        return {
-            homeTeam,
-            awayTeam,
-            homeScore: homeScore !== undefined && homeScore !== null ? homeScore : '-',
-            awayScore: awayScore !== undefined && awayScore !== null ? awayScore : '-',
-            matchDate,
-            status,
-            matchUrl,
-            league
-        };
-    }
-
-    // --- MAIN RENDER DISPATCHER ---
-    window.renderSportsOutput = function(cleanData) {
-        const targetContainer = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
-        if (!targetContainer) return;
-
-        if (isMatchDetailPayload(cleanData)) {
-            window.renderMatchDetailView(cleanData, targetContainer);
+            saveMatchesToStorage(data);
+            window.renderSportsFixturesList(data, targetEl);
             return;
         }
 
-        const rawMatches = extractMatchList(cleanData);
-        if (rawMatches.length > 0) {
-            const normalizedMatches = rawMatches.map(normalizeMatchObject).filter(Boolean);
-            window.saveMatchesToStorage(normalizedMatches);
-            window.renderSportsFixturesList(normalizedMatches, targetContainer);
+        const matchesList = data.matches || data.fixtures || data.results;
+        if (Array.isArray(matchesList)) {
+            saveMatchesToStorage(matchesList);
+            window.renderSportsFixturesList(matchesList, targetEl);
             return;
         }
 
-        // Fallback View with Clean UI for edge case responses
-        targetContainer.innerHTML = `
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 font-sans">
-                <div class="flex items-center gap-2 text-emerald-400 font-mono text-xs font-bold">
-                    <span>⚡ TELEMETRY RECEIVED</span>
+        // ROUTE B: Single Match Detail Output
+        window.renderSportsDetailOutput(data, targetEl);
+    };
+
+    // --- FIXTURES LIST RENDERER ---
+    window.renderSportsFixturesList = function(items, targetEl) {
+        targetEl.innerHTML = `
+            <div class="space-y-3 font-sans">
+                <div class="flex justify-between items-center px-1 border-b border-slate-800 pb-2">
+                    <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-bold">// SCRAPED MATCH FIXTURES (${items.length})</span>
+                    <span class="text-[10px] font-mono text-slate-400">LIVE DATA</span>
                 </div>
-                <div class="text-xs text-slate-300">
-                    ${cleanData.summary || cleanData.text || cleanData.message || 'Pipeline execution completed successfully.'}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    ${items.map(m => {
+                        const home = m.homeTeam || m.home_team || m.home || m.title || 'Home Team';
+                        const away = m.awayTeam || m.away_team || m.away || 'Away Team';
+                        const score = m.result || m.matchResult || m.score || 'VS';
+                        const round = m.round || 'Fixture';
+                        const matchUrl = m.matchUrl || m.url || '#';
+
+                        let matchDate = '';
+                        let time = '--:--';
+
+                        if (m.dateTime) {
+                            const parts = m.dateTime.trim().split(' ');
+                            if (parts.length >= 2) {
+                                matchDate = parts[0];
+                                time = parts[1];
+                            } else if (parts.length === 1) {
+                                matchDate = parts[0];
+                            }
+                        } else if (m.kickOffTime) {
+                            time = m.kickOffTime;
+                        } else if (m.date) {
+                            matchDate = m.date;
+                        }
+
+                        return `
+                            <div class="bg-slate-900/90 border border-emerald-800/50 hover:border-emerald-400 p-3.5 rounded-xl transition-all shadow-lg flex flex-col justify-between group">
+                                <div class="flex justify-between items-center text-[10px] font-mono text-slate-400 mb-2 border-b border-slate-800/80 pb-1.5">
+                                    <span class="text-emerald-400 font-bold">${round.toUpperCase()}</span>
+                                    <div class="flex items-center gap-1.5 bg-slate-800 px-2 py-0.5 rounded text-slate-300">
+                                        ${matchDate ? `<span>📅 ${matchDate}</span><span class="text-slate-600">|</span>` : ''}
+                                        <span>⏱ ${time}</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between my-2 px-1">
+                                    <div class="w-2/5 text-right font-bold text-xs text-slate-100 truncate">${home}</div>
+                                    <div class="px-2.5 py-1 bg-emerald-950/80 border border-emerald-500/40 rounded-lg text-emerald-300 font-mono text-xs font-bold tracking-wider shadow-inner">
+                                        ${score}
+                                    </div>
+                                    <div class="w-2/5 text-left font-bold text-xs text-slate-100 truncate">${away}</div>
+                                </div>
+
+                                ${matchUrl !== '#' ? `
+                                    <div class="mt-2 pt-2 border-t border-slate-800/60 flex justify-end">
+                                        <button onclick="executeScraperWorkflow({ page: 'sports_detail', matchUrl: '${matchUrl}' })" 
+                                                class="text-[10px] font-mono font-bold text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 hover:underline cursor-pointer">
+                                            TELEMETRY STATS ↗
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             </div>
         `;
     };
 
-    // --- ENHANCED MATCH DETAIL UI DASHBOARD ---
-    window.renderMatchDetailView = function(detailData, container) {
-        const home = detailData.homeTeam || detailData.home || detailData.home_team || 'Home Team';
-        const away = detailData.awayTeam || detailData.away || detailData.away_team || 'Away Team';
-        const homeScore = detailData.homeScore ?? detailData.home_score ?? detailData.score?.home ?? '-';
-        const awayScore = detailData.awayScore ?? detailData.away_score ?? detailData.score?.away ?? '-';
-        const status = detailData.status || detailData.state || 'FINISHED';
-        const league = detailData.league || detailData.competition || detailData.tournament || 'INTERNATIONAL MATCH';
-        const stadium = detailData.stadium || detailData.venue || detailData.stadiumName || null;
-        const referee = detailData.referee || detailData.refereeName || null;
+    // --- MATCH DETAIL RENDERER ---
+// --- DEBUG RENDERER: DISPLAYS RAW WORKFLOW JSON ---
+window.renderSportsDetailOutput = function(rawResponse, targetEl) {
+    const container = targetEl || document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
+    if (!container) return;
 
-        const stats = detailData.stats || detailData.statistics || detailData.matchStats || {};
-        const events = detailData.events || detailData.timeline || detailData.keyEvents || [];
-        const lineups = detailData.lineups || detailData.teams || detailData.squads || null;
+    container.classList.remove('hidden');
+    container.style.display = 'block';
 
-        // Render Stat Bar Helper Function
-        const renderStatRow = (label, hVal, aVal) => {
-            const hNum = parseFloat(String(hVal).replace(/[^0-9.]/g, '')) || 0;
-            const aNum = parseFloat(String(aVal).replace(/[^0-9.]/g, '')) || 0;
-            const total = (hNum + aNum) || 1;
-            const hPct = Math.round((hNum / total) * 100);
-            const aPct = 100 - hPct;
+    const jsonString = JSON.stringify(rawResponse, null, 2);
 
-            return `
-                <div class="space-y-1.5 py-1">
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="font-mono font-bold text-emerald-400">${hVal ?? '-'}</span>
-                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">${label}</span>
-                        <span class="font-mono font-bold text-sky-400">${aVal ?? '-'}</span>
-                    </div>
-                    <div class="h-2 w-full bg-slate-950 rounded-full overflow-hidden flex p-0.5 border border-slate-800">
-                        <div class="bg-emerald-500 h-full rounded-l-full transition-all duration-500" style="width: ${hPct}%"></div>
-                        <div class="bg-sky-500 h-full rounded-r-full transition-all duration-500" style="width: ${aPct}%"></div>
-                    </div>
-                </div>
-            `;
-        };
-
-        // Render Events Item Helper
-        const renderEventItem = (e) => {
-            const type = String(e.type || e.detail || 'event').toLowerCase();
-            let icon = '⚽';
-            let badgeStyle = 'bg-emerald-950 text-emerald-400 border-emerald-800';
-
-            if (type.includes('yellow')) {
-                icon = '🟨';
-                badgeStyle = 'bg-amber-950 text-amber-400 border-amber-800';
-            } else if (type.includes('red')) {
-                icon = '🟥';
-                badgeStyle = 'bg-rose-950 text-rose-400 border-rose-800';
-            } else if (type.includes('sub')) {
-                icon = '🔄';
-                badgeStyle = 'bg-sky-950 text-sky-400 border-sky-800';
-            } else if (type.includes('var')) {
-                icon = '🖥️';
-                badgeStyle = 'bg-purple-950 text-purple-400 border-purple-800';
-            }
-
-            return `
-                <div class="flex items-center gap-3 p-2.5 bg-slate-950/60 rounded-xl border border-slate-800/80 hover:border-slate-700 transition-colors">
-                    <div class="font-mono font-bold text-xs text-emerald-400 bg-slate-900 px-2 py-1 rounded border border-slate-800 min-w-[36px] text-center">
-                        ${e.minute || e.time || "''"}'
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="text-xs font-bold text-slate-200 truncate">${e.player || e.name || e.text || 'Match Event'}</div>
-                        ${e.assistedBy || e.assist ? `<div class="text-[10px] text-slate-400">Assist: ${e.assistedBy || e.assist}</div>` : ''}
-                    </div>
-                    <div class="flex items-center gap-1.5 px-2 py-0.5 rounded border text-[10px] font-mono font-bold uppercase ${badgeStyle}">
-                        <span>${icon}</span>
-                        <span>${e.type || 'GOAL'}</span>
-                    </div>
-                </div>
-            `;
-        };
-
-        // Tab Selector Handlers attached to window
-        window.switchMatchTab = function(tabName) {
-            ['overview', 'timeline', 'stats', 'lineups'].forEach(t => {
-                const content = document.getElementById(`tab-content-${t}`);
-                const btn = document.getElementById(`tab-btn-${t}`);
-                if (content) content.classList.add('hidden');
-                if (btn) {
-                    btn.classList.remove('bg-emerald-500', 'text-slate-950', 'font-bold');
-                    btn.classList.add('bg-slate-900', 'text-slate-400');
-                }
-            });
-
-            const activeContent = document.getElementById(`tab-content-${tabName}`);
-            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
-            if (activeContent) activeContent.classList.remove('hidden');
-            if (activeBtn) {
-                activeBtn.classList.remove('bg-slate-900', 'text-slate-400');
-                activeBtn.classList.add('bg-emerald-500', 'text-slate-950', 'font-bold');
-            }
-        };
-
-        // Construct Content Blocks
-        const eventsListHtml = Array.isArray(events) && events.length > 0 
-            ? events.map(renderEventItem).join('') 
-            : `<div class="p-6 text-center text-slate-500 font-mono text-xs bg-slate-950/40 rounded-xl border border-slate-800/60">// NO MATCH EVENTS LOGGED</div>`;
-
-        const statsListHtml = Object.keys(stats).length > 0 ? `
-            <div class="space-y-3 bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl">
-                <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider mb-2">// ADVANCED MATCH TELEMETRY</div>
-                ${stats.possession ? renderStatRow('Possession', stats.possession.home || stats.possession[0] || stats.possession, stats.possession.away || stats.possession[1] || stats.possessionAway) : ''}
-                ${stats.shots ? renderStatRow('Total Shots', stats.shots.home || stats.shots[0], stats.shots.away || stats.shots[1]) : ''}
-                ${stats.shotsOnTarget ? renderStatRow('Shots On Target', stats.shotsOnTarget.home || stats.shotsOnTarget[0], stats.shotsOnTarget.away || stats.shotsOnTarget[1]) : ''}
-                ${stats.fouls ? renderStatRow('Fouls Committed', stats.fouls.home, stats.fouls.away) : ''}
-                ${stats.corners ? renderStatRow('Corner Kicks', stats.corners.home, stats.corners.away) : ''}
-                ${stats.passes ? renderStatRow('Pass Accuracy', stats.passes.home || stats.passes[0], stats.passes.away || stats.passes[1]) : ''}
+    container.innerHTML = `
+        <div class="space-y-3 font-mono text-xs">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span class="text-emerald-400 font-bold">// RAW WORKFLOW PAYLOAD DEBUGGER</span>
+                <button onclick="handleBackToFixtures()" class="text-slate-400 hover:text-emerald-400 underline cursor-pointer">
+                    ← BACK TO FIXTURES
+                </button>
             </div>
-        ` : `<div class="p-6 text-center text-slate-500 font-mono text-xs bg-slate-950/40 rounded-xl border border-slate-800/60">// STATISTICAL DATA UNAVAILABLE</div>`;
-
-        const lineupsHtml = lineups ? `
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl space-y-2">
-                    <div class="text-xs font-bold text-emerald-400 font-mono border-b border-slate-800 pb-2 uppercase">${home} Squad</div>
-                    <ul class="text-xs text-slate-300 space-y-1 font-mono">
-                        ${(lineups.home || lineups.homeTeam || []).map(p => `<li class="py-1 border-b border-slate-800/40">👕 ${p.name || p} <span class="text-slate-500 text-[10px]">${p.number ? `#${p.number}` : ''}</span></li>`).join('')}
-                    </ul>
-                </div>
-                <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl space-y-2">
-                    <div class="text-xs font-bold text-sky-400 font-mono border-b border-slate-800 pb-2 uppercase">${away} Squad</div>
-                    <ul class="text-xs text-slate-300 space-y-1 font-mono">
-                        ${(lineups.away || lineups.awayTeam || []).map(p => `<li class="py-1 border-b border-slate-800/40">👕 ${p.name || p} <span class="text-slate-500 text-[10px]">${p.number ? `#${p.number}` : ''}</span></li>`).join('')}
-                    </ul>
-                </div>
-            </div>
-        ` : `<div class="p-6 text-center text-slate-500 font-mono text-xs bg-slate-950/40 rounded-xl border border-slate-800/60">// LINEUPS NOT PUBLISHED</div>`;
-
-        container.innerHTML = `
-            <div class="space-y-5 font-sans max-w-4xl mx-auto">
-                <!-- Navigation Header -->
-                <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
-                    <button onclick="window.handleBackToFixtures()" 
-                            class="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95">
-                        <span>←</span>
-                        <span>RETURN TO FIXTURES</span>
-                    </button>
-                    <span class="text-[11px] font-mono text-emerald-400 uppercase tracking-widest font-semibold">${league}</span>
-                </div>
-
-                <!-- Scoreboard Header Card -->
-                <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-                    <div class="absolute -right-12 -top-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="absolute -left-12 -bottom-12 w-40 h-40 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-                    <div class="flex items-center justify-between text-center gap-2">
-                        <!-- Home Team -->
-                        <div class="flex-1 space-y-2">
-                            <div class="text-base sm:text-xl font-black text-slate-100 uppercase tracking-wide">${home}</div>
-                            <div class="inline-block px-2 py-0.5 bg-emerald-950/60 border border-emerald-800/50 rounded text-[10px] font-mono text-emerald-400 uppercase">HOME</div>
-                        </div>
-
-                        <!-- Score Display -->
-                        <div class="px-5 py-3 bg-slate-950/90 border border-slate-800 rounded-2xl shadow-2xl flex flex-col items-center">
-                            <div class="text-3xl sm:text-4xl font-mono font-black text-emerald-400 tracking-wider">
-                                ${homeScore} <span class="text-slate-600 font-sans text-2xl">:</span> ${awayScore}
-                            </div>
-                            <span class="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full mt-2 bg-slate-900 text-slate-300 border border-slate-800 uppercase tracking-wider">
-                                ${status}
-                            </span>
-                        </div>
-
-                        <!-- Away Team -->
-                        <div class="flex-1 space-y-2">
-                            <div class="text-base sm:text-xl font-black text-slate-100 uppercase tracking-wide">${away}</div>
-                            <div class="inline-block px-2 py-0.5 bg-sky-950/60 border border-sky-800/50 rounded text-[10px] font-mono text-sky-400 uppercase">AWAY</div>
-                        </div>
-                    </div>
-
-                    ${(stadium || referee) ? `
-                        <div class="mt-5 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-center gap-4 text-[11px] font-mono text-slate-400">
-                            ${stadium ? `<span>🏟️ ${stadium}</span>` : ''}
-                            ${referee ? `<span>🟨 Ref: ${referee}</span>` : ''}
-                        </div>
-                    ` : ''}
-                </div>
-
-                <!-- Tab Navigation Buttons -->
-                <div class="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-800">
-                    <button id="tab-btn-overview" onclick="window.switchMatchTab('overview')" class="bg-emerald-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs font-mono transition-all cursor-pointer">
-                        OVERVIEW
-                    </button>
-                    <button id="tab-btn-timeline" onclick="window.switchMatchTab('timeline')" class="bg-slate-900 text-slate-400 px-4 py-2 rounded-xl text-xs font-mono hover:text-slate-200 transition-all cursor-pointer">
-                        EVENTS (${Array.isArray(events) ? events.length : 0})
-                    </button>
-                    <button id="tab-btn-stats" onclick="window.switchMatchTab('stats')" class="bg-slate-900 text-slate-400 px-4 py-2 rounded-xl text-xs font-mono hover:text-slate-200 transition-all cursor-pointer">
-                        TELEMETRY
-                    </button>
-                    <button id="tab-btn-lineups" onclick="window.switchMatchTab('lineups')" class="bg-slate-900 text-slate-400 px-4 py-2 rounded-xl text-xs font-mono hover:text-slate-200 transition-all cursor-pointer">
-                        SQUADS
-                    </button>
-                </div>
-
-                <!-- Tab Panels -->
-                <div id="tab-content-overview" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-3 bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-xl">
-                            <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">// MATCH TIMELINE HIGHLIGHTS</div>
-                            <div class="space-y-2">
-                                ${eventsListHtml}
-                            </div>
-                        </div>
-                        <div>
-                            ${statsListHtml}
-                        </div>
-                    </div>
-                </div>
-
-                <div id="tab-content-timeline" class="hidden space-y-3 bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl">
-                    <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider mb-2">// FULL MATCH CHRONOLOGY</div>
-                    <div class="space-y-2">
-                        ${eventsListHtml}
-                    </div>
-                </div>
-
-                <div id="tab-content-stats" class="hidden">
-                    ${statsListHtml}
-                </div>
-
-                <div id="tab-content-lineups" class="hidden">
-                    ${lineupsHtml}
-                </div>
-            </div>
-        `;
-    };
-
-    // --- VIEW RENDERER 2: FIXTURES & MATCH LIST VIEW ---
-    window.renderSportsFixturesList = function(matches, container) {
-        if (!container) return;
-
-        if (!matches || matches.length === 0) {
-            container.innerHTML = `<div class="text-slate-400 italic text-xs p-4">// No fixture cards found for this response.</div>`;
-            return;
-        }
-
-        const cardsHtml = matches.map((m) => {
-            const isLive = String(m.status).toLowerCase().includes('live') || String(m.status).toLowerCase().includes('in progress');
-            const isFinished = String(m.status).toLowerCase().includes('fin') || String(m.status).toLowerCase().includes('ft') || String(m.status).toLowerCase().includes('ended');
             
-            let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 uppercase">${m.status}</span>`;
-            if (isLive) {
-                statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 border border-rose-600 text-rose-400 animate-pulse uppercase">LIVE</span>`;
-            } else if (isFinished) {
-                statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 border border-emerald-600/50 text-emerald-400 uppercase">FT</span>`;
-            }
-
-            return `
-                <div class="bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 transition-all duration-200 shadow-xl flex flex-col justify-between group">
-                    <div>
-                        <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-2 mb-3">
-                            <span class="text-[10px] font-mono text-slate-400 flex items-center gap-1 truncate">
-                                📅 ${m.matchDate} ${m.league ? `<span class="text-emerald-500 font-semibold">| ${m.league}</span>` : ''}
-                            </span>
-                            ${statusBadge}
-                        </div>
-
-                        <div class="space-y-2.5 my-2">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="font-bold text-slate-200 group-hover:text-emerald-300 transition-colors truncate pr-2">${m.homeTeam}</span>
-                                <span class="font-mono font-black text-sm bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-slate-100 min-w-[24px] text-center">${m.homeScore}</span>
-                            </div>
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="font-bold text-slate-200 group-hover:text-emerald-300 transition-colors truncate pr-2">${m.awayTeam}</span>
-                                <span class="font-mono font-black text-sm bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-slate-100 min-w-[24px] text-center">${m.awayScore}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    ${m.matchUrl ? `
-                        <button onclick="window.executeScraperWorkflow({ page: 'sports', targetMatrix: 'match_detail', matchUrl: '${m.matchUrl}', query: 'Fetch statistics for ${m.homeTeam} vs ${m.awayTeam}' })"
-                                class="mt-4 w-full bg-slate-950 hover:bg-emerald-600 border border-slate-800 hover:border-emerald-400 text-slate-300 hover:text-white py-1.5 px-3 rounded-lg font-mono text-[11px] font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer">
-                            <span>ANALYZE MATCH</span>
-                            <span class="text-xs">→</span>
-                        </button>
-                    ` : ''}
-                </div>
-            `;
-        }).join('');
-
-        container.innerHTML = `
-            <div class="space-y-3">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span class="text-[11px] font-mono text-emerald-400 font-bold uppercase tracking-wider">// MATCH FIXTURES (${matches.length})</span>
-                    <button onclick="window.handleBackToFixtures()" class="text-[10px] font-mono text-slate-400 hover:text-emerald-400 underline cursor-pointer">REFRESH MATRIX</button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    ${cardsHtml}
-                </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-4 overflow-x-auto">
+                <pre class="text-emerald-300 leading-relaxed">${escapeHtml(jsonString)}</pre>
             </div>
-        `;
-    };
+        </div>
+    `;
+};
 
-    // --- DOM INITIALIZATION ---
-    window.addEventListener('DOMContentLoaded', () => {
-        initGlobeSystem();
-        
-        const stage = document.getElementById('backdropStage');
-        const appFrame = document.getElementById('mainAppFrame');
-
-        setTimeout(() => {
-            if (stage) stage.classList.add('dashboard-active');
-            if (appFrame) appFrame.classList.add('visible');
-        }, 3500);
-
-        document.querySelectorAll('.cat-check').forEach(cb => {
-            cb.addEventListener('change', (e) => handleCategoryTrigger(e.target));
-        });
-
-        const selectAllCat = document.getElementById('selectAllCatBtn');
-        if (selectAllCat) selectAllCat.addEventListener('click', () => toggleAll('.cat-check', true));
-
-        const selectAllLang = document.getElementById('selectAllLangBtn');
-        if (selectAllLang) selectAllLang.addEventListener('click', () => toggleAll('.lang-check', true));
-
-        const hotNewsBtn = document.getElementById('hotNewsBtn');
-        if (hotNewsBtn) {
-            hotNewsBtn.addEventListener('click', () => {
-                const topic = document.getElementById('hotNewsInput').value;
-                if (!topic) return;
-                const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
-                window.executeScraperWorkflow({
-                    page: "sports",
-                    targetMatrix: "hot_news",
-                    query: topic,
-                    languages: selectedLangs,
-                    timestamp: new Date().toISOString()
-                });
-            });
-        }
-
-        const downloadBtn = document.getElementById('downloadBtn');
-        if (downloadBtn) downloadBtn.addEventListener('click', () => window.print());
-    });
-
-    function toggleAll(selector, isChecked) { 
-        document.querySelectorAll(selector).forEach(c => c.checked = isChecked); 
-        const eplCheck = document.getElementById('epl-check');
-        if (eplCheck && eplCheck.checked) handleCategoryTrigger(eplCheck);
-    }
-
-    function handleCategoryTrigger(checkboxEl) {
-        if (!checkboxEl.checked) return;
-
-        const mainCats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
-        const sourceList = document.getElementById('activeSourceList');
-
-        if (sourceList) {
-            sourceList.innerHTML = mainCats.map(item => 
-                `<div class="p-2 bg-slate-900 rounded border border-emerald-500 text-emerald-300 font-mono text-xs">» ${item.toUpperCase()}</div>`
-            ).join('');
-        }
-
-        if (checkboxEl.value === 'international') {
-            window.renderInternationalLeaguesMatrix();
-            return;
-        }
-
-        window.executeScraperWorkflow({
-            page: "sports",
-            targetMatrix: "sports_analytics",
-            categories: mainCats,
-            websites: ["https://www.besoccer.com/competition/premier_league_ethiopia"],
-            query: "Ethiopian Premier League fixtures and scores",
-            timestamp: new Date().toISOString()
-        });
-    }
+function escapeHtml(str) {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 </script>
 </body>
 </html>
