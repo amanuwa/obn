@@ -723,246 +723,205 @@
     };
 
     // --- MATCH DETAIL RENDERER ---
-// --- DEBUG RENDERER: DISPLAYS RAW WORKFLOW JSON ---
-window.renderSportsDetailOutput = function(rawResponse, targetEl) {
-    const container = targetEl || document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
-    if (!container) return;
+    window.renderSportsDetailOutput = function(rawResponse, targetEl) {
+        const container = targetEl || document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
+        if (!container) return;
 
-    container.classList.remove('hidden');
-    container.style.display = 'block';
+        container.classList.remove('hidden');
+        container.style.display = 'block';
 
-    // 1. Unwrap nested payloads (e.g. rawResponse.data, rawResponse.match, rawResponse.details)
-    let data = rawResponse || {};
-    if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
-        data = data.data;
-    } else if (data.match && typeof data.match === 'object') {
-        data = data.match;
-    } else if (data.details && typeof data.details === 'object') {
-        data = data.details;
-    } else if (data.result && typeof data.result === 'object') {
-        data = data.result;
-    }
+        let data = rawResponse || {};
+        if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
+            data = data.data;
+        } else if (data.match && typeof data.match === 'object') {
+            data = data.match;
+        } else if (data.details && typeof data.details === 'object') {
+            data = data.details;
+        } else if (data.result && typeof data.result === 'object') {
+            data = data.result;
+        }
 
-    // 2. Comprehensive key extractors with deep fallback checks
-    const homeTeam = data.homeTeam || data.home_team || data.home || data.homeTeamName || data.hometeam || 'Home Team';
-    const awayTeam = data.awayTeam || data.away_team || data.away || data.awayTeamName || data.awayteam || 'Away Team';
-    
-    // Handle string scores ("2 - 1") or split numeric objects ({ home: 2, away: 1 })
-    let score = '0 - 0';
-    if (typeof data.score === 'string') {
-        score = data.score;
-    } else if (typeof data.result === 'string') {
-        score = data.result;
-    } else if (data.score && typeof data.score === 'object') {
-        score = `${data.score.home ?? data.score.homeTeam ?? 0} - ${data.score.away ?? data.score.awayTeam ?? 0}`;
-    } else if (data.homeScore !== undefined && data.awayScore !== undefined) {
-        score = `${data.homeScore} - ${data.awayScore}`;
-    }
+        const homeTeam = data.homeTeam || data.home_team || data.home || data.homeTeamName || data.hometeam || 'Home Team';
+        const awayTeam = data.awayTeam || data.away_team || data.away || data.awayTeamName || data.awayteam || 'Away Team';
+        
+        let score = '0 - 0';
+        if (typeof data.score === 'string') {
+            score = data.score;
+        } else if (typeof data.result === 'string') {
+            score = data.result;
+        } else if (data.score && typeof data.score === 'object') {
+            score = `${data.score.home ?? data.score.homeTeam ?? 0} - ${data.score.away ?? data.score.awayTeam ?? 0}`;
+        } else if (data.homeScore !== undefined && data.awayScore !== undefined) {
+            score = `${data.homeScore} - ${data.awayScore}`;
+        }
 
-    const status = data.status || data.matchStatus || data.state || 'FULL TIME';
-    const round = data.round || data.league || data.competition || 'Matchday Telemetry';
-    const date = data.date || data.dateTime || data.time || 'Live Match';
+        const status = data.status || data.matchStatus || data.state || 'FULL TIME';
+        const round = data.round || data.league || data.competition || 'Matchday Telemetry';
+        const date = data.date || data.dateTime || data.time || 'Live Match';
 
-    // Extract statistics array from all possible key variations
-    let stats = [];
-    if (Array.isArray(data.stats)) stats = data.stats;
-    else if (Array.isArray(data.statistics)) stats = data.statistics;
-    else if (Array.isArray(data.telemetry)) stats = data.telemetry;
-    else if (Array.isArray(data.matchStats)) stats = data.matchStats;
-    else if (data.stats && typeof data.stats === 'object') {
-        // Convert object dictionary stat maps into array
-        stats = Object.keys(data.stats).map(k => ({ label: k, ...data.stats[k] }));
-    }
+        let stats = [];
+        if (Array.isArray(data.stats)) stats = data.stats;
+        else if (Array.isArray(data.statistics)) stats = data.statistics;
+        else if (Array.isArray(data.telemetry)) stats = data.telemetry;
+        else if (Array.isArray(data.matchStats)) stats = data.matchStats;
+        else if (data.stats && typeof data.stats === 'object') {
+            stats = Object.keys(data.stats).map(k => ({ label: k, ...data.stats[k] }));
+        }
 
-    // Extract timeline events array from all possible key variations
-    let events = [];
-    if (Array.isArray(data.events)) events = data.events;
-    else if (Array.isArray(data.timeline)) events = data.timeline;
-    else if (Array.isArray(data.incidents)) events = data.incidents;
-    else if (Array.isArray(data.matchEvents)) events = data.matchEvents;
+        let events = [];
+        if (Array.isArray(data.events)) events = data.events;
+        else if (Array.isArray(data.timeline)) events = data.timeline;
+        else if (Array.isArray(data.incidents)) events = data.incidents;
+        else if (Array.isArray(data.matchEvents)) events = data.matchEvents;
 
-    // Lineups extractor
-    const lineups = data.lineups || data.lineUp || data.squads || null;
+        const lineups = data.lineups || data.lineUp || data.squads || null;
 
-    container.innerHTML = `
-        <div class="space-y-4 font-sans text-slate-200">
-            <!-- HEADER NAV BAR -->
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2.5 font-mono text-xs">
-                <div class="flex items-center gap-2">
-                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span class="text-emerald-400 font-bold uppercase tracking-wider">// TELEMETRY ANALYTICS HUB</span>
-                </div>
-                <button onclick="handleBackToFixtures()" 
-                        class="text-slate-400 hover:text-emerald-400 flex items-center gap-1 transition-colors cursor-pointer bg-slate-900 border border-slate-800 hover:border-emerald-500/50 px-2.5 py-1 rounded-md">
-                    ← BACK TO FIXTURES
-                </button>
-            </div>
-
-            <!-- SCOREBOARD BANNER -->
-            <div class="bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-emerald-800/50 rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
-                <div class="absolute -top-12 -left-12 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-                <div class="flex justify-between items-center text-[11px] font-mono text-slate-400 border-b border-slate-800/80 pb-3 mb-4">
-                    <span class="text-emerald-400 font-bold tracking-wide uppercase">${round}</span>
+        container.innerHTML = `
+            <div class="space-y-4 font-sans text-slate-200">
+                <!-- HEADER NAV BAR -->
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2.5 font-mono text-xs">
                     <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 bg-slate-800/80 rounded border border-slate-700 text-slate-300">${date}</span>
-                        <span class="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800/80 rounded font-bold uppercase">${status}</span>
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-emerald-400 font-bold uppercase tracking-wider">// TELEMETRY ANALYTICS HUB</span>
                     </div>
+                    <button onclick="handleBackToFixtures()" 
+                            class="text-slate-400 hover:text-emerald-400 flex items-center gap-1 transition-colors cursor-pointer bg-slate-900 border border-slate-800 hover:border-emerald-500/50 px-2.5 py-1 rounded-md">
+                        ← BACK TO FIXTURES
+                    </button>
                 </div>
 
-                <div class="flex items-center justify-between gap-2 my-2">
-                    <!-- HOME TEAM -->
-                    <div class="w-2/5 text-center sm:text-right">
-                        <div class="text-base sm:text-xl font-black text-slate-100 tracking-tight leading-snug">${homeTeam}</div>
-                        <div class="text-[10px] font-mono text-slate-400 mt-1 uppercase">Home Squad</div>
-                    </div>
+                <!-- SCOREBOARD BANNER -->
+                <div class="bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-emerald-800/50 rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
+                    <div class="absolute -top-12 -left-12 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
-                    <!-- SCORE CONTAINER -->
-                    <div class="flex flex-col items-center justify-center px-3 py-2 bg-slate-950/90 border border-emerald-500/40 rounded-xl shadow-inner min-w-[90px]">
-                        <span class="text-xl sm:text-3xl font-mono font-extrabold text-emerald-300 tracking-wider">${score}</span>
-                        <span class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mt-0.5">FINAL</span>
-                    </div>
-
-                    <!-- AWAY TEAM -->
-                    <div class="w-2/5 text-center sm:text-left">
-                        <div class="text-base sm:text-xl font-black text-slate-100 tracking-tight leading-snug">${awayTeam}</div>
-                        <div class="text-[10px] font-mono text-slate-400 mt-1 uppercase">Away Squad</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ANALYTICS GRID -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                
-                <!-- TELEMETRY STATS COMPARISON -->
-                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-                    <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-2 flex justify-between items-center uppercase">
-                        <span>📊 Match Telemetry</span>
-                        <span class="text-[10px] text-slate-500">POSSESSION & ATTACK</span>
-                    </div>
-
-                    ${stats.length > 0 ? `
-                        <div class="space-y-3 pt-1">
-                            ${stats.map(s => {
-                                const label = s.name || s.label || s.title || s.stat || 'Metric';
-                                const homeVal = s.homeVal ?? s.home ?? s.homeValue ?? s.valueHome ?? '0';
-                                const awayVal = s.awayVal ?? s.away ?? s.awayValue ?? s.valueAway ?? '0';
-                                
-                                const hNum = parseFloat(homeVal) || 0;
-                                const aNum = parseFloat(awayVal) || 0;
-                                const total = hNum + aNum || 1;
-                                const hPct = Math.min(100, Math.max(8, Math.round((hNum / total) * 100)));
-                                const aPct = Math.min(100, Math.max(8, 100 - hPct));
-
-                                return `
-                                    <div class="space-y-1">
-                                        <div class="flex justify-between items-center text-xs font-mono">
-                                            <span class="font-bold text-emerald-300">${homeVal}</span>
-                                            <span class="text-[11px] text-slate-400 font-sans">${label}</span>
-                                            <span class="font-bold text-cyan-300">${awayVal}</span>
-                                        </div>
-                                        <div class="flex h-1.5 w-full bg-slate-950 rounded-full overflow-hidden gap-0.5 p-0.5 border border-slate-800">
-                                            <div class="bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-s-full transition-all duration-500" style="width: ${hPct}%"></div>
-                                            <div class="bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-e-full transition-all duration-500" style="width: ${aPct}%"></div>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
+                    <div class="flex justify-between items-center text-[11px] font-mono text-slate-400 border-b border-slate-800/80 pb-3 mb-4">
+                        <span class="text-emerald-400 font-bold tracking-wide uppercase">${round}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 bg-slate-800/80 rounded border border-slate-700 text-slate-300">${date}</span>
+                            <span class="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800/80 rounded font-bold uppercase">${status}</span>
                         </div>
-                    ` : `
-                        <div class="p-6 text-center text-xs font-mono text-slate-500 bg-slate-950/40 rounded-lg border border-slate-800/60">
-                            // Detailed telemetry metrics not available for this match.
-                        </div>
-                    `}
-                </div>
-
-                <!-- MATCH TIMELINE / INCIDENTS -->
-                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-                    <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-2 flex justify-between items-center uppercase">
-                        <span>⏱ Match Chronology</span>
-                        <span class="text-[10px] text-slate-500">KEY EVENTS</span>
                     </div>
 
-                    ${events.length > 0 ? `
-                        <div class="space-y-2 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar pt-1">
-                            ${events.map(ev => {
-                                const minute = ev.time || ev.minute || ev.clock || "0'";
-                                const team = ev.team || (ev.isHome ? 'home' : 'away');
-                                const player = ev.player || ev.detail || ev.description || 'Incident';
-                                const type = (ev.type || ev.event || 'goal').toLowerCase();
+                    <div class="flex items-center justify-between gap-2 my-2">
+                        <!-- HOME TEAM -->
+                        <div class="w-2/5 text-center sm:text-right">
+                            <div class="text-base sm:text-xl font-black text-slate-100 tracking-tight leading-snug">${homeTeam}</div>
+                            <div class="text-[10px] font-mono text-slate-400 mt-1 uppercase">Home Squad</div>
+                        </div>
 
-                                let icon = '⚽';
-                                if (type.includes('card') || type.includes('yellow')) icon = '🟨';
-                                else if (type.includes('red')) icon = '🟥';
-                                else if (type.includes('sub') || type.includes('replace')) icon = '🔄';
+                        <!-- SCORE CONTAINER -->
+                        <div class="flex flex-col items-center justify-center px-3 py-2 bg-slate-950/90 border border-emerald-500/40 rounded-xl shadow-inner min-w-[90px]">
+                            <span class="text-xl sm:text-3xl font-mono font-extrabold text-emerald-300 tracking-wider">${score}</span>
+                            <span class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mt-0.5">FINAL</span>
+                        </div>
 
-                                return `
-                                    <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-950/60 border border-slate-800/80 text-xs">
-                                        <span class="font-mono font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.5 rounded min-w-[38px] text-center">${minute}</span>
-                                        <div class="flex-1 flex items-center justify-between">
-                                            <span class="font-semibold text-slate-200">${player}</span>
+                        <!-- AWAY TEAM -->
+                        <div class="w-2/5 text-center sm:text-left">
+                            <div class="text-base sm:text-xl font-black text-slate-100 tracking-tight leading-snug">${awayTeam}</div>
+                            <div class="text-[10px] font-mono text-slate-400 mt-1 uppercase">Away Squad</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ANALYTICS GRID -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <!-- TELEMETRY STATS COMPARISON -->
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-lg">
+                        <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider mb-3 pb-1 border-b border-slate-800 flex justify-between items-center">
+                            <span>📊 MATCH TELEMETRY MATRIX</span>
+                            <span class="text-slate-500">${stats.length} STATS</span>
+                        </div>
+
+                        ${stats.length > 0 ? `
+                            <div class="space-y-3">
+                                ${stats.map(s => {
+                                    const label = s.name || s.label || s.title || s.type || 'Stat';
+                                    const hVal = s.home ?? s.homeValue ?? s.valueHome ?? 0;
+                                    const aVal = s.away ?? s.awayValue ?? s.valueAway ?? 0;
+                                    
+                                    const hNum = parseFloat(hVal) || 0;
+                                    const aNum = parseFloat(aVal) || 0;
+                                    const total = (hNum + aNum) || 1;
+                                    const hPct = Math.min(100, Math.max(0, (hNum / total) * 100));
+                                    const aPct = Math.min(100, Math.max(0, (aNum / total) * 100));
+
+                                    return `
+                                        <div>
+                                            <div class="flex justify-between text-[11px] font-mono text-slate-300 mb-1">
+                                                <span class="font-bold text-emerald-400">${hVal}</span>
+                                                <span class="text-slate-400 text-[10px] uppercase">${label}</span>
+                                                <span class="font-bold text-cyan-400">${aVal}</span>
+                                            </div>
+                                            <div class="flex h-1.5 bg-slate-950 rounded-full overflow-hidden p-0.5 gap-0.5 border border-slate-800">
+                                                <div class="bg-emerald-500 rounded-s-full transition-all duration-500" style="width: ${hPct}%"></div>
+                                                <div class="bg-cyan-500 rounded-e-full transition-all duration-500" style="width: ${aPct}%"></div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        ` : `
+                            <div class="p-4 text-center text-slate-500 font-mono text-xs">No detailed match telemetry returned.</div>
+                        `}
+                    </div>
+
+                    <!-- MATCH TIMELINE / EVENTS -->
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-lg">
+                        <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider mb-3 pb-1 border-b border-slate-800 flex justify-between items-center">
+                            <span>⏱ KEY MATCH INCIDENTS</span>
+                            <span class="text-slate-500">${events.length} EVENTS</span>
+                        </div>
+
+                        ${events.length > 0 ? `
+                            <div class="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+                                ${events.map(ev => {
+                                    const time = ev.minute || ev.time || ev.clock || "''";
+                                    const type = (ev.type || ev.event || '').toLowerCase();
+                                    const player = ev.player || ev.name || ev.description || 'Match Event';
+                                    const team = ev.team || ev.side || 'home';
+
+                                    let icon = '⚽';
+                                    if (type.includes('yellow')) icon = '🟨';
+                                    else if (type.includes('red')) icon = '🟥';
+                                    else if (type.includes('sub')) icon = '🔄';
+
+                                    return `
+                                        <div class="flex items-center gap-2 p-2 bg-slate-950/60 border border-slate-800/80 rounded-lg text-xs font-mono ${team === 'away' ? 'flex-row-reverse text-right' : ''}">
+                                            <span class="px-1.5 py-0.5 bg-slate-800 text-emerald-400 rounded text-[10px] font-bold min-w-[32px] text-center">${time}</span>
                                             <span class="text-sm">${icon}</span>
+                                            <span class="text-slate-200 truncate font-sans text-[11px]">${player}</span>
                                         </div>
-                                    </div>
-                                `;
-                            }).join('')}
+                                    `;
+                                }).join('')}
+                            </div>
+                        ` : `
+                            <div class="p-4 text-center text-slate-500 font-mono text-xs">No timeline events extracted for this match.</div>
+                        `}
+                    </div>
+                </div>
+
+                <!-- SQUAD LINEUPS (OPTIONAL) -->
+                ${lineups ? `
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-lg">
+                        <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider mb-3 pb-1 border-b border-slate-800">
+                            🛡 SQUAD TACTICAL LINEUPS
                         </div>
-                    ` : `
-                        <div class="p-6 text-center text-xs font-mono text-slate-500 bg-slate-950/40 rounded-lg border border-slate-800/60">
-                            // Match events timeline log not available.
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
+                            <div>
+                                <div class="text-emerald-400 font-bold mb-2 pb-1 border-b border-slate-800/80">${homeTeam} Lineup</div>
+                                <div class="text-slate-300 space-y-1">${Array.isArray(lineups.home) ? lineups.home.map(p => `<div>• ${p}</div>`).join('') : 'Lineup unavailable'}</div>
+                            </div>
+                            <div>
+                                <div class="text-cyan-400 font-bold mb-2 pb-1 border-b border-slate-800/80">${awayTeam} Lineup</div>
+                                <div class="text-slate-300 space-y-1">${Array.isArray(lineups.away) ? lineups.away.map(p => `<div>• ${p}</div>`).join('') : 'Lineup unavailable'}</div>
+                            </div>
                         </div>
-                    `}
-                </div>
-
+                    </div>
+                ` : ''}
             </div>
-
-            ${lineups ? renderLineupSection(lineups, homeTeam, awayTeam) : ''}
-        </div>
-    `;
-};
-
-    function renderLineupSection(lineups, homeName, awayName) {
-    const homePlayers = Array.isArray(lineups.home) ? lineups.home : (lineups.homeTeam || []);
-    const awayPlayers = Array.isArray(lineups.away) ? lineups.away : (lineups.awayTeam || []);
-
-    if (homePlayers.length === 0 && awayPlayers.length === 0) return '';
-
-    return `
-        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3 mt-4">
-            <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-2 uppercase flex justify-between">
-                <span>🛡 Confirmed Lineups</span>
-                <span class="text-[10px] text-slate-500">SQUAD FORMATIONS</span>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <!-- HOME LINEUP -->
-                <div class="bg-slate-950/60 border border-slate-800/80 rounded-lg p-3 space-y-2">
-                    <div class="font-mono text-emerald-400 font-bold border-b border-slate-800/60 pb-1">${homeName}</div>
-                    <ul class="space-y-1 text-slate-300 font-mono text-[11px]">
-                        ${homePlayers.map(p => `<li class="flex items-center gap-2"><span class="text-emerald-500/70">›</span> ${typeof p === 'string' ? p : (p.name || p.player)}</li>`).join('')}
-                    </ul>
-                </div>
-
-                <!-- AWAY LINEUP -->
-                <div class="bg-slate-950/60 border border-slate-800/80 rounded-lg p-3 space-y-2">
-                    <div class="font-mono text-cyan-400 font-bold border-b border-slate-800/60 pb-1">${awayName}</div>
-                    <ul class="space-y-1 text-slate-300 font-mono text-[11px]">
-                        ${awayPlayers.map(p => `<li class="flex items-center gap-2"><span class="text-cyan-500/70">›</span> ${typeof p === 'string' ? p : (p.name || p.player)}</li>`).join('')}
-                    </ul>
-                </div>
-            </div>
-        </div>
-    `;
-}
-function escapeHtml(str) {
-    return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+        `;
+    };
 </script>
 </body>
 </html>
