@@ -886,6 +886,39 @@ window.renderSportsDetailOutput = function(rawResponse, targetEl) {
     `;
 };
 
+    function renderLineupSection(lineups, homeName, awayName) {
+    const homePlayers = Array.isArray(lineups.home) ? lineups.home : (lineups.homeTeam || []);
+    const awayPlayers = Array.isArray(lineups.away) ? lineups.away : (lineups.awayTeam || []);
+
+    if (homePlayers.length === 0 && awayPlayers.length === 0) return '';
+
+    return `
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3 mt-4">
+            <div class="text-xs font-mono font-bold text-emerald-400 border-b border-slate-800 pb-2 uppercase flex justify-between">
+                <span>🛡 Confirmed Lineups</span>
+                <span class="text-[10px] text-slate-500">SQUAD FORMATIONS</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <!-- HOME LINEUP -->
+                <div class="bg-slate-950/60 border border-slate-800/80 rounded-lg p-3 space-y-2">
+                    <div class="font-mono text-emerald-400 font-bold border-b border-slate-800/60 pb-1">${homeName}</div>
+                    <ul class="space-y-1 text-slate-300 font-mono text-[11px]">
+                        ${homePlayers.map(p => `<li class="flex items-center gap-2"><span class="text-emerald-500/70">›</span> ${typeof p === 'string' ? p : (p.name || p.player)}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <!-- AWAY LINEUP -->
+                <div class="bg-slate-950/60 border border-slate-800/80 rounded-lg p-3 space-y-2">
+                    <div class="font-mono text-cyan-400 font-bold border-b border-slate-800/60 pb-1">${awayName}</div>
+                    <ul class="space-y-1 text-slate-300 font-mono text-[11px]">
+                        ${awayPlayers.map(p => `<li class="flex items-center gap-2"><span class="text-cyan-500/70">›</span> ${typeof p === 'string' ? p : (p.name || p.player)}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `;
+}
 function escapeHtml(str) {
     return str
         .replace(/&/g, "&amp;")
