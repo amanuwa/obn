@@ -10,15 +10,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body { 
-            margin: 0; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column;
-            background-color: #02040e; position: relative; overflow: hidden;
+            margin: 0; color: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column;
+            background-color: #02040e; position: relative; overflow-x: hidden; overflow-y: auto;
         }
 
         /* CYBER MATRIX CANVAS STAGE */
         .cyber-backdrop-container {
-            position: absolute; inset: 0; z-index: 0;
+            position: fixed; inset: 0; z-index: 0;
             background: radial-gradient(circle at center, #071235 0%, #02040e 100%);
             transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
+            pointer-events: none;
         }
 
         #globeCanvasContainer {
@@ -56,7 +57,7 @@
 
         /* DASHBOARD STATE RULES */
         .cyber-backdrop-container.dashboard-active {
-            opacity: 0.4;
+            opacity: 0.3;
         }
         .cyber-backdrop-container.dashboard-active .scanline {
             display: none;
@@ -71,8 +72,9 @@
             opacity: 1; transform: translateY(0);
         }
 
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: #02040e; }
     </style>
 </head>
 <body class="font-sans text-sm">
@@ -105,9 +107,9 @@
     </div>
 
     <!-- STEP 2: METRICS TELEMETRY PANELS DISPLAY -->
-    <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col h-full w-full pointer-events-auto">
+    <div id="mainAppFrame" class="app-interface relative z-10 flex flex-col min-h-screen w-full pointer-events-auto">
         
-        <header class="bg-slate-950/60 border-b-2 border-slate-800 px-6 py-4 flex items-center justify-between backdrop-blur-lg">
+        <header class="bg-slate-950/80 border-b-2 border-slate-800 px-6 py-4 flex items-center justify-between backdrop-blur-lg sticky top-0 z-40">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded bg-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-400">AI</div>
                 <span class="font-semibold text-slate-100 tracking-tight text-base">Sports Analytics Terminal</span>
@@ -115,10 +117,10 @@
             <div class="font-mono text-xs text-emerald-400 tracking-wider animate-pulse">// MULTI-SPORT STREAM INGESTION ACTIVE</div>
         </header>
 
-        <main class="flex-1 grid grid-cols-4 gap-4 p-4 h-full overflow-hidden">
+        <main class="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 md:p-6 w-full">
             
             <!-- CONTROLS SIDE PANEL -->
-            <div class="col-span-1 bg-slate-950/45 p-5 border-2 border-slate-800 flex flex-col h-full overflow-y-auto rounded-xl shadow-2xl backdrop-blur-lg">
+            <div class="col-span-1 bg-slate-950/60 p-5 border-2 border-slate-800 flex flex-col rounded-xl shadow-2xl backdrop-blur-lg h-auto">
                 <h3 class="text-[11px] font-bold text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Select Categories
                 </h3>
@@ -128,49 +130,49 @@
                         Select All Categories
                     </button>
 
-                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                    <label class="flex items-center bg-slate-950/80 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" id="epl-check" class="cat-check scale-110 accent-emerald-600" value="epl"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">Ethiopian Premier League</span>
                     </label>
 
-                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                    <label class="flex items-center bg-slate-950/80 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" id="int-check" class="cat-check scale-110 accent-emerald-600" value="international"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">International</span>
                     </label>
 
-                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                    <label class="flex items-center bg-slate-950/80 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="athletics"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">Athletics</span>
                     </label>
 
-                    <label class="flex items-center bg-slate-950/60 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
+                    <label class="flex items-center bg-slate-950/80 border border-slate-800 p-3 rounded-lg cursor-pointer transition-all hover:border-emerald-500">
                         <input type="checkbox" class="cat-check scale-110 accent-emerald-600" value="others"> 
                         <span class="text-xs font-normal uppercase ml-3 text-slate-300">Others</span>
                     </label>
                 </div>
 
-                <div class="flex-1 bg-slate-950/70 rounded-lg border border-slate-800 p-4 mb-4 overflow-y-auto">
+                <div class="bg-slate-950/80 rounded-lg border border-slate-800 p-4 mb-4 min-h-[150px]">
                     <h3 class="text-[10px] font-medium text-slate-400 uppercase mb-2">Active Sources</h3>
                     <div id="activeSourceList" class="space-y-2 font-mono text-[11px] text-slate-500 italic">// Waiting for pipeline...</div>
                 </div>
             </div>
 
-            <!-- TERMINAL MAIN DATA MONITOR (TOP & BOTTOM VERTICAL STACK) -->
-            <div class="col-span-3 bg-slate-950/40 p-5 border-2 border-slate-800 flex flex-col h-full overflow-hidden rounded-xl shadow-2xl backdrop-blur-lg">
-                <div class="mb-3">
+            <!-- TERMINAL MAIN DATA MONITOR -->
+            <div class="col-span-1 lg:col-span-3 bg-slate-950/60 p-5 border-2 border-slate-800 flex flex-col rounded-xl shadow-2xl backdrop-blur-lg w-full">
+                <div class="mb-4">
                     <h3 class="font-semibold text-xs uppercase text-slate-400 tracking-wider mb-2">Scraped Intelligence Matrix</h3>
                     
-                    <div class="bg-slate-950/50 border border-slate-800 p-3 rounded-xl w-full mb-2">
+                    <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-xl w-full mb-2">
                         <h3 class="text-[10px] font-bold text-rose-500 uppercase mb-1.5 flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Fast Hot News
                         </h3>
                         <div class="flex gap-2">
-                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950/80 border border-slate-800 rounded-lg p-2 text-xs text-white focus:border-rose-500 outline-none">
+                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white focus:border-rose-500 outline-none">
                             <button id="hotNewsBtn" class="bg-rose-600 border border-rose-400 px-4 py-2 rounded-lg font-bold text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>
                         </div>
                     </div>
                     
-                    <div class="bg-slate-950/50 border border-slate-800 p-3 rounded-xl w-full flex justify-between items-center flex-wrap gap-2">
+                    <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-xl w-full flex justify-between items-center flex-wrap gap-2">
                         <div class="flex gap-2 flex-wrap">
                             <button id="selectAllLangBtn" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white px-3 py-1.5 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All</button>
                             <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-1.5 px-2.5 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
@@ -182,29 +184,31 @@
                     </div>
                 </div>
 
-                <!-- VERTICAL DUAL-PANEL LAYOUT -->
-                <div class="flex-1 flex flex-col gap-3 overflow-hidden min-h-0">
+                <!-- VERTICAL UNCONSTRAINED STACK -->
+                <div class="flex flex-col gap-6 w-full">
                     
                     <!-- TOP PANEL: MATCH FIXTURES LIST -->
-                    <div class="h-1/2 bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-col overflow-hidden">
-                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2 flex-shrink-0">
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col w-full min-h-[250px]">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-3">
                             <span id="matchListHeaderCount" class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider">// TOP PANEL: MATCH FIXTURES LIST</span>
                             <span class="text-[9px] font-mono text-slate-500 uppercase">Live Stream Feed</span>
                         </div>
-                        <div id="matchListSubPanel" class="flex-1 overflow-y-auto space-y-2 pr-1 font-mono text-xs text-emerald-400">
+                        <div id="matchListSubPanel" class="space-y-2 font-mono text-xs text-emerald-400 w-full">
                             <p class="text-slate-500 italic font-normal text-center py-4">// Select a league from the categories side panel to fetch live match fixtures...</p>
                         </div>
                     </div>
 
-                    <!-- BOTTOM PANEL: MATCH DETAIL TELEMETRY -->
-                    <div class="h-1/2 bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-col overflow-hidden">
-                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2 flex-shrink-0">
+                    <!-- BOTTOM PANEL: MATCH DETAIL TELEMETRY (FULL-BLEED EXPANDABLE) -->
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col w-full min-h-[300px]">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-3">
                             <span class="text-[10px] font-mono font-bold text-cyan-400 uppercase tracking-wider">// BOTTOM PANEL: MATCH DETAIL ANALYTICS</span>
                             <span class="text-[9px] font-mono text-slate-500 uppercase">Granular Telemetry</span>
                         </div>
-                        <div id="matchDetailSubPanel" class="flex-1 overflow-y-auto pr-1 font-mono text-xs">
-                            <div class="h-full flex flex-col items-center justify-center text-center p-4 text-slate-500">
-                                <div class="w-8 h-8 rounded-full border border-slate-800 flex items-center justify-center text-slate-600 mb-1.5">📊</div>
+                        
+                        <!-- TARGET CONTAINER FOR FULL-BLEED MATCH DETAIL PANEL -->
+                        <div id="matchDetailSubPanel" class="w-full">
+                            <div class="flex flex-col items-center justify-center text-center p-8 text-slate-500">
+                                <div class="w-10 h-10 rounded-full border border-slate-800 flex items-center justify-center text-slate-600 mb-2">📊</div>
                                 <p class="text-xs font-sans">// Click 'ANALYZE' on any match fixture in the top panel to stream detailed match statistics and timeline events down here.</p>
                             </div>
                         </div>
@@ -589,404 +593,316 @@
     }
 
     // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
-  // --- UPDATED DISPATCHER TO DETECT DETAILED PAYLOADS ACCURATELY ---
-window.renderSportsOutput = function(data) {
-    if (!data) return;
+    window.renderSportsOutput = function(data) {
+        if (!data) return;
 
-    const payload = data.data || data;
+        const payload = data.data || data;
 
-    // Check if the payload is a single match detail response
-    const isMatchDetail = !Array.isArray(payload) && (
-        payload.homeTeam || payload.matchResult || payload.matchDate || payload.standings
-    );
+        const isMatchDetail = !Array.isArray(payload) && (
+            payload.homeTeam || payload.matchResult || payload.matchDate || payload.standings
+        );
 
-    if (isMatchDetail) {
-        const detailPanel = document.getElementById('matchDetailSubPanel');
-        if (detailPanel) renderMatchDetailPanel(payload, detailPanel);
-        return;
-    }
+        if (isMatchDetail) {
+            const detailPanel = document.getElementById('matchDetailSubPanel');
+            if (detailPanel) window.renderMatchDetailPanel(payload, detailPanel);
+            return;
+        }
 
-    const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
+        const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
 
-    if (Array.isArray(matchesArray) && matchesArray.length > 0) {
-        window.fullMatchList = matchesArray;
-        const listPanel = document.getElementById('matchListSubPanel');
-        if (listPanel) renderSportsFixturesList(matchesArray, listPanel);
-    }
-};
-
-    // --- TOP PANEL: MATCH FIXTURES LIST WITH DATE, TIME, ROUND & TELEMETRY BUTTON ---
-    window.renderSportsFixturesList = function(matches, containerEl) {
-        const headerCount = document.getElementById('matchListHeaderCount');
-        if (headerCount) headerCount.innerText = `// TOP PANEL: MATCH FIXTURES LIST (${matches.length})`;
-
-        let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-2 font-sans">`;
-
-        matches.forEach((match) => {
-            const team1Name = match.homeTeam || match.home_team || match.team1 || 'Team A';
-            const team2Name = match.awayTeam || match.away_team || match.team2 || 'Team B';
-            const team1Logo = match.homeLogo || match.home_logo || match.team1_logo || '';
-            const team2Logo = match.awayLogo || match.away_logo || match.team2_logo || '';
-            const score = match.result || match.score || match.status || 'VS';
-            
-            // Extract round, date, and time
-            const roundName = match.round || match.round_name || '';
-            const rawDateTime = match.dateTime || match.time || match.date || '';
-            const matchUrl = match.matchUrl || match.url || match.link || '';
-
-            let formattedDate = '';
-            let formattedTime = '';
-
-            if (rawDateTime) {
-                if (rawDateTime.includes(' ')) {
-                    const parts = rawDateTime.split(' ');
-                    formattedDate = parts[0];
-                    formattedTime = parts[1];
-                } else if (rawDateTime.includes('T')) {
-                    const parts = rawDateTime.split('T');
-                    formattedDate = parts[0];
-                    formattedTime = parts[1].substring(0, 5);
-                } else {
-                    formattedTime = rawDateTime;
-                }
-            }
-
-            const isActive = (window.activeMatchUrl === matchUrl);
-
-            html += `
-                <div class="bg-slate-900/90 ${isActive ? 'border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.3)]' : 'border-slate-800/80 hover:border-slate-700'} border p-3 rounded-xl transition-all flex flex-col justify-between gap-2.5">
-                    
-                    <!-- Round Header & Date/Time Badge -->
-                    <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1.5">
-                        <span class="text-emerald-400 font-bold uppercase tracking-wider">${roundName || 'MATCH FIXTURE'}</span>
-                        <div class="flex items-center gap-2 text-slate-400">
-                            ${formattedDate ? `<span class="bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">${formattedDate}</span>` : ''}
-                            ${formattedTime ? `<span class="bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-cyan-400 font-bold">${formattedTime}</span>` : ''}
-                        </div>
-                    </div>
-
-                    <!-- Main Match Card Teams & Score -->
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-2 flex-1 justify-end min-w-0">
-                            <span class="font-bold text-xs text-slate-100 truncate text-right">${team1Name}</span>
-                            ${team1Logo ? `<img src="${team1Logo}" class="w-5 h-5 object-contain flex-shrink-0">` : ''}
-                        </div>
-                        
-                        <div class="px-3 py-1 bg-slate-950 rounded-lg border border-slate-800 text-center flex-shrink-0 min-w-[50px]">
-                            <span class="font-mono font-black text-sm text-emerald-400 block">${score}</span>
-                        </div>
-
-                        <div class="flex items-center gap-2 flex-1 justify-start min-w-0">
-                            ${team2Logo ? `<img src="${team2Logo}" class="w-5 h-5 object-contain flex-shrink-0">` : ''}
-                            <span class="font-bold text-xs text-slate-100 truncate text-left">${team2Name}</span>
-                        </div>
-                    </div>
-
-                    <!-- Telemetry Action Footer -->
-                    <div class="flex justify-end pt-1 border-t border-slate-800/40">
-                        <button onclick="executeMatchDetailPipeline('${encodeURIComponent(matchUrl)}', '${encodeURIComponent(team1Name)}', '${encodeURIComponent(team2Name)}')" 
-                                class="w-full bg-cyan-950/60 hover:bg-cyan-600 border border-cyan-500/60 text-cyan-300 hover:text-white py-1.5 px-3 rounded-lg font-mono text-[10px] font-bold uppercase transition-all cursor-pointer flex items-center justify-center gap-1.5 tracking-wider shadow-sm">
-                            <span>📊 TELEMETRY STATS</span>
-                            <span>→</span>
-                        </button>
-                    </div>
-
-                </div>
-            `;
-        });
-
-        html += `</div>`;
-        containerEl.innerHTML = html;
+        if (Array.isArray(matchesArray) && matchesArray.length > 0) {
+            window.fullMatchList = matchesArray;
+            const listPanel = document.getElementById('matchListSubPanel');
+            if (listPanel) window.renderMatchListPanel(matchesArray, listPanel);
+        }
     };
 
-window.renderMatchDetailPanel = function(responseInput, containerEl) {
-    if (!responseInput || !containerEl) return;
+    // --- TOP PANEL: MATCH FIXTURES RENDERER ---
+    window.renderMatchListPanel = function(matches, containerEl) {
+        if (!containerEl) return;
+        const headerCount = document.getElementById('matchListHeaderCount');
+        if (headerCount) headerCount.innerText = `// TOP PANEL: MATCH FIXTURES LIST (${matches.length} FOUND)`;
 
-    // 1. Unwrap payload structure safely
-    const rawData = Array.isArray(responseInput) ? responseInput[0] : responseInput;
-    const payload = rawData?.data || rawData;
+        containerEl.innerHTML = matches.map((m, idx) => `
+            <div class="flex flex-col sm:flex-row items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-lg hover:border-emerald-500/50 transition-all gap-3">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <span class="text-[10px] text-slate-500 font-mono w-6">#${idx + 1}</span>
+                    <div class="font-sans font-bold text-slate-200 text-sm">
+                        ${m.homeTeam || 'Home'} <span class="text-emerald-400 px-1 font-mono">${m.score || 'VS'}</span> ${m.awayTeam || 'Away'}
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                    <span class="text-[10px] text-slate-400 font-mono">${m.date || m.time || ''}</span>
+                    <button onclick="triggerMatchAnalysis('${m.matchUrl || m.link}')" 
+                            class="bg-cyan-950 hover:bg-cyan-600 border border-cyan-500 text-cyan-300 hover:text-white px-3 py-1 rounded font-mono text-[10px] font-bold tracking-wider transition-colors cursor-pointer">
+                        ANALYZE →
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    };
 
-    if (!payload) {
-        containerEl.innerHTML = `<div class="p-4 text-red-400 font-mono text-xs">// Error: Invalid payload structure</div>`;
-        return;
-    }
+    window.triggerMatchAnalysis = function(matchUrl) {
+        if (!matchUrl) return;
+        window.activeMatchUrl = matchUrl;
+        window.executeScraperWorkflow({
+            page: "sports",
+            targetMatrix: "match_detail",
+            matchUrl: matchUrl,
+            timestamp: new Date().toISOString()
+        });
+    };
 
-    // 2. Base Info & Standings
-    const homeName = payload.homeTeam || 'Home Team';
-    const awayName = payload.awayTeam || 'Away Team';
-    const score = payload.matchResult || 'VS';
-    const matchDate = payload.matchDate || 'COMPLETED';
-    const standings = payload.standings || {};
-    const homeStanding = standings.homeTeamStanding || {};
-    const awayStanding = standings.awayTeamStanding || {};
-    const roundName = standings.round || 'MATCH DETAILS';
+    // --- BOTTOM PANEL: FULL-BLEED MATCH DETAIL RENDERER ---
+    window.renderMatchDetailPanel = function(responseInput, containerEl) {
+        if (!responseInput || !containerEl) return;
 
-    // 3. Lineup Roster & Formation
-    const lineups = payload.lineups || {};
-    const homeLineup = lineups.homeTeam || {};
-    const awayLineup = lineups.awayTeam || {};
+        const payload = responseInput.data || responseInput;
 
-  // --- FIXED PITCH POSITIONING ENGINE ---
-const renderPitchSide = (startingEleven, isHome) => {
-    if (!startingEleven || !Array.isArray(startingEleven) || startingEleven.length === 0) {
-        return `<div class="flex items-center justify-center w-full h-full text-slate-500 font-mono text-xs">// Lineup unavailable</div>`;
-    }
+        const homeName = payload.homeTeam || 'Home Team';
+        const awayName = payload.awayTeam || 'Away Team';
+        const score = payload.matchResult || 'VS';
+        const matchDate = payload.matchDate || 'COMPLETED';
+        const standings = payload.standings || {};
+        const homeStanding = standings.homeTeamStanding || {};
+        const awayStanding = standings.awayTeamStanding || {};
+        const roundName = standings.round || 'MATCH DETAILS';
 
-    // Group players strictly by position tag
-    const gk = startingEleven.filter(p => p.position === 'GK');
-    const def = startingEleven.filter(p => p.position === 'DEF');
-    const mid = startingEleven.filter(p => p.position === 'MID');
-    const fwd = startingEleven.filter(p => p.position === 'FWD');
+        const lineups = payload.lineups || {};
+        const homeLineup = lineups.homeTeam || {};
+        const awayLineup = lineups.awayTeam || {};
 
-    // Home renders left-to-right (GK -> DEF -> MID -> FWD)
-    // Away renders right-to-left (FWD -> MID -> DEF -> GK)
-    const lines = isHome ? [gk, def, mid, fwd] : [fwd, mid, def, gk];
+        const renderPitchSide = (startingEleven, isHome) => {
+            if (!startingEleven || !Array.isArray(startingEleven) || startingEleven.length === 0) {
+                return `<div class="flex items-center justify-center w-full h-full text-slate-500 font-mono text-sm">// Lineup data unavailable</div>`;
+            }
 
-    return `
-        <div class="flex flex-row justify-between items-center w-full h-full px-3 relative">
-            ${lines.map((line) => `
-                <div class="flex flex-col justify-evenly items-center h-full flex-1 z-20">
-                    ${line.map(p => `
-                        <div class="flex flex-col items-center group relative cursor-pointer my-auto">
-                            <div class="w-7 h-7 rounded-full ${isHome ? 'bg-cyan-500 text-slate-950 ring-2 ring-cyan-300' : 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-300'} font-bold font-mono text-xs flex items-center justify-center shadow-lg transition-transform hover:scale-110">
-                                ${p.number || ''}
-                            </div>
-                            <span class="text-[9px] font-mono font-bold text-slate-100 bg-slate-950/90 px-1.5 py-0.5 rounded mt-1 whitespace-nowrap max-w-[75px] truncate text-center border border-slate-800 shadow-md">
-                                ${p.name}
-                            </span>
+            const gk = startingEleven.filter(p => p.position === 'GK');
+            const def = startingEleven.filter(p => p.position === 'DEF');
+            const mid = startingEleven.filter(p => p.position === 'MID');
+            const fwd = startingEleven.filter(p => p.position === 'FWD');
+
+            const lines = isHome ? [gk, def, mid, fwd] : [fwd, mid, def, gk];
+
+            return `
+                <div class="flex flex-row justify-around items-center w-full h-full px-2 md:px-6">
+                    ${lines.map((line) => `
+                        <div class="flex flex-col justify-evenly items-center h-full flex-1 z-20 py-4">
+                            ${line.map(p => `
+                                <div class="flex flex-col items-center group relative cursor-pointer my-1.5">
+                                    <div class="w-8 h-8 md:w-11 md:h-11 rounded-full ${isHome ? 'bg-cyan-500 text-slate-950 ring-4 ring-cyan-300' : 'bg-emerald-500 text-slate-950 ring-4 ring-emerald-300'} font-black font-mono text-xs md:text-sm flex items-center justify-center shadow-2xl transition-transform hover:scale-125 z-30">
+                                        ${p.number || ''}
+                                    </div>
+                                    <span class="text-[10px] md:text-xs font-mono font-bold text-slate-100 bg-slate-950/90 px-2 py-0.5 md:py-1 rounded-md mt-1.5 whitespace-nowrap border border-slate-700 shadow-xl tracking-wide">
+                                        ${p.name}
+                                    </span>
+                                </div>
+                            `).join('')}
                         </div>
                     `).join('')}
                 </div>
-            `).join('')}
-        </div>
-    `;
-};
+            `;
+        };
 
-    // 4. Timeline Events (Goals & Substitutions)
-    const goals = payload.goals || [];
-    const substitutions = payload.substitutions || [];
-    const allEvents = [
-        ...goals.map(g => ({ ...g, type: 'GOAL', minNum: parseInt(g.minute) || 0 })),
-        ...substitutions.map(s => ({ ...s, type: 'SUB', minNum: parseInt(s.minute) || 0 }))
-    ].sort((a, b) => a.minNum - b.minNum);
+        const goals = payload.goals || [];
+        const substitutions = payload.substitutions || [];
+        const allEvents = [
+            ...goals.map(g => ({ ...g, type: 'GOAL', minNum: parseInt(g.minute) || 0 })),
+            ...substitutions.map(s => ({ ...s, type: 'SUB', minNum: parseInt(s.minute) || 0 }))
+        ].sort((a, b) => a.minNum - b.minNum);
 
-    let timelineHtml = '';
-    if (allEvents.length > 0) {
-        timelineHtml = allEvents.map(evt => {
-            if (evt.type === 'GOAL') {
-                return `
-                    <div class="flex items-center justify-between p-2.5 bg-emerald-950/40 border border-emerald-700/60 rounded font-mono text-xs">
-                        <div class="flex items-center gap-2">
-                            <span class="text-emerald-400 font-bold">${evt.minute}</span>
-                            <span class="text-slate-100 font-bold">⚽ Goal - ${evt.scorer}</span>
-                            ${evt.assist ? `<span class="text-slate-400 text-[10px]">(Assist: ${evt.assist})</span>` : ''}
-                        </div>
-                        <span class="text-[10px] font-bold text-emerald-300 bg-emerald-900/60 px-2 py-0.5 rounded border border-emerald-700/50">${evt.team}</span>
-                    </div>`;
-            } else {
-                return `
-                    <div class="flex items-center justify-between p-2.5 bg-slate-950/80 border border-slate-800 rounded font-mono text-xs">
-                        <div class="flex items-center gap-2">
-                            <span class="text-amber-400 font-bold">${evt.minute}</span>
-                            <span class="text-slate-300">🔄 <span class="text-emerald-400">IN: ${evt.playerIn}</span> / <span class="text-red-400">OUT: ${evt.playerOut}</span></span>
-                        </div>
-                        <span class="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${evt.team}</span>
-                    </div>`;
-            }
-        }).join('');
-    } else {
-        timelineHtml = `<p class="text-slate-500 font-mono text-xs italic">// No match timeline events available.</p>`;
-    }
-
-    // 5. Match Statistics & Possession
-    const stats = payload.statistics || {};
-    const pos = stats.ballPossession || {};
-    const fh = stats.firstHalf || {};
-    const sh = stats.secondHalf || {};
-
-    const createStatRow = (label, homeVal, awayVal, isPercentage = false) => `
-        <div class="space-y-1">
-            <div class="flex justify-between text-xs font-mono text-slate-300">
-                <span class="font-bold text-cyan-400">${homeVal ?? '-'}${isPercentage ? '%' : ''}</span>
-                <span class="text-slate-400 uppercase text-[10px] tracking-wider">${label}</span>
-                <span class="font-bold text-emerald-400">${awayVal ?? '-'}${isPercentage ? '%' : ''}</span>
-            </div>
-            <div class="flex h-2 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
-                <div class="bg-cyan-500 h-full transition-all duration-500" style="width: ${isPercentage ? (homeVal || 50) : (((homeVal || 0) / (((homeVal || 0) + (awayVal || 0)) || 1)) * 100)}%"></div>
-                <div class="bg-emerald-500 h-full transition-all duration-500" style="width: ${isPercentage ? (awayVal || 50) : (((awayVal || 0) / (((homeVal || 0) + (awayVal || 0)) || 1)) * 100)}%"></div>
-            </div>
-        </div>`;
-
-    // 6. Inject Full Height Structural HTML
-    containerEl.innerHTML = `
-        <div class="font-sans space-y-5 text-slate-100 min-h-[850px] p-2">
-            
-            <!-- Match Header Banner -->
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-2xl">
-                <div class="flex items-center gap-4 flex-1">
-                    <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-500/40 flex items-center justify-center font-bold text-cyan-400 text-sm shadow">H</div>
-                    <div>
-                        <div class="font-bold text-base text-slate-100">${homeName}</div>
-                        <div class="text-xs font-mono text-slate-400">Coach: ${homeLineup.coach || 'N/A'} (${homeLineup.formation || 'N/A'})</div>
-                    </div>
-                </div>
-
-                <div class="flex flex-col items-center justify-center px-8 border-x border-slate-800">
-                    <span class="text-3xl font-black font-mono text-cyan-400 tracking-widest">${score}</span>
-                    <span class="text-[10px] font-mono text-emerald-400 uppercase bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-800/60 mt-1">${roundName} &bull; ${matchDate}</span>
-                </div>
-
-                <div class="flex items-center gap-4 flex-1 justify-end text-right">
-                    <div>
-                        <div class="font-bold text-base text-slate-100">${awayName}</div>
-                        <div class="text-xs font-mono text-slate-400">Coach: ${awayLineup.coach || 'N/A'} (${awayLineup.formation || 'N/A'})</div>
-                    </div>
-                    <div class="w-10 h-10 rounded-lg bg-emerald-950 border border-emerald-500/40 flex items-center justify-center font-bold text-emerald-400 text-sm shadow">A</div>
-                </div>
-            </div>
-
-            <!-- League Standings Card -->
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-xl">
-                <div class="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider mb-3">// LEAGUE STANDINGS & FORM</div>
-                <div class="grid grid-cols-2 gap-4 text-xs font-mono">
-                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 space-y-1.5">
-                        <div class="text-cyan-400 font-bold border-b border-slate-800 pb-1">${homeName}</div>
-                        <div class="flex justify-between"><span class="text-slate-400">Position:</span><span class="font-bold text-slate-200">#${homeStanding.position ?? '-'}</span></div>
-                        <div class="flex justify-between"><span class="text-slate-400">Points:</span><span class="font-bold text-slate-200">${homeStanding.points ?? '-'} pts</span></div>
-                        <div class="flex justify-between"><span class="text-slate-400">Matches Played:</span><span class="text-slate-300">${homeStanding.matchesPlayed ?? '-'}</span></div>
-                        <div class="flex justify-between"><span class="text-slate-400">W / D / L:</span><span class="text-slate-300">${homeStanding.wins ?? 0}W / ${homeStanding.draws ?? 0}D / ${homeStanding.losses ?? 0}L</span></div>
-                    </div>
-                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 space-y-1.5">
-                        <div class="text-emerald-400 font-bold border-b border-slate-800 pb-1">${awayName}</div>
-                        <div class="flex justify-between"><span class="text-slate-400">Position:</span><span class="font-bold text-slate-200">#${awayStanding.position ?? '-'}</span></div>
-                        <div class="flex justify-between"><span class="text-slate-400">Points:</span><span class="font-bold text-slate-200">${awayStanding.points ?? '-'} pts</span></div>
-                        <div class="flex justify-between"><span class="text-slate-400">Matches Played:</span><span class="text-slate-300">${awayStanding.matchesPlayed ?? '-'}</span></div>
-                        <div class="flex justify-between"><span class="text-slate-400">W / D / L:</span><span class="text-slate-300">${awayStanding.wins ?? 0}W / ${awayStanding.draws ?? 0}D / ${awayStanding.losses ?? 0}L</span></div>
-                    </div>
-                </div>
-            </div>
-
-           <!-- Pitch Field View -->
-<div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-2xl space-y-3">
-    <div class="flex justify-between items-center">
-        <div class="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider">// TACTICAL LINEUPS & FORMATIONS</div>
-        <div class="text-xs font-mono text-slate-400">${homeLineup.formation || '4-4-2'} VS ${awayLineup.formation || '4-5-1'}</div>
-    </div>
-
-    <!-- Outer Tactical Field Container -->
-    <div class="relative w-full h-[400px] bg-slate-950/90 border-2 border-emerald-600/40 rounded-xl overflow-hidden flex flex-row justify-between items-center shadow-inner">
-        <!-- Pitch Markings Overlay -->
-        <div class="absolute inset-y-0 left-1/2 w-0.5 bg-emerald-600/40 -translate-x-1/2 pointer-events-none"></div>
-        <div class="absolute top-1/2 left-1/2 w-28 h-28 border-2 border-emerald-600/40 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-        <div class="absolute inset-y-12 left-0 w-20 border-2 border-l-0 border-emerald-600/40 pointer-events-none"></div>
-        <div class="absolute inset-y-12 right-0 w-20 border-2 border-r-0 border-emerald-600/40 pointer-events-none"></div>
-
-        <!-- Home Half (Left) -->
-        <div class="relative z-10 w-1/2 h-full flex flex-row items-center justify-center pr-2">
-            ${renderPitchSide(homeLineup.startingEleven, true)}
-        </div>
-
-        <!-- Away Half (Right) -->
-        <div class="relative z-10 w-1/2 h-full flex flex-row items-center justify-center pl-2">
-            ${renderPitchSide(awayLineup.startingEleven, false)}
-        </div>
-    </div>
-
-    <!-- Bench Substitutes View -->
-    <div class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-800/80 text-xs font-mono">
-        <div>
-            <div class="text-cyan-400 font-bold mb-1.5">// ${homeName} BENCH</div>
-            <div class="flex flex-wrap gap-1">${(homeLineup.substitutes || []).map(s => `<span class="bg-slate-950 border border-slate-800 px-2 py-1 rounded text-slate-300 text-[11px]">${s}</span>`).join('')}</div>
-        </div>
-        <div>
-            <div class="text-emerald-400 font-bold mb-1.5">// ${awayName} BENCH</div>
-            <div class="flex flex-wrap gap-1">${(awayLineup.substitutes || []).map(s => `<span class="bg-slate-950 border border-slate-800 px-2 py-1 rounded text-slate-300 text-[11px]">${s}</span>`).join('')}</div>
-        </div>
-    </div>
-</div>
-            <!-- Stats & Timeline Split Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                <!-- Match Events Panel -->
-                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-xl space-y-3">
-                    <div class="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider">// MATCH TIMELINE & SUBS</div>
-                    <div class="space-y-2 max-h-[320px] overflow-y-auto pr-1">
-                        ${timelineHtml}
-                    </div>
-                </div>
-
-                <!-- Detailed Telemetry Metrics -->
-                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-xl space-y-3">
-                    <div class="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider">// GAME STATS & TELEMETRY</div>
-                    <div class="space-y-3 max-h-[320px] overflow-y-auto pr-1">
-                        
-                        <!-- Possession Section -->
-                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
-                            <div class="text-[10px] text-slate-400 font-bold font-mono uppercase">// POSSESSION</div>
-                            ${createStatRow("Full Match", parseInt(pos.fullMatch?.home), parseInt(pos.fullMatch?.away), true)}
-                            ${createStatRow("1st Half", parseInt(pos.firstHalf?.home), parseInt(pos.firstHalf?.away), true)}
-                            ${createStatRow("2nd Half", parseInt(pos.secondHalf?.home), parseInt(pos.secondHalf?.away), true)}
-                        </div>
-
-                        <!-- Game Metrics -->
-                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
-                            <div class="text-[10px] text-slate-400 font-bold font-mono uppercase">// SHOTS & FOULS</div>
-                            ${createStatRow("Total Shots", stats.totalShots?.home, stats.totalShots?.away)}
-                            ${createStatRow("Shots On Target", stats.shotsOnTarget?.home, stats.shotsOnTarget?.away)}
-                            ${createStatRow("Corner Kicks", stats.cornerKicks?.home, stats.cornerKicks?.away)}
-                            ${createStatRow("Fouls", stats.fouls?.home, stats.fouls?.away)}
-                            ${createStatRow("Offsides", stats.offsides?.home, stats.offsides?.away)}
-                        </div>
-
-                        <!-- Half Breakdowns -->
-                        <div class="grid grid-cols-2 gap-2 font-mono text-[11px]">
-                            <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1">
-                                <div class="text-amber-400 font-bold text-[10px]">// 1ST HALF</div>
-                                <div class="flex justify-between"><span class="text-slate-400">Shots:</span><span>${fh.totalShots?.home ?? 0} - ${fh.totalShots?.away ?? 0}</span></div>
-                                <div class="flex justify-between"><span class="text-slate-400">On Target:</span><span>${fh.shotsOnTarget?.home ?? 0} - ${fh.shotsOnTarget?.away ?? 0}</span></div>
-                                <div class="flex justify-between"><span class="text-slate-400">Fouls:</span><span>${fh.fouls?.home ?? 0} - ${fh.fouls?.away ?? 0}</span></div>
+        let timelineHtml = '';
+        if (allEvents.length > 0) {
+            timelineHtml = allEvents.map(evt => {
+                if (evt.type === 'GOAL') {
+                    return `
+                        <div class="flex items-center justify-between p-4 bg-emerald-950/40 border border-emerald-600/60 rounded-xl font-mono text-sm">
+                            <div class="flex items-center gap-3">
+                                <span class="text-emerald-400 font-bold text-base md:text-lg">${evt.minute}</span>
+                                <span class="text-slate-100 font-bold">⚽ Goal - ${evt.scorer}</span>
+                                ${evt.assist ? `<span class="text-slate-400 text-xs">(Assist: ${evt.assist})</span>` : ''}
                             </div>
-                            <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1">
-                                <div class="text-amber-400 font-bold text-[10px]">// 2ND HALF</div>
-                                <div class="flex justify-between"><span class="text-slate-400">Shots:</span><span>${sh.totalShots?.home ?? 0} - ${sh.totalShots?.away ?? 0}</span></div>
-                                <div class="flex justify-between"><span class="text-slate-400">On Target:</span><span>${sh.shotsOnTarget?.home ?? 0} - ${sh.shotsOnTarget?.away ?? 0}</span></div>
-                                <div class="flex justify-between"><span class="text-slate-400">Fouls:</span><span>${sh.fouls?.home ?? 0} - ${sh.fouls?.away ?? 0}</span></div>
+                            <span class="text-xs font-bold text-emerald-300 bg-emerald-900/60 px-3 py-1 rounded-lg border border-emerald-700/50">${evt.team}</span>
+                        </div>`;
+                } else {
+                    return `
+                        <div class="flex items-center justify-between p-4 bg-slate-950/80 border border-slate-800 rounded-xl font-mono text-sm">
+                            <div class="flex items-center gap-3">
+                                <span class="text-amber-400 font-bold text-base md:text-lg">${evt.minute}</span>
+                                <span class="text-slate-300">🔄 <span class="text-emerald-400 font-semibold">IN: ${evt.playerIn}</span> / <span class="text-red-400 font-semibold">OUT: ${evt.playerOut}</span></span>
                             </div>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    `;
-};
-
-    window.executeMatchDetailPipeline = function(encodedUrl, encodedHome, encodedAway) {
-        const matchUrl = decodeURIComponent(encodedUrl);
-        const homeName = decodeURIComponent(encodedHome);
-        const awayName = decodeURIComponent(encodedAway);
-        
-        window.activeMatchUrl = matchUrl;
-
-        // Re-render top panel to highlight selected match card
-        if (window.fullMatchList.length > 0) {
-            const listPanel = document.getElementById('matchListSubPanel');
-            if (listPanel) renderSportsFixturesList(window.fullMatchList, listPanel);
+                            <span class="text-xs text-slate-400 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">${evt.team}</span>
+                        </div>`;
+                }
+            }).join('');
+        } else {
+            timelineHtml = `<p class="text-slate-500 font-mono text-sm italic py-4">// No match timeline events available.</p>`;
         }
 
-        const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+        const stats = payload.statistics || {};
+        const pos = stats.ballPossession || {};
+        const fh = stats.firstHalf || {};
+        const sh = stats.secondHalf || {};
 
-        window.executeScraperWorkflow({
-            page: "sports",
-            targetMatrix: "match_details",
-            matchUrl: matchUrl,
-            homeTeam: homeName,
-            awayTeam: awayName,
-            languages: selectedLangs,
-            query: `Fetch match statistics, lineups, and live events for ${homeName} vs ${awayName}`,
-            timestamp: new Date().toISOString()
-        });
+        const createStatRow = (label, homeVal, awayVal, isPercentage = false) => `
+            <div class="space-y-1.5 py-1">
+                <div class="flex justify-between text-sm font-mono text-slate-300">
+                    <span class="font-bold text-cyan-400 text-base md:text-lg">${homeVal ?? '-'}${isPercentage ? '%' : ''}</span>
+                    <span class="text-slate-400 uppercase text-xs tracking-wider font-semibold">${label}</span>
+                    <span class="font-bold text-emerald-400 text-base md:text-lg">${awayVal ?? '-'}${isPercentage ? '%' : ''}</span>
+                </div>
+                <div class="flex h-3.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800 p-0.5">
+                    <div class="bg-cyan-500 h-full rounded-l-full transition-all duration-500" style="width: ${isPercentage ? (homeVal || 50) : (((homeVal || 0) / (((homeVal || 0) + (awayVal || 0)) || 1)) * 100)}%"></div>
+                    <div class="bg-emerald-500 h-full rounded-r-full transition-all duration-500" style="width: ${isPercentage ? (awayVal || 50) : (((awayVal || 0) / (((homeVal || 0) + (awayVal || 0)) || 1)) * 100)}%"></div>
+                </div>
+            </div>`;
+
+        containerEl.innerHTML = `
+            <div class="font-sans space-y-8 text-slate-100 w-full pt-2">
+                
+                <!-- 1. Header Banner -->
+                <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl flex flex-col md:flex-row items-center justify-between shadow-2xl gap-6 w-full">
+                    <div class="flex items-center gap-5 flex-1">
+                        <div class="w-16 h-16 rounded-2xl bg-cyan-950 border-2 border-cyan-500/50 flex items-center justify-center font-black text-cyan-400 text-2xl shadow-xl">H</div>
+                        <div>
+                            <div class="font-black text-2xl md:text-3xl text-slate-100">${homeName}</div>
+                            <div class="text-sm font-mono text-slate-400 mt-1">Coach: ${homeLineup.coach || 'N/A'} (${homeLineup.formation || 'N/A'})</div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-center justify-center px-12 py-3 border-y md:border-y-0 md:border-x border-slate-800 w-full md:w-auto">
+                        <span class="text-5xl md:text-6xl font-black font-mono text-cyan-400 tracking-widest">${score}</span>
+                        <span class="text-xs md:text-sm font-mono font-bold text-emerald-400 uppercase bg-emerald-950/80 px-5 py-1.5 rounded-full border border-emerald-700/60 mt-3">${roundName} &bull; ${matchDate}</span>
+                    </div>
+
+                    <div class="flex items-center gap-5 flex-1 justify-end text-right">
+                        <div>
+                            <div class="font-black text-2xl md:text-3xl text-slate-100">${awayName}</div>
+                            <div class="text-sm font-mono text-slate-400 mt-1">Coach: ${awayLineup.coach || 'N/A'} (${awayLineup.formation || 'N/A'})</div>
+                        </div>
+                        <div class="w-16 h-16 rounded-2xl bg-emerald-950 border-2 border-emerald-500/50 flex items-center justify-center font-black text-emerald-400 text-2xl shadow-xl">A</div>
+                    </div>
+                </div>
+
+                <!-- 2. League Standings Grid -->
+                <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl shadow-xl space-y-4 w-full">
+                    <div class="text-base font-mono font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                        LEAGUE STANDINGS & FORM BREAKDOWN
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm font-mono">
+                        <div class="bg-slate-950/90 p-6 rounded-xl border border-slate-800 space-y-3.5 shadow-inner">
+                            <div class="text-cyan-400 font-bold text-lg border-b border-slate-800 pb-2">${homeName}</div>
+                            <div class="flex justify-between"><span class="text-slate-400">Position:</span><span class="font-bold text-slate-100 text-lg">#${homeStanding.position ?? '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Points:</span><span class="font-bold text-slate-100 text-lg">${homeStanding.points ?? '-'} pts</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Matches Played:</span><span class="text-slate-300">${homeStanding.matchesPlayed ?? '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Record (W / D / L):</span><span class="text-slate-300 font-semibold">${homeStanding.wins ?? 0}W / ${homeStanding.draws ?? 0}D / ${homeStanding.losses ?? 0}L</span></div>
+                        </div>
+                        <div class="bg-slate-950/90 p-6 rounded-xl border border-slate-800 space-y-3.5 shadow-inner">
+                            <div class="text-emerald-400 font-bold text-lg border-b border-slate-800 pb-2">${awayName}</div>
+                            <div class="flex justify-between"><span class="text-slate-400">Position:</span><span class="font-bold text-slate-100 text-lg">#${awayStanding.position ?? '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Points:</span><span class="font-bold text-slate-100 text-lg">${awayStanding.points ?? '-'} pts</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Matches Played:</span><span class="text-slate-300">${awayStanding.matchesPlayed ?? '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Record (W / D / L):</span><span class="text-slate-300 font-semibold">${awayStanding.wins ?? 0}W / ${awayStanding.draws ?? 0}D / ${awayStanding.losses ?? 0}L</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Pitch Field View -->
+                <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl shadow-2xl space-y-6 w-full">
+                    <div class="flex justify-between items-center">
+                        <div class="text-base font-mono font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            TACTICAL FORMATION & PITCH VISUALIZER
+                        </div>
+                        <div class="text-sm font-mono font-bold text-slate-300 bg-slate-950 px-4 py-1.5 rounded-lg border border-slate-800">
+                            ${homeLineup.formation || '4-4-2'} vs ${awayLineup.formation || '4-5-1'}
+                        </div>
+                    </div>
+
+                    <div class="relative w-full min-h-[500px] md:min-h-[600px] bg-slate-950 border-2 border-emerald-600/40 rounded-2xl overflow-hidden flex flex-row justify-between items-center shadow-2xl">
+                        <div class="absolute inset-y-0 left-1/2 w-0.5 bg-emerald-600/40 -translate-x-1/2 pointer-events-none"></div>
+                        <div class="absolute top-1/2 left-1/2 w-44 h-44 border-2 border-emerald-600/40 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+                        <div class="absolute inset-y-24 left-0 w-32 border-2 border-l-0 border-emerald-600/40 pointer-events-none"></div>
+                        <div class="absolute inset-y-24 right-0 w-32 border-2 border-r-0 border-emerald-600/40 pointer-events-none"></div>
+
+                        <div class="relative z-10 w-1/2 h-full flex flex-row items-center justify-center pr-2">
+                            ${renderPitchSide(homeLineup.startingEleven, true)}
+                        </div>
+                        <div class="relative z-10 w-1/2 h-full flex flex-row items-center justify-center pl-2">
+                            ${renderPitchSide(awayLineup.startingEleven, false)}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-800 text-sm font-mono">
+                        <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                            <div class="text-cyan-400 font-bold mb-3 text-base">// ${homeName} BENCH</div>
+                            <div class="flex flex-wrap gap-2">${(homeLineup.substitutes || []).map(s => `<span class="bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-lg text-slate-300 font-semibold text-xs md:text-sm">${s}</span>`).join('')}</div>
+                        </div>
+                        <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                            <div class="text-emerald-400 font-bold mb-3 text-base">// ${awayName} BENCH</div>
+                            <div class="flex flex-wrap gap-2">${(awayLineup.substitutes || []).map(s => `<span class="bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-lg text-slate-300 font-semibold text-xs md:text-sm">${s}</span>`).join('')}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Timeline Events & Telemetry Split -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
+                    
+                    <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl shadow-xl space-y-4">
+                        <div class="text-base font-mono font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            MATCH TIMELINE & SUBSTITUTIONS
+                        </div>
+                        <div class="space-y-3">
+                            ${timelineHtml}
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl shadow-xl space-y-4">
+                        <div class="text-base font-mono font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                            DETAILED MATCH METRICS
+                        </div>
+                        <div class="space-y-4">
+                            
+                            <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3">
+                                <div class="text-xs text-slate-400 font-bold font-mono uppercase tracking-wider">// BALL POSSESSION</div>
+                                ${createStatRow("Full Match", parseInt(pos.fullMatch?.home), parseInt(pos.fullMatch?.away), true)}
+                                ${createStatRow("1st Half", parseInt(pos.firstHalf?.home), parseInt(pos.firstHalf?.away), true)}
+                                ${createStatRow("2nd Half", parseInt(pos.secondHalf?.home), parseInt(pos.secondHalf?.away), true)}
+                            </div>
+
+                            <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3">
+                                <div class="text-xs text-slate-400 font-bold font-mono uppercase tracking-wider">// MATCH TELEMETRY</div>
+                                ${createStatRow("Total Shots", stats.totalShots?.home, stats.totalShots?.away)}
+                                ${createStatRow("Shots On Target", stats.shotsOnTarget?.home, stats.shotsOnTarget?.away)}
+                                ${createStatRow("Corner Kicks", stats.cornerKicks?.home, stats.cornerKicks?.away)}
+                                ${createStatRow("Fouls Committed", stats.fouls?.home, stats.fouls?.away)}
+                                ${createStatRow("Offsides", stats.offsides?.home, stats.offsides?.away)}
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4 font-mono text-xs md:text-sm">
+                                <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+                                    <div class="text-amber-400 font-bold text-sm border-b border-slate-800 pb-1.5">// 1ST HALF</div>
+                                    <div class="flex justify-between"><span class="text-slate-400">Shots:</span><span class="font-bold text-slate-200">${fh.totalShots?.home ?? 0} - ${fh.totalShots?.away ?? 0}</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">On Target:</span><span class="font-bold text-slate-200">${fh.shotsOnTarget?.home ?? 0} - ${fh.shotsOnTarget?.away ?? 0}</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">Fouls:</span><span class="font-bold text-slate-200">${fh.fouls?.home ?? 0} - ${fh.fouls?.away ?? 0}</span></div>
+                                </div>
+                                <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+                                    <div class="text-amber-400 font-bold text-sm border-b border-slate-800 pb-1.5">// 2ND HALF</div>
+                                    <div class="flex justify-between"><span class="text-slate-400">Shots:</span><span class="font-bold text-slate-200">${sh.totalShots?.home ?? 0} - ${sh.totalShots?.away ?? 0}</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">On Target:</span><span class="font-bold text-slate-200">${sh.shotsOnTarget?.home ?? 0} - ${sh.shotsOnTarget?.away ?? 0}</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">Fouls:</span><span class="font-bold text-slate-200">${sh.fouls?.home ?? 0} - ${sh.fouls?.away ?? 0}</span></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        `;
     };
 </script>
 </body>
