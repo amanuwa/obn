@@ -670,7 +670,23 @@ window.renderMatchListPanel = function(matches) {
         `;
     }).join('');
 };
+window.triggerMatchNews = function(homeTeam, awayTeam, result, round, date, time) {
+    const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
 
+    window.executeScraperWorkflow({
+        page: "sports",
+        targetMatrix: "get_match_news",
+        homeTeam: homeTeam,
+        awayTeam: awayTeam,
+        result: result,
+        round: round,
+        date: date,
+        time: time,
+        languages: selectedLangs,
+        query: `Latest news for ${homeTeam} vs ${awayTeam} ${result} (Round ${round}, ${date} ${time})`,
+        timestamp: new Date().toISOString()
+    });
+};
     window.triggerMatchAnalysis = function(matchUrl) {
         if (!matchUrl) return;
         window.activeMatchUrl = matchUrl;
