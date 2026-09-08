@@ -726,38 +726,41 @@ window.renderMatchDetailPanel = function(responseInput, containerEl) {
     const homeLineup = lineups.homeTeam || {};
     const awayLineup = lineups.awayTeam || {};
 
-    // Fixed Pitch Layout Engine: Maps GK, DEF, MID, FWD horizontally across half-pitch
-    const renderPitchSide = (startingEleven, isHome) => {
-        if (!startingEleven || !Array.isArray(startingEleven) || startingEleven.length === 0) {
-            return `<div class="flex items-center justify-center w-full h-full text-slate-500 font-mono text-xs">// Lineup unavailable</div>`;
-        }
+  // --- FIXED PITCH POSITIONING ENGINE ---
+const renderPitchSide = (startingEleven, isHome) => {
+    if (!startingEleven || !Array.isArray(startingEleven) || startingEleven.length === 0) {
+        return `<div class="flex items-center justify-center w-full h-full text-slate-500 font-mono text-xs">// Lineup unavailable</div>`;
+    }
 
-        const gk = startingEleven.filter(p => p.position === 'GK');
-        const def = startingEleven.filter(p => p.position === 'DEF');
-        const mid = startingEleven.filter(p => p.position === 'MID');
-        const fwd = startingEleven.filter(p => p.position === 'FWD');
+    // Group players strictly by position tag
+    const gk = startingEleven.filter(p => p.position === 'GK');
+    const def = startingEleven.filter(p => p.position === 'DEF');
+    const mid = startingEleven.filter(p => p.position === 'MID');
+    const fwd = startingEleven.filter(p => p.position === 'FWD');
 
-        const lines = isHome ? [gk, def, mid, fwd] : [fwd, mid, def, gk];
+    // Home renders left-to-right (GK -> DEF -> MID -> FWD)
+    // Away renders right-to-left (FWD -> MID -> DEF -> GK)
+    const lines = isHome ? [gk, def, mid, fwd] : [fwd, mid, def, gk];
 
-        return `
-            <div class="flex flex-row justify-between items-center w-full h-full px-4">
-                ${lines.map(line => `
-                    <div class="flex flex-col justify-around items-center h-full py-2 space-y-1">
-                        ${line.map(p => `
-                            <div class="flex flex-col items-center group relative cursor-pointer z-20">
-                                <div class="w-7 h-7 rounded-full ${isHome ? 'bg-cyan-500 text-slate-950 ring-2 ring-cyan-300' : 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-300'} font-bold font-mono text-xs flex items-center justify-center shadow-lg">
-                                    ${p.number || ''}
-                                </div>
-                                <span class="text-[10px] font-mono font-semibold text-slate-100 bg-slate-950/90 px-1.5 py-0.5 rounded mt-1 whitespace-nowrap max-w-[80px] truncate text-center border border-slate-800 shadow">
-                                    ${p.name}
-                                </span>
+    return `
+        <div class="flex flex-row justify-between items-center w-full h-full px-3 relative">
+            ${lines.map((line) => `
+                <div class="flex flex-col justify-evenly items-center h-full flex-1 z-20">
+                    ${line.map(p => `
+                        <div class="flex flex-col items-center group relative cursor-pointer my-auto">
+                            <div class="w-7 h-7 rounded-full ${isHome ? 'bg-cyan-500 text-slate-950 ring-2 ring-cyan-300' : 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-300'} font-bold font-mono text-xs flex items-center justify-center shadow-lg transition-transform hover:scale-110">
+                                ${p.number || ''}
                             </div>
-                        `).join('')}
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    };
+                            <span class="text-[9px] font-mono font-bold text-slate-100 bg-slate-950/90 px-1.5 py-0.5 rounded mt-1 whitespace-nowrap max-w-[75px] truncate text-center border border-slate-800 shadow-md">
+                                ${p.name}
+                            </span>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('')}
+        </div>
+    `;
+};
 
     // 4. Timeline Events (Goals & Substitutions)
     const goals = payload.goals || [];
@@ -863,44 +866,44 @@ window.renderMatchDetailPanel = function(responseInput, containerEl) {
                 </div>
             </div>
 
-            <!-- Pitch Field View -->
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-2xl space-y-3">
-                <div class="flex justify-between items-center">
-                    <div class="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider">// TACTICAL LINEUPS</div>
-                    <div class="text-xs font-mono text-slate-400">${homeLineup.formation || '4-4-2'} VS ${awayLineup.formation || '4-5-1'}</div>
-                </div>
+           <!-- Pitch Field View -->
+<div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-2xl space-y-3">
+    <div class="flex justify-between items-center">
+        <div class="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider">// TACTICAL LINEUPS & FORMATIONS</div>
+        <div class="text-xs font-mono text-slate-400">${homeLineup.formation || '4-4-2'} VS ${awayLineup.formation || '4-5-1'}</div>
+    </div>
 
-                <div class="relative w-full h-[380px] bg-slate-950/90 border-2 border-emerald-600/40 rounded-xl overflow-hidden flex justify-between items-center shadow-inner">
-                    <!-- Pitch Marking Overlays -->
-                    <div class="absolute inset-y-0 left-1/2 w-0.5 bg-emerald-600/40 -translate-x-1/2 pointer-events-none"></div>
-                    <div class="absolute top-1/2 left-1/2 w-28 h-28 border-2 border-emerald-600/40 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-                    <div class="absolute inset-y-12 left-0 w-20 border-2 border-l-0 border-emerald-600/40 pointer-events-none"></div>
-                    <div class="absolute inset-y-12 right-0 w-20 border-2 border-r-0 border-emerald-600/40 pointer-events-none"></div>
+    <!-- Outer Tactical Field Container -->
+    <div class="relative w-full h-[400px] bg-slate-950/90 border-2 border-emerald-600/40 rounded-xl overflow-hidden flex flex-row justify-between items-center shadow-inner">
+        <!-- Pitch Markings Overlay -->
+        <div class="absolute inset-y-0 left-1/2 w-0.5 bg-emerald-600/40 -translate-x-1/2 pointer-events-none"></div>
+        <div class="absolute top-1/2 left-1/2 w-28 h-28 border-2 border-emerald-600/40 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+        <div class="absolute inset-y-12 left-0 w-20 border-2 border-l-0 border-emerald-600/40 pointer-events-none"></div>
+        <div class="absolute inset-y-12 right-0 w-20 border-2 border-r-0 border-emerald-600/40 pointer-events-none"></div>
 
-                    <!-- Home Side -->
-                    <div class="relative z-10 w-1/2 h-full">
-                        ${renderPitchSide(homeLineup.startingEleven, true)}
-                    </div>
+        <!-- Home Half (Left) -->
+        <div class="relative z-10 w-1/2 h-full flex flex-row items-center justify-center pr-2">
+            ${renderPitchSide(homeLineup.startingEleven, true)}
+        </div>
 
-                    <!-- Away Side -->
-                    <div class="relative z-10 w-1/2 h-full">
-                        ${renderPitchSide(awayLineup.startingEleven, false)}
-                    </div>
-                </div>
+        <!-- Away Half (Right) -->
+        <div class="relative z-10 w-1/2 h-full flex flex-row items-center justify-center pl-2">
+            ${renderPitchSide(awayLineup.startingEleven, false)}
+        </div>
+    </div>
 
-                <!-- Substitutes Bench Grid -->
-                <div class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-800/80 text-xs font-mono">
-                    <div>
-                        <div class="text-cyan-400 font-bold mb-1.5">// ${homeName} BENCH</div>
-                        <div class="flex flex-wrap gap-1">${(homeLineup.substitutes || []).map(s => `<span class="bg-slate-950 border border-slate-800 px-2 py-1 rounded text-slate-300 text-[11px]">${s}</span>`).join('')}</div>
-                    </div>
-                    <div>
-                        <div class="text-emerald-400 font-bold mb-1.5">// ${awayName} BENCH</div>
-                        <div class="flex flex-wrap gap-1">${(awayLineup.substitutes || []).map(s => `<span class="bg-slate-950 border border-slate-800 px-2 py-1 rounded text-slate-300 text-[11px]">${s}</span>`).join('')}</div>
-                    </div>
-                </div>
-            </div>
-
+    <!-- Bench Substitutes View -->
+    <div class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-800/80 text-xs font-mono">
+        <div>
+            <div class="text-cyan-400 font-bold mb-1.5">// ${homeName} BENCH</div>
+            <div class="flex flex-wrap gap-1">${(homeLineup.substitutes || []).map(s => `<span class="bg-slate-950 border border-slate-800 px-2 py-1 rounded text-slate-300 text-[11px]">${s}</span>`).join('')}</div>
+        </div>
+        <div>
+            <div class="text-emerald-400 font-bold mb-1.5">// ${awayName} BENCH</div>
+            <div class="flex flex-wrap gap-1">${(awayLineup.substitutes || []).map(s => `<span class="bg-slate-950 border border-slate-800 px-2 py-1 rounded text-slate-300 text-[11px]">${s}</span>`).join('')}</div>
+        </div>
+    </div>
+</div>
             <!-- Stats & Timeline Split Section -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 
