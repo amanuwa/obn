@@ -672,37 +672,59 @@
         const homeLineup = lineups.homeTeam || {};
         const awayLineup = lineups.awayTeam || {};
 
-        const renderPitchSide = (startingEleven, isHome) => {
-            if (!startingEleven || !Array.isArray(startingEleven) || startingEleven.length === 0) {
-                return `<div class="flex items-center justify-center w-full h-full text-slate-500 font-mono text-sm">// Lineup data unavailable</div>`;
-            }
+const renderPitchSide = (startingEleven, isHome) => {
+    if (!startingEleven || !Array.isArray(startingEleven) || startingEleven.length === 0) {
+        return `<div class="flex items-center justify-center w-full h-full text-slate-500 font-mono text-xs">// Lineup data unavailable</div>`;
+    }
 
-            const gk = startingEleven.filter(p => p.position === 'GK');
-            const def = startingEleven.filter(p => p.position === 'DEF');
-            const mid = startingEleven.filter(p => p.position === 'MID');
-            const fwd = startingEleven.filter(p => p.position === 'FWD');
+    // Helper to normalize position strings regardless of API structure
+    const getPosGroup = (p) => {
+        const pos = (p.position || p.pos || p.role || '').toString().toUpperCase();
+        if (pos.includes('GK') || pos.includes('GOAL')) return 'GK';
+        if (pos.includes('DEF') || pos.includes('CB') || pos.includes('LB') || pos.includes('RB') || pos.includes('BACK')) return 'DEF';
+        if (pos.includes('MID') || pos.includes('CM') || pos.includes('LM') || pos.includes('RM') || pos.includes('DM') || pos.includes('AM')) return 'MID';
+        if (pos.includes('FWD') || pos.includes('ST') || pos.includes('CF') || pos.includes('LW') || pos.includes('RW') || pos.includes('FORWARD')) return 'FWD';
+        return 'UNKNOWN';
+    };
 
-            const lines = isHome ? [gk, def, mid, fwd] : [fwd, mid, def, gk];
+    let gk = startingEleven.filter(p => getPosGroup(p) === 'GK');
+    let def = startingEleven.filter(p => getPosGroup(p) === 'DEF');
+    let mid = startingEleven.filter(p => getPosGroup(p) === 'MID');
+    let fwd = startingEleven.filter(p => getPosGroup(p) === 'FWD');
+    let unknown = startingEleven.filter(p => getPosGroup(p) === 'UNKNOWN');
 
-            return `
-                <div class="flex flex-row justify-around items-center w-full h-full px-2 md:px-6">
-                    ${lines.map((line) => `
-                        <div class="flex flex-col justify-evenly items-center h-full flex-1 z-20 py-4">
-                            ${line.map(p => `
-                                <div class="flex flex-col items-center group relative cursor-pointer my-1.5">
-                                    <div class="w-8 h-8 md:w-11 md:h-11 rounded-full ${isHome ? 'bg-cyan-500 text-slate-950 ring-4 ring-cyan-300' : 'bg-emerald-500 text-slate-950 ring-4 ring-emerald-300'} font-black font-mono text-xs md:text-sm flex items-center justify-center shadow-2xl transition-transform hover:scale-125 z-30">
-                                        ${p.number || ''}
-                                    </div>
-                                    <span class="text-[10px] md:text-xs font-mono font-bold text-slate-100 bg-slate-950/90 px-2 py-0.5 md:py-1 rounded-md mt-1.5 whitespace-nowrap border border-slate-700 shadow-xl tracking-wide">
-                                        ${p.name}
-                                    </span>
-                                </div>
-                            `).join('')}
+    // Fallback: If position parsing yields no roles, chunk the 11 players logically (1 GK, 4 DEF, 4 MID, 2 FWD)
+    if (gk.length === 0 && def.length === 0 && mid.length === 0 && fwd.length === 0 && startingEleven.length > 0) {
+        gk = startingEleven.slice(0, 1);
+        def = startingEleven.slice(1, 5);
+        mid = startingEleven.slice(5, 9);
+        fwd = startingEleven.slice(9);
+    } else if (unknown.length > 0) {
+        // Distribute unclassified players into midfielders
+        mid = [...mid, ...unknown];
+    }
+
+    const lines = isHome ? [gk, def, mid, fwd] : [fwd, mid, def, gk];
+
+    return `
+        <div class="flex flex-row justify-around items-center w-full h-full px-2 md:px-4 z-20">
+            ${lines.map((line) => `
+                <div class="flex flex-col justify-evenly items-center h-full flex-1 py-4">
+                    ${line.map(p => `
+                        <div class="flex flex-col items-center group relative cursor-pointer my-1">
+                            <div class="w-7 h-7 md:w-10 md:h-10 rounded-full ${isHome ? 'bg-cyan-500 text-slate-950 ring-2 md:ring-4 ring-cyan-300' : 'bg-emerald-500 text-slate-950 ring-2 md:ring-4 ring-emerald-300'} font-black font-mono text-xs md:text-sm flex items-center justify-center shadow-2xl transition-transform hover:scale-125 z-30">
+                                ${p.number || p.shirtNumber || p.no || ''}
+                            </div>
+                            <span class="text-[9px] md:text-xs font-mono font-bold text-slate-100 bg-slate-950/90 px-1.5 py-0.5 rounded mt-1 whitespace-nowrap border border-slate-700 shadow-xl tracking-wide">
+                                ${p.name || p.playerName || 'Player'}
+                            </span>
                         </div>
                     `).join('')}
                 </div>
-            `;
-        };
+            `).join('')}
+        </div>
+    `;
+};
 
         const goals = payload.goals || [];
         const substitutions = payload.substitutions || [];
