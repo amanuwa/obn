@@ -589,39 +589,31 @@
     }
 
     // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
-    window.renderSportsOutput = function(data) {
-        if (!data) return;
+  // --- UPDATED DISPATCHER TO DETECT DETAILED PAYLOADS ACCURATELY ---
+window.renderSportsOutput = function(data) {
+    if (!data) return;
 
-        // Check if payload is match detail telemetry
-        const isMatchDetail = !Array.isArray(data) && (
-            data.home_team || data.away_team || data.match_events || 
-            data.match_stats || data.team1 || data.team2 || data.lineups
-        );
+    const payload = data.data || data;
 
-        if (isMatchDetail) {
-            const detailPanel = document.getElementById('matchDetailSubPanel');
-            if (detailPanel) renderMatchDetailPanel(data, detailPanel);
-            return;
-        }
+    // Check if the payload is a single match detail response
+    const isMatchDetail = !Array.isArray(payload) && (
+        payload.homeTeam || payload.matchResult || payload.matchDate || payload.standings
+    );
 
-        const matchesArray = Array.isArray(data) ? data : (data.fixtures || data.results || null);
-
-        if (Array.isArray(matchesArray) && matchesArray.length > 0) {
-            window.fullMatchList = matchesArray;
-            const listPanel = document.getElementById('matchListSubPanel');
-            if (listPanel) renderSportsFixturesList(matchesArray, listPanel);
-            return;
-        }
-
+    if (isMatchDetail) {
         const detailPanel = document.getElementById('matchDetailSubPanel');
-        if (detailPanel) {
-            if (typeof data === 'string') {
-                detailPanel.innerHTML = `<div class="p-3 bg-slate-900/90 rounded-lg border border-slate-800 text-slate-300 font-sans text-xs whitespace-pre-wrap">${data}</div>`;
-            } else {
-                detailPanel.innerHTML = `<pre class="p-3 bg-slate-900/90 rounded-lg border border-slate-800 text-emerald-400 font-mono text-xs overflow-x-auto">${JSON.stringify(data, null, 2)}</pre>`;
-            }
-        }
-    };
+        if (detailPanel) renderMatchDetailPanel(payload, detailPanel);
+        return;
+    }
+
+    const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
+
+    if (Array.isArray(matchesArray) && matchesArray.length > 0) {
+        window.fullMatchList = matchesArray;
+        const listPanel = document.getElementById('matchListSubPanel');
+        if (listPanel) renderSportsFixturesList(matchesArray, listPanel);
+    }
+};
 
     // --- TOP PANEL: MATCH FIXTURES LIST WITH DATE, TIME, ROUND & TELEMETRY BUTTON ---
     window.renderSportsFixturesList = function(matches, containerEl) {
