@@ -616,311 +616,210 @@
             if (target.item) return normalizeN8nPayload(target.item);
             if (target.json) return normalizeN8nPayload(target.json);
             if (target.body) return normalizeN8nPayload(target.body);
-            if (target.data && typeof target.data === 'object' && !Array.isArray(target.data)) {
-                if (target.data.homeTeam || target.data.home_team || target.data.matches || target.data.fixtures) {
-                    return normalizeN8nPayload(target.data);
-                }
-            }
+            if (target.data && typeof target.data === 'object') return normalizeN8nPayload(target.data);
         }
 
         return target;
     }
 
-    // --- PRIMARY DISPATCH RENDERER ---
+    // --- MAIN RENDERER ROUTER ---
     window.renderSportsOutput = function(data) {
         const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
         if (!targetEl) return;
 
         if (!data) {
-            targetEl.innerHTML = `<div class="p-4 text-amber-400 font-mono text-xs border border-amber-800/40 bg-amber-950/20 rounded-lg">// Workflow returned empty match data.</div>`;
+            targetEl.innerHTML = `<div class="text-slate-500 p-4 font-mono text-xs">// Empty response payload returned.</div>`;
             return;
         }
 
-        // ROUTE A: Multi-Match Arrays
-        if (Array.isArray(data)) {
-            saveMatchesToStorage(data);
-            window.renderSportsFixturesList(data, targetEl);
+        // Detect detailed match telemetry payload vs match list
+        const isMatchDetail = (
+            data.home_team || data.away_team || data.match_events || 
+            data.match_stats || data.team1 || data.team2 || data.lineups
+        );
+
+        if (isMatchDetail) {
+            renderMatchDetailPanel(data, targetEl);
             return;
         }
 
-        const matchesList = data.matches || data.fixtures || data.results;
-        if (Array.isArray(matchesList)) {
-            saveMatchesToStorage(matchesList);
-            window.renderSportsFixturesList(matchesList, targetEl);
+        // Check array payload or wrapped match lists
+        const matchesArray = Array.isArray(data) ? data : (data.matches || data.fixtures || data.results || null);
+
+        if (Array.isArray(matchesArray) && matchesArray.length > 0) {
+            saveMatchesToStorage(matchesArray);
+            renderSportsFixturesList(matchesArray, targetEl);
             return;
         }
 
-        // ROUTE B: Single Match Detail Output
-        window.renderSportsDetailOutput(data, targetEl);
+        // Fallback: render formatted JSON or markdown text
+        if (typeof data === 'string') {
+            targetEl.innerHTML = `<div class="p-4 bg-slate-900/90 rounded-lg border border-slate-800 text-slate-300 font-sans text-xs whitespace-pre-wrap">${data}</div>`;
+        } else {
+            targetEl.innerHTML = `<pre class="p-4 bg-slate-900/90 rounded-lg border border-slate-800 text-emerald-400 font-mono text-xs overflow-x-auto">${JSON.stringify(data, null, 2)}</pre>`;
+        }
     };
 
-    // --- FIXTURES LIST RENDERER ---
-    window.renderSportsFixturesList = function(items, targetEl) {
-        targetEl.innerHTML = `
+    // --- VERTICALLY STACKED MATCH FIXTURES LIST ---
+    window.renderSportsFixturesList = function(matches, containerEl) {
+        let html = `
             <div class="space-y-3 font-sans">
-                <div class="flex justify-between items-center px-1 border-b border-slate-800 pb-2">
-                    <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-bold">// SCRAPED MATCH FIXTURES (${items.length})</span>
-                    <span class="text-[10px] font-mono text-slate-400">LIVE DATA</span>
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest">// MATCHES IDENTIFIED (${matches.length})</span>
+                    <span class="text-[10px] font-mono text-slate-500">LIVE FEED</span>
+                </div>
+        `;
+
+        matches.forEach((match, index) => {
+            const team1Name = match.team1 || match.home_team || match.homeTeam || match.team_home || 'Team A';
+            const team2Name = match.team2 || match.away_team || match.awayTeam || match.team_away || 'Team B';
+            const team1Logo = match.team1_logo || match.home_logo || match.homeLogo || '';
+            const team2Logo = match.team2_logo || match.away_logo || match.awayLogo || '';
+            const score = match.score || match.result || match.status || 'VS';
+            const matchTime = match.time || match.date || match.match_date || 'TBD';
+            const matchUrl = match.url || match.link || match.match_url || '';
+
+            html += `
+                <div class="bg-slate-900/80 hover:bg-slate-900 border border-slate-800/80 hover:border-emerald-500/60 p-3.5 rounded-xl flex items-center justify-between transition-all group shadow-md">
+                    <!-- Teams & Score Column -->
+                    <div class="flex items-center gap-4 flex-1">
+                        <!-- Home Team -->
+                        <div class="flex items-center gap-2.5 flex-1 justify-end">
+                            <span class="font-bold text-xs text-slate-200 group-hover:text-emerald-300 transition-colors text-right">${team1Name}</span>
+                            ${team1Logo ? `<img src="${team1Logo}" alt="" class="w-6 h-6 object-contain rounded" onerror="this.style.display='none'">` : '<div class="w-6 h-6 rounded bg-slate-800 flex items-center justify-center text-[10px] text-slate-400">🛡️</div>'}
+                        </div>
+
+                        <!-- Match Status / Score -->
+                        <div class="px-3 py-1 bg-slate-950/90 border border-slate-800 rounded-lg text-center min-w-[70px]">
+                            <div class="font-mono font-bold text-xs text-emerald-400 tracking-wider">${score}</div>
+                            <div class="text-[9px] font-mono text-slate-500 mt-0.5">${matchTime}</div>
+                        </div>
+
+                        <!-- Away Team -->
+                        <div class="flex items-center gap-2.5 flex-1 justify-start">
+                            ${team2Logo ? `<img src="${team2Logo}" alt="" class="w-6 h-6 object-contain rounded" onerror="this.style.display='none'">` : '<div class="w-6 h-6 rounded bg-slate-800 flex items-center justify-center text-[10px] text-slate-400">🛡️</div>'}
+                            <span class="font-bold text-xs text-slate-200 group-hover:text-emerald-300 transition-colors text-left">${team2Name}</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Trigger -->
+                    ${matchUrl ? `
+                        <button onclick="executeMatchDetailPipeline('${encodeURIComponent(matchUrl)}', '${encodeURIComponent(team1Name)}', '${encodeURIComponent(team2Name)}')" 
+                                class="ml-4 bg-emerald-950/50 hover:bg-emerald-600 border border-emerald-500/50 hover:border-emerald-400 text-emerald-400 hover:text-white px-3 py-1.5 rounded-lg font-mono text-[11px] font-bold uppercase transition-all cursor-pointer whitespace-nowrap active:scale-95">
+                            ANALYZE →
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+        containerEl.innerHTML = html;
+    };
+
+    // --- DETAILED MATCH TELEMETRY PANEL ---
+    window.renderMatchDetailPanel = function(data, containerEl) {
+        const homeName = data.home_team || data.team1 || 'Home Team';
+        const awayName = data.away_team || data.team2 || 'Away Team';
+        const homeLogo = data.home_logo || data.team1_logo || '';
+        const awayLogo = data.away_logo || data.team2_logo || '';
+        const score = data.score || data.result || 'VS';
+        const status = data.status || data.time || 'FINAL';
+        const events = data.match_events || data.events || [];
+        const stats = data.match_stats || data.stats || null;
+
+        let eventsHtml = '';
+        if (Array.isArray(events) && events.length > 0) {
+            eventsHtml = events.map(evt => `
+                <div class="flex items-center gap-3 p-2 bg-slate-950/50 border border-slate-900 rounded font-mono text-xs">
+                    <span class="text-emerald-400 font-bold">${evt.minute || evt.time || "''"}</span>
+                    <span class="text-slate-300">${evt.description || evt.event || evt.text || ''}</span>
+                </div>
+            `).join('');
+        } else {
+            eventsHtml = `<p class="text-slate-500 font-mono text-xs italic">// No granular match timeline events returned.</p>`;
+        }
+
+        let statsHtml = '';
+        if (stats && typeof stats === 'object') {
+            statsHtml = Object.entries(stats).map(([key, val]) => `
+                <div class="flex justify-between items-center p-2 bg-slate-950/40 border border-slate-900 rounded text-xs">
+                    <span class="text-slate-400 font-mono uppercase text-[10px]">${key.replace(/_/g, ' ')}</span>
+                    <span class="font-bold text-slate-200 font-mono">${typeof val === 'object' ? JSON.stringify(val) : val}</span>
+                </div>
+            `).join('');
+        }
+
+        containerEl.innerHTML = `
+            <div class="font-sans space-y-4">
+                <!-- Top Control Bar -->
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <button onclick="handleBackToFixtures()" 
+                            class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-mono font-bold uppercase transition-all flex items-center gap-2 cursor-pointer">
+                        ← Back to Matches
+                    </button>
+                    <span class="text-[10px] font-mono text-emerald-400 tracking-wider">// DETAILED MATCH TELEMETRY</span>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                    ${items.map(m => {
-                        const home = m.homeTeam || m.home_team || m.home || m.title || 'Home Team';
-                        const away = m.awayTeam || m.away_team || m.away || 'Away Team';
-                        const score = m.result || m.matchResult || m.score || 'VS';
-                        const round = m.round || 'Fixture';
-                        const matchUrl = m.matchUrl || m.url || '#';
+                <!-- Match Banner Scorecard -->
+                <div class="bg-slate-900/90 border border-slate-800 p-6 rounded-xl flex items-center justify-between shadow-xl">
+                    <!-- Home Team -->
+                    <div class="flex flex-col items-center gap-2 flex-1 text-center">
+                        ${homeLogo ? `<img src="${homeLogo}" alt="" class="w-12 h-12 object-contain" onerror="this.style.display='none'">` : '<div class="w-12 h-12 rounded bg-slate-800 flex items-center justify-center text-lg">🛡️</div>'}
+                        <span class="font-bold text-sm text-slate-100">${homeName}</span>
+                    </div>
 
-                        let matchDate = '';
-                        let time = '--:--';
+                    <!-- Score Box -->
+                    <div class="flex flex-col items-center justify-center px-6 border-x border-slate-800">
+                        <span class="text-3xl font-black font-mono text-emerald-400 tracking-tight">${score}</span>
+                        <span class="text-[10px] font-mono text-slate-400 uppercase mt-1 bg-slate-950 px-2.5 py-0.5 rounded border border-slate-800">${status}</span>
+                    </div>
 
-                        if (m.dateTime) {
-                            const parts = m.dateTime.trim().split(' ');
-                            if (parts.length >= 2) {
-                                matchDate = parts[0];
-                                time = parts[1];
-                            } else if (parts.length === 1) {
-                                matchDate = parts[0];
-                            }
-                        } else if (m.kickOffTime) {
-                            time = m.kickOffTime;
-                        } else if (m.date) {
-                            matchDate = m.date;
-                        }
+                    <!-- Away Team -->
+                    <div class="flex flex-col items-center gap-2 flex-1 text-center">
+                        ${awayLogo ? `<img src="${awayLogo}" alt="" class="w-12 h-12 object-contain" onerror="this.style.display='none'">` : '<div class="w-12 h-12 rounded bg-slate-800 flex items-center justify-center text-lg">🛡️</div>'}
+                        <span class="font-bold text-sm text-slate-100">${awayName}</span>
+                    </div>
+                </div>
 
-                        return `
-                            <div class="bg-slate-900/90 border border-emerald-800/50 hover:border-emerald-400 p-3.5 rounded-xl transition-all shadow-lg flex flex-col justify-between group">
-                                <div class="flex justify-between items-center text-[10px] font-mono text-slate-400 mb-2 border-b border-slate-800/80 pb-1.5">
-                                    <span class="text-emerald-400 font-bold">${round.toUpperCase()}</span>
-                                    <div class="flex items-center gap-1.5 bg-slate-800 px-2 py-0.5 rounded text-slate-300">
-                                        ${matchDate ? `<span>📅 ${matchDate}</span><span class="text-slate-600">|</span>` : ''}
-                                        <span>⏱ ${time}</span>
-                                    </div>
-                                </div>
+                <!-- Detailed Data Columns -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Timeline Events -->
+                    <div class="bg-slate-900/60 border border-slate-800/80 p-4 rounded-xl">
+                        <h4 class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest mb-3">// MATCH TIMELINE</h4>
+                        <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            ${eventsHtml}
+                        </div>
+                    </div>
 
-                                <div class="flex items-center justify-between my-2 px-1">
-                                    <div class="w-2/5 text-right font-bold text-xs text-slate-100 truncate">${home}</div>
-                                    <div class="px-2.5 py-1 bg-emerald-950/80 border border-emerald-500/40 rounded-lg text-emerald-300 font-mono text-xs font-bold tracking-wider shadow-inner">
-                                        ${score}
-                                    </div>
-                                    <div class="w-2/5 text-left font-bold text-xs text-slate-100 truncate">${away}</div>
-                                </div>
-
-                                ${matchUrl !== '#' ? `
-                                    <div class="mt-2 pt-2 border-t border-slate-800/60 flex justify-end">
-                                        <button onclick="executeScraperWorkflow({ page: 'sports_detail', matchUrl: '${matchUrl}' })" 
-                                                class="text-[10px] font-mono font-bold text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 hover:underline cursor-pointer">
-                                            TELEMETRY STATS ↗
-                                        </button>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        `;
-                    }).join('')}
+                    <!-- Match Statistics -->
+                    <div class="bg-slate-900/60 border border-slate-800/80 p-4 rounded-xl">
+                        <h4 class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest mb-3">// STATISTICAL METRICS</h4>
+                        <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            ${statsHtml || '<p class="text-slate-500 font-mono text-xs italic">// Granular stats matrix unavailable.</p>'}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
     };
 
-    // --- MATCH DETAIL RENDERER ---
-    window.renderSportsDetailOutput = function(rawResponse, targetEl) {
-        const container = targetEl || document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
-        if (!container) return;
+    window.executeMatchDetailPipeline = function(encodedUrl, encodedHome, encodedAway) {
+        const matchUrl = decodeURIComponent(encodedUrl);
+        const homeName = decodeURIComponent(encodedHome);
+        const awayName = decodeURIComponent(encodedAway);
+        const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
 
-        container.classList.remove('hidden');
-        container.style.display = 'block';
-
-        let data = rawResponse || {};
-        if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
-            data = data.data;
-        } else if (data.match && typeof data.match === 'object') {
-            data = data.match;
-        } else if (data.details && typeof data.details === 'object') {
-            data = data.details;
-        } else if (data.result && typeof data.result === 'object') {
-            data = data.result;
-        }
-
-        const homeTeam = data.homeTeam || data.home_team || data.home || data.homeTeamName || data.hometeam || 'Home Team';
-        const awayTeam = data.awayTeam || data.away_team || data.away || data.awayTeamName || data.awayteam || 'Away Team';
-        
-        let score = '0 - 0';
-        if (typeof data.score === 'string') {
-            score = data.score;
-        } else if (typeof data.result === 'string') {
-            score = data.result;
-        } else if (data.score && typeof data.score === 'object') {
-            score = `${data.score.home ?? data.score.homeTeam ?? 0} - ${data.score.away ?? data.score.awayTeam ?? 0}`;
-        } else if (data.homeScore !== undefined && data.awayScore !== undefined) {
-            score = `${data.homeScore} - ${data.awayScore}`;
-        }
-
-        const status = data.status || data.matchStatus || data.state || 'FULL TIME';
-        const round = data.round || data.league || data.competition || 'Matchday Telemetry';
-        const date = data.date || data.dateTime || data.time || 'Live Match';
-
-        let stats = [];
-        if (Array.isArray(data.stats)) stats = data.stats;
-        else if (Array.isArray(data.statistics)) stats = data.statistics;
-        else if (Array.isArray(data.telemetry)) stats = data.telemetry;
-        else if (Array.isArray(data.matchStats)) stats = data.matchStats;
-        else if (data.stats && typeof data.stats === 'object') {
-            stats = Object.keys(data.stats).map(k => ({ label: k, ...data.stats[k] }));
-        }
-
-        let events = [];
-        if (Array.isArray(data.events)) events = data.events;
-        else if (Array.isArray(data.timeline)) events = data.timeline;
-        else if (Array.isArray(data.incidents)) events = data.incidents;
-        else if (Array.isArray(data.matchEvents)) events = data.matchEvents;
-
-        const lineups = data.lineups || data.lineUp || data.squads || null;
-
-        container.innerHTML = `
-            <div class="space-y-4 font-sans text-slate-200">
-                <!-- HEADER NAV BAR -->
-                <div class="flex justify-between items-center border-b border-slate-800 pb-2.5 font-mono text-xs">
-                    <div class="flex items-center gap-2">
-                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="text-emerald-400 font-bold uppercase tracking-wider">// TELEMETRY ANALYTICS HUB</span>
-                    </div>
-                    <button onclick="handleBackToFixtures()" 
-                            class="text-slate-400 hover:text-emerald-400 flex items-center gap-1 transition-colors cursor-pointer bg-slate-900 border border-slate-800 hover:border-emerald-500/50 px-2.5 py-1 rounded-md">
-                        ← BACK TO FIXTURES
-                    </button>
-                </div>
-
-                <!-- SCOREBOARD BANNER -->
-                <div class="bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-emerald-800/50 rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
-                    <div class="absolute -top-12 -left-12 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-                    <div class="flex justify-between items-center text-[11px] font-mono text-slate-400 border-b border-slate-800/80 pb-3 mb-4">
-                        <span class="text-emerald-400 font-bold tracking-wide uppercase">${round}</span>
-                        <div class="flex items-center gap-2">
-                            <span class="px-2 py-0.5 bg-slate-800/80 rounded border border-slate-700 text-slate-300">${date}</span>
-                            <span class="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800/80 rounded font-bold uppercase">${status}</span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between gap-2 my-2">
-                        <!-- HOME TEAM -->
-                        <div class="w-2/5 text-center sm:text-right">
-                            <div class="text-base sm:text-xl font-black text-slate-100 tracking-tight leading-snug">${homeTeam}</div>
-                            <div class="text-[10px] font-mono text-slate-400 mt-1 uppercase">Home Squad</div>
-                        </div>
-
-                        <!-- SCORE CONTAINER -->
-                        <div class="flex flex-col items-center justify-center px-3 py-2 bg-slate-950/90 border border-emerald-500/40 rounded-xl shadow-inner min-w-[90px]">
-                            <span class="text-xl sm:text-3xl font-mono font-extrabold text-emerald-300 tracking-wider">${score}</span>
-                            <span class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mt-0.5">FINAL</span>
-                        </div>
-
-                        <!-- AWAY TEAM -->
-                        <div class="w-2/5 text-center sm:text-left">
-                            <div class="text-base sm:text-xl font-black text-slate-100 tracking-tight leading-snug">${awayTeam}</div>
-                            <div class="text-[10px] font-mono text-slate-400 mt-1 uppercase">Away Squad</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ANALYTICS GRID -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <!-- TELEMETRY STATS COMPARISON -->
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-lg">
-                        <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider mb-3 pb-1 border-b border-slate-800 flex justify-between items-center">
-                            <span>📊 MATCH TELEMETRY MATRIX</span>
-                            <span class="text-slate-500">${stats.length} STATS</span>
-                        </div>
-
-                        ${stats.length > 0 ? `
-                            <div class="space-y-3">
-                                ${stats.map(s => {
-                                    const label = s.name || s.label || s.title || s.type || 'Stat';
-                                    const hVal = s.home ?? s.homeValue ?? s.valueHome ?? 0;
-                                    const aVal = s.away ?? s.awayValue ?? s.valueAway ?? 0;
-                                    
-                                    const hNum = parseFloat(hVal) || 0;
-                                    const aNum = parseFloat(aVal) || 0;
-                                    const total = (hNum + aNum) || 1;
-                                    const hPct = Math.min(100, Math.max(0, (hNum / total) * 100));
-                                    const aPct = Math.min(100, Math.max(0, (aNum / total) * 100));
-
-                                    return `
-                                        <div>
-                                            <div class="flex justify-between text-[11px] font-mono text-slate-300 mb-1">
-                                                <span class="font-bold text-emerald-400">${hVal}</span>
-                                                <span class="text-slate-400 text-[10px] uppercase">${label}</span>
-                                                <span class="font-bold text-cyan-400">${aVal}</span>
-                                            </div>
-                                            <div class="flex h-1.5 bg-slate-950 rounded-full overflow-hidden p-0.5 gap-0.5 border border-slate-800">
-                                                <div class="bg-emerald-500 rounded-s-full transition-all duration-500" style="width: ${hPct}%"></div>
-                                                <div class="bg-cyan-500 rounded-e-full transition-all duration-500" style="width: ${aPct}%"></div>
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        ` : `
-                            <div class="p-4 text-center text-slate-500 font-mono text-xs">No detailed match telemetry returned.</div>
-                        `}
-                    </div>
-
-                    <!-- MATCH TIMELINE / EVENTS -->
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-lg">
-                        <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider mb-3 pb-1 border-b border-slate-800 flex justify-between items-center">
-                            <span>⏱ KEY MATCH INCIDENTS</span>
-                            <span class="text-slate-500">${events.length} EVENTS</span>
-                        </div>
-
-                        ${events.length > 0 ? `
-                            <div class="space-y-2 max-h-[320px] overflow-y-auto pr-1">
-                                ${events.map(ev => {
-                                    const time = ev.minute || ev.time || ev.clock || "''";
-                                    const type = (ev.type || ev.event || '').toLowerCase();
-                                    const player = ev.player || ev.name || ev.description || 'Match Event';
-                                    const team = ev.team || ev.side || 'home';
-
-                                    let icon = '⚽';
-                                    if (type.includes('yellow')) icon = '🟨';
-                                    else if (type.includes('red')) icon = '🟥';
-                                    else if (type.includes('sub')) icon = '🔄';
-
-                                    return `
-                                        <div class="flex items-center gap-2 p-2 bg-slate-950/60 border border-slate-800/80 rounded-lg text-xs font-mono ${team === 'away' ? 'flex-row-reverse text-right' : ''}">
-                                            <span class="px-1.5 py-0.5 bg-slate-800 text-emerald-400 rounded text-[10px] font-bold min-w-[32px] text-center">${time}</span>
-                                            <span class="text-sm">${icon}</span>
-                                            <span class="text-slate-200 truncate font-sans text-[11px]">${player}</span>
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        ` : `
-                            <div class="p-4 text-center text-slate-500 font-mono text-xs">No timeline events extracted for this match.</div>
-                        `}
-                    </div>
-                </div>
-
-                <!-- SQUAD LINEUPS (OPTIONAL) -->
-                ${lineups ? `
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-lg">
-                        <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider mb-3 pb-1 border-b border-slate-800">
-                            🛡 SQUAD TACTICAL LINEUPS
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
-                            <div>
-                                <div class="text-emerald-400 font-bold mb-2 pb-1 border-b border-slate-800/80">${homeTeam} Lineup</div>
-                                <div class="text-slate-300 space-y-1">${Array.isArray(lineups.home) ? lineups.home.map(p => `<div>• ${p}</div>`).join('') : 'Lineup unavailable'}</div>
-                            </div>
-                            <div>
-                                <div class="text-cyan-400 font-bold mb-2 pb-1 border-b border-slate-800/80">${awayTeam} Lineup</div>
-                                <div class="text-slate-300 space-y-1">${Array.isArray(lineups.away) ? lineups.away.map(p => `<div>• ${p}</div>`).join('') : 'Lineup unavailable'}</div>
-                            </div>
-                        </div>
-                    </div>
-                ` : ''}
-            </div>
-        `;
+        window.executeScraperWorkflow({
+            page: "sports",
+            targetMatrix: "match_details",
+            matchUrl: matchUrl,
+            homeTeam: homeName,
+            awayTeam: awayName,
+            languages: selectedLangs,
+            query: `Fetch match statistics, lineups, and live events for ${homeName} vs ${awayName}`,
+            timestamp: new Date().toISOString()
+        });
     };
 </script>
 </body>
