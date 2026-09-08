@@ -155,35 +155,61 @@
                 </div>
             </div>
 
-            <!-- TERMINAL MAIN DATA MONITOR -->
-            <div class="col-span-3 bg-slate-950/40 p-5 border-2 border-slate-800 flex flex-col h-full overflow-y-auto rounded-xl shadow-2xl backdrop-blur-lg">
-                <div class="mb-4">
-                    <h3 class="font-semibold text-xs uppercase text-slate-400 tracking-wider mb-3">Scraped Intelligence Matrix</h3>
+            <!-- TERMINAL MAIN DATA MONITOR (TOP & BOTTOM VERTICAL STACK) -->
+            <div class="col-span-3 bg-slate-950/40 p-5 border-2 border-slate-800 flex flex-col h-full overflow-hidden rounded-xl shadow-2xl backdrop-blur-lg">
+                <div class="mb-3">
+                    <h3 class="font-semibold text-xs uppercase text-slate-400 tracking-wider mb-2">Scraped Intelligence Matrix</h3>
                     
-                    <div class="bg-slate-950/50 border border-slate-800 p-4 rounded-xl w-full mb-4">
-                        <h3 class="text-[10px] font-bold text-rose-500 uppercase mb-2 flex items-center gap-1.5">
+                    <div class="bg-slate-950/50 border border-slate-800 p-3 rounded-xl w-full mb-2">
+                        <h3 class="text-[10px] font-bold text-rose-500 uppercase mb-1.5 flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Fast Hot News
                         </h3>
                         <div class="flex gap-2">
-                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:border-rose-500 outline-none">
-                            <button id="hotNewsBtn" class="bg-rose-600 border border-rose-400 px-5 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>
+                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950/80 border border-slate-800 rounded-lg p-2 text-xs text-white focus:border-rose-500 outline-none">
+                            <button id="hotNewsBtn" class="bg-rose-600 border border-rose-400 px-4 py-2 rounded-lg font-bold text-xs uppercase hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>
                         </div>
                     </div>
                     
-                    <div class="bg-slate-950/50 border border-slate-800 p-4 rounded-xl w-full flex justify-between items-center flex-wrap gap-3">
+                    <div class="bg-slate-950/50 border border-slate-800 p-3 rounded-xl w-full flex justify-between items-center flex-wrap gap-2">
                         <div class="flex gap-2 flex-wrap">
-                            <button id="selectAllLangBtn" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white px-4 py-2 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All</button>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-2 px-3 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
+                            <button id="selectAllLangBtn" class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-white px-3 py-1.5 rounded-lg font-semibold text-xs uppercase transition-all cursor-pointer tracking-wider">Select All</button>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-1.5 px-2.5 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="oromifa"> <span class="text-xs font-normal uppercase text-slate-400">Oromifa</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-1.5 px-2.5 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="amharic"> <span class="text-xs font-normal uppercase text-slate-300">Amharic</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-1.5 px-2.5 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="english"> <span class="text-xs font-normal uppercase text-slate-300">English</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-950/80 py-1.5 px-2.5 border border-slate-800 rounded-lg hover:border-slate-600"><input type="checkbox" class="lang-check scale-110 accent-emerald-500" value="arabic"> <span class="text-xs font-normal uppercase text-slate-300">Arabic</span></label>
                         </div>
-                        <button id="downloadBtn" class="bg-blue-600 border border-blue-400 px-5 py-2 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download PDF</button>
+                        <button id="downloadBtn" class="bg-blue-600 border border-blue-400 px-4 py-1.5 rounded-lg font-semibold text-xs uppercase shadow-md hover:bg-blue-500 transition-all cursor-pointer tracking-wider">Download PDF</button>
                     </div>
                 </div>
 
-                <div id="outputContainer" class="flex-1 overflow-y-auto bg-slate-950/80 rounded-lg p-4 border border-slate-900 font-mono text-xs text-emerald-400 shadow-inner">
-                    <p class="text-slate-500 italic font-normal">// Matrix ready for sports intelligence ingestion...</p>
+                <!-- VERTICAL DUAL-PANEL LAYOUT -->
+                <div class="flex-1 flex flex-col gap-3 overflow-hidden min-h-0">
+                    
+                    <!-- TOP PANEL: MATCH FIXTURES LIST -->
+                    <div class="h-1/2 bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-col overflow-hidden">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2 flex-shrink-0">
+                            <span id="matchListHeaderCount" class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider">// TOP PANEL: MATCH FIXTURES LIST</span>
+                            <span class="text-[9px] font-mono text-slate-500 uppercase">Live Stream Feed</span>
+                        </div>
+                        <div id="matchListSubPanel" class="flex-1 overflow-y-auto space-y-2 pr-1 font-mono text-xs text-emerald-400">
+                            <p class="text-slate-500 italic font-normal text-center py-4">// Select a league from the categories side panel to fetch live match fixtures...</p>
+                        </div>
+                    </div>
+
+                    <!-- BOTTOM PANEL: MATCH DETAIL TELEMETRY -->
+                    <div class="h-1/2 bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-col overflow-hidden">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2 flex-shrink-0">
+                            <span class="text-[10px] font-mono font-bold text-cyan-400 uppercase tracking-wider">// BOTTOM PANEL: MATCH DETAIL ANALYTICS</span>
+                            <span class="text-[9px] font-mono text-slate-500 uppercase">Granular Telemetry</span>
+                        </div>
+                        <div id="matchDetailSubPanel" class="flex-1 overflow-y-auto pr-1 font-mono text-xs">
+                            <div class="h-full flex flex-col items-center justify-center text-center p-4 text-slate-500">
+                                <div class="w-8 h-8 rounded-full border border-slate-800 flex items-center justify-center text-slate-600 mb-1.5">📊</div>
+                                <p class="text-xs font-sans">// Click 'ANALYZE' on any match fixture in the top panel to stream detailed match statistics and timeline events down here.</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </main>
@@ -192,48 +218,7 @@
 <script type="module">
     import { N8N_sport_GATEWAY_WEBHOOK } from './config.js';
     window.fullMatchList = [];
-
-    // --- FRONTEND TEMPORARY STORAGE & BACK NAVIGATION ---
-    function saveMatchesToStorage(matches) {
-        if (!Array.isArray(matches) || matches.length === 0) return;
-        window.fullMatchList = matches;
-        try {
-            sessionStorage.setItem('cached_sports_matches', JSON.stringify(matches));
-        } catch (e) {
-            console.warn('Unable to write to sessionStorage:', e);
-        }
-    }
-
-    function getStoredMatches() {
-        if (window.fullMatchList && window.fullMatchList.length > 0) {
-            return window.fullMatchList;
-        }
-        try {
-            const stored = sessionStorage.getItem('cached_sports_matches');
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    window.fullMatchList = parsed;
-                    return parsed;
-                }
-            }
-        } catch (e) {
-            console.warn('Unable to read from sessionStorage:', e);
-        }
-        return null;
-    }
-
-    window.handleBackToFixtures = function() {
-        const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
-        if (!targetEl) return;
-
-        const matches = getStoredMatches();
-        if (matches && matches.length > 0) {
-            window.renderSportsFixturesList(matches, targetEl);
-        } else {
-            renderInternationalLeaguesMatrix();
-        }
-    };
+    window.activeMatchUrl = null;
 
     // --- THREE.JS GLOBE ENGINE ---
     let scene, camera, renderer, globeParticles;
@@ -470,67 +455,50 @@
     }
 
     function renderInternationalLeaguesMatrix() {
-        const output = document.getElementById('outputContainer');
-        if (!output) return;
+        const listPanel = document.getElementById('matchListSubPanel');
+        if (!listPanel) return;
 
-        output.innerHTML = `
-            <div class="mt-2 font-sans space-y-4">
-                <div class="border-b border-slate-800 pb-2">
-                    <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">// INTERNATIONAL LEAGUE SELECTION</div>
-                    <div class="text-[11px] text-slate-400 mt-0.5">Click a league button below to trigger the live scraping pipeline:</div>
-                </div>
+        listPanel.innerHTML = `
+            <div class="space-y-2 font-sans">
+                <div class="text-[11px] text-slate-400">Select an international league below to trigger scraping pipeline:</div>
 
-                <div id="leagueSelectionPanel" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                     <button onclick="executeLeaguePipeline('Premier League', 'https://www.besoccer.com/competition/premier_league')" 
-                            class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
-                        <div class="flex items-center gap-3">
-                            <span class="text-base">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
-                            <div>
-                                <div class="text-xs font-bold text-slate-200 group-hover:text-emerald-400 transition-colors uppercase">Premier League</div>
-                                <div class="text-[10px] text-slate-400 font-mono">EPL Intelligence</div>
-                            </div>
+                            class="bg-slate-900 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-2 rounded-lg flex items-center justify-between text-left transition-all group cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <span>🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+                            <span class="text-xs font-bold text-slate-200 group-hover:text-emerald-400">EPL</span>
                         </div>
-                        <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
+                        <span class="text-[9px] font-mono font-bold text-emerald-400">FETCH →</span>
                     </button>
 
                     <button onclick="executeLeaguePipeline('UEFA Champions League', 'https://www.besoccer.com/competition/champions_league')" 
-                            class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
-                        <div class="flex items-center gap-3">
-                            <span class="text-base">🇪🇺</span>
-                            <div>
-                                <div class="text-xs font-bold text-slate-200 group-hover:text-emerald-400 transition-colors uppercase">Champions League</div>
-                                <div class="text-[10px] text-slate-400 font-mono">UCL Knockouts & Stats</div>
-                            </div>
+                            class="bg-slate-900 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-2 rounded-lg flex items-center justify-between text-left transition-all group cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <span>🇪🇺</span>
+                            <span class="text-xs font-bold text-slate-200 group-hover:text-emerald-400">UCL</span>
                         </div>
-                        <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
+                        <span class="text-[9px] font-mono font-bold text-emerald-400">FETCH →</span>
                     </button>
 
                     <button onclick="executeLeaguePipeline('Spain LaLiga', 'https://www.besoccer.com/competition/primera_division')" 
-                            class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
-                        <div class="flex items-center gap-3">
-                            <span class="text-base">🇪🇸</span>
-                            <div>
-                                <div class="text-xs font-bold text-slate-200 group-hover:text-emerald-400 transition-colors uppercase">Spain LaLiga</div>
-                                <div class="text-[10px] text-slate-400 font-mono">LaLiga Standings & Matches</div>
-                            </div>
+                            class="bg-slate-900 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-2 rounded-lg flex items-center justify-between text-left transition-all group cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <span>🇪🇸</span>
+                            <span class="text-xs font-bold text-slate-200 group-hover:text-emerald-400">LaLiga</span>
                         </div>
-                        <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
+                        <span class="text-[9px] font-mono font-bold text-emerald-400">FETCH →</span>
                     </button>
 
-                    <button onclick="executeLeaguePipeline('Ligue 1, Bundesliga, Serie A', 'https://www.besoccer.com/competition/serie_a')" 
-                            class="w-full bg-slate-900/90 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-3.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]">
-                        <div class="flex items-center gap-3">
-                            <span class="text-base">🌍</span>
-                            <div>
-                                <div class="text-xs font-bold text-slate-200 group-hover:text-emerald-400 transition-colors uppercase">EU Combined Leagues</div>
-                                <div class="text-[10px] text-slate-400 font-mono">Serie A, Ligue 1 & Bundesliga</div>
-                            </div>
+                    <button onclick="executeLeaguePipeline('Serie A', 'https://www.besoccer.com/competition/serie_a')" 
+                            class="bg-slate-900 hover:bg-emerald-950/60 border border-emerald-800/60 hover:border-emerald-400 p-2 rounded-lg flex items-center justify-between text-left transition-all group cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <span>🇮🇹</span>
+                            <span class="text-xs font-bold text-slate-200 group-hover:text-emerald-400">Serie A</span>
                         </div>
-                        <span class="text-xs font-mono font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">FETCH →</span>
+                        <span class="text-[9px] font-mono font-bold text-emerald-400">FETCH →</span>
                     </button>
                 </div>
-
-                <div id="sportsCardsContainer" class="mt-6"></div>
             </div>
         `;
     }
@@ -593,9 +561,9 @@
                 loader.classList.add('hidden');
             }
             
-            const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
-            if (targetEl) {
-                targetEl.innerHTML = `<div class="p-3 text-rose-500 font-mono text-xs border border-rose-900/50 bg-rose-950/30 rounded-lg">❌ Execution Error: ${err.message}<br><span class="text-slate-400 font-sans text-[11px] mt-1 block">Ensure N8N_GATEWAY_WEBHOOK is pointing to your active webhook URL.</span></div>`;
+            const detailPanel = document.getElementById('matchDetailSubPanel');
+            if (detailPanel) {
+                detailPanel.innerHTML = `<div class="p-3 text-rose-500 font-mono text-xs border border-rose-900/50 bg-rose-950/30 rounded-lg">❌ Execution Error: ${err.message}<br><span class="text-slate-400 font-sans text-[11px] mt-1 block">Ensure N8N_GATEWAY_WEBHOOK is pointing to your active webhook URL.</span></div>`;
             }
         }
     };
@@ -603,15 +571,12 @@
     // --- RECURSIVE PAYLOAD UNWRAPPER ---
     function normalizeN8nPayload(rawData) {
         if (!rawData) return null;
-
         let target = rawData;
 
-        // Unroll outer single-item arrays
         while (Array.isArray(target) && target.length === 1) {
             target = target[0];
         }
 
-        // Recursively strip n8n object wrappers
         if (target && typeof target === 'object' && !Array.isArray(target)) {
             if (target.item) return normalizeN8nPayload(target.item);
             if (target.json) return normalizeN8nPayload(target.json);
@@ -622,55 +587,52 @@
         return target;
     }
 
-    // --- MAIN RENDERER ROUTER ---
+    // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
     window.renderSportsOutput = function(data) {
-        const targetEl = document.getElementById('sportsCardsContainer') || document.getElementById('outputContainer');
-        if (!targetEl) return;
+        if (!data) return;
 
-        if (!data) {
-            targetEl.innerHTML = `<div class="text-slate-500 p-4 font-mono text-xs">// Empty response payload returned.</div>`;
-            return;
-        }
-
-        // Detect detailed match telemetry payload vs match list
+        // Check payload type
         const isMatchDetail = (
             data.home_team || data.away_team || data.match_events || 
             data.match_stats || data.team1 || data.team2 || data.lineups
         );
 
         if (isMatchDetail) {
-            renderMatchDetailPanel(data, targetEl);
+            // Assign automatically to BOTTOM PANEL
+            const detailPanel = document.getElementById('matchDetailSubPanel');
+            if (detailPanel) renderMatchDetailPanel(data, detailPanel);
             return;
         }
 
-        // Check array payload or wrapped match lists
         const matchesArray = Array.isArray(data) ? data : (data.matches || data.fixtures || data.results || null);
 
         if (Array.isArray(matchesArray) && matchesArray.length > 0) {
-            saveMatchesToStorage(matchesArray);
-            renderSportsFixturesList(matchesArray, targetEl);
+            // Assign automatically to TOP PANEL
+            window.fullMatchList = matchesArray;
+            const listPanel = document.getElementById('matchListSubPanel');
+            if (listPanel) renderSportsFixturesList(matchesArray, listPanel);
             return;
         }
 
-        // Fallback: render formatted JSON or markdown text
-        if (typeof data === 'string') {
-            targetEl.innerHTML = `<div class="p-4 bg-slate-900/90 rounded-lg border border-slate-800 text-slate-300 font-sans text-xs whitespace-pre-wrap">${data}</div>`;
-        } else {
-            targetEl.innerHTML = `<pre class="p-4 bg-slate-900/90 rounded-lg border border-slate-800 text-emerald-400 font-mono text-xs overflow-x-auto">${JSON.stringify(data, null, 2)}</pre>`;
+        // Fallback formatting into bottom panel
+        const detailPanel = document.getElementById('matchDetailSubPanel');
+        if (detailPanel) {
+            if (typeof data === 'string') {
+                detailPanel.innerHTML = `<div class="p-3 bg-slate-900/90 rounded-lg border border-slate-800 text-slate-300 font-sans text-xs whitespace-pre-wrap">${data}</div>`;
+            } else {
+                detailPanel.innerHTML = `<pre class="p-3 bg-slate-900/90 rounded-lg border border-slate-800 text-emerald-400 font-mono text-xs overflow-x-auto">${JSON.stringify(data, null, 2)}</pre>`;
+            }
         }
     };
 
-    // --- VERTICALLY STACKED MATCH FIXTURES LIST ---
+    // --- TOP PANEL RENDERING TECHNIQUE: MATCH FIXTURES LIST ---
     window.renderSportsFixturesList = function(matches, containerEl) {
-        let html = `
-            <div class="space-y-3 font-sans">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest">// MATCHES IDENTIFIED (${matches.length})</span>
-                    <span class="text-[10px] font-mono text-slate-500">LIVE FEED</span>
-                </div>
-        `;
+        const headerCount = document.getElementById('matchListHeaderCount');
+        if (headerCount) headerCount.innerText = `// TOP PANEL: MATCH FIXTURES LIST (${matches.length})`;
 
-        matches.forEach((match, index) => {
+        let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-2 font-sans">`;
+
+        matches.forEach((match) => {
             const team1Name = match.team1 || match.home_team || match.homeTeam || match.team_home || 'Team A';
             const team2Name = match.team2 || match.away_team || match.awayTeam || match.team_away || 'Team B';
             const team1Logo = match.team1_logo || match.home_logo || match.homeLogo || '';
@@ -679,33 +641,30 @@
             const matchTime = match.time || match.date || match.match_date || 'TBD';
             const matchUrl = match.url || match.link || match.match_url || '';
 
+            const isActive = (window.activeMatchUrl === matchUrl);
+
             html += `
-                <div class="bg-slate-900/80 hover:bg-slate-900 border border-slate-800/80 hover:border-emerald-500/60 p-3.5 rounded-xl flex items-center justify-between transition-all group shadow-md">
-                    <!-- Teams & Score Column -->
-                    <div class="flex items-center gap-4 flex-1">
-                        <!-- Home Team -->
-                        <div class="flex items-center gap-2.5 flex-1 justify-end">
-                            <span class="font-bold text-xs text-slate-200 group-hover:text-emerald-300 transition-colors text-right">${team1Name}</span>
-                            ${team1Logo ? `<img src="${team1Logo}" alt="" class="w-6 h-6 object-contain rounded" onerror="this.style.display='none'">` : '<div class="w-6 h-6 rounded bg-slate-800 flex items-center justify-center text-[10px] text-slate-400">🛡️</div>'}
+                <div class="bg-slate-900/90 ${isActive ? 'border-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.3)]' : 'border-slate-800/80 hover:border-slate-700'} border p-2.5 rounded-lg transition-all flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5 flex-1 justify-end min-w-0">
+                            <span class="font-bold text-xs text-slate-200 truncate text-right">${team1Name}</span>
+                            ${team1Logo ? `<img src="${team1Logo}" class="w-4 h-4 object-contain flex-shrink-0">` : ''}
+                        </div>
+                        
+                        <div class="px-2 py-0.5 bg-slate-950 rounded border border-slate-800 text-center flex-shrink-0">
+                            <span class="font-mono font-bold text-xs text-emerald-400 block">${score}</span>
+                            <span class="text-[8px] font-mono text-slate-500 block">${matchTime}</span>
                         </div>
 
-                        <!-- Match Status / Score -->
-                        <div class="px-3 py-1 bg-slate-950/90 border border-slate-800 rounded-lg text-center min-w-[70px]">
-                            <div class="font-mono font-bold text-xs text-emerald-400 tracking-wider">${score}</div>
-                            <div class="text-[9px] font-mono text-slate-500 mt-0.5">${matchTime}</div>
-                        </div>
-
-                        <!-- Away Team -->
-                        <div class="flex items-center gap-2.5 flex-1 justify-start">
-                            ${team2Logo ? `<img src="${team2Logo}" alt="" class="w-6 h-6 object-contain rounded" onerror="this.style.display='none'">` : '<div class="w-6 h-6 rounded bg-slate-800 flex items-center justify-center text-[10px] text-slate-400">🛡️</div>'}
-                            <span class="font-bold text-xs text-slate-200 group-hover:text-emerald-300 transition-colors text-left">${team2Name}</span>
+                        <div class="flex items-center gap-1.5 flex-1 justify-start min-w-0">
+                            ${team2Logo ? `<img src="${team2Logo}" class="w-4 h-4 object-contain flex-shrink-0">` : ''}
+                            <span class="font-bold text-xs text-slate-200 truncate text-left">${team2Name}</span>
                         </div>
                     </div>
 
-                    <!-- Action Trigger -->
                     ${matchUrl ? `
                         <button onclick="executeMatchDetailPipeline('${encodeURIComponent(matchUrl)}', '${encodeURIComponent(team1Name)}', '${encodeURIComponent(team2Name)}')" 
-                                class="ml-4 bg-emerald-950/50 hover:bg-emerald-600 border border-emerald-500/50 hover:border-emerald-400 text-emerald-400 hover:text-white px-3 py-1.5 rounded-lg font-mono text-[11px] font-bold uppercase transition-all cursor-pointer whitespace-nowrap active:scale-95">
+                                class="bg-emerald-950/60 hover:bg-emerald-600 border border-emerald-500/50 text-emerald-400 hover:text-white px-2 py-1 rounded font-mono text-[9px] font-bold uppercase transition-all cursor-pointer whitespace-nowrap flex-shrink-0">
                             ANALYZE →
                         </button>
                     ` : ''}
@@ -717,7 +676,7 @@
         containerEl.innerHTML = html;
     };
 
-    // --- DETAILED MATCH TELEMETRY PANEL ---
+    // --- BOTTOM PANEL RENDERING TECHNIQUE: DETAILED MATCH TELEMETRY ---
     window.renderMatchDetailPanel = function(data, containerEl) {
         const homeName = data.home_team || data.team1 || 'Home Team';
         const awayName = data.away_team || data.team2 || 'Away Team';
@@ -731,72 +690,58 @@
         let eventsHtml = '';
         if (Array.isArray(events) && events.length > 0) {
             eventsHtml = events.map(evt => `
-                <div class="flex items-center gap-3 p-2 bg-slate-950/50 border border-slate-900 rounded font-mono text-xs">
-                    <span class="text-emerald-400 font-bold">${evt.minute || evt.time || "''"}</span>
-                    <span class="text-slate-300">${evt.description || evt.event || evt.text || ''}</span>
+                <div class="flex items-center gap-2 p-1.5 bg-slate-950/60 border border-slate-900 rounded font-mono text-xs">
+                    <span class="text-emerald-400 font-bold text-[10px]">${evt.minute || evt.time || "''"}</span>
+                    <span class="text-slate-300 text-[11px]">${evt.description || evt.event || evt.text || ''}</span>
                 </div>
             `).join('');
         } else {
-            eventsHtml = `<p class="text-slate-500 font-mono text-xs italic">// No granular match timeline events returned.</p>`;
+            eventsHtml = `<p class="text-slate-500 font-mono text-[11px] italic">// No timeline events returned for this fixture.</p>`;
         }
 
         let statsHtml = '';
         if (stats && typeof stats === 'object') {
             statsHtml = Object.entries(stats).map(([key, val]) => `
-                <div class="flex justify-between items-center p-2 bg-slate-950/40 border border-slate-900 rounded text-xs">
-                    <span class="text-slate-400 font-mono uppercase text-[10px]">${key.replace(/_/g, ' ')}</span>
-                    <span class="font-bold text-slate-200 font-mono">${typeof val === 'object' ? JSON.stringify(val) : val}</span>
+                <div class="flex justify-between items-center p-1.5 bg-slate-950/50 border border-slate-900 rounded text-xs">
+                    <span class="text-slate-400 font-mono uppercase text-[9px]">${key.replace(/_/g, ' ')}</span>
+                    <span class="font-bold text-slate-200 font-mono text-[11px]">${typeof val === 'object' ? JSON.stringify(val) : val}</span>
                 </div>
             `).join('');
         }
 
         containerEl.innerHTML = `
-            <div class="font-sans space-y-4">
-                <!-- Top Control Bar -->
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <button onclick="handleBackToFixtures()" 
-                            class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-mono font-bold uppercase transition-all flex items-center gap-2 cursor-pointer">
-                        ← Back to Matches
-                    </button>
-                    <span class="text-[10px] font-mono text-emerald-400 tracking-wider">// DETAILED MATCH TELEMETRY</span>
-                </div>
-
-                <!-- Match Banner Scorecard -->
-                <div class="bg-slate-900/90 border border-slate-800 p-6 rounded-xl flex items-center justify-between shadow-xl">
-                    <!-- Home Team -->
-                    <div class="flex flex-col items-center gap-2 flex-1 text-center">
-                        ${homeLogo ? `<img src="${homeLogo}" alt="" class="w-12 h-12 object-contain" onerror="this.style.display='none'">` : '<div class="w-12 h-12 rounded bg-slate-800 flex items-center justify-center text-lg">🛡️</div>'}
-                        <span class="font-bold text-sm text-slate-100">${homeName}</span>
+            <div class="font-sans space-y-2.5">
+                <!-- Scorecard Banner -->
+                <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-lg flex items-center justify-between shadow-md">
+                    <div class="flex items-center gap-2 flex-1">
+                        ${homeLogo ? `<img src="${homeLogo}" class="w-7 h-7 object-contain">` : '<div class="w-7 h-7 rounded bg-slate-800 flex items-center justify-center text-xs">🛡️</div>'}
+                        <span class="font-bold text-xs text-slate-100 truncate">${homeName}</span>
                     </div>
 
-                    <!-- Score Box -->
-                    <div class="flex flex-col items-center justify-center px-6 border-x border-slate-800">
-                        <span class="text-3xl font-black font-mono text-emerald-400 tracking-tight">${score}</span>
-                        <span class="text-[10px] font-mono text-slate-400 uppercase mt-1 bg-slate-950 px-2.5 py-0.5 rounded border border-slate-800">${status}</span>
+                    <div class="flex flex-col items-center justify-center px-4 border-x border-slate-800">
+                        <span class="text-xl font-black font-mono text-emerald-400">${score}</span>
+                        <span class="text-[8px] font-mono text-slate-400 uppercase bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${status}</span>
                     </div>
 
-                    <!-- Away Team -->
-                    <div class="flex flex-col items-center gap-2 flex-1 text-center">
-                        ${awayLogo ? `<img src="${awayLogo}" alt="" class="w-12 h-12 object-contain" onerror="this.style.display='none'">` : '<div class="w-12 h-12 rounded bg-slate-800 flex items-center justify-center text-lg">🛡️</div>'}
-                        <span class="font-bold text-sm text-slate-100">${awayName}</span>
+                    <div class="flex items-center gap-2 flex-1 justify-end text-right">
+                        <span class="font-bold text-xs text-slate-100 truncate">${awayName}</span>
+                        ${awayLogo ? `<img src="${awayLogo}" class="w-7 h-7 object-contain">` : '<div class="w-7 h-7 rounded bg-slate-800 flex items-center justify-center text-xs">🛡️</div>'}
                     </div>
                 </div>
 
-                <!-- Detailed Data Columns -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Timeline Events -->
-                    <div class="bg-slate-900/60 border border-slate-800/80 p-4 rounded-xl">
-                        <h4 class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest mb-3">// MATCH TIMELINE</h4>
-                        <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                <!-- Match Events & Metrics Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div class="bg-slate-900/50 border border-slate-800/80 p-2.5 rounded-lg">
+                        <h4 class="text-[9px] font-mono font-bold text-emerald-400 uppercase tracking-wider mb-2">// MATCH TIMELINE</h4>
+                        <div class="space-y-1 max-h-36 overflow-y-auto pr-1">
                             ${eventsHtml}
                         </div>
                     </div>
 
-                    <!-- Match Statistics -->
-                    <div class="bg-slate-900/60 border border-slate-800/80 p-4 rounded-xl">
-                        <h4 class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest mb-3">// STATISTICAL METRICS</h4>
-                        <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                            ${statsHtml || '<p class="text-slate-500 font-mono text-xs italic">// Granular stats matrix unavailable.</p>'}
+                    <div class="bg-slate-900/50 border border-slate-800/80 p-2.5 rounded-lg">
+                        <h4 class="text-[9px] font-mono font-bold text-cyan-400 uppercase tracking-wider mb-2">// METRICS MATRIX</h4>
+                        <div class="space-y-1 max-h-36 overflow-y-auto pr-1">
+                            ${statsHtml || '<p class="text-slate-500 font-mono text-[11px] italic">// Granular stats matrix unavailable.</p>'}
                         </div>
                     </div>
                 </div>
@@ -808,6 +753,15 @@
         const matchUrl = decodeURIComponent(encodedUrl);
         const homeName = decodeURIComponent(encodedHome);
         const awayName = decodeURIComponent(encodedAway);
+        
+        window.activeMatchUrl = matchUrl;
+
+        // Re-render top panel to apply active highlight ring around selected match card
+        if (window.fullMatchList.length > 0) {
+            const listPanel = document.getElementById('matchListSubPanel');
+            if (listPanel) renderSportsFixturesList(window.fullMatchList, listPanel);
+        }
+
         const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
 
         window.executeScraperWorkflow({
