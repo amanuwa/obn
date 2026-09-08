@@ -701,108 +701,236 @@ window.renderSportsOutput = function(data) {
 
     // --- BOTTOM PANEL: DETAILED MATCH TELEMETRY RENDERER ---
    // --- UPDATED MATCH DETAIL RENDERER ---
-window.renderMatchDetailPanel = function(data, containerEl) {
-    // 1. Unwrap nested data object if present
-    const payload = data.data || data;
+window.renderMatchDetailPanel = function(responseInput, containerEl) {
+    if (!responseInput || !containerEl) return;
 
-    // 2. Map team names, logos, score, and date
+    // 1. Extract base match object handling array or wrapped structure
+    const rawData = Array.isArray(responseInput) ? responseInput[0] : responseInput;
+    const payload = rawData?.data || rawData;
+
+    if (!payload) {
+        containerEl.innerHTML = `<div class="p-4 text-red-400 font-mono text-xs">// Error: Invalid payload structure</div>`;
+        return;
+    }
+
+    // 2. Extract Key Fields
     const homeName = payload.homeTeam || 'Home Team';
     const awayName = payload.awayTeam || 'Away Team';
-    const homeLogo = payload.homeLogo || payload.home_logo || '';
-    const awayLogo = payload.awayLogo || payload.away_logo || '';
-    const score = payload.matchResult || payload.result || payload.score || 'VS';
-    const matchDate = payload.matchDate || payload.dateTime || 'COMPLETED';
+    const score = payload.matchResult || 'VS';
+    const matchDate = payload.matchDate || 'COMPLETED';
+    const roundName = payload.standings?.round || 'MATCH DETAILS';
+
+    // --- RENDER TIMELINE (Goals & Substitutions Combined) ---
+    const goals = payload.goals || [];
+    const substitutions = payload.substitutions || [];
     
-    // Extract round if present inside standings
-    const roundName = payload.standings?.round || payload.round || 'MATCH DETAILS';
+    // Merge events and sort chronologically by minute
+    const allEvents = [
+        ...goals.map(g => ({ ...g, type: 'GOAL', minNum: parseInt(g.minute) || 0 })),
+        ...substitutions.map(s => ({ ...s, type: 'SUB', minNum: parseInt(s.minute) || 0 }))
+    ].sort((a, b) => a.minNum - b.minNum);
 
-    // 3. Parse Timeline / Goals / Match Events
-    const events = payload.goals || payload.events || payload.match_events || [];
-    let eventsHtml = '';
+    let timelineHtml = '';
+    if (allEvents.length > 0) {
+        timelineHtml = allEvents.map(evt => {
+            if (evt.type === 'GOAL') {
+                return `
+                    <div class="flex items-center justify-between p-2 bg-emerald-950/30 border border-emerald-800/50 rounded font-mono text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-emerald-400 font-bold">${evt.minute}</span>
+                            <span class="text-slate-100 font-bold">⚽ Goal - ${evt.scorer}</span>
+                            ${evt.assist ? `<span class="text-slate-400 text-[10px]">(Assist: ${evt.assist})</span>` : ''}
+                        </div>
+                        <span class="text-[10px] text-emerald-300/80 bg-emerald-900/40 px-1.5 py-0.5 rounded">${evt.team}</span>
+                    </div>`;
+            } else {
+                return `
+                    <div class="flex items-center justify-between p-2 bg-slate-950/60 border border-slate-800 rounded font-mono text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-amber-400 font-bold">${evt.minute}</span>
+                            <span class="text-slate-300">🔄 <span class="text-emerald-400">IN: ${evt.playerIn}</span> / <span class="text-red-400">OUT: ${evt.playerOut}</span></span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded">${evt.team}</span>
+                    </div>`;
+            }
+        }).join('');
+    } else {
+        timelineHtml = `<p class="text-slate-500 font-mono text-[11px] italic">// No match timeline events available.</p>`;
+    }
 
-    if (Array.isArray(events) && events.length > 0) {
-        eventsHtml = events.map(evt => `
-            <div class="flex items-center gap-2 p-1.5 bg-slate-950/60 border border-slate-900 rounded font-mono text-xs">
-                <span class="text-emerald-400 font-bold text-[10px]">${evt.minute || evt.time || "''"}</span>
-                <span class="text-slate-300 text-[11px]">${evt.player || evt.description || evt.text || 'Goal scored'}</span>
+    // --- RENDER MATCH STATISTICS (Full Match, 1st Half, 2nd Half) ---
+    const stats = payload.statistics || {};
+    const pos = stats.ballPossession || {};
+    const fh = stats.firstHalf || {};
+    const sh = stats.secondHalf || {};
+
+    const createStatRow = (label, homeVal, awayVal, isPercentage = false) => `
+        <div class="space-y-1">
+            <div class="flex justify-between text-[10px] font-mono text-slate-300">
+                <span class="font-bold text-cyan-400">${homeVal ?? '-'}${isPercentage ? '%' : ''}</span>
+                <span class="text-slate-400 uppercase tracking-wider">${label}</span>
+                <span class="font-bold text-emerald-400">${awayVal ?? '-'}${isPercentage ? '%' : ''}</span>
+            </div>
+            <div class="flex h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                <div class="bg-cyan-500 h-full" style="width: ${isPercentage ? homeVal : ((homeVal / ((homeVal + awayVal) || 1)) * 100)}%"></div>
+                <div class="bg-emerald-500 h-full" style="width: ${isPercentage ? awayVal : ((awayVal / ((homeVal + awayVal) || 1)) * 100)}%"></div>
+            </div>
+        </div>`;
+
+    let statsHtml = `
+        <div class="space-y-3 font-mono text-xs">
+            <!-- Possession Breakdowns -->
+            <div class="bg-slate-950/80 p-2.5 rounded border border-slate-800 space-y-2">
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">// BALL POSSESSION</div>
+                ${createStatRow("Full Match", parseInt(pos.fullMatch?.home), parseInt(pos.fullMatch?.away), true)}
+                ${createStatRow("1st Half", parseInt(pos.firstHalf?.home), parseInt(pos.firstHalf?.away), true)}
+                ${createStatRow("2nd Half", parseInt(pos.secondHalf?.home), parseInt(pos.secondHalf?.away), true)}
+            </div>
+
+            <!-- Total Match Metrics -->
+            <div class="bg-slate-950/80 p-2.5 rounded border border-slate-800 space-y-2">
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">// FULL GAME METRICS</div>
+                ${createStatRow("Total Shots", stats.totalShots?.home, stats.totalShots?.away)}
+                ${createStatRow("Shots On Target", stats.shotsOnTarget?.home, stats.shotsOnTarget?.away)}
+                ${createStatRow("Shots Off Target", stats.shotsOffTarget?.home, stats.shotsOffTarget?.away)}
+                ${createStatRow("Corners", stats.cornerKicks?.home, stats.cornerKicks?.away)}
+                ${createStatRow("Fouls", stats.fouls?.home, stats.fouls?.away)}
+                ${createStatRow("Offsides", stats.offsides?.home, stats.offsides?.away)}
+            </div>
+
+            <!-- Half-by-Half Metrics Grid -->
+            <div class="grid grid-cols-2 gap-2 text-[10px]">
+                <div class="bg-slate-950/60 p-2 rounded border border-slate-800/80 space-y-1.5">
+                    <div class="text-amber-400 font-bold">// 1ST HALF METRICS</div>
+                    <div class="flex justify-between"><span class="text-slate-400">Shots:</span><span>${fh.totalShots?.home ?? 0} - ${fh.totalShots?.away ?? 0}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">On Target:</span><span>${fh.shotsOnTarget?.home ?? 0} - ${fh.shotsOnTarget?.away ?? 0}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Fouls:</span><span>${fh.fouls?.home ?? 0} - ${fh.fouls?.away ?? 0}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Offsides:</span><span>${fh.offsides?.home ?? 0} - ${fh.offsides?.away ?? 0}</span></div>
+                </div>
+                <div class="bg-slate-950/60 p-2 rounded border border-slate-800/80 space-y-1.5">
+                    <div class="text-amber-400 font-bold">// 2ND HALF METRICS</div>
+                    <div class="flex justify-between"><span class="text-slate-400">Shots:</span><span>${sh.totalShots?.home ?? 0} - ${sh.totalShots?.away ?? 0}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">On Target:</span><span>${sh.shotsOnTarget?.home ?? 0} - ${sh.shotsOnTarget?.away ?? 0}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Fouls:</span><span>${sh.fouls?.home ?? 0} - ${sh.fouls?.away ?? 0}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Offsides:</span><span>${sh.offsides?.home ?? 0} - ${sh.offsides?.away ?? 0}</span></div>
+                </div>
+            </div>
+        </div>`;
+
+    // --- RENDER VISUAL PITCH & LINEUPS ---
+    const lineups = payload.lineups || {};
+    const homeLineup = lineups.homeTeam || {};
+    const awayLineup = lineups.awayTeam || {};
+
+    const renderPlayerNodes = (startingEleven, isHome) => {
+        if (!startingEleven || !Array.isArray(startingEleven)) return '';
+        
+        // Group players by position type
+        const gk = startingEleven.filter(p => p.position === 'GK');
+        const def = startingEleven.filter(p => p.position === 'DEF');
+        const mid = startingEleven.filter(p => p.position === 'MID');
+        const fwd = startingEleven.filter(p => p.position === 'FWD');
+
+        const lines = isHome ? [gk, def, mid, fwd] : [fwd, mid, def, gk];
+
+        return lines.map(line => `
+            <div class="flex flex-col justify-around items-center h-full">
+                ${line.map(p => `
+                    <div class="flex flex-col items-center group relative cursor-pointer">
+                        <div class="w-6 h-6 rounded-full ${isHome ? 'bg-cyan-500 text-slate-950' : 'bg-emerald-500 text-slate-950'} font-bold font-mono text-[10px] flex items-center justify-center shadow-lg border border-white/20">
+                            ${p.number || ''}
+                        </div>
+                        <span class="text-[9px] font-mono text-slate-200 bg-slate-950/80 px-1 rounded mt-0.5 whitespace-nowrap max-w-[65px] truncate text-center">
+                            ${p.name}
+                        </span>
+                    </div>
+                `).join('')}
             </div>
         `).join('');
-    } else {
-        eventsHtml = `<p class="text-slate-500 font-mono text-[11px] italic">// No timeline events returned for this fixture.</p>`;
-    }
+    };
 
-    // 4. Parse Standings / Metrics Matrix
-    const homeStanding = payload.standings?.homeTeamStanding;
-    const awayStanding = payload.standings?.awayTeamStanding;
+    const renderSubList = (subs) => {
+        if (!subs || !Array.isArray(subs)) return '<span class="text-slate-500">None</span>';
+        return subs.map(s => `<span class="bg-slate-950 border border-slate-800 px-1.5 py-0.5 rounded text-slate-300 text-[10px] inline-block m-0.5">${s}</span>`).join('');
+    };
 
-    let statsHtml = '';
-    if (homeStanding && awayStanding) {
-        statsHtml = `
-            <div class="space-y-1 text-xs font-mono">
-                <div class="flex justify-between items-center p-1.5 bg-slate-950/50 border border-slate-900 rounded">
-                    <span class="text-slate-400 uppercase text-[9px]">League Position</span>
-                    <span class="text-slate-200 font-bold">${homeStanding.position} vs ${awayStanding.position}</span>
-                </div>
-                <div class="flex justify-between items-center p-1.5 bg-slate-950/50 border border-slate-900 rounded">
-                    <span class="text-slate-400 uppercase text-[9px]">Points</span>
-                    <span class="text-slate-200 font-bold">${homeStanding.points} - ${awayStanding.points}</span>
-                </div>
-                <div class="flex justify-between items-center p-1.5 bg-slate-950/50 border border-slate-900 rounded">
-                    <span class="text-slate-400 uppercase text-[9px]">Matches Played</span>
-                    <span class="text-slate-200 font-bold">${homeStanding.matchesPlayed} - ${awayStanding.matchesPlayed}</span>
-                </div>
-                <div class="flex justify-between items-center p-1.5 bg-slate-950/50 border border-slate-900 rounded">
-                    <span class="text-slate-400 uppercase text-[9px]">W / D / L</span>
-                    <span class="text-slate-200 font-bold">${homeStanding.wins}/${homeStanding.draws}/${homeStanding.losses} vs ${awayStanding.wins}/${awayStanding.draws}/${awayStanding.losses}</span>
-                </div>
-                <div class="flex justify-between items-center p-1.5 bg-slate-950/50 border border-slate-900 rounded">
-                    <span class="text-slate-400 uppercase text-[9px]">Goal Difference</span>
-                    <span class="text-slate-200 font-bold">${homeStanding.goalDifference} vs ${awayStanding.goalDifference}</span>
-                </div>
-            </div>
-        `;
-    } else {
-        statsHtml = `<p class="text-slate-500 font-mono text-[11px] italic">// Granular stats matrix unavailable.</p>`;
-    }
-
-    // 5. Render to Bottom Panel
+    // --- FINAL DOM INJECTION ---
     containerEl.innerHTML = `
-        <div class="font-sans space-y-2.5">
-            <!-- Header Badge -->
-            <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">
-                ${roundName} &bull; <span class="text-slate-400">${matchDate}</span>
-            </div>
-
-            <!-- Scorecard Banner -->
-            <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-lg flex items-center justify-between shadow-md">
-                <div class="flex items-center gap-2 flex-1">
-                    ${homeLogo ? `<img src="${homeLogo}" class="w-7 h-7 object-contain">` : '<div class="w-7 h-7 rounded bg-slate-800 flex items-center justify-center text-xs">🛡️</div>'}
-                    <span class="font-bold text-xs text-slate-100 truncate">${homeName}</span>
-                </div>
-
-                <div class="flex flex-col items-center justify-center px-4 border-x border-slate-800">
-                    <span class="text-xl font-black font-mono text-cyan-400">${score}</span>
-                    <span class="text-[8px] font-mono text-slate-400 uppercase bg-slate-950 px-2 py-0.5 rounded border border-slate-800">FINAL</span>
-                </div>
-
-                <div class="flex items-center gap-2 flex-1 justify-end text-right">
-                    <span class="font-bold text-xs text-slate-100 truncate">${awayName}</span>
-                    ${awayLogo ? `<img src="${awayLogo}" class="w-7 h-7 object-contain">` : '<div class="w-7 h-7 rounded bg-slate-800 flex items-center justify-center text-xs">🛡️</div>'}
-                </div>
-            </div>
-
-            <!-- Match Events & Metrics Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div class="bg-slate-900/50 border border-slate-800/80 p-2.5 rounded-lg">
-                    <h4 class="text-[9px] font-mono font-bold text-emerald-400 uppercase tracking-wider mb-2">// MATCH TIMELINE</h4>
-                    <div class="space-y-1 max-h-36 overflow-y-auto pr-1">
-                        ${eventsHtml}
+        <div class="font-sans space-y-4 text-slate-100">
+            <!-- Header Banner -->
+            <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-center justify-between shadow-lg">
+                <div class="flex items-center gap-3 flex-1">
+                    <div class="w-8 h-8 rounded bg-cyan-950 border border-cyan-500/30 flex items-center justify-center font-bold text-cyan-400 text-xs">H</div>
+                    <div>
+                        <div class="font-bold text-sm text-slate-100">${homeName}</div>
+                        <div class="text-[10px] font-mono text-slate-400">Coach: ${homeLineup.coach || 'N/A'} (${homeLineup.formation || 'N/A'})</div>
                     </div>
                 </div>
 
-                <div class="bg-slate-900/50 border border-slate-800/80 p-2.5 rounded-lg">
-                    <h4 class="text-[9px] font-mono font-bold text-cyan-400 uppercase tracking-wider mb-2">// METRICS & STANDINGS</h4>
-                    <div class="space-y-1 max-h-36 overflow-y-auto pr-1">
+                <div class="flex flex-col items-center justify-center px-6 border-x border-slate-800">
+                    <span class="text-2xl font-black font-mono text-cyan-400 tracking-wider">${score}</span>
+                    <span class="text-[8px] font-mono text-emerald-400 uppercase bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-800/50 mt-1">${roundName} &bull; ${matchDate}</span>
+                </div>
+
+                <div class="flex items-center gap-3 flex-1 justify-end text-right">
+                    <div>
+                        <div class="font-bold text-sm text-slate-100">${awayName}</div>
+                        <div class="text-[10px] font-mono text-slate-400">Coach: ${awayLineup.coach || 'N/A'} (${awayLineup.formation || 'N/A'})</div>
+                    </div>
+                    <div class="w-8 h-8 rounded bg-emerald-950 border border-emerald-500/30 flex items-center justify-center font-bold text-emerald-400 text-xs">A</div>
+                </div>
+            </div>
+
+            <!-- Pitch Tactical View -->
+            <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg">
+                <div class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider mb-2">// STARTING ELEVEN & TACTICAL FORMATION</div>
+                
+                <!-- Football Pitch Diagram -->
+                <div class="relative w-full h-72 bg-emerald-950/40 border-2 border-emerald-600/30 rounded-lg p-2 overflow-hidden flex justify-between items-center backdrop-blur-sm">
+                    <!-- Pitch Markings -->
+                    <div class="absolute inset-y-0 left-1/2 w-0.5 bg-emerald-600/30 -translate-x-1/2"></div>
+                    <div class="absolute top-1/2 left-1/2 w-20 h-20 border border-emerald-600/30 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+                    <div class="absolute inset-y-8 left-0 w-12 border-y border-r border-emerald-600/30"></div>
+                    <div class="absolute inset-y-8 right-0 w-12 border-y border-l border-emerald-600/30"></div>
+
+                    <!-- Home Side (Left) -->
+                    <div class="relative z-10 w-1/2 h-full flex justify-around items-center pr-2">
+                        ${renderPlayerNodes(homeLineup.startingEleven, true)}
+                    </div>
+
+                    <!-- Away Side (Right) -->
+                    <div class="relative z-10 w-1/2 h-full flex justify-around items-center pl-2">
+                        ${renderPlayerNodes(awayLineup.startingEleven, false)}
+                    </div>
+                </div>
+
+                <!-- Bench Substitutes View -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-800/80">
+                    <div>
+                        <div class="text-[10px] font-mono text-cyan-400 font-bold mb-1">// ${homeName} BENCH</div>
+                        <div>${renderSubList(homeLineup.substitutes)}</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-mono text-emerald-400 font-bold mb-1">// ${awayName} BENCH</div>
+                        <div>${renderSubList(awayLineup.substitutes)}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics & Events Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <!-- Timeline Panel -->
+                <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg">
+                    <div class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider mb-2.5">// MATCH EVENTS & SUBSTITUTIONS</div>
+                    <div class="space-y-1.5 max-h-80 overflow-y-auto pr-1 custom-scrollbar">
+                        ${timelineHtml}
+                    </div>
+                </div>
+
+                <!-- Match Telemetry Stats -->
+                <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg">
+                    <div class="text-[10px] font-mono font-bold text-cyan-400 uppercase tracking-wider mb-2.5">// DETAILED TELEMETRY STATS</div>
+                    <div class="max-h-80 overflow-y-auto pr-1 custom-scrollbar">
                         ${statsHtml}
                     </div>
                 </div>
