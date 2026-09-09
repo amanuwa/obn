@@ -618,7 +618,7 @@
     };
 
     // --- TOP PANEL: MATCH FIXTURES RENDERER ---
-window.renderMatchListPanel = function(matches) {
+window.renderMatchListPanel = function(matches, currentLeague = "General Football") {
     const container = document.getElementById('matchListSubPanel');
     const countHeader = document.getElementById('matchListHeaderCount');
 
@@ -635,15 +635,16 @@ window.renderMatchListPanel = function(matches) {
         const round = match.round || match.matchday || match.stage || "N/A";
         const date = match.date || match.matchDate || new Date().toISOString().split('T')[0];
         const time = match.time || match.matchTime || "N/A";
+        const league = match.league || match.competition || currentLeague;
         const matchUrl = match.link || match.url || match.matchUrl || "";
 
-        // Escape string quotes to prevent JS syntax errors in HTML inline handlers
         const escapedHome = home.replace(/'/g, "\\'");
         const escapedAway = away.replace(/'/g, "\\'");
         const escapedResult = result.replace(/'/g, "\\'");
         const escapedRound = round.replace(/'/g, "\\'");
         const escapedDate = date.replace(/'/g, "\\'");
         const escapedTime = time.replace(/'/g, "\\'");
+        const escapedLeague = league.replace(/'/g, "\\'");
 
         return `
             <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-lg flex items-center justify-between gap-4 hover:border-emerald-500/50 transition-all flex-wrap sm:flex-nowrap">
@@ -651,7 +652,7 @@ window.renderMatchListPanel = function(matches) {
                     <span class="text-slate-500 font-mono text-[10px]">#${idx + 1}</span>
                     <div class="font-sans font-bold text-xs text-slate-200 truncate">
                         ${home} <span class="text-emerald-400 font-mono px-1.5 py-0.5 bg-emerald-950/60 rounded border border-emerald-800/50 mx-1">${result}</span> ${away}
-                        <span class="text-[10px] text-slate-400 font-mono ml-2">| Round: ${round} | ${date} @ ${time}</span>
+                        <span class="text-[10px] text-slate-400 font-mono ml-2">| ${league} | Round: ${round} | ${date} @ ${time}</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -661,7 +662,7 @@ window.renderMatchListPanel = function(matches) {
                             ANALYZE →
                         </button>
                     ` : ''}
-                    <button onclick="window.triggerMatchNews('${escapedHome}', '${escapedAway}', '${escapedResult}', '${escapedRound}', '${escapedDate}', '${escapedTime}')" 
+                    <button onclick="window.triggerMatchNews('${escapedHome}', '${escapedAway}', '${escapedResult}', '${escapedRound}', '${escapedDate}', '${escapedTime}', '${escapedLeague}')" 
                             class="bg-rose-950 hover:bg-rose-600 border border-rose-500/60 hover:border-rose-400 text-rose-300 hover:text-white px-3 py-1 rounded text-[11px] font-mono font-bold transition-all cursor-pointer whitespace-nowrap">
                         GET NEWS 📰
                     </button>
@@ -670,12 +671,17 @@ window.renderMatchListPanel = function(matches) {
         `;
     }).join('');
 };
-window.triggerMatchNews = function(homeTeam, awayTeam, result, round, date, time) {
+window.triggerMatchNews = function(homeTeam, awayTeam, result, round, date, time, league) {
     const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+
+    // Dynamic league fallback detection if not explicitly passed by match item
+    const activeLeagueSelect = document.getElementById('leagueSelect') || document.getElementById('selectedLeague');
+    const detectedLeague = league || (activeLeagueSelect ? activeLeagueSelect.value : "General Football");
 
     window.executeScraperWorkflow({
         page: "sports",
         targetMatrix: "get_match_news",
+        league: detectedLeague,
         homeTeam: homeTeam,
         awayTeam: awayTeam,
         result: result,
@@ -683,7 +689,7 @@ window.triggerMatchNews = function(homeTeam, awayTeam, result, round, date, time
         date: date,
         time: time,
         languages: selectedLangs,
-        query: `Latest news for ${homeTeam} vs ${awayTeam} ${result} (Round ${round}, ${date} ${time})`,
+        query: `Latest news for ${homeTeam} vs ${awayTeam} ${result} (${detectedLeague}, Round ${round}, ${date} ${time})`,
         timestamp: new Date().toISOString()
     });
 };
