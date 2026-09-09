@@ -509,11 +509,11 @@
 
     window.executeLeaguePipeline = function(leagueName, targetUrl) {
         const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
-
+const leagueString = Array.isArray(selectedCategory) ? selectedCategory.join(', ') : selectedCategory;
         window.executeScraperWorkflow({
             page: "sports",
             targetMatrix: "international_analytics",
-            selectedLeague: leagueName,
+            selectedLeague: leagueString,
             categories: ["international"],
             languages: selectedLangs,
             websites: [targetUrl],
