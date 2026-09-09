@@ -507,20 +507,23 @@
         `;
     }
 
-    window.executeLeaguePipeline = function(leagueName, targetUrl) {
-        const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
-const leagueString = Array.isArray(selectedCategory) ? selectedCategory.join(', ') : selectedCategory;
-        window.executeScraperWorkflow({
-            page: "sports",
-            targetMatrix: "international_analytics",
-            selectedLeague: leagueString,
-            categories: ["international"],
-            languages: selectedLangs,
-            websites: [targetUrl],
-            query: `Fetch live fixtures, statistics, and headlines for ${leagueName}`,
-            timestamp: new Date().toISOString()
-        });
-    };
+   window.executeLeaguePipeline = function(leagueName, targetUrl) {
+    const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+    
+    // Safely check and convert leagueName parameter
+    const leagueString = Array.isArray(leagueName) ? leagueName.join(', ') : String(leagueName || "General Football");
+
+    window.executeScraperWorkflow({
+        page: "sports",
+        targetMatrix: "international_analytics",
+        selectedLeague: leagueString,
+        categories: ["international"],
+        languages: selectedLangs,
+        websites: [targetUrl],
+        query: `Fetch live fixtures, statistics, and headlines for ${leagueString}`,
+        timestamp: new Date().toISOString()
+    });
+};
 
     window.executeScraperWorkflow = async function(payload) {
         const loader = document.getElementById('fullPageLoader');
