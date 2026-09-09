@@ -596,29 +596,41 @@
     }
 
     // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
-    window.renderSportsOutput = function(data) {
-        if (!data) return;
+  window.renderSportsOutput = function(data) {
+    if (!data) return;
 
-        const payload = data.data || data;
+    const payload = data.data || data;
 
-        const isMatchDetail = !Array.isArray(payload) && (
-            payload.homeTeam || payload.matchResult || payload.matchDate || payload.standings
-        );
+    // 1. Check if payload is for match news report -> send to white paper panel
+    if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.report) {
+        window.renderNewsPanel(payload);
+        return;
+    }
 
-        if (isMatchDetail) {
-            const detailPanel = document.getElementById('matchDetailSubPanel');
-            if (detailPanel) window.renderMatchDetailPanel(payload, detailPanel);
-            return;
-        }
+    // 2. Check if payload is match detail view
+    const isMatchDetail = !Array.isArray(payload) && (
+        payload.homeTeam || payload.matchResult || payload.matchDate || payload.standings
+    );
 
-        const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
+    if (isMatchDetail && payload.targetMatrix !== "get_match_news") {
+        const detailPanel = document.getElementById('matchDetailSubPanel');
+        if (detailPanel) window.renderMatchDetailPanel(payload, detailPanel);
+        return;
+    }
 
-        if (Array.isArray(matchesArray) && matchesArray.length > 0) {
-            window.fullMatchList = matchesArray;
-            const listPanel = document.getElementById('matchListSubPanel');
-            if (listPanel) window.renderMatchListPanel(matchesArray, listPanel);
-        }
-    };
+    // 3. Extract match array and pass active selected league name
+    const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
+
+    if (Array.isArray(matchesArray) && matchesArray.length > 0) {
+        window.fullMatchList = matchesArray;
+        
+        // Extract selected league name from payload or default fallback
+        const activeLeague = payload.selectedLeague || payload.league || "General Football";
+        
+        // Pass matchesArray and activeLeague to renderMatchListPanel
+        window.renderMatchListPanel(matchesArray, activeLeague);
+    }
+};
 
     // --- TOP PANEL: MATCH FIXTURES RENDERER ---
 window.renderMatchListPanel = function(matches, currentLeague = "General Football") {
