@@ -629,21 +629,24 @@ window.renderMatchListPanel = function(matches, currentLeague = "General Footbal
     if (!container) return;
 
     container.innerHTML = matches.map((match, idx) => {
-        const home = match.homeTeam || match.team1 || match.home || "Home Team";
+       const home = match.homeTeam || match.team1 || match.home || "Home Team";
         const away = match.awayTeam || match.team2 || match.away || "Away Team";
         const result = match.result || match.score || match.status || "VS";
         const round = match.round || match.matchday || match.stage || "N/A";
         const date = match.date || match.matchDate || new Date().toISOString().split('T')[0];
         const time = match.time || match.matchTime || "N/A";
-        const league = match.league || match.competition || currentLeague;
+        
+        // Ensure raw variables are converted to strings before .replace()
+        const rawLeague = match.league || match.competition || currentLeague;
+        const league = Array.isArray(rawLeague) ? rawLeague.join(', ') : String(rawLeague || "General Football");
         const matchUrl = match.link || match.url || match.matchUrl || "";
 
-        const escapedHome = home.replace(/'/g, "\\'");
-        const escapedAway = away.replace(/'/g, "\\'");
-        const escapedResult = result.replace(/'/g, "\\'");
-        const escapedRound = round.replace(/'/g, "\\'");
-        const escapedDate = date.replace(/'/g, "\\'");
-        const escapedTime = time.replace(/'/g, "\\'");
+        const escapedHome = String(home).replace(/'/g, "\\'");
+        const escapedAway = String(away).replace(/'/g, "\\'");
+        const escapedResult = String(result).replace(/'/g, "\\'");
+        const escapedRound = String(round).replace(/'/g, "\\'");
+        const escapedDate = String(date).replace(/'/g, "\\'");
+        const escapedTime = String(time).replace(/'/g, "\\'");
         const escapedLeague = league.replace(/'/g, "\\'");
 
         return `
