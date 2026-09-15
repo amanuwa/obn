@@ -779,28 +779,82 @@ window.renderMatchListPanel = function(matches, currentLeague = "General Footbal
         `;
     }).join('');
 };
-window.triggerMatchNews = function(homeTeam, awayTeam, result, round, date, time, league) {
-    const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+// --- UPDATED GET NEWS TRIGGER ---
+    window.triggerMatchNews = function(homeTeam, awayTeam, result, round, date, time, league) {
+        const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+        const activeLeagueSelect = document.getElementById('leagueSelect') || document.getElementById('selectedLeague');
+        const detectedLeague = league || (activeLeagueSelect ? activeLeagueSelect.value : "General Football");
 
-    // Dynamic league fallback detection if not explicitly passed by match item
-    const activeLeagueSelect = document.getElementById('leagueSelect') || document.getElementById('selectedLeague');
-    const detectedLeague = league || (activeLeagueSelect ? activeLeagueSelect.value : "General Football");
+        // Provide immediate visual feedback in the news panel while waiting for n8n response
+        const newsSubPanel = document.getElementById('matchNewsSubPanel');
+        if (newsSubPanel) {
+            newsSubPanel.innerHTML = `<p class="text-cyan-400 font-mono text-xs italic text-center py-4">// Fetching latest news for ${homeTeam} vs ${awayTeam}...</p>`;
+        }
 
-    window.executeScraperWorkflow({
-        page: "sports",
-        targetMatrix: "get_match_news",
-        league: detectedLeague,
-        homeTeam: homeTeam,
-        awayTeam: awayTeam,
-        result: result,
-        round: round,
-        date: date,
-        time: time,
-        languages: selectedLangs,
-        query: `Latest news for ${homeTeam} vs ${awayTeam} ${result} (${detectedLeague}, Round ${round}, ${date} ${time})`,
-        timestamp: new Date().toISOString()
-    });
-};
+        window.executeScraperWorkflow({
+            page: "sports",
+            targetMatrix: "get_match_news",
+            league: detectedLeague,
+            homeTeam: homeTeam,
+            awayTeam: awayTeam,
+            result: result,
+            round: round,
+            date: date,
+            time: time,
+            languages: selectedLangs,
+            query: `Latest news for ${homeTeam} vs ${awayTeam} ${result} (${detectedLeague}, Round ${round}, ${date} ${time})`,
+            timestamp: new Date().toISOString()
+        });
+    };
+
+    // --- REFINED SPORTS OUTPUT ROUTER ---
+    window.renderSportsOutput = function(data) {
+        if (!data) return;
+        const payload = data.data || data;
+
+        // 1. ISOLATED NEWS & HEADLINES HANDLER
+        // Catches any payload flagged as news or containing articles/reports and renders it ONLY in matchNewsSubPanel
+        if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.headlines || payload.report || payload.type === "news") {
+            const newsSubPanel = document.getElementById('matchNewsSubPanel');
+            if (newsSubPanel) {
+                const articles = payload.articles || payload.news || payload.headlines || [];
+                const reportText = payload.report || payload.summary || payload.content || (typeof payload === 'string' ? payload : '');
+
+                if (Array.isArray(articles) && articles.length > 0) {
+                    newsSubPanel.innerHTML = articles.map(item => `
+                        <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg mb-2">
+                            <h4 class="text-xs font-bold text-amber-400 mb-1">${item.title || 'News Update'}</h4>
+                            <p class="text-[11px] text-slate-300 font-sans">${item.snippet || item.description || item.content || ''}</p>
+                            <span class="text-[9px] font-mono text-slate-500 mt-2 block">${item.source || 'Aggregator'} • ${item.timestamp || 'Recent'}</span>
+                        </div>
+                    `).join('');
+                } else if (reportText && typeof reportText === 'string') {
+                    newsSubPanel.innerHTML = `
+                        <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg">
+                            <p class="text-xs text-slate-200 font-sans whitespace-pre-line">${reportText}</p>
+                        </div>
+                    `;
+                } else {
+                    newsSubPanel.innerHTML = `<p class="text-slate-500 italic text-center py-4">// News payload received, but no formatted articles or text reports found.</p>`;
+                }
+            }
+            return; // Exit early to prevent touching the top match fixture list or detail panels
+        }
+
+        // 2. DEFAULT FIXTURES LIST HANDLER
+        window.fullMatchList = data.matches || data.fixtures || [];
+        const listHeaderCount = document.getElementById('matchListHeaderCount');
+        const listSubPanel = document.getElementById('matchListSubPanel');
+
+        if (listSubPanel) {
+            if (window.fullMatchList.length === 0) {
+                listSubPanel.innerHTML = `<p class="text-slate-500 italic text-center py-4">// No active fixtures found in telemetry stream.</p>`;
+            } else {
+                if (listHeaderCount) listHeaderCount.innerText = `// TOP PANEL: MATCH FIXTURES LIST (${window.fullMatchList.length} FOUND)`;
+                // Keeps your standard match cards rendering cleanly in place
+            }
+        }
+    };
     window.triggerMatchAnalysis = function(matchUrl) {
         if (!matchUrl) return;
         window.activeMatchUrl = matchUrl;
