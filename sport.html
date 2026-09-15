@@ -213,6 +213,25 @@
                             </div>
                         </div>
                     </div>
+                    <!-- SCROLLABLE MATCH NEWS PANEL -->
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col w-full">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-3">
+                            <span class="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> // SCROLLABLE PANEL: MATCH NEWS & HEADLINES
+                            </span>
+                            <span class="text-[9px] font-mono text-slate-500 uppercase">Real-Time Ingestion Feed</span>
+                        </div>
+
+                        <div id="matchNewsSubPanel" class="max-h-[320px] overflow-y-auto space-y-3 pr-2 w-full">
+                            <div class="bg-slate-900/60 border border-slate-800/80 hover:border-amber-500/50 p-3.5 rounded-lg transition-all">
+                                <div class="flex justify-between items-start gap-2 mb-1">
+                                    <span class="text-[11px] font-bold text-amber-300 uppercase tracking-wide">Terminal System Online</span>
+                                    <span class="text-[9px] font-mono text-slate-500">LIVE FEED</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed font-sans">Awaiting inbound sports news payloads, transfer updates, and matchday reports from active scraping routes...</p>
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
             </div>
@@ -594,6 +613,77 @@
 
         return target;
     }
+    window.renderNewsPanel = function(incomingPayload) {
+    const newsPanel = document.getElementById('matchNewsSubPanel');
+    if (!newsPanel) return;
+
+    // Normalize incoming data structure to handle nested arrays or direct arrays
+    let items = [];
+    if (Array.isArray(incomingPayload)) {
+        // If it's an array, check if any element has a nested 'data' array (like your first object)
+        items = incomingPayload.flatMap(entry => entry.data && Array.isArray(entry.data) ? entry.data : [entry]);
+    } else if (incomingPayload && typeof incomingPayload === 'object') {
+        items = incomingPayload.data || incomingPayload.news || incomingPayload.articles || [incomingPayload];
+    }
+
+    if (!items.length) {
+        newsPanel.innerHTML = `<div class="p-3 text-xs text-slate-400">No feed items available.</div>`;
+        return;
+    }
+
+    newsPanel.innerHTML = items.map(item => {
+        // 1. Handle Twitter/X posts format ({ handle, text, dateTime })
+        if (item.handle && item.text) {
+            return `
+                <div class="bg-slate-900/60 border border-slate-800/80 hover:border-sky-500/50 p-3.5 rounded-lg transition-all">
+                    <div class="flex justify-between items-start gap-2 mb-1">
+                        <span class="text-[11px] font-bold text-sky-400 uppercase tracking-wide">@${item.handle}</span>
+                        <span class="text-[9px] font-mono text-slate-500">${item.dateTime || 'TWITTER FEED'}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed font-sans whitespace-pre-wrap">${item.text}</p>
+                </div>
+            `;
+        }
+
+        // 2. Handle Instagram posts format ({ username, image, text })
+        if (item.username && (typeof item.username === 'object' || item.image)) {
+            const author = item.username.full_name || item.username.username || 'Instagram Post';
+            const handleName = item.username.username ? `@${item.username.username}` : '';
+            return `
+                <div class="bg-slate-900/60 border border-slate-800/80 hover:border-pink-500/50 p-3.5 rounded-lg transition-all space-y-2">
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="text-[11px] font-bold text-pink-400 uppercase tracking-wide">${author} <span class="text-[9px] text-slate-400 font-normal">${handleName}</span></span>
+                        <span class="text-[9px] font-mono text-slate-500">INSTAGRAM</span>
+                    </div>
+                    ${item.image ? `<div class="overflow-hidden rounded-md max-h-48 border border-slate-800"><img src="${item.image}" alt="Post image" class="w-full h-full object-cover"/></div>` : ''}
+                    ${item.text ? `<p class="text-xs text-slate-300 leading-relaxed font-sans">${item.text}</p>` : ''}
+                </div>
+            `;
+        }
+
+        // 3. Handle Standard Article News Format ({ headline, content_detail, source_name, posted_date, etc. })
+        const title = item.headline || item.title || 'Match News Update';
+        const description = item.content_detail || item.description || item.summary || item.content || 'No description available for this telemetry entry.';
+        const source = item.source_name || 'LIVE FEED';
+        const timestamp = [item.posted_date, item.posted_time].filter(Boolean).join(' ') || 'JUST NOW';
+        const link = item.article_url || item.url;
+
+        return `
+            <div class="bg-slate-900/60 border border-slate-800/80 hover:border-amber-500/50 p-3.5 rounded-lg transition-all space-y-2">
+                ${item.image_url ? `<div class="overflow-hidden rounded-md max-h-36 border border-slate-800"><img src="${item.image_url}" alt="Article thumbnail" class="w-full h-full object-cover"/></div>` : ''}
+                <div class="flex justify-between items-start gap-2">
+                    <span class="text-[11px] font-bold text-amber-300 uppercase tracking-wide">${title}</span>
+                    <span class="text-[9px] font-mono text-slate-400 whitespace-nowrap bg-slate-800/80 px-1.5 py-0.5 rounded">${source}</span>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed font-sans">${description}</p>
+                <div class="flex justify-between items-center pt-1 border-t border-slate-800/50">
+                    <span class="text-[9px] font-mono text-slate-500">${timestamp}</span>
+                    ${link ? `<a href="${link}" target="_blank" class="text-[10px] font-mono text-amber-400 hover:underline flex items-center gap-1">Read Article &rarr;</a>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+};
 
     // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
   window.renderSportsOutput = function(data) {
