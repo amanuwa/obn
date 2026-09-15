@@ -393,7 +393,6 @@
         if (renderer && scene && camera) renderer.render(scene, camera);
     }
 
-    // Initialize Globe on Load
     window.addEventListener('DOMContentLoaded', () => {
         initGlobeSystem();
     });
@@ -405,8 +404,15 @@
         if (data.json) data = data.json;
 
         const container = data.data || data;
-        const matchesArray = container.matches || container.fixtures || [];
-        window.fullMatchList = Array.isArray(matchesArray) ? matchesArray : [];
+        let matchesArray = container.matches || container.fixtures || data.matches || data.fixtures;
+        
+        // Strict fallback guarantee: ensure matchesArray is always a valid Array
+        if (!Array.isArray(matchesArray)) {
+            if (Array.isArray(container)) matchesArray = container;
+            else matchesArray = [];
+        }
+        
+        window.fullMatchList = matchesArray;
 
         const listSubPanel = document.getElementById('matchListSubPanel');
         const headerCount = document.getElementById('matchListHeaderCount');
@@ -422,12 +428,12 @@
             listSubPanel.innerHTML = window.fullMatchList.map((match, idx) => `
                 <div class="flex items-center justify-between bg-slate-900/80 border border-slate-800 p-3 rounded-lg hover:border-emerald-500/50 transition-all font-mono">
                     <div class="flex flex-col">
-                        <span class="text-xs font-bold text-slate-100">${match.homeTeam} <span class="text-emerald-400 font-mono">[${match.homeScore} - ${match.awayScore}]</span> ${match.awayTeam}</span>
+                        <span class="text-xs font-bold text-slate-100">${match.homeTeam || 'Home'} <span class="text-emerald-400 font-mono">[${match.homeScore ?? 0} - ${match.awayScore ?? 0}]</span> ${match.awayTeam || 'Away'}</span>
                         <span class="text-[10px] text-slate-400">${match.matchDate || 'Recent'} • Status: <strong class="text-cyan-400">${match.status || 'FT'}</strong></span>
                     </div>
                     <div class="flex gap-2">
                         <button onclick="window.loadMatchDetailsByIndex(${idx})" class="bg-cyan-950 border border-cyan-500 text-cyan-400 hover:bg-cyan-600 hover:text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase cursor-pointer transition-all">Analyze</button>
-                        <button onclick="window.loadMatchNewsForFixture('${match.homeTeam}', '${match.awayTeam}')" class="bg-amber-950 border border-amber-500 text-amber-400 hover:bg-amber-600 hover:text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase cursor-pointer transition-all">Get News</button>
+                        <button onclick="window.loadMatchNewsForFixture('${match.homeTeam || ''}', '${match.awayTeam || ''}')" class="bg-amber-950 border border-amber-500 text-amber-400 hover:bg-amber-600 hover:text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase cursor-pointer transition-all">Get News</button>
                     </div>
                 </div>
             `).join('');
@@ -458,7 +464,7 @@
         detailPanel.innerHTML = `
             <div class="bg-slate-900 border border-emerald-500/50 p-4 rounded-lg flex flex-col gap-3 font-mono">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <h4 class="text-xs font-bold text-emerald-400">// TELEMETRY DEEP DIVE: ${detail.homeTeam} vs ${detail.awayTeam}</h4>
+                    <h4 class="text-xs font-bold text-emerald-400">// TELEMETRY DEEP DIVE: ${detail.homeTeam || ''} vs ${detail.awayTeam || ''}</h4>
                     <span class="text-[10px] font-mono text-cyan-400">Score: ${detail.matchResult || 'N/A'}</span>
                 </div>
                 
@@ -582,6 +588,5 @@
         const query = `${home} vs ${away} match preview news updates`;
         window.executeScraperWorkflow({ targetMatrix: 'news', query: query });
     };
-</script>
-</body>
+</script></body>
 </html>
