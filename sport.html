@@ -522,21 +522,23 @@
         `;
     }
 
-    window.executeLeaguePipeline = function(leagueName, targetUrl) {
-        const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
-        const leagueString = Array.isArray(leagueName) ? leagueName.join(', ') : String(leagueName || "General Football");
+   window.executeLeaguePipeline = function(leagueName, targetUrl) {
+    const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+    
+    // Safely check and convert leagueName parameter
+    const leagueString = Array.isArray(leagueName) ? leagueName.join(', ') : String(leagueName || "General Football");
 
-        window.executeScraperWorkflow({
-            page: "sports",
-            targetMatrix: "international_analytics",
-            selectedLeague: leagueString,
-            categories: ["international"],
-            languages: selectedLangs,
-            websites: [targetUrl],
-            query: `Fetch live fixtures, statistics, and headlines for ${leagueString}`,
-            timestamp: new Date().toISOString()
-        });
-    };
+    window.executeScraperWorkflow({
+        page: "sports",
+        targetMatrix: "international_analytics",
+        selectedLeague: leagueString,
+        categories: ["international"],
+        languages: selectedLangs,
+        websites: [targetUrl],
+        query: `Fetch live fixtures, statistics, and headlines for ${leagueString}`,
+        timestamp: new Date().toISOString()
+    });
+};
 
     window.executeScraperWorkflow = async function(payload) {
         const loader = document.getElementById('fullPageLoader');
@@ -588,14 +590,37 @@
         }
     };
 
+    // --- RECURSIVE N8N PAYLOAD UNWRAPPER ---
+    // function normalizeN8nPayload(rawData) {
+    //     if (!rawData) return null;
+    //     let target = rawData;
+
+    //     while (Array.isArray(target) && target.length === 1) {
+    //         target = target[0];
+    //     }
+
+    //     if (target && typeof target === 'object' && !Array.isArray(target)) {
+    //         if (target.matches) return normalizeN8nPayload(target.matches);
+    //         if (target.data) return normalizeN8nPayload(target.data);
+    //         if (target.item) return normalizeN8nPayload(target.item);
+    //         if (target.json) return normalizeN8nPayload(target.json);
+    //         if (target.body) return normalizeN8nPayload(target.body);
+    //     }
+
+    //     return target;
+    // }
+    // --- RECURSIVE N8N PAYLOAD UNWRAPPER ---
     function normalizeN8nPayload(data) {
         if (!data) return {};
+        // If n8n returns an array, take the first element
         let payload = Array.isArray(data) ? data[0] : data;
         
+        // Handle n8n wrapper formats like { json: { ... } } or nested structures
         if (payload.json) {
             payload = payload.json;
         }
         
+        // Handle stringified JSON responses
         if (typeof payload === 'string') {
             try {
                 payload = JSON.parse(payload);
@@ -607,13 +632,61 @@
         return payload;
     }
 
+    // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
+// window.renderSportsOutput = function(data) {
+//     if (!data) return;
+
+//     const payload = data.data || data;
+
+//     // 1. Check if payload is for match news report -> send strictly to the News Panel
+//     if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.report || payload.type === "news") {
+//         const newsPanel = document.getElementById('matchNewsSubPanel');
+//         if (newsPanel && typeof window.renderNewsPanel === "function") {
+//             window.renderNewsPanel(payload);
+//         }
+//         return;
+//     }
+
+//     // 2. Check if payload is match detail view -> send strictly to the Match Detail Analytics panel
+//     const isMatchDetail = !Array.isArray(payload) && (
+//         payload.targetMatrix === "match_detail" ||
+//         payload.matchResult || 
+//         payload.standings || 
+//         (payload.homeTeam && payload.awayTeam && (payload.statistics || payload.timeline || payload.lineups))
+//     );
+
+//     if (isMatchDetail && payload.targetMatrix !== "get_match_news") {
+//         const detailPanel = document.getElementById('matchDetailSubPanel');
+//         if (detailPanel && typeof window.renderMatchDetailPanel === "function") {
+//             window.renderMatchDetailPanel(payload, detailPanel);
+//         }
+//         return;
+//     }
+
+//     // 3. Extract match array and pass active selected league name -> send to the Top Panel Fixtures list
+//     const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
+
+//     if (Array.isArray(matchesArray) && matchesArray.length > 0) {
+//         window.fullMatchList = matchesArray;
+        
+//         // Extract selected league name from payload or default fallback
+//         const activeLeague = payload.selectedLeague || payload.league || "General Football";
+        
+//         // Pass matchesArray and activeLeague to renderMatchListPanel
+//         if (typeof window.renderMatchListPanel === "function") {
+//             window.renderMatchListPanel(matchesArray, activeLeague);
+//         }
+//     }
+// };
     window.renderSportsOutput = function(data) {
+        // Cache full match list globally for filtering and detail inspection
         window.fullMatchList = data.matches || data.fixtures || [];
         
         const listHeaderCount = document.getElementById('matchListHeaderCount');
         const listSubPanel = document.getElementById('matchListSubPanel');
         const newsSubPanel = document.getElementById('matchNewsSubPanel');
 
+        // Render Match Fixtures in Top Panel
         if (listSubPanel) {
             if (window.fullMatchList.length === 0) {
                 listSubPanel.innerHTML = `<p class="text-slate-500 italic text-center py-4">// No active fixtures found in telemetry stream.</p>`;
@@ -634,6 +707,7 @@
             }
         }
 
+        // Render News and Headlines in Scrollable Panel
         const headlines = data.news || data.headlines || [];
         if (newsSubPanel) {
             if (headlines.length === 0) {
@@ -650,6 +724,7 @@
         }
     };
 
+    // --- SUB-TELEMETRY TRIGGER FUNCTIONS ---
     window.fetchMatchDetails = function(targetUrl) {
         if (!targetUrl) return;
         window.activeMatchUrl = targetUrl;
@@ -673,83 +748,85 @@
         });
     };
 
-    window.renderMatchListPanel = function(matches, currentLeague = "General Football") {
-        const container = document.getElementById('matchListSubPanel');
-        const countHeader = document.getElementById('matchListHeaderCount');
+    // --- TOP PANEL: MATCH FIXTURES RENDERER ---
+window.renderMatchListPanel = function(matches, currentLeague = "General Football") {
+    const container = document.getElementById('matchListSubPanel');
+    const countHeader = document.getElementById('matchListHeaderCount');
 
-        if (countHeader) {
-            countHeader.innerText = `// TOP PANEL: MATCH FIXTURES LIST (${matches.length} FOUND)`;
-        }
+    if (countHeader) {
+        countHeader.innerText = `// TOP PANEL: MATCH FIXTURES LIST (${matches.length} FOUND)`;
+    }
 
-        if (!container) return;
+    if (!container) return;
 
-        container.innerHTML = matches.map((match, idx) => {
-            const home = match.homeTeam || match.team1 || match.home || "Home Team";
-            const away = match.awayTeam || match.team2 || match.away || "Away Team";
-            const result = match.result || match.score || match.status || "VS";
-            const round = match.round || match.matchday || match.stage || "N/A";
-            const date = match.date || match.matchDate || new Date().toISOString().split('T')[0];
-            const time = match.time || match.matchTime || "N/A";
-            
-            const rawLeague = match.league || match.competition || currentLeague;
-            const league = Array.isArray(rawLeague) ? rawLeague.join(', ') : String(rawLeague || "General Football");
-            const matchUrl = match.link || match.url || match.matchUrl || "";
+    container.innerHTML = matches.map((match, idx) => {
+       const home = match.homeTeam || match.team1 || match.home || "Home Team";
+        const away = match.awayTeam || match.team2 || match.away || "Away Team";
+        const result = match.result || match.score || match.status || "VS";
+        const round = match.round || match.matchday || match.stage || "N/A";
+        const date = match.date || match.matchDate || new Date().toISOString().split('T')[0];
+        const time = match.time || match.matchTime || "N/A";
+        
+        // Ensure raw variables are converted to strings before .replace()
+        const rawLeague = match.league || match.competition || currentLeague;
+        const league = Array.isArray(rawLeague) ? rawLeague.join(', ') : String(rawLeague || "General Football");
+        const matchUrl = match.link || match.url || match.matchUrl || "";
 
-            const escapedHome = String(home).replace(/'/g, "\\'");
-            const escapedAway = String(away).replace(/'/g, "\\'");
-            const escapedResult = String(result).replace(/'/g, "\\'");
-            const escapedRound = String(round).replace(/'/g, "\\'");
-            const escapedDate = String(date).replace(/'/g, "\\'");
-            const escapedTime = String(time).replace(/'/g, "\\'");
-            const escapedLeague = league.replace(/'/g, "\\'");
+        const escapedHome = String(home).replace(/'/g, "\\'");
+        const escapedAway = String(away).replace(/'/g, "\\'");
+        const escapedResult = String(result).replace(/'/g, "\\'");
+        const escapedRound = String(round).replace(/'/g, "\\'");
+        const escapedDate = String(date).replace(/'/g, "\\'");
+        const escapedTime = String(time).replace(/'/g, "\\'");
+        const escapedLeague = league.replace(/'/g, "\\'");
 
-            return `
-                <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-lg flex items-center justify-between gap-4 hover:border-emerald-500/50 transition-all flex-wrap sm:flex-nowrap">
-                    <div class="flex items-center gap-3 flex-1 min-w-0">
-                        <span class="text-slate-500 font-mono text-[10px]">#${idx + 1}</span>
-                        <div class="font-sans font-bold text-xs text-slate-200 truncate">
-                            ${home} <span class="text-emerald-400 font-mono px-1.5 py-0.5 bg-emerald-950/60 rounded border border-emerald-800/50 mx-1">${result}</span> ${away}
-                            <span class="text-[10px] text-slate-400 font-mono ml-2">| ${league} | Round: ${round} | ${date} @ ${time}</span>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        ${matchUrl ? `
-                            <button onclick="window.triggerMatchAnalysis('${matchUrl}')" 
-                                    class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500/60 hover:border-emerald-400 text-emerald-300 hover:text-white px-3 py-1 rounded text-[11px] font-mono font-bold transition-all cursor-pointer whitespace-nowrap">
-                                ANALYZE →
-                            </button>
-                        ` : ''}
-                        <button onclick="window.triggerMatchNews('${escapedHome}', '${escapedAway}', '${escapedResult}', '${escapedRound}', '${escapedDate}', '${escapedTime}', '${escapedLeague}')" 
-                                class="bg-rose-950 hover:bg-rose-600 border border-rose-500/60 hover:border-rose-400 text-rose-300 hover:text-white px-3 py-1 rounded text-[11px] font-mono font-bold transition-all cursor-pointer whitespace-nowrap">
-                            GET NEWS 📰
-                        </button>
+        return `
+            <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-lg flex items-center justify-between gap-4 hover:border-emerald-500/50 transition-all flex-wrap sm:flex-nowrap">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <span class="text-slate-500 font-mono text-[10px]">#${idx + 1}</span>
+                    <div class="font-sans font-bold text-xs text-slate-200 truncate">
+                        ${home} <span class="text-emerald-400 font-mono px-1.5 py-0.5 bg-emerald-950/60 rounded border border-emerald-800/50 mx-1">${result}</span> ${away}
+                        <span class="text-[10px] text-slate-400 font-mono ml-2">| ${league} | Round: ${round} | ${date} @ ${time}</span>
                     </div>
                 </div>
-            `;
-        }).join('');
-    };
+                <div class="flex items-center gap-2">
+                    ${matchUrl ? `
+                        <button onclick="window.triggerMatchAnalysis('${matchUrl}')" 
+                                class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500/60 hover:border-emerald-400 text-emerald-300 hover:text-white px-3 py-1 rounded text-[11px] font-mono font-bold transition-all cursor-pointer whitespace-nowrap">
+                            ANALYZE →
+                        </button>
+                    ` : ''}
+                    <button onclick="window.triggerMatchNews('${escapedHome}', '${escapedAway}', '${escapedResult}', '${escapedRound}', '${escapedDate}', '${escapedTime}', '${escapedLeague}')" 
+                            class="bg-rose-950 hover:bg-rose-600 border border-rose-500/60 hover:border-rose-400 text-rose-300 hover:text-white px-3 py-1 rounded text-[11px] font-mono font-bold transition-all cursor-pointer whitespace-nowrap">
+                        GET NEWS 📰
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+window.triggerMatchNews = function(homeTeam, awayTeam, result, round, date, time, league) {
+    const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
 
-    window.triggerMatchNews = function(homeTeam, awayTeam, result, round, date, time, league) {
-        const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
-        const activeLeagueSelect = document.getElementById('leagueSelect') || document.getElementById('selectedLeague');
-        const detectedLeague = league || (activeLeagueSelect ? activeLeagueSelect.value : "General Football");
+    // Dynamic league fallback detection if not explicitly passed by match item
+    const activeLeagueSelect = document.getElementById('leagueSelect') || document.getElementById('selectedLeague');
+    const detectedLeague = league || (activeLeagueSelect ? activeLeagueSelect.value : "General Football");
 
-        window.executeScraperWorkflow({
-            page: "sports",
-            targetMatrix: "get_match_news",
-            league: detectedLeague,
-            homeTeam: homeTeam,
-            awayTeam: awayTeam,
-            result: result,
-            round: round,
-            date: date,
-            time: time,
-            languages: selectedLangs,
-            query: `Latest news for ${homeTeam} vs ${awayTeam} ${result} (${detectedLeague}, Round ${round}, ${date} ${time})`,
-            timestamp: new Date().toISOString()
-        });
-    };
-
+    window.executeScraperWorkflow({
+        page: "sports",
+        targetMatrix: "get_match_news",
+        league: detectedLeague,
+        homeTeam: homeTeam,
+        awayTeam: awayTeam,
+        result: result,
+        round: round,
+        date: date,
+        time: time,
+        languages: selectedLangs,
+        query: `Latest news for ${homeTeam} vs ${awayTeam} ${result} (${detectedLeague}, Round ${round}, ${date} ${time})`,
+        timestamp: new Date().toISOString()
+    });
+};
     window.triggerMatchAnalysis = function(matchUrl) {
         if (!matchUrl) return;
         window.activeMatchUrl = matchUrl;
@@ -761,6 +838,7 @@
         });
     };
 
+    // --- BOTTOM PANEL: FULL-BLEED MATCH DETAIL RENDERER ---
     window.renderMatchDetailPanel = function(responseInput, containerEl) {
         if (!responseInput || !containerEl) return;
 
@@ -779,86 +857,260 @@
         const homeLineup = lineups.homeTeam || {};
         const awayLineup = lineups.awayTeam || {};
 
-        const renderPitchSide = (startingEleven, isHome) => {
-            if (!startingEleven || !Array.isArray(startingEleven) || startingEleven.length === 0) {
-                return `<div class="flex items-center justify-center w-full h-full text-slate-500 font-mono text-xs">// Lineup data unavailable</div>`;
-            }
+const renderPitchSide = (startingEleven, isHome) => {
+    if (!startingEleven || !Array.isArray(startingEleven) || startingEleven.length === 0) {
+        return `<div class="flex items-center justify-center w-full h-full text-slate-500 font-mono text-xs">// Lineup data unavailable</div>`;
+    }
 
-            const getPosGroup = (p) => {
-                const pos = (p.position || p.pos || p.role || '').toString().toUpperCase();
-                if (pos.includes('GK') || pos.includes('GOAL')) return 'GK';
-                if (pos.includes('DEF') || pos.includes('CB') || pos.includes('LB') || pos.includes('RB') || pos.includes('BACK')) return 'DEF';
-                if (pos.includes('MID') || pos.includes('CM') || pos.includes('LM') || pos.includes('RM') || pos.includes('DM') || pos.includes('AM')) return 'MID';
-                if (pos.includes('FWD') || pos.includes('ST') || pos.includes('CF') || pos.includes('LW') || pos.includes('RW') || pos.includes('FORWARD')) return 'FWD';
-                return 'UNKNOWN';
-            };
+    // Helper to normalize position strings regardless of API structure
+    const getPosGroup = (p) => {
+        const pos = (p.position || p.pos || p.role || '').toString().toUpperCase();
+        if (pos.includes('GK') || pos.includes('GOAL')) return 'GK';
+        if (pos.includes('DEF') || pos.includes('CB') || pos.includes('LB') || pos.includes('RB') || pos.includes('BACK')) return 'DEF';
+        if (pos.includes('MID') || pos.includes('CM') || pos.includes('LM') || pos.includes('RM') || pos.includes('DM') || pos.includes('AM')) return 'MID';
+        if (pos.includes('FWD') || pos.includes('ST') || pos.includes('CF') || pos.includes('LW') || pos.includes('RW') || pos.includes('FORWARD')) return 'FWD';
+        return 'UNKNOWN';
+    };
 
-            let gk = startingEleven.filter(p => getPosGroup(p) === 'GK');
-            let def = startingEleven.filter(p => getPosGroup(p) === 'DEF');
-            let mid = startingEleven.filter(p => getPosGroup(p) === 'MID');
-            let fwd = startingEleven.filter(p => getPosGroup(p) === 'FWD');
-            let unknown = startingEleven.filter(p => getPosGroup(p) === 'UNKNOWN');
+    let gk = startingEleven.filter(p => getPosGroup(p) === 'GK');
+    let def = startingEleven.filter(p => getPosGroup(p) === 'DEF');
+    let mid = startingEleven.filter(p => getPosGroup(p) === 'MID');
+    let fwd = startingEleven.filter(p => getPosGroup(p) === 'FWD');
+    let unknown = startingEleven.filter(p => getPosGroup(p) === 'UNKNOWN');
 
-            if (gk.length === 0 && def.length === 0 && mid.length === 0 && fwd.length === 0 && startingEleven.length > 0) {
-                gk = startingEleven.slice(0, 1);
-                def = startingEleven.slice(1, 5);
-                mid = startingEleven.slice(5, 9);
-                fwd = startingEleven.slice(9);
-            } else if (unknown.length > 0) {
-                mid = [...mid, ...unknown];
-            }
+    // Fallback: If position parsing yields no roles, chunk the 11 players logically (1 GK, 4 DEF, 4 MID, 2 FWD)
+    if (gk.length === 0 && def.length === 0 && mid.length === 0 && fwd.length === 0 && startingEleven.length > 0) {
+        gk = startingEleven.slice(0, 1);
+        def = startingEleven.slice(1, 5);
+        mid = startingEleven.slice(5, 9);
+        fwd = startingEleven.slice(9);
+    } else if (unknown.length > 0) {
+        // Distribute unclassified players into midfielders
+        mid = [...mid, ...unknown];
+    }
 
-            const lines = isHome ? [gk, def, mid, fwd] : [fwd, mid, def, gk];
+    const lines = isHome ? [gk, def, mid, fwd] : [fwd, mid, def, gk];
 
-            return `
-                <div class="flex flex-row justify-around items-center w-full h-full px-2 md:px-4 z-20">
-                    ${lines.map(line => `
-                        <div class="flex flex-col justify-around items-center h-full py-2">
-                            ${line.map(player => `
-                                <div class="group relative flex flex-col items-center cursor-pointer">
-                                    <div class="w-6 h-6 md:w-7 md:h-7 rounded-full bg-slate-950/90 border border-emerald-400 text-emerald-300 text-[10px] font-mono font-bold flex items-center justify-center shadow-lg">
-                                        ${player.number || player.shirtNumber || '•'}
-                                    </div>
-                                    <span class="absolute top-full mt-1 px-1.5 py-0.5 bg-slate-950 border border-slate-700 text-[9px] text-slate-200 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-30 pointer-events-none">
-                                        ${player.name || player.playerName || 'Player'}
-                                    </span>
-                                </div>
-                            `).join('')}
+    return `
+        <div class="flex flex-row justify-around items-center w-full h-full px-2 md:px-4 z-20">
+            ${lines.map((line) => `
+                <div class="flex flex-col justify-evenly items-center h-full flex-1 py-4">
+                    ${line.map(p => `
+                        <div class="flex flex-col items-center group relative cursor-pointer my-1">
+                            <div class="w-7 h-7 md:w-10 md:h-10 rounded-full ${isHome ? 'bg-cyan-500 text-slate-950 ring-2 md:ring-4 ring-cyan-300' : 'bg-emerald-500 text-slate-950 ring-2 md:ring-4 ring-emerald-300'} font-black font-mono text-xs md:text-sm flex items-center justify-center shadow-2xl transition-transform hover:scale-125 z-30">
+                                ${p.number || p.shirtNumber || p.no || ''}
+                            </div>
+                            <span class="text-[9px] md:text-xs font-mono font-bold text-slate-100 bg-slate-950/90 px-1.5 py-0.5 rounded mt-1 whitespace-nowrap border border-slate-700 shadow-xl tracking-wide">
+                                ${p.name || p.playerName || 'Player'}
+                            </span>
                         </div>
                     `).join('')}
                 </div>
-            `;
-        };
+            `).join('')}
+        </div>
+    `;
+};
+
+        const goals = payload.goals || [];
+        const substitutions = payload.substitutions || [];
+        const allEvents = [
+            ...goals.map(g => ({ ...g, type: 'GOAL', minNum: parseInt(g.minute) || 0 })),
+            ...substitutions.map(s => ({ ...s, type: 'SUB', minNum: parseInt(s.minute) || 0 }))
+        ].sort((a, b) => a.minNum - b.minNum);
+
+        let timelineHtml = '';
+        if (allEvents.length > 0) {
+            timelineHtml = allEvents.map(evt => {
+                if (evt.type === 'GOAL') {
+                    return `
+                        <div class="flex items-center justify-between p-4 bg-emerald-950/40 border border-emerald-600/60 rounded-xl font-mono text-sm">
+                            <div class="flex items-center gap-3">
+                                <span class="text-emerald-400 font-bold text-base md:text-lg">${evt.minute}</span>
+                                <span class="text-slate-100 font-bold">⚽ Goal - ${evt.scorer}</span>
+                                ${evt.assist ? `<span class="text-slate-400 text-xs">(Assist: ${evt.assist})</span>` : ''}
+                            </div>
+                            <span class="text-xs font-bold text-emerald-300 bg-emerald-900/60 px-3 py-1 rounded-lg border border-emerald-700/50">${evt.team}</span>
+                        </div>`;
+                } else {
+                    return `
+                        <div class="flex items-center justify-between p-4 bg-slate-950/80 border border-slate-800 rounded-xl font-mono text-sm">
+                            <div class="flex items-center gap-3">
+                                <span class="text-amber-400 font-bold text-base md:text-lg">${evt.minute}</span>
+                                <span class="text-slate-300">🔄 <span class="text-emerald-400 font-semibold">IN: ${evt.playerIn}</span> / <span class="text-red-400 font-semibold">OUT: ${evt.playerOut}</span></span>
+                            </div>
+                            <span class="text-xs text-slate-400 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">${evt.team}</span>
+                        </div>`;
+                }
+            }).join('');
+        } else {
+            timelineHtml = `<p class="text-slate-500 font-mono text-sm italic py-4">// No match timeline events available.</p>`;
+        }
+
+        const stats = payload.statistics || {};
+        const pos = stats.ballPossession || {};
+        const fh = stats.firstHalf || {};
+        const sh = stats.secondHalf || {};
+
+        const createStatRow = (label, homeVal, awayVal, isPercentage = false) => `
+            <div class="space-y-1.5 py-1">
+                <div class="flex justify-between text-sm font-mono text-slate-300">
+                    <span class="font-bold text-cyan-400 text-base md:text-lg">${homeVal ?? '-'}${isPercentage ? '%' : ''}</span>
+                    <span class="text-slate-400 uppercase text-xs tracking-wider font-semibold">${label}</span>
+                    <span class="font-bold text-emerald-400 text-base md:text-lg">${awayVal ?? '-'}${isPercentage ? '%' : ''}</span>
+                </div>
+                <div class="flex h-3.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800 p-0.5">
+                    <div class="bg-cyan-500 h-full rounded-l-full transition-all duration-500" style="width: ${isPercentage ? (homeVal || 50) : (((homeVal || 0) / (((homeVal || 0) + (awayVal || 0)) || 1)) * 100)}%"></div>
+                    <div class="bg-emerald-500 h-full rounded-r-full transition-all duration-500" style="width: ${isPercentage ? (awayVal || 50) : (((awayVal || 0) / (((homeVal || 0) + (awayVal || 0)) || 1)) * 100)}%"></div>
+                </div>
+            </div>`;
 
         containerEl.innerHTML = `
-            <div class="bg-slate-950 border border-emerald-500/40 p-4 rounded-xl font-mono text-slate-100 space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <div>
-                        <span class="text-[10px] text-emerald-400 uppercase">// MATCH TELEMETRY DEEP DIVE</span>
-                        <h3 class="text-sm font-bold text-slate-100">${homeName} vs ${awayName}</h3>
+            <div class="font-sans space-y-8 text-slate-100 w-full pt-2">
+                
+                <!-- 1. Header Banner -->
+                <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl flex flex-col md:flex-row items-center justify-between shadow-2xl gap-6 w-full">
+                    <div class="flex items-center gap-5 flex-1">
+                        <div class="w-16 h-16 rounded-2xl bg-cyan-950 border-2 border-cyan-500/50 flex items-center justify-center font-black text-cyan-400 text-2xl shadow-xl">H</div>
+                        <div>
+                            <div class="font-black text-2xl md:text-3xl text-slate-100">${homeName}</div>
+                            <div class="text-sm font-mono text-slate-400 mt-1">Coach: ${homeLineup.coach || 'N/A'} (${homeLineup.formation || 'N/A'})</div>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <span class="text-xs font-bold text-cyan-400 bg-cyan-950 px-2 py-1 rounded border border-cyan-800">${score}</span>
-                        <span class="text-[9px] text-slate-400 block mt-1">${matchDate} • ${roundName}</span>
+
+                    <div class="flex flex-col items-center justify-center px-12 py-3 border-y md:border-y-0 md:border-x border-slate-800 w-full md:w-auto">
+                        <span class="text-5xl md:text-6xl font-black font-mono text-cyan-400 tracking-widest">${score}</span>
+                        <span class="text-xs md:text-sm font-mono font-bold text-emerald-400 uppercase bg-emerald-950/80 px-5 py-1.5 rounded-full border border-emerald-700/60 mt-3">${roundName} &bull; ${matchDate}</span>
+                    </div>
+
+                    <div class="flex items-center gap-5 flex-1 justify-end text-right">
+                        <div>
+                            <div class="font-black text-2xl md:text-3xl text-slate-100">${awayName}</div>
+                            <div class="text-sm font-mono text-slate-400 mt-1">Coach: ${awayLineup.coach || 'N/A'} (${awayLineup.formation || 'N/A'})</div>
+                        </div>
+                        <div class="w-16 h-16 rounded-2xl bg-emerald-950 border-2 border-emerald-500/50 flex items-center justify-center font-black text-emerald-400 text-2xl shadow-xl">A</div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg">
-                        <h4 class="text-xs font-bold text-emerald-400 mb-2">${homeName} Lineup</h4>
-                        <div class="w-full h-48 bg-emerald-950/20 border border-emerald-900/40 rounded relative overflow-hidden flex">
-                            ${renderPitchSide(homeLineup.startingEleven || homeLineup.starters || [], true)}
+                <!-- 2. League Standings Grid -->
+                <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl shadow-xl space-y-4 w-full">
+                    <div class="text-base font-mono font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                        LEAGUE STANDINGS & FORM BREAKDOWN
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm font-mono">
+                        <div class="bg-slate-950/90 p-6 rounded-xl border border-slate-800 space-y-3.5 shadow-inner">
+                            <div class="text-cyan-400 font-bold text-lg border-b border-slate-800 pb-2">${homeName}</div>
+                            <div class="flex justify-between"><span class="text-slate-400">Position:</span><span class="font-bold text-slate-100 text-lg">#${homeStanding.position ?? '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Points:</span><span class="font-bold text-slate-100 text-lg">${homeStanding.points ?? '-'} pts</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Matches Played:</span><span class="text-slate-300">${homeStanding.matchesPlayed ?? '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Record (W / D / L):</span><span class="text-slate-300 font-semibold">${homeStanding.wins ?? 0}W / ${homeStanding.draws ?? 0}D / ${homeStanding.losses ?? 0}L</span></div>
+                        </div>
+                        <div class="bg-slate-950/90 p-6 rounded-xl border border-slate-800 space-y-3.5 shadow-inner">
+                            <div class="text-emerald-400 font-bold text-lg border-b border-slate-800 pb-2">${awayName}</div>
+                            <div class="flex justify-between"><span class="text-slate-400">Position:</span><span class="font-bold text-slate-100 text-lg">#${awayStanding.position ?? '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Points:</span><span class="font-bold text-slate-100 text-lg">${awayStanding.points ?? '-'} pts</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Matches Played:</span><span class="text-slate-300">${awayStanding.matchesPlayed ?? '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Record (W / D / L):</span><span class="text-slate-300 font-semibold">${awayStanding.wins ?? 0}W / ${awayStanding.draws ?? 0}D / ${awayStanding.losses ?? 0}L</span></div>
                         </div>
                     </div>
-                    <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg">
-                        <h4 class="text-xs font-bold text-rose-400 mb-2">${awayName} Lineup</h4>
-                        <div class="w-full h-48 bg-slate-900/40 border border-slate-800 rounded relative overflow-hidden flex">
-                            ${renderPitchSide(awayLineup.startingEleven || awayLineup.starters || [], false)}
+                </div>
+
+                <!-- 3. Pitch Field View -->
+                <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl shadow-2xl space-y-6 w-full">
+                    <div class="flex justify-between items-center">
+                        <div class="text-base font-mono font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            TACTICAL FORMATION & PITCH VISUALIZER
+                        </div>
+                        <div class="text-sm font-mono font-bold text-slate-300 bg-slate-950 px-4 py-1.5 rounded-lg border border-slate-800">
+                            ${homeLineup.formation || '4-4-2'} vs ${awayLineup.formation || '4-5-1'}
                         </div>
                     </div>
+
+                    <div class="relative w-full min-h-[500px] md:min-h-[600px] bg-slate-950 border-2 border-emerald-600/40 rounded-2xl overflow-hidden flex flex-row justify-between items-center shadow-2xl">
+                        <div class="absolute inset-y-0 left-1/2 w-0.5 bg-emerald-600/40 -translate-x-1/2 pointer-events-none"></div>
+                        <div class="absolute top-1/2 left-1/2 w-44 h-44 border-2 border-emerald-600/40 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+                        <div class="absolute inset-y-24 left-0 w-32 border-2 border-l-0 border-emerald-600/40 pointer-events-none"></div>
+                        <div class="absolute inset-y-24 right-0 w-32 border-2 border-r-0 border-emerald-600/40 pointer-events-none"></div>
+
+                        <div class="relative z-10 w-1/2 h-full flex flex-row items-center justify-center pr-2">
+                            ${renderPitchSide(homeLineup.startingEleven, true)}
+                        </div>
+                        <div class="relative z-10 w-1/2 h-full flex flex-row items-center justify-center pl-2">
+                            ${renderPitchSide(awayLineup.startingEleven, false)}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-800 text-sm font-mono">
+                        <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                            <div class="text-cyan-400 font-bold mb-3 text-base">// ${homeName} BENCH</div>
+                            <div class="flex flex-wrap gap-2">${(homeLineup.substitutes || []).map(s => `<span class="bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-lg text-slate-300 font-semibold text-xs md:text-sm">${s}</span>`).join('')}</div>
+                        </div>
+                        <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                            <div class="text-emerald-400 font-bold mb-3 text-base">// ${awayName} BENCH</div>
+                            <div class="flex flex-wrap gap-2">${(awayLineup.substitutes || []).map(s => `<span class="bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-lg text-slate-300 font-semibold text-xs md:text-sm">${s}</span>`).join('')}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Timeline Events & Telemetry Split -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
+                    
+                    <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl shadow-xl space-y-4">
+                        <div class="text-base font-mono font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            MATCH TIMELINE & SUBSTITUTIONS
+                        </div>
+                        <div class="space-y-3">
+                            ${timelineHtml}
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl shadow-xl space-y-4">
+                        <div class="text-base font-mono font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                            DETAILED MATCH METRICS
+                        </div>
+                        <div class="space-y-4">
+                            
+                            <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3">
+                                <div class="text-xs text-slate-400 font-bold font-mono uppercase tracking-wider">// BALL POSSESSION</div>
+                                ${createStatRow("Full Match", parseInt(pos.fullMatch?.home), parseInt(pos.fullMatch?.away), true)}
+                                ${createStatRow("1st Half", parseInt(pos.firstHalf?.home), parseInt(pos.firstHalf?.away), true)}
+                                ${createStatRow("2nd Half", parseInt(pos.secondHalf?.home), parseInt(pos.secondHalf?.away), true)}
+                            </div>
+
+                            <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3">
+                                <div class="text-xs text-slate-400 font-bold font-mono uppercase tracking-wider">// MATCH TELEMETRY</div>
+                                ${createStatRow("Total Shots", stats.totalShots?.home, stats.totalShots?.away)}
+                                ${createStatRow("Shots On Target", stats.shotsOnTarget?.home, stats.shotsOnTarget?.away)}
+                                ${createStatRow("Corner Kicks", stats.cornerKicks?.home, stats.cornerKicks?.away)}
+                                ${createStatRow("Fouls Committed", stats.fouls?.home, stats.fouls?.away)}
+                                ${createStatRow("Offsides", stats.offsides?.home, stats.offsides?.away)}
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4 font-mono text-xs md:text-sm">
+                                <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+                                    <div class="text-amber-400 font-bold text-sm border-b border-slate-800 pb-1.5">// 1ST HALF</div>
+                                    <div class="flex justify-between"><span class="text-slate-400">Shots:</span><span class="font-bold text-slate-200">${fh.totalShots?.home ?? 0} - ${fh.totalShots?.away ?? 0}</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">On Target:</span><span class="font-bold text-slate-200">${fh.shotsOnTarget?.home ?? 0} - ${fh.shotsOnTarget?.away ?? 0}</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">Fouls:</span><span class="font-bold text-slate-200">${fh.fouls?.home ?? 0} - ${fh.fouls?.away ?? 0}</span></div>
+                                </div>
+                                <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+                                    <div class="text-amber-400 font-bold text-sm border-b border-slate-800 pb-1.5">// 2ND HALF</div>
+                                    <div class="flex justify-between"><span class="text-slate-400">Shots:</span><span class="font-bold text-slate-200">${sh.totalShots?.home ?? 0} - ${sh.totalShots?.away ?? 0}</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">On Target:</span><span class="font-bold text-slate-200">${sh.shotsOnTarget?.home ?? 0} - ${sh.shotsOnTarget?.away ?? 0}</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">Fouls:</span><span class="font-bold text-slate-200">${sh.fouls?.home ?? 0} - ${sh.fouls?.away ?? 0}</span></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
                 </div>
             </div>
         `;
     };
-</script></body>
+</script>
+</body>
 </html>
