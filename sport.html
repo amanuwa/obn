@@ -611,29 +611,37 @@
     }
 
     // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
-  window.renderSportsOutput = function(data) {
+window.renderSportsOutput = function(data) {
     if (!data) return;
 
     const payload = data.data || data;
 
-    // 1. Check if payload is for match news report -> send to white paper panel
-    if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.report) {
-        window.renderNewsPanel(payload);
+    // 1. Check if payload is for match news report -> send strictly to the News Panel
+    if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.report || payload.type === "news") {
+        const newsPanel = document.getElementById('matchNewsSubPanel');
+        if (newsPanel && typeof window.renderNewsPanel === "function") {
+            window.renderNewsPanel(payload);
+        }
         return;
     }
 
-    // 2. Check if payload is match detail view
+    // 2. Check if payload is match detail view -> send strictly to the Match Detail Analytics panel
     const isMatchDetail = !Array.isArray(payload) && (
-        payload.homeTeam || payload.matchResult || payload.matchDate || payload.standings
+        payload.targetMatrix === "match_detail" ||
+        payload.matchResult || 
+        payload.standings || 
+        (payload.homeTeam && payload.awayTeam && (payload.statistics || payload.timeline || payload.lineups))
     );
 
     if (isMatchDetail && payload.targetMatrix !== "get_match_news") {
         const detailPanel = document.getElementById('matchDetailSubPanel');
-        if (detailPanel) window.renderMatchDetailPanel(payload, detailPanel);
+        if (detailPanel && typeof window.renderMatchDetailPanel === "function") {
+            window.renderMatchDetailPanel(payload, detailPanel);
+        }
         return;
     }
 
-    // 3. Extract match array and pass active selected league name
+    // 3. Extract match array and pass active selected league name -> send to the Top Panel Fixtures list
     const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
 
     if (Array.isArray(matchesArray) && matchesArray.length > 0) {
@@ -643,7 +651,9 @@
         const activeLeague = payload.selectedLeague || payload.league || "General Football";
         
         // Pass matchesArray and activeLeague to renderMatchListPanel
-        window.renderMatchListPanel(matchesArray, activeLeague);
+        if (typeof window.renderMatchListPanel === "function") {
+            window.renderMatchListPanel(matchesArray, activeLeague);
+        }
     }
 };
 
