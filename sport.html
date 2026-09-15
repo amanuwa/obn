@@ -675,7 +675,7 @@ window.renderMatchListPanel = function(matches, currentLeague = "General Footbal
                 </div>
                 <div class="flex items-center gap-2">
                     ${matchUrl ? `
-                        <button onclick="window.fetchMatchDetails('${matchUrl}')" 
+                        <button onclick="window.triggerMatchAnalysis('${matchUrl}')" 
                                 class="bg-emerald-950 hover:bg-emerald-600 border border-emerald-500/60 hover:border-emerald-400 text-emerald-300 hover:text-white px-3 py-1 rounded text-[11px] font-mono font-bold transition-all cursor-pointer whitespace-nowrap">
                             ANALYZE →
                         </button>
