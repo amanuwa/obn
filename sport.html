@@ -691,12 +691,13 @@ window.renderSportsOutput = function(data) {
 
     const payload = data.data || data;
 
-    // Check if the payload contains news indicators, tweets, articles, or is an array of news
-    const isNewsPayload = payload.targetMatrix === "get_match_news" || 
-                          payload.news || 
-                          payload.articles || 
-                          payload.report || 
-                          (Array.isArray(payload) && payload.some(item => item.headline || item.title || item.handle || item.username));
+    // 1. Broaden news payload detection to catch any news array or response object
+    const isNewsPayload = 
+        payload.targetMatrix === "get_match_news" || 
+        payload.news || 
+        payload.articles || 
+        payload.report || 
+        Array.isArray(payload); // If n8n returns any raw array from the news webhook, route it here!
 
     if (isNewsPayload) {
         window.renderNewsPanel(payload);
