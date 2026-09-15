@@ -786,9 +786,23 @@ window.renderMatchListPanel = function(matches, currentLeague = "General Footbal
         const detectedLeague = league || (activeLeagueSelect ? activeLeagueSelect.value : "General Football");
 
         // Provide immediate visual feedback in the news panel while waiting for n8n response
+      // --- UPDATED GET NEWS TRIGGER ---
+    window.triggerMatchNews = function(homeTeam, awayTeam, result, round, date, time, league) {
+        const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
+        const activeLeagueSelect = document.getElementById('leagueSelect') || document.getElementById('selectedLeague');
+        const detectedLeague = league || (activeLeagueSelect ? activeLeagueSelect.value : "General Football");
+
         const newsSubPanel = document.getElementById('matchNewsSubPanel');
         if (newsSubPanel) {
-            newsSubPanel.innerHTML = `<p class="text-cyan-400 font-mono text-xs italic text-center py-4">// Fetching latest news for ${homeTeam} vs ${awayTeam}...</p>`;
+            newsSubPanel.innerHTML = `
+                <div class="space-y-3 font-mono">
+                    <div class="text-[11px] text-amber-400 font-bold border-b border-amber-500/30 pb-1 flex justify-between items-center">
+                        <span>// MATCH NEWS & HEADLINES INGESTION</span>
+                        <span class="animate-pulse text-cyan-400 text-[10px]">FETCHING STREAM...</span>
+                    </div>
+                    <p class="text-cyan-400 text-xs italic text-center py-6">// Ingesting live news feed for ${homeTeam} vs ${awayTeam}...</p>
+                </div>
+            `;
         }
 
         window.executeScraperWorkflow({
@@ -807,38 +821,63 @@ window.renderMatchListPanel = function(matches, currentLeague = "General Footbal
         });
     };
 
-    // --- REFINED SPORTS OUTPUT ROUTER ---
+    // --- REFINED SPORTS OUTPUT ROUTER WITH DESKTOP NEWS LAYOUT ---
     window.renderSportsOutput = function(data) {
         if (!data) return;
         const payload = data.data || data;
 
-        // 1. ISOLATED NEWS & HEADLINES HANDLER
-        // Catches any payload flagged as news or containing articles/reports and renders it ONLY in matchNewsSubPanel
+        // 1. ISOLATED NEWS & HEADLINES HANDLER (DESKTOP OPTIMIZED)
         if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.headlines || payload.report || payload.type === "news") {
             const newsSubPanel = document.getElementById('matchNewsSubPanel');
             if (newsSubPanel) {
                 const articles = payload.articles || payload.news || payload.headlines || [];
                 const reportText = payload.report || payload.summary || payload.content || (typeof payload === 'string' ? payload : '');
 
+                let contentHtml = '';
+
                 if (Array.isArray(articles) && articles.length > 0) {
-                    newsSubPanel.innerHTML = articles.map(item => `
-                        <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg mb-2">
-                            <h4 class="text-xs font-bold text-amber-400 mb-1">${item.title || 'News Update'}</h4>
-                            <p class="text-[11px] text-slate-300 font-sans">${item.snippet || item.description || item.content || ''}</p>
-                            <span class="text-[9px] font-mono text-slate-500 mt-2 block">${item.source || 'Aggregator'} • ${item.timestamp || 'Recent'}</span>
+                    contentHtml = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${articles.map(item => `
+                                <div class="bg-slate-900/80 border border-slate-800 hover:border-amber-500/60 p-3.5 rounded-lg flex flex-col justify-between transition-all">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-amber-400 mb-1.5 leading-snug">${item.title || 'News Update'}</h4>
+                                        <p class="text-[11px] text-slate-300 font-sans leading-relaxed mb-3">${item.snippet || item.description || item.content || ''}</p>
+                                    </div>
+                                    <div class="flex items-center justify-between border-t border-slate-800/80 pt-2 mt-auto">
+                                        <span class="text-[9px] font-mono text-slate-400">${item.source || 'Aggregator'} • ${item.timestamp || 'Recent'}</span>
+                                        ${item.url || item.link ? `
+                                            <a href="${item.url || item.link}" target="_blank" rel="noopener noreferrer" 
+                                               class="text-[10px] font-mono text-cyan-400 hover:text-cyan-300 underline cursor-pointer">
+                                                READ FULL →
+                                            </a>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
-                    `).join('');
+                    `;
                 } else if (reportText && typeof reportText === 'string') {
-                    newsSubPanel.innerHTML = `
-                        <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg">
-                            <p class="text-xs text-slate-200 font-sans whitespace-pre-line">${reportText}</p>
+                    contentHtml = `
+                        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-lg">
+                            <p class="text-xs text-slate-200 font-sans whitespace-pre-line leading-relaxed">${reportText}</p>
                         </div>
                     `;
                 } else {
-                    newsSubPanel.innerHTML = `<p class="text-slate-500 italic text-center py-4">// News payload received, but no formatted articles or text reports found.</p>`;
+                    contentHtml = `<p class="text-slate-500 italic text-center py-6 font-mono text-xs">// News payload ingested, but no formatted articles or text reports found.</p>`;
                 }
+
+                newsSubPanel.innerHTML = `
+                    <div class="space-y-3 font-mono">
+                        <div class="text-[11px] text-amber-400 font-bold border-b border-amber-500/30 pb-1 flex justify-between items-center">
+                            <span>// MATCH NEWS & HEADLINES INGESTION</span>
+                            <span class="text-slate-400 text-[10px]">STATUS: SYNCHRONIZED</span>
+                        </div>
+                        ${contentHtml}
+                    </div>
+                `;
             }
-            return; // Exit early to prevent touching the top match fixture list or detail panels
+            return;
         }
 
         // 2. DEFAULT FIXTURES LIST HANDLER
@@ -851,7 +890,6 @@ window.renderMatchListPanel = function(matches, currentLeague = "General Footbal
                 listSubPanel.innerHTML = `<p class="text-slate-500 italic text-center py-4">// No active fixtures found in telemetry stream.</p>`;
             } else {
                 if (listHeaderCount) listHeaderCount.innerText = `// TOP PANEL: MATCH FIXTURES LIST (${window.fullMatchList.length} FOUND)`;
-                // Keeps your standard match cards rendering cleanly in place
             }
         }
     };
