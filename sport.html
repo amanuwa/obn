@@ -687,42 +687,41 @@
 
     // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
 window.renderSportsOutput = function(data) {
-    if (!data) return;
+    if (!data) return;
 
-    const payload = data.data || data;
+    const payload = data.data || data;
 
-    // 1. Broaden news payload detection to catch any news array or response object
-    const isNewsPayload = 
-        payload.targetMatrix === "get_match_news" || 
-        payload.news || 
-        payload.articles || 
-        payload.report || 
-        Array.isArray(payload); // If n8n returns any raw array from the news webhook, route it here!
+    // Check if the payload contains news indicators, tweets, articles, or is an array of news
+    const isNewsPayload = payload.targetMatrix === "get_match_news" || 
+                          payload.news || 
+                          payload.articles || 
+                          payload.report || 
+                          (Array.isArray(payload) && payload.some(item => item.headline || item.title || item.handle || item.username));
 
-    if (isNewsPayload) {
-        window.renderNewsPanel(payload);
-        return;
-    }
+    if (isNewsPayload) {
+        window.renderNewsPanel(payload);
+        return;
+    }
 
-    // 2. Check if payload is match detail view
-    const isMatchDetail = !Array.isArray(payload) && (
-        payload.homeTeam || payload.matchResult || payload.matchDate || payload.standings
-    );
+    // 2. Check if payload is match detail view
+    const isMatchDetail = !Array.isArray(payload) && (
+        payload.homeTeam || payload.matchResult || payload.matchDate || payload.standings
+    );
 
-    if (isMatchDetail) {
-        const detailPanel = document.getElementById('matchDetailSubPanel');
-        if (detailPanel) window.renderMatchDetailPanel(payload, detailPanel);
-        return;
-    }
+    if (isMatchDetail) {
+        const detailPanel = document.getElementById('matchDetailSubPanel');
+        if (detailPanel) window.renderMatchDetailPanel(payload, detailPanel);
+        return;
+    }
 
-    // 3. Extract match array for fixtures
-    const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
+    // 3. Extract match array for fixtures
+    const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
 
-    if (Array.isArray(matchesArray) && matchesArray.length > 0) {
-        window.fullMatchList = matchesArray;
-        const activeLeague = payload.selectedLeague || payload.league || "General Football";
-        window.renderMatchListPanel(matchesArray, activeLeague);
-    }
+    if (Array.isArray(matchesArray) && matchesArray.length > 0) {
+        window.fullMatchList = matchesArray;
+        const activeLeague = payload.selectedLeague || payload.league || "General Football";
+        window.renderMatchListPanel(matchesArray, activeLeague);
+    }
 };
 
     // --- TOP PANEL: MATCH FIXTURES RENDERER ---
