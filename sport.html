@@ -74,7 +74,45 @@
 
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
-        ::-webkit-scrollbar-track { background: #02040e; }
+        ::-webkit-scrollbar-track { background: #02040e;
+                                   /* --- STEP B: NEWS PANEL & CARD STYLES --- */
+        /* Container for the news/social panel to show multiple cards cleanly */
+        .news-panel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Fits at least 4 cards nicely depending on screen width */
+            gap: 16px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        /* Individual News / Social Card */
+        .news-card {
+            background: #121824;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Make images fully visible and prevent cropping */
+        .news-card img, .news-card .card-media {
+            width: 100%;
+            height: 160px; /* Controlled height */
+            object-fit: contain; /* Ensures the whole image is visible without cutting off edges */
+            background-color: #0b0f17; /* Dark background padding for images with different aspect ratios */
+        }
+
+        /* Card content details */
+        .news-card-content {
+            padding: 12px;
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+                                  
+                                  
+                                  }
     </style>
 </head>
 <body class="font-sans text-sm">
@@ -686,7 +724,7 @@
 };
 
     // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
- window.renderSportsOutput = function(data) {
+window.renderSportsOutput = function(data) {
     if (!data) return;
 
     const payload = data.data || data;
@@ -704,10 +742,13 @@
         return;
     }
 
-    // 1. Check if payload is for match news report (or an array of news items) -> send to white paper panel
-    const isNewsArray = Array.isArray(payload) && payload.length > 0 && (payload[0].headline || payload[0].title || payload[0].content_detail);
+    // 1. Check if payload is for match news report or social media -> send to white paper panel
+    const isSocialOrNewsArray = Array.isArray(payload) && payload.length > 0 && (
+        payload[0].headline || payload[0].title || payload[0].content_detail || 
+        payload[0].text || payload[0].caption || payload[0].full_text || payload[0].tweet
+    );
 
-    if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.report || isNewsArray) {
+    if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.report || payload.tweets || payload.instagram || isSocialOrNewsArray) {
         window.renderNewsPanel(payload);
         return;
     }
