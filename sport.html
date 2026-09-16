@@ -590,89 +590,164 @@
         }
     };
 
-  //  --- RECURSIVE N8N PAYLOAD UNWRAPPER ---
-    function normalizeN8nPayload(rawData) {
-        if (!rawData) return null;
-        let target = rawData;
+    // --- RECURSIVE N8N PAYLOAD UNWRAPPER ---
+    // function normalizeN8nPayload(rawData) {
+    //     if (!rawData) return null;
+    //     let target = rawData;
 
-        while (Array.isArray(target) && target.length === 1) {
-            target = target[0];
-        }
+    //     while (Array.isArray(target) && target.length === 1) {
+    //         target = target[0];
+    //     }
 
-        if (target && typeof target === 'object' && !Array.isArray(target)) {
-            if (target.matches) return normalizeN8nPayload(target.matches);
-            if (target.data) return normalizeN8nPayload(target.data);
-            if (target.item) return normalizeN8nPayload(target.item);
-            if (target.json) return normalizeN8nPayload(target.json);
-            if (target.body) return normalizeN8nPayload(target.body);
-        }
+    //     if (target && typeof target === 'object' && !Array.isArray(target)) {
+    //         if (target.matches) return normalizeN8nPayload(target.matches);
+    //         if (target.data) return normalizeN8nPayload(target.data);
+    //         if (target.item) return normalizeN8nPayload(target.item);
+    //         if (target.json) return normalizeN8nPayload(target.json);
+    //         if (target.body) return normalizeN8nPayload(target.body);
+    //     }
 
-        return target;
-    }
-//    --- RECURSIVE N8N PAYLOAD UNWRAPPER ---
-  
-
- //   --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
-window.renderSportsOutput = function(data) {
-    if (!data) return;
-
-    const payload = data.data || data;
-
-    // 1. Check if payload is for match news report -> send strictly to the News Panel
-    if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.report || payload.type === "news") {
-        const newsPanel = document.getElementById('matchNewsSubPanel');
-        if (newsPanel && typeof window.renderNewsPanel === "function") {
-            window.renderNewsPanel(payload);
-        }
-        return;
-    }
-
-    // 2. Check if payload is match detail view -> send strictly to the Match Detail Analytics panel
-    const isMatchDetail = !Array.isArray(payload) && (
-        payload.targetMatrix === "match_detail" ||
-        payload.matchResult || 
-        payload.standings || 
-        (payload.homeTeam && payload.awayTeam && (payload.statistics || payload.timeline || payload.lineups))
-    );
-
-    if (isMatchDetail && payload.targetMatrix !== "get_match_news") {
-        const detailPanel = document.getElementById('matchDetailSubPanel');
-        if (detailPanel && typeof window.renderMatchDetailPanel === "function") {
-            window.renderMatchDetailPanel(payload, detailPanel);
-        }
-        return;
-    }
-
-    // 3. Extract match array and pass active selected league name -> send to the Top Panel Fixtures list
-    const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
-
-    if (Array.isArray(matchesArray) && matchesArray.length > 0) {
-        window.fullMatchList = matchesArray;
+    //     return target;
+    // }
+    // --- RECURSIVE N8N PAYLOAD UNWRAPPER ---
+    function normalizeN8nPayload(data) {
+        if (!data) return {};
+        // If n8n returns an array, take the first element
+        let payload = Array.isArray(data) ? data[0] : data;
         
-        // Extract selected league name from payload or default fallback
-        const activeLeague = payload.selectedLeague || payload.league || "General Football";
-        
-        // Pass matchesArray and activeLeague to renderMatchListPanel
-        if (typeof window.renderMatchListPanel === "function") {
-            window.renderMatchListPanel(matchesArray, activeLeague);
+        // Handle n8n wrapper formats like { json: { ... } } or nested structures
+        if (payload.json) {
+            payload = payload.json;
         }
+        
+        // Handle stringified JSON responses
+        if (typeof payload === 'string') {
+            try {
+                payload = JSON.parse(payload);
+            } catch (e) {
+                console.warn("Payload string parse warning:", e);
+            }
+        }
+        
+        return payload;
     }
-};
- 
 
-        // Render News and Headlines in Scrollable Panel
-        const headlines = data.news || data.headlines || [];
-        if (newsSubPanel) {
-            if (headlines.length === 0) {
-                newsSubPanel.innerHTML = `<p class="text-slate-500 italic text-center py-4">// No recent headlines ingested for this query.</p>`;
-            } else {
-                newsSubPanel.innerHTML = headlines.map(item => `
-                    <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg">
-                        <h4 class="text-xs font-bold text-amber-400 mb-1">${item.title}</h4>
-                        <p class="text-[11px] text-slate-300 font-sans">${item.snippet || item.description || ''}</p>
-                        <span class="text-[9px] font-mono text-slate-500 mt-2 block">${item.source || 'Aggregator'} • ${item.timestamp || 'Recent'}</span>
+    // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
+// window.renderSportsOutput = function(data) {
+//     if (!data) return;
+
+//     const payload = data.data || data;
+
+//     // 1. Check if payload is for match news report -> send strictly to the News Panel
+//     if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.report || payload.type === "news") {
+//         const newsPanel = document.getElementById('matchNewsSubPanel');
+//         if (newsPanel && typeof window.renderNewsPanel === "function") {
+//             window.renderNewsPanel(payload);
+//         }
+//         return;
+//     }
+
+//     // 2. Check if payload is match detail view -> send strictly to the Match Detail Analytics panel
+//     const isMatchDetail = !Array.isArray(payload) && (
+//         payload.targetMatrix === "match_detail" ||
+//         payload.matchResult || 
+//         payload.standings || 
+//         (payload.homeTeam && payload.awayTeam && (payload.statistics || payload.timeline || payload.lineups))
+//     );
+
+//     if (isMatchDetail && payload.targetMatrix !== "get_match_news") {
+//         const detailPanel = document.getElementById('matchDetailSubPanel');
+//         if (detailPanel && typeof window.renderMatchDetailPanel === "function") {
+//             window.renderMatchDetailPanel(payload, detailPanel);
+//         }
+//         return;
+//     }
+
+//     // 3. Extract match array and pass active selected league name -> send to the Top Panel Fixtures list
+//     const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
+
+//     if (Array.isArray(matchesArray) && matchesArray.length > 0) {
+//         window.fullMatchList = matchesArray;
+        
+//         // Extract selected league name from payload or default fallback
+//         const activeLeague = payload.selectedLeague || payload.league || "General Football";
+        
+//         // Pass matchesArray and activeLeague to renderMatchListPanel
+//         if (typeof window.renderMatchListPanel === "function") {
+//             window.renderMatchListPanel(matchesArray, activeLeague);
+//         }
+//     }
+// };
+   window.renderSportsOutput = function(data) {
+        if (!data) return;
+        const payload = data.data || data;
+
+        // 1. ISOLATED NEWS & HEADLINES HANDLER
+        if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.headlines || payload.report || payload.type === "news") {
+            const newsSubPanel = document.getElementById('matchNewsSubPanel');
+            if (newsSubPanel) {
+                const articles = payload.articles || payload.news || payload.headlines || [];
+                const reportText = payload.report || payload.summary || payload.content || (typeof payload === 'string' ? payload : '');
+
+                let contentHtml = '';
+
+                if (Array.isArray(articles) && articles.length > 0) {
+                    contentHtml = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${articles.map(item => `
+                                <div class="bg-slate-900/80 border border-slate-800 hover:border-amber-500/60 p-3.5 rounded-lg flex flex-col justify-between transition-all">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-amber-400 mb-1.5 leading-snug">${item.title || 'News Update'}</h4>
+                                        <p class="text-[11px] text-slate-300 font-sans leading-relaxed mb-3">${item.snippet || item.description || item.content || ''}</p>
+                                    </div>
+                                    <div class="flex items-center justify-between border-t border-slate-800/80 pt-2 mt-auto">
+                                        <span class="text-[9px] font-mono text-slate-400">${item.source || 'Aggregator'} • ${item.timestamp || 'Recent'}</span>
+                                        ${item.url || item.link ? `
+                                            <a href="${item.url || item.link}" target="_blank" rel="noopener noreferrer" 
+                                               class="text-[10px] font-mono text-cyan-400 hover:text-cyan-300 underline cursor-pointer">
+                                                READ FULL →
+                                            </a>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else if (reportText && typeof reportText === 'string') {
+                    contentHtml = `
+                        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-lg">
+                            <p class="text-xs text-slate-200 font-sans whitespace-pre-line leading-relaxed">${reportText}</p>
+                        </div>
+                    `;
+                } else {
+                    contentHtml = `<p class="text-slate-500 italic text-center py-6 font-mono text-xs">// News payload ingested, but no formatted articles or text reports found.</p>`;
+                }
+
+                newsSubPanel.innerHTML = `
+                    <div class="space-y-3 font-mono">
+                        <div class="text-[11px] text-amber-400 font-bold border-b border-amber-500/30 pb-1 flex justify-between items-center">
+                            <span>// MATCH NEWS & HEADLINES INGESTION</span>
+                            <span class="text-slate-400 text-[10px]">STATUS: SYNCHRONIZED</span>
+                        </div>
+                        ${contentHtml}
                     </div>
-                `).join('');
+                `;
+            }
+            return;
+        }
+
+        // 2. DEFAULT FIXTURES LIST HANDLER (WITH ARRAY SAFETY CHECK)
+        const rawList = payload.matches || payload.fixtures || (Array.isArray(payload) ? payload : []);
+        window.fullMatchList = Array.isArray(rawList) ? rawList : [];
+        
+        const listHeaderCount = document.getElementById('matchListHeaderCount');
+        const listSubPanel = document.getElementById('matchListSubPanel');
+
+        if (listSubPanel) {
+            if (window.fullMatchList.length === 0) {
+                listSubPanel.innerHTML = `<p class="text-slate-500 italic text-center py-4">// No active fixtures found in telemetry stream.</p>`;
+            } else {
+                if (listHeaderCount) listHeaderCount.innerText = `// TOP PANEL: MATCH FIXTURES LIST (${window.fullMatchList.length} FOUND)`;
             }
         }
     };
