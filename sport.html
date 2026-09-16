@@ -686,13 +686,28 @@
 };
 
     // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
-  window.renderSportsOutput = function(data) {
+ window.renderSportsOutput = function(data) {
     if (!data) return;
 
     const payload = data.data || data;
 
-    // 1. Check if payload is for match news report -> send to white paper panel
-    if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.report) {
+    // 0. Check if payload is for income / financial data
+    const isIncomeArray = Array.isArray(payload) && payload.length > 0 && (payload[0].income !== undefined || payload[0].amount !== undefined || payload[0].revenue !== undefined);
+    const isIncomePayload = payload.targetMatrix === "get_income" || payload.income || payload.revenue || payload.transactions || isIncomeArray;
+
+    if (isIncomePayload) {
+        if (window.renderIncomePanel) {
+            window.renderIncomePanel(payload);
+        } else {
+            console.log("Income data received:", payload);
+        }
+        return;
+    }
+
+    // 1. Check if payload is for match news report (or an array of news items) -> send to white paper panel
+    const isNewsArray = Array.isArray(payload) && payload.length > 0 && (payload[0].headline || payload[0].title || payload[0].content_detail);
+
+    if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.report || isNewsArray) {
         window.renderNewsPanel(payload);
         return;
     }
@@ -721,7 +736,6 @@
         window.renderMatchListPanel(matchesArray, activeLeague);
     }
 };
-
     // --- TOP PANEL: MATCH FIXTURES RENDERER ---
 window.renderMatchListPanel = function(matches, currentLeague = "General Football") {
     const container = document.getElementById('matchListSubPanel');
