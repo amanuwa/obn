@@ -213,22 +213,26 @@
                             </div>
                         </div>
                     </div>
+                    <!-- SCROLLABLE MATCH NEWS PANEL -->
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col w-full">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-3">
+                            <span class="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> // SCROLLABLE PANEL: MATCH NEWS & HEADLINES
+                            </span>
+                            <span class="text-[9px] font-mono text-slate-500 uppercase">Real-Time Ingestion Feed</span>
+                        </div>
 
-                </div>
-                <!-- SCROLLABLE PANEL: MATCH NEWS & HEADLINES -->
-                <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col w-full min-h-[300px]">
-                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-3">
-                        <span class="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider">// SCROLLABLE PANEL: MATCH NEWS & HEADLINES</span>
-                        <span class="text-[9px] font-mono text-slate-500 uppercase">Real-Time Ingestion Feed</span>
-                    </div>
-                    
-                    <!-- TARGET CONTAINER FOR NEWS & HEADLINES -->
-                    <div id="matchNewsSubPanel" class="w-full space-y-3 overflow-y-auto max-h-[400px]">
-                        <div class="flex flex-col items-center justify-center text-center p-8 text-slate-500">
-                            <div class="w-10 h-10 rounded-full border border-slate-800 flex items-center justify-center text-slate-600 mb-2">📰</div>
-                            <p class="text-xs font-sans">// Click 'GET NEWS' on any match fixture in the top panel to stream live news reports and transfer updates down here.</p>
+                        <div id="matchNewsSubPanel" class="max-h-[320px] overflow-y-auto space-y-3 pr-2 w-full">
+                            <div class="bg-slate-900/60 border border-slate-800/80 hover:border-amber-500/50 p-3.5 rounded-lg transition-all">
+                                <div class="flex justify-between items-start gap-2 mb-1">
+                                    <span class="text-[11px] font-bold text-amber-300 uppercase tracking-wide">Terminal System Online</span>
+                                    <span class="text-[9px] font-mono text-slate-500">LIVE FEED</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed font-sans">Awaiting inbound sports news payloads, transfer updates, and matchday reports from active scraping routes...</p>
+                            </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </main>
@@ -591,190 +595,132 @@
     };
 
     // --- RECURSIVE N8N PAYLOAD UNWRAPPER ---
-    // function normalizeN8nPayload(rawData) {
-    //     if (!rawData) return null;
-    //     let target = rawData;
+    function normalizeN8nPayload(rawData) {
+        if (!rawData) return null;
+        let target = rawData;
 
-    //     while (Array.isArray(target) && target.length === 1) {
-    //         target = target[0];
-    //     }
-
-    //     if (target && typeof target === 'object' && !Array.isArray(target)) {
-    //         if (target.matches) return normalizeN8nPayload(target.matches);
-    //         if (target.data) return normalizeN8nPayload(target.data);
-    //         if (target.item) return normalizeN8nPayload(target.item);
-    //         if (target.json) return normalizeN8nPayload(target.json);
-    //         if (target.body) return normalizeN8nPayload(target.body);
-    //     }
-
-    //     return target;
-    // }
-    // --- RECURSIVE N8N PAYLOAD UNWRAPPER ---
-    function normalizeN8nPayload(data) {
-        if (!data) return {};
-        // If n8n returns an array, take the first element
-        let payload = Array.isArray(data) ? data[0] : data;
-        
-        // Handle n8n wrapper formats like { json: { ... } } or nested structures
-        if (payload.json) {
-            payload = payload.json;
+        while (Array.isArray(target) && target.length === 1) {
+            target = target[0];
         }
-        
-        // Handle stringified JSON responses
-        if (typeof payload === 'string') {
-            try {
-                payload = JSON.parse(payload);
-            } catch (e) {
-                console.warn("Payload string parse warning:", e);
-            }
+
+        if (target && typeof target === 'object' && !Array.isArray(target)) {
+            if (target.matches) return normalizeN8nPayload(target.matches);
+            if (target.data) return normalizeN8nPayload(target.data);
+            if (target.item) return normalizeN8nPayload(target.item);
+            if (target.json) return normalizeN8nPayload(target.json);
+            if (target.body) return normalizeN8nPayload(target.body);
         }
-        
-        return payload;
+
+        return target;
+    }
+    window.renderNewsPanel = function(incomingPayload) {
+    const newsPanel = document.getElementById('matchNewsSubPanel');
+    if (!newsPanel) return;
+
+    // Normalize incoming data structure to handle nested arrays or direct arrays
+    let items = [];
+    if (Array.isArray(incomingPayload)) {
+        // If it's an array, check if any element has a nested 'data' array (like your first object)
+        items = incomingPayload.flatMap(entry => entry.data && Array.isArray(entry.data) ? entry.data : [entry]);
+    } else if (incomingPayload && typeof incomingPayload === 'object') {
+        items = incomingPayload.data || incomingPayload.news || incomingPayload.articles || [incomingPayload];
     }
 
-    // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
-// window.renderSportsOutput = function(data) {
-//     if (!data) return;
+    if (!items.length) {
+        newsPanel.innerHTML = `<div class="p-3 text-xs text-slate-400">No feed items available.</div>`;
+        return;
+    }
 
-//     const payload = data.data || data;
-
-//     // 1. Check if payload is for match news report -> send strictly to the News Panel
-//     if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.report || payload.type === "news") {
-//         const newsPanel = document.getElementById('matchNewsSubPanel');
-//         if (newsPanel && typeof window.renderNewsPanel === "function") {
-//             window.renderNewsPanel(payload);
-//         }
-//         return;
-//     }
-
-//     // 2. Check if payload is match detail view -> send strictly to the Match Detail Analytics panel
-//     const isMatchDetail = !Array.isArray(payload) && (
-//         payload.targetMatrix === "match_detail" ||
-//         payload.matchResult || 
-//         payload.standings || 
-//         (payload.homeTeam && payload.awayTeam && (payload.statistics || payload.timeline || payload.lineups))
-//     );
-
-//     if (isMatchDetail && payload.targetMatrix !== "get_match_news") {
-//         const detailPanel = document.getElementById('matchDetailSubPanel');
-//         if (detailPanel && typeof window.renderMatchDetailPanel === "function") {
-//             window.renderMatchDetailPanel(payload, detailPanel);
-//         }
-//         return;
-//     }
-
-//     // 3. Extract match array and pass active selected league name -> send to the Top Panel Fixtures list
-//     const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
-
-//     if (Array.isArray(matchesArray) && matchesArray.length > 0) {
-//         window.fullMatchList = matchesArray;
-        
-//         // Extract selected league name from payload or default fallback
-//         const activeLeague = payload.selectedLeague || payload.league || "General Football";
-        
-//         // Pass matchesArray and activeLeague to renderMatchListPanel
-//         if (typeof window.renderMatchListPanel === "function") {
-//             window.renderMatchListPanel(matchesArray, activeLeague);
-//         }
-//     }
-// };
-   window.renderSportsOutput = function(data) {
-        if (!data) return;
-        const payload = data.data || data;
-
-        // 1. ISOLATED NEWS & HEADLINES HANDLER
-        if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.headlines || payload.report || payload.type === "news") {
-            const newsSubPanel = document.getElementById('matchNewsSubPanel');
-            if (newsSubPanel) {
-                const articles = payload.articles || payload.news || payload.headlines || [];
-                const reportText = payload.report || payload.summary || payload.content || (typeof payload === 'string' ? payload : '');
-
-                let contentHtml = '';
-
-                if (Array.isArray(articles) && articles.length > 0) {
-                    contentHtml = `
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            ${articles.map(item => `
-                                <div class="bg-slate-900/80 border border-slate-800 hover:border-amber-500/60 p-3.5 rounded-lg flex flex-col justify-between transition-all">
-                                    <div>
-                                        <h4 class="text-xs font-bold text-amber-400 mb-1.5 leading-snug">${item.title || 'News Update'}</h4>
-                                        <p class="text-[11px] text-slate-300 font-sans leading-relaxed mb-3">${item.snippet || item.description || item.content || ''}</p>
-                                    </div>
-                                    <div class="flex items-center justify-between border-t border-slate-800/80 pt-2 mt-auto">
-                                        <span class="text-[9px] font-mono text-slate-400">${item.source || 'Aggregator'} • ${item.timestamp || 'Recent'}</span>
-                                        ${item.url || item.link ? `
-                                            <a href="${item.url || item.link}" target="_blank" rel="noopener noreferrer" 
-                                               class="text-[10px] font-mono text-cyan-400 hover:text-cyan-300 underline cursor-pointer">
-                                                READ FULL →
-                                            </a>
-                                        ` : ''}
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                } else if (reportText && typeof reportText === 'string') {
-                    contentHtml = `
-                        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-lg">
-                            <p class="text-xs text-slate-200 font-sans whitespace-pre-line leading-relaxed">${reportText}</p>
-                        </div>
-                    `;
-                } else {
-                    contentHtml = `<p class="text-slate-500 italic text-center py-6 font-mono text-xs">// News payload ingested, but no formatted articles or text reports found.</p>`;
-                }
-
-                newsSubPanel.innerHTML = `
-                    <div class="space-y-3 font-mono">
-                        <div class="text-[11px] text-amber-400 font-bold border-b border-amber-500/30 pb-1 flex justify-between items-center">
-                            <span>// MATCH NEWS & HEADLINES INGESTION</span>
-                            <span class="text-slate-400 text-[10px]">STATUS: SYNCHRONIZED</span>
-                        </div>
-                        ${contentHtml}
+    newsPanel.innerHTML = items.map(item => {
+        // 1. Handle Twitter/X posts format ({ handle, text, dateTime })
+        if (item.handle && item.text) {
+            return `
+                <div class="bg-slate-900/60 border border-slate-800/80 hover:border-sky-500/50 p-3.5 rounded-lg transition-all">
+                    <div class="flex justify-between items-start gap-2 mb-1">
+                        <span class="text-[11px] font-bold text-sky-400 uppercase tracking-wide">@${item.handle}</span>
+                        <span class="text-[9px] font-mono text-slate-500">${item.dateTime || 'TWITTER FEED'}</span>
                     </div>
-                `;
-            }
-            return;
+                    <p class="text-xs text-slate-300 leading-relaxed font-sans whitespace-pre-wrap">${item.text}</p>
+                </div>
+            `;
         }
 
-        // 2. DEFAULT FIXTURES LIST HANDLER (WITH ARRAY SAFETY CHECK)
-        const rawList = payload.matches || payload.fixtures || (Array.isArray(payload) ? payload : []);
-        window.fullMatchList = Array.isArray(rawList) ? rawList : [];
+        // 2. Handle Instagram posts format ({ username, image, text })
+        if (item.username && (typeof item.username === 'object' || item.image)) {
+            const author = item.username.full_name || item.username.username || 'Instagram Post';
+            const handleName = item.username.username ? `@${item.username.username}` : '';
+            return `
+                <div class="bg-slate-900/60 border border-slate-800/80 hover:border-pink-500/50 p-3.5 rounded-lg transition-all space-y-2">
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="text-[11px] font-bold text-pink-400 uppercase tracking-wide">${author} <span class="text-[9px] text-slate-400 font-normal">${handleName}</span></span>
+                        <span class="text-[9px] font-mono text-slate-500">INSTAGRAM</span>
+                    </div>
+                    ${item.image ? `<div class="overflow-hidden rounded-md max-h-48 border border-slate-800"><img src="${item.image}" alt="Post image" class="w-full h-full object-cover"/></div>` : ''}
+                    ${item.text ? `<p class="text-xs text-slate-300 leading-relaxed font-sans">${item.text}</p>` : ''}
+                </div>
+            `;
+        }
+
+        // 3. Handle Standard Article News Format ({ headline, content_detail, source_name, posted_date, etc. })
+        const title = item.headline || item.title || 'Match News Update';
+        const description = item.content_detail || item.description || item.summary || item.content || 'No description available for this telemetry entry.';
+        const source = item.source_name || 'LIVE FEED';
+        const timestamp = [item.posted_date, item.posted_time].filter(Boolean).join(' ') || 'JUST NOW';
+        const link = item.article_url || item.url;
+
+        return `
+            <div class="bg-slate-900/60 border border-slate-800/80 hover:border-amber-500/50 p-3.5 rounded-lg transition-all space-y-2">
+                ${item.image_url ? `<div class="overflow-hidden rounded-md max-h-36 border border-slate-800"><img src="${item.image_url}" alt="Article thumbnail" class="w-full h-full object-cover"/></div>` : ''}
+                <div class="flex justify-between items-start gap-2">
+                    <span class="text-[11px] font-bold text-amber-300 uppercase tracking-wide">${title}</span>
+                    <span class="text-[9px] font-mono text-slate-400 whitespace-nowrap bg-slate-800/80 px-1.5 py-0.5 rounded">${source}</span>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed font-sans">${description}</p>
+                <div class="flex justify-between items-center pt-1 border-t border-slate-800/50">
+                    <span class="text-[9px] font-mono text-slate-500">${timestamp}</span>
+                    ${link ? `<a href="${link}" target="_blank" class="text-[10px] font-mono text-amber-400 hover:underline flex items-center gap-1">Read Article &rarr;</a>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+
+    // --- AUTOMATIC ROLE-BASED DATA DISPATCHER ---
+  window.renderSportsOutput = function(data) {
+    if (!data) return;
+
+    const payload = data.data || data;
+
+    // 1. Check if payload is for match news report -> send to white paper panel
+    if (payload.targetMatrix === "get_match_news" || payload.news || payload.articles || payload.report) {
+        window.renderNewsPanel(payload);
+        return;
+    }
+
+    // 2. Check if payload is match detail view
+    const isMatchDetail = !Array.isArray(payload) && (
+        payload.homeTeam || payload.matchResult || payload.matchDate || payload.standings
+    );
+
+    if (isMatchDetail && payload.targetMatrix !== "get_match_news") {
+        const detailPanel = document.getElementById('matchDetailSubPanel');
+        if (detailPanel) window.renderMatchDetailPanel(payload, detailPanel);
+        return;
+    }
+
+    // 3. Extract match array and pass active selected league name
+    const matchesArray = Array.isArray(payload) ? payload : (payload.matches || payload.fixtures || null);
+
+    if (Array.isArray(matchesArray) && matchesArray.length > 0) {
+        window.fullMatchList = matchesArray;
         
-        const listHeaderCount = document.getElementById('matchListHeaderCount');
-        const listSubPanel = document.getElementById('matchListSubPanel');
-
-        if (listSubPanel) {
-            if (window.fullMatchList.length === 0) {
-                listSubPanel.innerHTML = `<p class="text-slate-500 italic text-center py-4">// No active fixtures found in telemetry stream.</p>`;
-            } else {
-                if (listHeaderCount) listHeaderCount.innerText = `// TOP PANEL: MATCH FIXTURES LIST (${window.fullMatchList.length} FOUND)`;
-            }
-        }
-    };
-
-    // --- SUB-TELEMETRY TRIGGER FUNCTIONS ---
-    window.fetchMatchDetails = function(targetUrl) {
-        if (!targetUrl) return;
-        window.activeMatchUrl = targetUrl;
-        window.executeScraperWorkflow({
-            page: "sports",
-            targetMatrix: "match_telemetry_deep_dive",
-            matchUrl: targetUrl,
-            timestamp: new Date().toISOString()
-        });
-    };
-
-    window.fetchMatchNews = function(home, away) {
-        const query = `${home} vs ${away} transfer news highlights`;
-        document.getElementById('hotNewsInput').value = query;
-        window.executeScraperWorkflow({
-            page: "sports",
-            targetMatrix: "hot_news",
-            query: query,
-            languages: Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value),
-            timestamp: new Date().toISOString()
-        });
-    };
+        // Extract selected league name from payload or default fallback
+        const activeLeague = payload.selectedLeague || payload.league || "General Football";
+        
+        // Pass matchesArray and activeLeague to renderMatchListPanel
+        window.renderMatchListPanel(matchesArray, activeLeague);
+    }
+};
 
     // --- TOP PANEL: MATCH FIXTURES RENDERER ---
 window.renderMatchListPanel = function(matches, currentLeague = "General Football") {
