@@ -569,7 +569,7 @@
 
             if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
-            const rawData = await response.json();
+          const rawData = await response.json();
             const cleanData = normalizeN8nPayload(rawData);
 
             if (loader) {
@@ -577,11 +577,11 @@
                 loader.classList.add('hidden');
             }
 
-            // --- INTERCEPT GET NEWS RESPONSES BEFORE renderSportsOutput ---
-            const isNewsPayload = payload.targetMatrix === "hot_news" || (payload.query && !payload.matchUrl && !payload.selectedLeague);
+            // --- ROUTE NEWS PAYLOADS EXCLUSIVELY TO THE NEWS PANEL ---
+            const isNewsPayload = payload.targetMatrix === "hot_news" || payload.targetMatrix === "get_news";
             if (isNewsPayload) {
                 renderMatchNewsOutput(cleanData);
-                return; // Route news response ONLY to matchNewsSubPanel
+                return;
             }
 
             window.renderSportsOutput(cleanData);
