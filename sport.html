@@ -572,7 +572,7 @@
 
             const rawData = await response.json();
             const cleanData = normalizeN8nPayload(rawData);
-
+  console.log("✨ Cleaned Data after Unwrapping:", cleanData);
             if (loader) {
                 loader.classList.remove('flex');
                 loader.classList.add('hidden');
