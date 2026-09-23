@@ -597,7 +597,7 @@
             timestamp: new Date().toISOString()
         });
     };
-    window.executeScraperWorkflow = async function(payload) {
+window.executeScraperWorkflow = async function(payload) {
         console.log("1. Workflow triggered with payload:", payload);
         
         const loader = document.getElementById('fullPageLoader');
@@ -619,29 +619,37 @@
 
             console.log("2. HTTP Response status received:", response.status);
 
-          //  const result = await response.json();
-          const result = await response.json();
-            console.log("3. Data successfully parsed to JSON, ready for frontend:", result);
+            const result = await response.json();
+            console.log("3. Data successfully parsed to JSON:", result);
             
             if (loader) {
                 loader.classList.remove('flex');
                 loader.classList.add('hidden');
             }
 
-            // --- HANDLE WRAPPED OR RAW ARRAYS ---
-            let matchesArray = result;
-            
-            // If result is an object wrapping the array, pull it out
-            if (!Array.isArray(result) && result !== null) {
-                // Check common wrapper keys or grab the first array found in the object properties
-                matchesArray = result.data || result.json || result.matches || Object.values(result).find(val => Array.isArray(val));
-            }
+            // --- 3-WAY DATA ROUTER (ADD THIS HERE) ---
+            let dataArray = Array.isArray(result) ? result : (result.data || result.json || Object.values(result).find(val => Array.isArray(val)));
 
-            if (Array.isArray(matchesArray)) {
-                console.log("4. Valid match array extracted. Calling renderMatchList...");
-                renderMatchList(matchesArray);
+            if (Array.isArray(dataArray)) {
+                if (payload.targetMatrix === 'hot_news' || dataArray[0]?.headline || dataArray[0]?.news_title) {
+                    console.log("Routing to News Matrix renderer...");
+                    if (typeof renderNewsMatrix === 'function') renderNewsMatrix(dataArray);
+                } else {
+                    console.log("Routing to Match List renderer...");
+                    if (typeof renderMatchList === 'function') renderMatchList(dataArray);
+                }
+            } else if (result && typeof result === 'object' && Object.keys(result).length > 0) {
+                console.log("Routing to Match Details telemetry renderer...");
+                if (typeof renderMatchDetails === 'function') {
+                    renderMatchDetails(result);
+                } else {
+                    const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+                    if (detailPanel) {
+                        detailPanel.innerHTML = `<div class="p-3 text-xs text-green-400 font-mono"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+                    }
+                }
             } else {
-                console.warn("4. Could not resolve an array from result:", result);
+                console.warn("Received empty or unrecognized data structure:", result);
             }
 
         } catch (err) {
