@@ -770,6 +770,37 @@ function renderDefaultDetails(result) {
         detailPanel.innerHTML = `<div class="p-3 text-xs text-green-400 font-mono"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
     }
 }
+    // 1. Renderer for Past Matches (Completed)
+function renderPastMatchDetails(match) {
+    const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+    if (!detailPanel) return;
+
+    // Build your custom HTML structure for past matches here using match.data
+    detailPanel.innerHTML = `
+        <div class="p-4 text-white font-sans">
+            <h2 class="text-lg font-bold text-green-400">🏁 Completed Match: ${match.data.homeTeam} vs ${match.data.awayTeam}</h2>
+            <p class="text-sm text-gray-300">Result: ${match.data.matchResult}</p>
+            <p class="text-xs text-gray-500">Stadium: ${match.data.stadium}</p>
+            <!-- Add more custom UI elements for stats, lineups, goals -->
+        </div>
+    `;
+}
+
+// 2. Renderer for Incoming/Upcoming Matches
+function renderIncomingMatchDetails(match) {
+    const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+    if (!detailPanel) return;
+
+    // Build your custom HTML structure for incoming matches here
+    detailPanel.innerHTML = `
+        <div class="p-4 text-white font-sans">
+            <h2 class="text-lg font-bold text-yellow-400">⏳ Upcoming Fixture: ${match.data.homeTeam} vs ${match.data.awayTeam}</h2>
+            <p class="text-sm text-gray-300">Date: ${match.data.matchDate}</p>
+            <p class="text-xs text-gray-400 mt-2">${match.data.availability?.status || "Fixture scheduled."}</p>
+            <!-- Add countdown timers, head-to-head odds, or table standings -->
+        </div>
+    `;
+}
 
 // Helper function for default panel rendering fallback
 // function renderDefaultDetails(result) {
