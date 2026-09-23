@@ -597,7 +597,70 @@
             timestamp: new Date().toISOString()
         });
     };
-window.executeScraperWorkflow = async function(payload) {
+// window.executeScraperWorkflow = async function(payload) {
+//         console.log("1. Workflow triggered with payload:", payload);
+        
+//         const loader = document.getElementById('fullPageLoader');
+//         const loaderTitle = document.getElementById('loaderTitle');
+//         const loaderSubtext = document.getElementById('loaderSubtext');
+
+//         if (loader) {
+//             if (loaderTitle) loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
+//             loader.classList.remove('hidden');
+//             loader.classList.add('flex');
+//         }
+
+//         try {
+//             const response = await fetch(N8N_sport_GATEWAY_WEBHOOK, {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify(payload)
+//             });
+
+//             console.log("2. HTTP Response status received:", response.status);
+
+//             const result = await response.json();
+//             console.log("3. Data successfully parsed to JSON:", result);
+            
+//             if (loader) {
+//                 loader.classList.remove('flex');
+//                 loader.classList.add('hidden');
+//             }
+
+//             // --- 3-WAY DATA ROUTER (ADD THIS HERE) ---
+//             let dataArray = Array.isArray(result) ? result : (result.data || result.json || Object.values(result).find(val => Array.isArray(val)));
+
+//             if (Array.isArray(dataArray)) {
+//                 if (payload.targetMatrix === 'hot_news' || dataArray[0]?.headline || dataArray[0]?.news_title) {
+//                     console.log("Routing to News Matrix renderer...");
+//                     if (typeof renderNewsMatrix === 'function') renderNewsMatrix(dataArray);
+//                 } else {
+//                     console.log("Routing to Match List renderer...");
+//                     if (typeof renderMatchList === 'function') renderMatchList(dataArray);
+//                 }
+//             } else if (result && typeof result === 'object' && Object.keys(result).length > 0) {
+//                 console.log("Routing to Match Details telemetry renderer...");
+//                 if (typeof renderMatchDetails === 'function') {
+//                     renderMatchDetails(result);
+//                 } else {
+//                     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+//                     if (detailPanel) {
+//                         detailPanel.innerHTML = `<div class="p-3 text-xs text-green-400 font-mono"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+//                     }
+//                 }
+//             } else {
+//                 console.warn("Received empty or unrecognized data structure:", result);
+//             }
+
+//         } catch (err) {
+//             console.error("Workflow error caught:", err);
+//             if (loader) {
+//                 loader.classList.remove('flex');
+//                 loader.classList.add('hidden');
+//             }
+//         }
+//     };
+    window.executeScraperWorkflow = async function(payload) {
         console.log("1. Workflow triggered with payload:", payload);
         
         const loader = document.getElementById('fullPageLoader');
