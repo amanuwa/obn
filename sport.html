@@ -620,6 +620,7 @@
             console.log("2. HTTP Response status received:", response.status);
 
             const result = await response.json();
+          const result = await response.json();
             console.log("3. Data successfully parsed to JSON, ready for frontend:", result);
             
             if (loader) {
@@ -627,12 +628,20 @@
                 loader.classList.add('hidden');
             }
 
-            // --- HANDLE OUTPUT PROCESSING HERE ---
-            if (Array.isArray(result)) {
-                console.log("4. Result is an array. Calling renderMatchList...");
-                renderMatchList(result);
+            // --- HANDLE WRAPPED OR RAW ARRAYS ---
+            let matchesArray = result;
+            
+            // If result is an object wrapping the array, pull it out
+            if (!Array.isArray(result) && result !== null) {
+                // Check common wrapper keys or grab the first array found in the object properties
+                matchesArray = result.data || result.json || result.matches || Object.values(result).find(val => Array.isArray(val));
+            }
+
+            if (Array.isArray(matchesArray)) {
+                console.log("4. Valid match array extracted. Calling renderMatchList...");
+                renderMatchList(matchesArray);
             } else {
-                console.warn("4. Result is NOT an array:", result);
+                console.warn("4. Could not resolve an array from result:", result);
             }
 
         } catch (err) {
