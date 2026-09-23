@@ -597,8 +597,9 @@
             timestamp: new Date().toISOString()
         });
     };
-
     window.executeScraperWorkflow = async function(payload) {
+        console.log("1. Workflow triggered with payload:", payload);
+        
         const loader = document.getElementById('fullPageLoader');
         const loaderTitle = document.getElementById('loaderTitle');
         const loaderSubtext = document.getElementById('loaderSubtext');
@@ -616,21 +617,66 @@
                 body: JSON.stringify(payload)
             });
 
+            console.log("2. HTTP Response status received:", response.status);
+
             const result = await response.json();
-console.log("Data received from n8n:", response);
+            console.log("3. Data successfully parsed to JSON, ready for frontend:", result);
+            
             if (loader) {
                 loader.classList.remove('flex');
                 loader.classList.add('hidden');
             }
-            // Handle output processing here...
+
+            // --- HANDLE OUTPUT PROCESSING HERE ---
+            if (Array.isArray(result)) {
+                console.log("4. Result is an array. Calling renderMatchList...");
+                renderMatchList(result);
+            } else {
+                console.warn("4. Result is NOT an array:", result);
+            }
+
         } catch (err) {
-            console.error("Workflow error:", err);
+            console.error("Workflow error caught:", err);
             if (loader) {
                 loader.classList.remove('flex');
                 loader.classList.add('hidden');
             }
         }
     };
+
+//     window.executeScraperWorkflow = async function(payload) {
+//         const loader = document.getElementById('fullPageLoader');
+//         const loaderTitle = document.getElementById('loaderTitle');
+//         const loaderSubtext = document.getElementById('loaderSubtext');
+
+//         if (loader) {
+//             if (loaderTitle) loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
+//             loader.classList.remove('hidden');
+//             loader.classList.add('flex');
+//         }
+
+//         try {
+//             const response = await fetch(N8N_sport_GATEWAY_WEBHOOK, {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify(payload)
+//             });
+
+//             const result = await response.json();
+// console.log("Data received from n8n:", response);
+//             if (loader) {
+//                 loader.classList.remove('flex');
+//                 loader.classList.add('hidden');
+//             }
+//             // Handle output processing here...
+//         } catch (err) {
+//             console.error("Workflow error:", err);
+//             if (loader) {
+//                 loader.classList.remove('flex');
+//                 loader.classList.add('hidden');
+//             }
+//         }
+//     };
 </script>
 </body>
 </html>
