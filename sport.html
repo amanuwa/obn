@@ -724,7 +724,6 @@
         }
     };
 function renderMatchList(matchesArray) {
-    // Target your exact top panel sub-panel container
     const container = document.getElementById('matchListSubPanel');
     
     if (!container) {
@@ -737,30 +736,45 @@ function renderMatchList(matchesArray) {
         return;
     }
 
-    let html = '<div class="space-y-2 overflow-y-auto max-h-[350px] pr-1">';
+    let html = '<div class="space-y-2 overflow-y-auto max-h-[380px] pr-1">';
     
     matchesArray.forEach(match => {
+        // Safe variables for passing names or URLs into your actions
+        const homeTeam = match.home_team_name || 'Home';
+        const awayTeam = match.away_team_name || 'Away';
+        const matchQuery = `${homeTeam} vs ${awayTeam}`;
+
         html += `
-            <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3 flex justify-between items-center text-xs hover:border-emerald-500/50 transition-all">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs hover:border-emerald-500/50 transition-all">
                 <div class="space-y-1">
                     <div class="text-emerald-400 font-mono text-[10px] tracking-wide">
                         ${match.match_date || 'TBD'} • ${match.Kick_off_time || '00:00'}
                     </div>
-                    <div class="text-white font-bold tracking-tight">
-                        ${match.home_team_name || 'Home'} <span class="text-slate-500 font-normal px-1">vs</span> ${match.away_team_name || 'Away'}
+                    <div class="text-white font-bold tracking-tight text-sm">
+                        ${homeTeam} <span class="text-slate-500 font-normal px-1">vs</span> ${awayTeam}
                     </div>
                 </div>
-                <button onclick="executeScraperWorkflow({ matchUrl: '${match.match_url}' })" 
-                        class="bg-emerald-600/90 hover:bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
-                    ANALYZE
-                </button>
+                
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <!-- ANALYZE Button -->
+                    <button onclick="executeScraperWorkflow({ action: 'analyze', matchUrl: '${match.match_url}' })" 
+                            class="bg-emerald-600/90 hover:bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
+                        ANALYZE
+                    </button>
+                    
+                    <!-- GET NEWS Button -->
+                    <button onclick="executeScraperWorkflow({ action: 'get_news', query: '${matchQuery}' })" 
+                            class="bg-sky-600/90 hover:bg-sky-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
+                        GET NEWS
+                    </button>
+                </div>
             </div>
         `;
     });
     
     html += '</div>';
     container.innerHTML = html;
-    console.log("Successfully rendered match list into #matchListSubPanel.");
+    console.log("Successfully rendered match list with dual actions into #matchListSubPanel.");
 }
 //     window.executeScraperWorkflow = async function(payload) {
 //         const loader = document.getElementById('fullPageLoader');
