@@ -723,7 +723,45 @@
             }
         }
     };
+function renderMatchList(matchesArray) {
+    // Target your exact top panel sub-panel container
+    const container = document.getElementById('matchListSubPanel');
+    
+    if (!container) {
+        console.error("Target container 'matchListSubPanel' not found in the DOM.");
+        return;
+    }
 
+    if (!Array.isArray(matchesArray) || matchesArray.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 italic font-normal text-center py-4">// No match fixtures available in stream</p>';
+        return;
+    }
+
+    let html = '<div class="space-y-2 overflow-y-auto max-h-[350px] pr-1">';
+    
+    matchesArray.forEach(match => {
+        html += `
+            <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3 flex justify-between items-center text-xs hover:border-emerald-500/50 transition-all">
+                <div class="space-y-1">
+                    <div class="text-emerald-400 font-mono text-[10px] tracking-wide">
+                        ${match.match_date || 'TBD'} • ${match.Kick_off_time || '00:00'}
+                    </div>
+                    <div class="text-white font-bold tracking-tight">
+                        ${match.home_team_name || 'Home'} <span class="text-slate-500 font-normal px-1">vs</span> ${match.away_team_name || 'Away'}
+                    </div>
+                </div>
+                <button onclick="executeScraperWorkflow({ matchUrl: '${match.match_url}' })" 
+                        class="bg-emerald-600/90 hover:bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
+                    ANALYZE
+                </button>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    console.log("Successfully rendered match list into #matchListSubPanel.");
+}
 //     window.executeScraperWorkflow = async function(payload) {
 //         const loader = document.getElementById('fullPageLoader');
 //         const loaderTitle = document.getElementById('loaderTitle');
