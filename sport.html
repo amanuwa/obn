@@ -700,28 +700,40 @@
         const isMatchDetail = rawData && typeof rawData === 'object' && (rawData.matchResult !== undefined || rawData.value !== undefined || rawData.matchStatus !== undefined);
 
         if (isMatchDetail) {
-            console.log("Detected Match Detail payload. Evaluating match state...");
+            console.log("==========================================");
+            console.log("🔍 MATCH DETAIL ROUTER DEBUGGER ACTIVATED");
+            console.log("Raw Match Data Object:", rawData);
             
             // --- SECONDARY (NESTED) IF/ELSE FOR MATCH STATUS ---
             const matchState = rawData.value || rawData.matchStatus;
+            console.log(`Evaluated matchState parameter value: "${matchState}"`);
 
             if (matchState === 'past') {
-                console.log("-> Routing to Past Match Detail renderer...");
+                console.log("--> MATCH ROUTE MATCHED: 'past'. Sending to past match renderer.");
+                console.log("Payload data being passed:", rawData);
+                console.log("==========================================");
+                
                 if (typeof renderPastMatchDetails === 'function') {
                     renderPastMatchDetails(rawData);
                 } else {
+                    console.warn("⚠️ Warning: renderPastMatchDetails function is not defined. Falling back to default.");
                     renderDefaultDetails(rawData);
                 }
             } else if (matchState === 'incoming' || matchState === 'upcoming') {
-                console.log("-> Routing to Incoming/Upcoming Match Detail renderer...");
+                console.log("--> MATCH ROUTE MATCHED: 'incoming' / 'upcoming'. Sending to incoming match renderer.");
+                console.log("Payload data being passed:", rawData);
+                console.log("==========================================");
+                
                 if (typeof renderIncomingMatchDetails === 'function') {
                     renderIncomingMatchDetails(rawData);
                 } else {
+                    console.warn("⚠️ Warning: renderIncomingMatchDetails function is not defined. Falling back to default.");
                     renderDefaultDetails(rawData);
                 }
             } else {
-                // Fallback if match state parameter isn't explicitly matched
-                console.log("-> Routing to standard Match Details telemetry renderer...");
+                console.warn(`⚠️ Warning: Unrecognized matchState value: "${matchState}". Fallback triggered.`);
+                console.log("==========================================");
+                
                 if (typeof renderMatchDetails === 'function') {
                     renderMatchDetails(rawData);
                 } else {
@@ -750,6 +762,14 @@
         }
     }
 };
+
+// Helper function for default panel rendering fallback
+function renderDefaultDetails(result) {
+    const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+    if (detailPanel) {
+        detailPanel.innerHTML = `<div class="p-3 text-xs text-green-400 font-mono"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+    }
+}
 
 // Helper function for default panel rendering fallback
 function renderDefaultDetails(result) {
