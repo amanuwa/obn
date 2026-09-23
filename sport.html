@@ -772,12 +772,12 @@ function renderDefaultDetails(result) {
 }
 
 // Helper function for default panel rendering fallback
-function renderDefaultDetails(result) {
-    const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
-    if (detailPanel) {
-        detailPanel.innerHTML = `<div class="p-3 text-xs text-green-400 font-mono"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
-    }
-}
+// function renderDefaultDetails(result) {
+//     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+//     if (detailPanel) {
+//         detailPanel.innerHTML = `<div class="p-3 text-xs text-green-400 font-mono"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+//     }
+// }
 function renderMatchList(matchesArray) {
     const container = document.getElementById('matchListSubPanel');
     
