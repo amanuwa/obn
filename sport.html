@@ -787,29 +787,34 @@ function renderPastMatchDetails(match) {
     `;
 }
 
-// 2. Renderer for Incoming/Upcoming Matches
 /**
- * 1. Batch-fetches logos for all unique team names from your Supabase "team logos" table
+ * 1. Safe batch logo fetcher with built-in fallbacks.
+ * Even if Supabase fails or isn't loaded yet, it returns an empty map 
+ * allowing the rest of the text and statistics to render safely.
  */
 /**
- * 1. Batch-fetches logos for all unique team names from your Supabase "team logos" table
- */
-/**
- * 1. Batch-fetches logos from your Supabase "team logos" table, 
- * including main teams and all historical opponents from previous form guides.
+ * 1. Safe batch logo fetcher with built-in fallbacks.
+ * Even if Supabase fails or isn't loaded yet, it returns an empty map 
+ * allowing the rest of the text and statistics to render safely.
  */
 async function fetchTeamLogosBatch(teamNamesArray) {
     const uniqueTeams = [...new Set(teamNamesArray)].filter(Boolean);
     if (uniqueTeams.length === 0) return {};
 
+    const client = window.supabaseClient || window.supabase;
+    if (!client) {
+        console.warn("Supabase client not found globally. Skipping logo fetch.");
+        return {};
+    }
+
     try {
-        const { data, error } = await supabaseClient
-            .from('team logos') // Exact table name from your Supabase[cite: 2]
-            .select('team_name, logo_url') // Exact columns from your screenshot[cite: 2]
+        const { data, error } = await client
+            .from('team logos') 
+            .select('team_name, logo_url') 
             .in('team_name', uniqueTeams);
 
         if (error) {
-            console.error("Supabase batch logo fetch error:", error.message);
+            console.error("Supabase logo fetch error:", error.message);
             return {};
         }
 
@@ -823,10 +828,36 @@ async function fetchTeamLogosBatch(teamNamesArray) {
         }
         return logoMap;
     } catch (err) {
-        console.error("Failed to execute batch fetch:", err);
+        console.error("Unexpected error during batch fetch:", err);
         return {};
     }
 }
+
+// 2. Register download and helper functions globally so HTML onclick bindings work
+window.downloadPanelData = function(panelName, jsonData) {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `${panelName}_export.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+};
+
+window.renderStatRows = function(statsObj) {
+    if (!statsObj || typeof statsObj !== 'object' || Object.keys(statsObj).length === 0) {
+        return '<div class="text-slate-500 italic">No metrics available.</div>';
+    }
+    return Object.entries(statsObj).map(([key, value]) => {
+        const formattedKey = key.replace(/([A-Z])/g, ' $1').toUpperCase();
+        return `
+            <div class="flex justify-between items-center bg-slate-900/60 px-2.5 py-1.5 rounded border border-slate-800">
+                <span class="text-slate-400">${formattedKey}</span>
+                <span class="font-bold text-slate-100">${value}</span>
+            </div>
+        `;
+    }).join('');
+};
 
 /**
  * 2. Main Match Details Renderer using exact n8n Payload structure
