@@ -30,3 +30,4 @@ export const N8N_sport_GATEWAY_WEBHOOK='https://unreached-oboe-evade.ngrok-free.
 // Set this to "DISABLED" for normal login flow.
 // Options: "DISABLED", "POLITICS", "SPORTS", "FINANCE", "HOT_NEWS"
 export const DEV_MODE_OVERRIDE = "DISABLED";
+window.supabaseClient = supabase;
