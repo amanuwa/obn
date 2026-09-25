@@ -881,6 +881,7 @@ window.renderStatRows = function(statsObj) {
  */
 // Global download helper (place this once in your script)
 // Global download helper
+// Global download helper
 function downloadPanelData(panelKey) {
     const data = window.latestMatchData?.[panelKey];
     if (!data) {
@@ -902,7 +903,7 @@ async function renderIncomingMatchDetails(matchPayload) {
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) return;
 
-    // 1. Properly unwrap n8n webhook response structures (handles .json, .data, or direct object)
+    // Safely unwrap n8n webhook response (.json, .data, or direct object)
     const raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
     const data = raw.json || raw.data || raw;
     
@@ -922,7 +923,7 @@ async function renderIncomingMatchDetails(matchPayload) {
     const homeStats = seasonStats.homeTeam || seasonStats.home || seasonStats;
     const awayStats = seasonStats.awayTeam || seasonStats.away || {};
 
-    // 2. Safe Dynamic Stats Renderer
+    // Safe Dynamic Stats Renderer
     function renderDynamicStats(statsObj) {
         if (!statsObj || typeof statsObj !== 'object') return `<div class="text-xs text-slate-500 italic">No metrics available.</div>`;
         const entries = Object.entries(statsObj).filter(([k]) => !k.toLowerCase().includes('citation'));
@@ -940,7 +941,7 @@ async function renderIncomingMatchDetails(matchPayload) {
         }).join('');
     }
 
-    // 3. Safe Form List Renderer
+    // Safe Form List Renderer
     function renderFormList(formList) {
         const list = Array.isArray(formList) ? formList : Object.values(formList || {});
         if (list.length === 0) {
@@ -987,7 +988,7 @@ async function renderIncomingMatchDetails(matchPayload) {
     const homeLogoUrl = getLogo(homeTeamName);
     const awayLogoUrl = getLogo(awayTeamName);
 
-    // 4. Render Layout Markup
+    // Render Layout Markup for All Three Panels
     detailPanel.innerHTML = `
         <div class="p-6 bg-slate-950 text-slate-100 font-mono rounded-xl border border-yellow-500/30 shadow-2xl space-y-8">
             
@@ -1067,28 +1068,33 @@ async function renderIncomingMatchDetails(matchPayload) {
                     </button>
                 </div>
                 <div class="space-y-2">
-                    ${previousMeetings.length > 0 ? previousMeetings.map(meeting => {
-                        let mDate = '', mHome = '', mRes = '', mAway = '';
-                        if (Array.isArray(meeting)) {
-                            [mDate, mHome, mRes, mAway] = meeting;
-                        } else if (typeof meeting === 'object' && meeting !== null) {
-                            mDate = meeting.date || meeting.matchDate || '';
-                            mHome = meeting.homeTeam || meeting.home || '';
-                            mRes = meeting.result || meeting.score || '';
-                            mAway = meeting.awayTeam || meeting.away || '';
-                        }
-                        return `
-                            <div class="flex flex-col md:flex-row items-center justify-between bg-slate-950 p-3 rounded border border-slate-800/80 gap-2">
-                                <span class="text-[11px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${mDate}</span>
-                                <div class="text-xs font-medium text-slate-200 text-center">
-                                    <span class="text-green-300 font-bold">${mHome}</span> 
-                                    <span class="text-yellow-400 px-2 font-bold">${mRes}</span> 
-                                    <span class="text-blue-300 font-bold">${mAway}</span>
+                    ${(() => {
+                        const h2hList = Array.isArray(previousMeetings) ? previousMeetings : Object.values(previousMeetings || {});
+                        if (h2hList.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No previous head-to-head records found.</div>';
+                        
+                        return h2hList.map(meeting => {
+                            let mDate = '', mHome = '', mRes = '', mAway = '';
+                            if (Array.isArray(meeting)) {
+                                [mDate, mHome, mRes, mAway] = meeting;
+                            } else if (typeof meeting === 'object' && meeting !== null) {
+                                mDate = meeting.date || meeting.matchDate || '';
+                                mHome = meeting.homeTeam || meeting.home || '';
+                                mRes = meeting.result || meeting.score || '';
+                                mAway = meeting.awayTeam || meeting.away || '';
+                            }
+                            return `
+                                <div class="flex flex-col md:flex-row items-center justify-between bg-slate-950 p-3 rounded border border-slate-800/80 gap-2">
+                                    <span class="text-[11px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${mDate}</span>
+                                    <div class="text-xs font-medium text-slate-200 text-center">
+                                        <span class="text-green-300 font-bold">${mHome}</span> 
+                                        <span class="text-yellow-400 px-2 font-bold">${mRes}</span> 
+                                        <span class="text-blue-300 font-bold">${mAway}</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 uppercase">Completed</span>
                                 </div>
-                                <span class="text-[10px] text-slate-500 uppercase">Completed</span>
-                            </div>
-                        `;
-                    }).join('') : '<div class="text-xs text-slate-500 italic py-2">No previous head-to-head records found.</div>'}
+                            `;
+                        }).join('');
+                    })()}
                 </div>
             </div>
 
