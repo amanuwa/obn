@@ -873,15 +873,7 @@ window.renderStatRows = function(statsObj) {
     }).join('');
 };
 
-/**
- * 2. Main Match Details Renderer using exact n8n Payload structure
- */
-/**
- * Main Match Details Renderer using exact n8n Payload structure
- */
-// Global download helper (place this once in your script)
-// Global download helper
-// Global download helper
+
 // Global download helper
 function downloadPanelData(panelKey) {
     const data = window.latestMatchData?.[panelKey];
@@ -910,12 +902,17 @@ function safeText(val, fallback = '-') {
 }
 
 async function renderIncomingMatchDetails(matchPayload) {
-    const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
-    if (!detailPanel) return;
+    // Locate the main container. If missing, fallback to document.body
+    let detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel') || document.querySelector('.terminal-content');
+    if (!detailPanel) {
+        detailPanel = document.createElement('div');
+        detailPanel.id = 'matchDetailSubPanel';
+        document.body.appendChild(detailPanel);
+    }
 
-    // Direct mapping to your exact array wrapping structure
+    // Unwrap n8n webhook payload safely
     const raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
-    const data = raw.data || raw; // Your data sits right inside .data
+    const data = raw.data || raw;
     
     window.latestMatchData = data; 
     console.log("✅ Parsed Match Data:", data);
@@ -923,23 +920,16 @@ async function renderIncomingMatchDetails(matchPayload) {
     const homeTeamName = safeText(data.homeTeam, 'Home Team');
     const awayTeamName = safeText(data.awayTeam, 'Away Team');
     
-    // Direct path to your statistics object
     const statsObj = data.statistics || {};
-    
-    // Direct path to teamForm arrays
     const teamFormObj = data.teamForm || {};
     const homeFormList = Array.isArray(teamFormObj.home) ? teamFormObj.home : [];
     const awayFormList = Array.isArray(teamFormObj.away) ? teamFormObj.away : [];
-
-    // Direct path to previousMeetings summary object
     const h2hSummary = data.previousMeetings || {};
-    const standings = data.standings || {};
 
-    // 1. Dynamic Stats Renderer (reads your flat home/away objects)
+    // 1. Dynamic Stats Renderer
     function renderDynamicStats(teamKey) {
         const entries = Object.entries(statsObj).filter(([k]) => !k.toLowerCase().includes('citation') && k !== 'scope');
-        
-        if (entries.length === 0) return '<div class="text-xs text-slate-500 italic">No metrics available.</div>';
+        if (entries.length === 0) return `<div class="text-xs text-slate-500 italic">No metrics available.</div>`;
 
         return entries.map(([key, val]) => {
             let displayVal = '-';
@@ -955,7 +945,7 @@ async function renderIncomingMatchDetails(matchPayload) {
         }).join('');
     }
 
-    // 2. Form List Renderer (reads matchweek, opponent, venue, score)
+    // 2. Form List Renderer (Panel 2)
     function renderFormList(formList) {
         if (!formList || formList.length === 0) {
             return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
@@ -969,10 +959,10 @@ async function renderIncomingMatchDetails(matchPayload) {
             const oppLogo = getLogo(opponent);
 
             return `
-                <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
+                <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800 my-1.5">
                     <div class="flex items-center gap-2.5">
                         <span class="text-[10px] text-slate-500 font-bold w-12">MW ${mw}</span>
-                        <img src="${oppLogo}" alt="${opponent}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5" title="${opponent}">
+                        <img src="${oppLogo}" alt="${opponent}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5" title="${opponent}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(opponent)}&background=0f172a&color=facc15&size=128'">
                         <span class="text-xs text-slate-200">vs ${opponent} <span class="text-[10px] text-slate-400">(${venue})</span></span>
                     </div>
                     <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-0.5 rounded border border-slate-800">${score}</span>
@@ -981,7 +971,7 @@ async function renderIncomingMatchDetails(matchPayload) {
         }).join('');
     }
 
-    // Dynamic Team Logos Batch Fetching
+    // Logo resolution
     const allTeamsToFetch = [
         homeTeamName,
         awayTeamName,
@@ -989,15 +979,23 @@ async function renderIncomingMatchDetails(matchPayload) {
         ...awayFormList.map(m => m.opponent)
     ].filter(Boolean);
 
-    const logoMap = await fetchTeamLogosBatch(allTeamsToFetch);
+    let logoMap = {};
+    try {
+        if (typeof fetchTeamLogosBatch === 'function') {
+            logoMap = await fetchTeamLogosBatch(allTeamsToFetch);
+        }
+    } catch (e) {
+        console.warn("Logo batch fetch helper not found or failed, using fallbacks.");
+    }
+
     const getLogo = (name) => logoMap[name] || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Team')}&background=0f172a&color=facc15&size=128`;
 
     const homeLogoUrl = getLogo(homeTeamName);
     const awayLogoUrl = getLogo(awayTeamName);
 
-    // Layout Rendering
+    // Full 3-Panel HTML injection
     detailPanel.innerHTML = `
-        <div class="p-6 bg-slate-950 text-slate-100 font-mono rounded-xl border border-yellow-500/30 shadow-2xl space-y-8">
+        <div class="p-6 bg-slate-950 text-slate-100 font-mono rounded-xl border border-yellow-500/30 shadow-2xl space-y-8 w-full">
             
             <!-- Header -->
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-5 gap-4">
@@ -1018,7 +1016,7 @@ async function renderIncomingMatchDetails(matchPayload) {
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 1. Season So Far Statistics</span>
-                    <button onclick="downloadPanelData('statistics')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Season Stats">
+                    <button onclick="downloadPanelData('statistics')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition">
                         <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                 </div>
@@ -1044,7 +1042,7 @@ async function renderIncomingMatchDetails(matchPayload) {
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Last 5 Matches Form</span>
-                    <button onclick="downloadPanelData('teamForm')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Form Data">
+                    <button onclick="downloadPanelData('teamForm')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition">
                         <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                 </div>
@@ -1052,16 +1050,16 @@ async function renderIncomingMatchDetails(matchPayload) {
                     <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
                         <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
                             <img src="${homeLogoUrl}" alt="${homeTeamName}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
-                            <span class="text-xs font-bold text-green-300 uppercase">${homeTeamName} - Form</span>
+                            <span class="text-xs font-bold text-green-300 uppercase">${homeTeamName} - Recent Form</span>
                         </div>
-                        <div class="space-y-2">${renderFormList(homeFormList)}</div>
+                        <div>${renderFormList(homeFormList)}</div>
                     </div>
                     <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
                         <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
                             <img src="${awayLogoUrl}" alt="${awayTeamName}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
-                            <span class="text-xs font-bold text-blue-300 uppercase">${awayTeamName} - Form</span>
+                            <span class="text-xs font-bold text-blue-300 uppercase">${awayTeamName} - Recent Form</span>
                         </div>
-                        <div class="space-y-2">${renderFormList(awayFormList)}</div>
+                        <div>${renderFormList(awayFormList)}</div>
                     </div>
                 </div>
             </div>
@@ -1069,8 +1067,8 @@ async function renderIncomingMatchDetails(matchPayload) {
             <!-- PANEL 3: HEAD-TO-HEAD HISTORICAL SUMMARY -->
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head Historical Summary</span>
-                    <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Summary">
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head Previous Meetings Summary</span>
+                    <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition">
                         <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                 </div>
@@ -1093,7 +1091,7 @@ async function renderIncomingMatchDetails(matchPayload) {
                     </div>
                 </div>
                 <div class="text-[11px] text-slate-500 text-right pt-1">
-                    Breakdown: ${safeText(homeTeamName)} Home Wins (${safeText(h2hSummary.homeWinsAtHome, 0)}), Away Wins (${safeText(h2hSummary.homeWinsAway, 0)}) | Away Home Wins (${safeText(h2hSummary.awayWinsAtHome, 0)}), Away Away Wins (${safeText(h2hSummary.awayWinsAway, 0)})
+                    Detailed Splits: ${homeTeamName} (Home: ${safeText(h2hSummary.homeWinsAtHome, 0)}, Away: ${safeText(h2hSummary.homeWinsAway, 0)}) | ${awayTeamName} (Home: ${safeText(h2hSummary.awayWinsAtHome, 0)}, Away: ${safeText(h2hSummary.awayWinsAway, 0)})
                 </div>
             </div>
 
