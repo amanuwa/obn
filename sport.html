@@ -879,6 +879,24 @@ window.renderStatRows = function(statsObj) {
 /**
  * Main Match Details Renderer using exact n8n Payload structure
  */
+// Global download helper (place this once in your script)
+function downloadPanelData(panelKey) {
+    const data = window.latestMatchData?.[panelKey];
+    if (!data) {
+        console.warn("No data found for panel:", panelKey);
+        return;
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${panelKey}-export.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 async function renderIncomingMatchDetails(matchPayload) {
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) return;
@@ -887,7 +905,7 @@ async function renderIncomingMatchDetails(matchPayload) {
     const payload = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
     const data = payload.data || payload;
     
-    // Save to window for easy debugging in console
+    // Save to window for debugging & safe downloads
     window.latestMatchData = data; 
     
     const homeTeamName = data.homeTeam || 'Home Team';
@@ -895,31 +913,32 @@ async function renderIncomingMatchDetails(matchPayload) {
     
     const seasonStats = data.seasonSoFar || {};
     const teamFormObj = data.teamForm || {};
-    const homeFormList = teamFormObj.homePrevious || [];
-    const awayFormList = teamFormObj.awayPrevious || [];
+    const homeFormList = teamFormObj.homePrevious || teamFormObj.home || [];
+    const awayFormList = teamFormObj.awayPrevious || teamFormObj.away || [];
     const previousMeetings = data.previousMeetings || [];
     const standings = data.standings || {};
 
-    // Season Stats Renderer Helper
-    const homeStats = seasonStats.homeTeam || seasonStats.home || {};
-    const awayStats = seasonStats.awayTeam || seasonStats.away || {};
+    const homeStats = seasonStats.homeTeam || seasonStats.home || seasonStats.homeStats || {};
+    const awayStats = seasonStats.awayTeam || seasonStats.away || seasonStats.awayStats || {};
 
+    // Dynamic stats renderer handling objects or arrays safely
     function renderDynamicStats(statsObj) {
-        const entries = Object.entries(statsObj);
+        const entries = Array.isArray(statsObj) ? statsObj.map((v, i) => [`Stat ${i+1}`, v]) : Object.entries(statsObj || {});
         if (entries.length === 0) return '<div class="text-xs text-slate-500 italic">No metrics available.</div>';
         
         return entries.map(([key, val]) => {
-            if (key.toLowerCase().includes('citation')) return '';
+            if (typeof key === 'string' && key.toLowerCase().includes('citation')) return '';
+            const displayVal = (typeof val === 'object' && val !== null) ? JSON.stringify(val) : val;
             return `
                 <div class="flex justify-between items-center py-1 border-b border-slate-900">
                     <span class="text-slate-400 uppercase text-[10px]">${key.replace(/([A-Z])/g, ' $1')}</span>
-                    <span class="text-slate-200 font-bold">${typeof val === 'object' ? JSON.stringify(val) : val}</span>
+                    <span class="text-slate-200 font-bold">${displayVal ?? '-'}</span>
                 </div>
             `;
         }).join('');
     }
 
-    // ================= 1. BULLETPROOF FORM RENDERER =================
+    // Bulletproof Form List Renderer
     function renderFormList(formList) {
         const list = Array.isArray(formList) ? formList : Object.values(formList || {});
         if (list.length === 0) {
@@ -952,7 +971,7 @@ async function renderIncomingMatchDetails(matchPayload) {
         }).join('');
     }
 
-    // Collect main teams AND all opponent team names for batch logo fetching
+    // Collect all teams for batch logo fetching
     const allTeamsToFetch = [
         homeTeamName,
         awayTeamName,
@@ -966,7 +985,7 @@ async function renderIncomingMatchDetails(matchPayload) {
     const homeLogoUrl = getLogo(homeTeamName);
     const awayLogoUrl = getLogo(awayTeamName);
 
-    // Render panels layout
+    // Render layout using safe key-based download triggers
     detailPanel.innerHTML = `
         <div class="p-6 bg-slate-950 text-slate-100 font-mono rounded-xl border border-yellow-500/30 shadow-2xl space-y-8">
             
@@ -989,6 +1008,9 @@ async function renderIncomingMatchDetails(matchPayload) {
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 1. Season So Far Statistics</span>
+                    <button onclick="downloadPanelData('seasonSoFar')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Season Stats">
+                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                     <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
@@ -1012,6 +1034,9 @@ async function renderIncomingMatchDetails(matchPayload) {
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Last 5 Matches Form</span>
+                    <button onclick="downloadPanelData('teamForm')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Form Data">
+                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
@@ -1031,10 +1056,13 @@ async function renderIncomingMatchDetails(matchPayload) {
                 </div>
             </div>
 
-            <!-- ================= 2. HEAD-TO-HEAD PREVIOUS MEETINGS ================= -->
+            <!-- PANEL 3: HEAD-TO-HEAD -->
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head Previous Meetings</span>
+                    <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Data">
+                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
                 </div>
                 <div class="space-y-2">
                     ${previousMeetings.length > 0 ? previousMeetings.map(meeting => {
