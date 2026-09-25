@@ -790,6 +790,9 @@ function renderPastMatchDetails(match) {
 /**
  * 1. Batch-fetches logos for all unique team names from your Supabase "team logos" table
  */
+/**
+ * 1. Batch-fetches logos for all unique team names from your Supabase "team logos" table
+ */
 async function fetchTeamLogosBatch(teamNamesArray) {
     const uniqueTeams = [...new Set(teamNamesArray)].filter(Boolean);
     if (uniqueTeams.length === 0) return {};
@@ -984,7 +987,6 @@ function downloadSingleMatchData(team, opponent, matchweek, score, venue) {
     downloadAnchor.click();
     downloadAnchor.remove();
 }
-
 // Helper function for default panel rendering fallback
 // function renderDefaultDetails(result) {
 //     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
