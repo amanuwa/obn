@@ -900,7 +900,6 @@ function downloadPanelData(panelKey) {
     URL.revokeObjectURL(url);
 }
 
-// Helper to safely extract string/number from nested objects
 function safeText(val, fallback = '-') {
     if (val === null || val === undefined) return fallback;
     if (typeof val === 'string' || typeof val === 'number') return val;
@@ -914,35 +913,39 @@ async function renderIncomingMatchDetails(matchPayload) {
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) return;
 
-    // Safely unwrap n8n webhook response
+    // Direct mapping to your exact array wrapping structure
     const raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
-    const data = raw.json || raw.data || raw;
+    const data = raw.data || raw; // Your data sits right inside .data
     
     window.latestMatchData = data; 
-    console.log("✅ Successfully unwrapped match data:", data);
+    console.log("✅ Parsed Match Data:", data);
 
-    const homeTeamName = safeText(data.homeTeam || data.home, 'Home Team');
-    const awayTeamName = safeText(data.awayTeam || data.away, 'Away Team');
+    const homeTeamName = safeText(data.homeTeam, 'Home Team');
+    const awayTeamName = safeText(data.awayTeam, 'Away Team');
     
-    const seasonStats = data.seasonSoFar || data.season_so_far || {};
-    const teamFormObj = data.teamForm || data.team_form || {};
-    const homeFormList = teamFormObj.homePrevious || teamFormObj.home || teamFormObj.homeTeam || [];
-    const awayFormList = teamFormObj.awayPrevious || teamFormObj.away || teamFormObj.awayTeam || [];
-    const previousMeetings = data.previousMeetings || data.headToHead || data.h2h || [];
+    // Direct path to your statistics object
+    const statsObj = data.statistics || {};
+    
+    // Direct path to teamForm arrays
+    const teamFormObj = data.teamForm || {};
+    const homeFormList = Array.isArray(teamFormObj.home) ? teamFormObj.home : [];
+    const awayFormList = Array.isArray(teamFormObj.away) ? teamFormObj.away : [];
+
+    // Direct path to previousMeetings summary object
+    const h2hSummary = data.previousMeetings || {};
     const standings = data.standings || {};
 
-    const homeStats = seasonStats.homeTeam || seasonStats.home || seasonStats;
-    const awayStats = seasonStats.awayTeam || seasonStats.away || {};
-
-    // 1. Safe Dynamic Stats Renderer
-    function renderDynamicStats(statsObj) {
-        if (!statsObj || typeof statsObj !== 'object') return `<div class="text-xs text-slate-500 italic">No metrics available.</div>`;
-        const entries = Object.entries(statsObj).filter(([k]) => !k.toLowerCase().includes('citation'));
+    // 1. Dynamic Stats Renderer (reads your flat home/away objects)
+    function renderDynamicStats(teamKey) {
+        const entries = Object.entries(statsObj).filter(([k]) => !k.toLowerCase().includes('citation') && k !== 'scope');
         
         if (entries.length === 0) return '<div class="text-xs text-slate-500 italic">No metrics available.</div>';
 
         return entries.map(([key, val]) => {
-            const displayVal = safeText(val);
+            let displayVal = '-';
+            if (val && typeof val === 'object' && (teamKey in val)) {
+                displayVal = safeText(val[teamKey]);
+            }
             return `
                 <div class="flex justify-between items-center py-1 border-b border-slate-900">
                     <span class="text-slate-400 uppercase text-[10px]">${key.replace(/([A-Z])/g, ' $1')}</span>
@@ -952,48 +955,38 @@ async function renderIncomingMatchDetails(matchPayload) {
         }).join('');
     }
 
-    // 2. Safe Form List Renderer
+    // 2. Form List Renderer (reads matchweek, opponent, venue, score)
     function renderFormList(formList) {
-        const list = Array.isArray(formList) ? formList : Object.values(formList || {});
-        if (list.length === 0) {
+        if (!formList || formList.length === 0) {
             return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
         }
 
-        return list.map(match => {
-            let mw = '', opponent = 'Unknown', score = '-', venue = '';
-            
-            if (Array.isArray(match)) {
-                mw = safeText(match[0]);
-                opponent = safeText(match[1], 'Unknown');
-                score = safeText(match[2], '-');
-                venue = safeText(match[3], '');
-            } else if (typeof match === 'object' && match !== null) {
-                mw = safeText(match.matchweek || match.mw || match.date || match.round);
-                opponent = safeText(match.opponent || match.team || match.vs || match.homeTeam || match.awayTeam, 'Unknown');
-                score = safeText(match.score || match.result || match.fullTime, '-');
-                venue = safeText(match.venue || match.homeOrAway, '');
-            }
-
+        return formList.map(match => {
+            const mw = safeText(match.matchweek, '-');
+            const opponent = safeText(match.opponent, 'Unknown');
+            const score = safeText(match.score, '-');
+            const venue = safeText(match.venue, '');
             const oppLogo = getLogo(opponent);
+
             return `
                 <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
                     <div class="flex items-center gap-2.5">
-                        <span class="text-[10px] text-slate-500 font-bold w-10">${mw}</span>
+                        <span class="text-[10px] text-slate-500 font-bold w-12">MW ${mw}</span>
                         <img src="${oppLogo}" alt="${opponent}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5" title="${opponent}">
                         <span class="text-xs text-slate-200">vs ${opponent} <span class="text-[10px] text-slate-400">(${venue})</span></span>
                     </div>
-                    <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${score}</span>
+                    <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-0.5 rounded border border-slate-800">${score}</span>
                 </div>
             `;
         }).join('');
     }
 
-    // Logo resolution
+    // Dynamic Team Logos Batch Fetching
     const allTeamsToFetch = [
         homeTeamName,
         awayTeamName,
-        ...homeFormList.map(item => Array.isArray(item) ? safeText(item[1]) : safeText(item.opponent || item.team)), 
-        ...awayFormList.map(item => Array.isArray(item) ? safeText(item[1]) : safeText(item.opponent || item.team))  
+        ...homeFormList.map(m => m.opponent),
+        ...awayFormList.map(m => m.opponent)
     ].filter(Boolean);
 
     const logoMap = await fetchTeamLogosBatch(allTeamsToFetch);
@@ -1002,7 +995,7 @@ async function renderIncomingMatchDetails(matchPayload) {
     const homeLogoUrl = getLogo(homeTeamName);
     const awayLogoUrl = getLogo(awayTeamName);
 
-    // Render Layout Markup
+    // Layout Rendering
     detailPanel.innerHTML = `
         <div class="p-6 bg-slate-950 text-slate-100 font-mono rounded-xl border border-yellow-500/30 shadow-2xl space-y-8">
             
@@ -1012,20 +1005,20 @@ async function renderIncomingMatchDetails(matchPayload) {
                     <img src="${homeLogoUrl}" alt="${homeTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
                     <div>
                         <div class="text-xl font-bold text-green-300">${homeTeamName} vs ${awayTeamName}</div>
-                        <div class="text-xs text-slate-400">${safeText(data.matchDate || data.date)} • ${safeText(data.venue)}</div>
+                        <div class="text-xs text-slate-400">${safeText(data.matchDate)} • ${safeText(data.location)}</div>
                     </div>
                     <img src="${awayLogoUrl}" alt="${awayTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
                 </div>
                 <span class="text-xs text-yellow-400 bg-yellow-950/60 px-3 py-1.5 rounded border border-yellow-500/40 font-bold">
-                    // ${safeText(standings.round || data.round, 'Fixture Preview')}
+                    // ${safeText(data.round, 'Fixture Preview')}
                 </span>
             </div>
 
-            <!-- PANEL 1: SEASON SO FAR -->
+            <!-- PANEL 1: SEASON SO FAR STATISTICS -->
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 1. Season So Far Statistics</span>
-                    <button onclick="downloadPanelData('seasonSoFar')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Season Stats">
+                    <button onclick="downloadPanelData('statistics')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Season Stats">
                         <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                 </div>
@@ -1035,19 +1028,19 @@ async function renderIncomingMatchDetails(matchPayload) {
                             <img src="${homeLogoUrl}" alt="${homeTeamName}" class="w-8 h-8 object-contain bg-slate-900 p-0.5 rounded">
                             <span class="text-sm font-bold text-green-300">${homeTeamName}</span>
                         </div>
-                        <div class="space-y-1.5 text-xs">${renderDynamicStats(homeStats)}</div>
+                        <div class="space-y-1.5 text-xs">${renderDynamicStats('home')}</div>
                     </div>
                     <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
                         <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
                             <img src="${awayLogoUrl}" alt="${awayTeamName}" class="w-8 h-8 object-contain bg-slate-900 p-0.5 rounded">
                             <span class="text-sm font-bold text-blue-300">${awayTeamName}</span>
                         </div>
-                        <div class="space-y-1.5 text-xs">${renderDynamicStats(awayStats)}</div>
+                        <div class="space-y-1.5 text-xs">${renderDynamicStats('away')}</div>
                     </div>
                 </div>
             </div>
 
-            <!-- PANEL 2: TEAM FORM -->
+            <!-- PANEL 2: TEAM FORM (LAST 5 MATCHES) -->
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Last 5 Matches Form</span>
@@ -1059,59 +1052,48 @@ async function renderIncomingMatchDetails(matchPayload) {
                     <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
                         <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
                             <img src="${homeLogoUrl}" alt="${homeTeamName}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
-                            <span class="text-xs font-bold text-green-300 uppercase">${homeTeamName} - Recent Form</span>
+                            <span class="text-xs font-bold text-green-300 uppercase">${homeTeamName} - Form</span>
                         </div>
                         <div class="space-y-2">${renderFormList(homeFormList)}</div>
                     </div>
                     <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
                         <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
                             <img src="${awayLogoUrl}" alt="${awayTeamName}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
-                            <span class="text-xs font-bold text-blue-300 uppercase">${awayTeamName} - Recent Form</span>
+                            <span class="text-xs font-bold text-blue-300 uppercase">${awayTeamName} - Form</span>
                         </div>
                         <div class="space-y-2">${renderFormList(awayFormList)}</div>
                     </div>
                 </div>
             </div>
 
-            <!-- PANEL 3: HEAD-TO-HEAD -->
+            <!-- PANEL 3: HEAD-TO-HEAD HISTORICAL SUMMARY -->
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head Previous Meetings</span>
-                    <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Data">
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head Historical Summary</span>
+                    <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Summary">
                         <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                 </div>
-                <div class="space-y-2">
-                    ${(() => {
-                        const h2hList = Array.isArray(previousMeetings) ? previousMeetings : Object.values(previousMeetings || {});
-                        if (h2hList.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No previous head-to-head records found.</div>';
-                        
-                        return h2hList.map(meeting => {
-                            let mDate = '', mHome = '', mRes = '', mAway = '';
-                            if (Array.isArray(meeting)) {
-                                mDate = safeText(meeting[0]);
-                                mHome = safeText(meeting[1]);
-                                mRes = safeText(meeting[2]);
-                                mAway = safeText(meeting[3]);
-                            } else if (typeof meeting === 'object' && meeting !== null) {
-                                mDate = safeText(meeting.date || meeting.matchDate);
-                                mHome = safeText(meeting.homeTeam || meeting.home);
-                                mRes = safeText(meeting.result || meeting.score);
-                                mAway = safeText(meeting.awayTeam || meeting.away);
-                            }
-                            return `
-                                <div class="flex flex-col md:flex-row items-center justify-between bg-slate-950 p-3 rounded border border-slate-800/80 gap-2">
-                                    <span class="text-[11px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${mDate}</span>
-                                    <div class="text-xs font-medium text-slate-200 text-center">
-                                        <span class="text-green-300 font-bold">${mHome}</span> 
-                                        <span class="text-yellow-400 px-2 font-bold">${mRes}</span> 
-                                        <span class="text-blue-300 font-bold">${mAway}</span>
-                                    </div>
-                                    <span class="text-[10px] text-slate-500 uppercase">Completed</span>
-                                </div>
-                            `;
-                        }).join('');
-                    })()}
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800 text-center">
+                        <div class="text-[10px] text-slate-400 uppercase">Total Played</div>
+                        <div class="text-lg font-bold text-slate-100 mt-1">${safeText(h2hSummary.played, 0)}</div>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800 text-center">
+                        <div class="text-[10px] text-slate-400 uppercase">${homeTeamName} Wins</div>
+                        <div class="text-lg font-bold text-green-400 mt-1">${safeText(h2hSummary.homeWins, 0)}</div>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800 text-center">
+                        <div class="text-[10px] text-slate-400 uppercase">Draws</div>
+                        <div class="text-lg font-bold text-yellow-400 mt-1">${safeText(h2hSummary.draws, 0)}</div>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800 text-center">
+                        <div class="text-[10px] text-slate-400 uppercase">${awayTeamName} Wins</div>
+                        <div class="text-lg font-bold text-blue-400 mt-1">${safeText(h2hSummary.awayWins, 0)}</div>
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-500 text-right pt-1">
+                    Breakdown: ${safeText(homeTeamName)} Home Wins (${safeText(h2hSummary.homeWinsAtHome, 0)}), Away Wins (${safeText(h2hSummary.homeWinsAway, 0)}) | Away Home Wins (${safeText(h2hSummary.awayWinsAtHome, 0)}), Away Away Wins (${safeText(h2hSummary.awayWinsAway, 0)})
                 </div>
             </div>
 
