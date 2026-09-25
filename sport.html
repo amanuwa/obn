@@ -849,6 +849,7 @@ async function fetchTeamLogosBatch(teamNamesArray) {
 
 // 2. Register download and helper functions globally so HTML onclick bindings work
 // Global download helper
+// Global download helper
 function downloadPanelData(panelKey) {
     const data = window.latestMatchData?.[panelKey];
     if (!data) {
@@ -891,9 +892,9 @@ async function renderIncomingMatchDetails(matchPayload) {
     const awayTeamName = safeText(data.awayTeam || data.away, 'Away Team');
     
     const seasonStats = data.seasonSoFar || data.season_so_far || {};
-   const teamFormObj = data.teamFormPrevious || data.teamForm || {};
-const homeFormList = Array.isArray(teamFormObj.home) ? teamFormObj.home : [];
-const awayFormList = Array.isArray(teamFormObj.away) ? teamFormObj.away : [];
+    const teamFormObj = data.teamForm || data.team_form || {};
+    const homeFormList = teamFormObj.homePrevious || teamFormObj.home || teamFormObj.homeTeam || [];
+    const awayFormList = teamFormObj.awayPrevious || teamFormObj.away || teamFormObj.awayTeam || [];
     const previousMeetings = data.previousMeetings || data.headToHead || data.h2h || [];
     const standings = data.standings || {};
 
@@ -919,52 +920,40 @@ const awayFormList = Array.isArray(teamFormObj.away) ? teamFormObj.away : [];
     }
 
     // 2. Safe Form List Renderer
-function renderFormList(formList) {
-    const list = Array.isArray(formList) ? formList : Object.values(formList || {});
-    if (list.length === 0) {
-        return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
-    }
-
-    return list.map(item => {
-        let mw = '-';
-        let opponent = 'Unknown';
-        let venue = '';
-        let score = '-';
-
-        if (typeof item === 'string') {
-            // Corrected regex for matching (H|A)
-            const matchRegex = /MW\s*(\d+):\s*(.*?)\s*\((H\vert{}A)\),\s*(.+)/i;
-            const parsed = item.match(matchRegex);
-
-            if (parsed) {
-                mw = `MW ${parsed[1]}`;
-                opponent = parsed[2].trim();
-                venue = parsed[3].toUpperCase() === 'H' ? 'Home' : 'Away';
-                score = parsed[4].trim();
-            } else {
-                opponent = item; 
-            }
-        } else if (typeof item === 'object' && item !== null) {
-            mw = safeText(item.matchweek || item.mw, '-');
-            opponent = safeText(item.opponent || item.team, 'Unknown');
-            score = safeText(item.score || item.result, '-');
-            venue = safeText(item.venue, '');
+    function renderFormList(formList) {
+        const list = Array.isArray(formList) ? formList : Object.values(formList || {});
+        if (list.length === 0) {
+            return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
         }
 
-        const oppLogo = getLogo(opponent);
+        return list.map(match => {
+            let mw = '', opponent = 'Unknown', score = '-', venue = '';
+            
+            if (Array.isArray(match)) {
+                mw = safeText(match[0]);
+                opponent = safeText(match[1], 'Unknown');
+                score = safeText(match[2], '-');
+                venue = safeText(match[3], '');
+            } else if (typeof match === 'object' && match !== null) {
+                mw = safeText(match.matchweek || match.mw || match.date || match.round);
+                opponent = safeText(match.opponent || match.team || match.vs || match.homeTeam || match.awayTeam, 'Unknown');
+                score = safeText(match.score || match.result || match.fullTime, '-');
+                venue = safeText(match.venue || match.homeOrAway, '');
+            }
 
-        return `
-            <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800 my-1.5">
-                <div class="flex items-center gap-2.5">
-                    <span class="text-[10px] text-slate-500 font-bold w-12">${mw}</span>
-                    <img src="${oppLogo}" alt="${opponent}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5" title="${opponent}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(opponent)}&background=0f172a&color=facc15&size=128'">
-                    <span class="text-xs text-slate-200">vs ${opponent} <span class="text-[10px] text-slate-400">(${venue})</span></span>
+            const oppLogo = getLogo(opponent);
+            return `
+                <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-[10px] text-slate-500 font-bold w-10">${mw}</span>
+                        <img src="${oppLogo}" alt="${opponent}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5" title="${opponent}">
+                        <span class="text-xs text-slate-200">vs ${opponent} <span class="text-[10px] text-slate-400">(${venue})</span></span>
+                    </div>
+                    <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${score}</span>
                 </div>
-                <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-0.5 rounded border border-slate-800">${score}</span>
-            </div>
-        `;
-    }).join('');
-}
+            `;
+        }).join('');
+    }
 
     // Logo resolution
     const allTeamsToFetch = [
