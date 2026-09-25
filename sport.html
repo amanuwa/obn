@@ -799,36 +799,50 @@ function renderPastMatchDetails(match) {
  */
 async function fetchTeamLogosBatch(teamNamesArray) {
     const uniqueTeams = [...new Set(teamNamesArray)].filter(Boolean);
-    if (uniqueTeams.length === 0) return {};
+    console.log("🔍 [Logo Debugger] Unique teams requested for logo fetch:", uniqueTeams);
+
+    if (uniqueTeams.length === 0) {
+        console.warn("⚠️ [Logo Debugger] Team names array is empty. Skipping fetch.");
+        return {};
+    }
 
     const client = window.supabaseClient || window.supabase;
     if (!client) {
-        console.warn("Supabase client not found globally. Skipping logo fetch.");
+        console.error("❌ [Logo Debugger] Supabase client not found globally! Make sure window.supabaseClient is set in config.js.");
         return {};
     }
 
     try {
+        console.log("🚀 [Logo Debugger] Querying Supabase 'team logos' table...");
         const { data, error } = await client
             .from('team logos') 
             .select('team_name, logo_url') 
             .in('team_name', uniqueTeams);
 
         if (error) {
-            console.error("Supabase logo fetch error:", error.message);
+            console.error("❌ [Logo Debugger] Supabase logo fetch error:", error.message);
             return {};
         }
 
+        console.log("📥 [Logo Debugger] Raw data returned from Supabase:", data);
+
         const logoMap = {};
-        if (data) {
+        if (data && data.length > 0) {
             data.forEach(item => {
                 if (item.team_name && item.logo_url) {
-                    logoMap[item.team_name.trim()] = item.logo_url;
+                    const trimmedName = item.team_name.trim();
+                    logoMap[trimmedName] = item.logo_url;
+                    console.log(`✅ [Logo Mapped] "${trimmedName}" -> ${item.logo_url}`);
                 }
             });
+        } else {
+            console.warn("⚠️ [Logo Debugger] Query succeeded, but 0 matching logos were found in Supabase for these team names.");
         }
+
+        console.log("🗺️ [Logo Debugger] Final compiled logoMap object:", logoMap);
         return logoMap;
     } catch (err) {
-        console.error("Unexpected error during batch fetch:", err);
+        console.error("💥 [Logo Debugger] Unexpected error during batch fetch:", err);
         return {};
     }
 }
@@ -885,9 +899,11 @@ async function renderIncomingMatchDetails(matchPayload) {
     const allTeamsToFetch = [
         homeTeamName,
         awayTeamName,
-        ...homeFormList.map(item => item[1]), // extracts opponent name e.g., "Hull City", "Ipswich Town"
-        ...awayFormList.map(item => item[1])  // extracts opponent name e.g., "Brentford", "Newcastle United"
+        ...homeFormList.map(item => item[1]), 
+        ...awayFormList.map(item => item[1])  
     ];
+
+    console.log("🎯 [Renderer] Triggering logo batch fetch for teams:", allTeamsToFetch);
 
     // Show loading state while fetching logos
     detailPanel.innerHTML = `
@@ -1058,31 +1074,6 @@ async function renderIncomingMatchDetails(matchPayload) {
 
         </div>
     `;
-}
-
-function renderStatRows(statsObj) {
-    if (!statsObj || Object.keys(statsObj).length === 0) {
-        return '<div class="text-slate-500 italic">No metrics available.</div>';
-    }
-    return Object.entries(statsObj).map(([key, value]) => {
-        const formattedKey = key.replace(/([A-Z])/g, ' $1').toUpperCase();
-        return `
-            <div class="flex justify-between items-center bg-slate-900/60 px-2.5 py-1.5 rounded border border-slate-800">
-                <span class="text-slate-400">${formattedKey}</span>
-                <span class="font-bold text-slate-100">${value}</span>
-            </div>
-        `;
-    }).join('');
-}
-
-function downloadPanelData(panelName, jsonData) {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonData, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `${panelName}_export.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
 }
 // Helper function for default panel rendering fallback
 // function renderDefaultDetails(result) {
