@@ -798,59 +798,35 @@ function renderPastMatchDetails(match) {
  * allowing the rest of the text and statistics to render safely.
  */
 async function fetchTeamLogosBatch(teamNamesArray) {
-    const uniqueTeams = [...new Set(teamNamesArray)].filter(Boolean);
-    console.log("🔍 [Logo Debugger] Unique teams requested for logo fetch:", uniqueTeams);
-
-    if (uniqueTeams.length === 0) {
-        console.warn("⚠️ [Logo Debugger] Team names array is empty. Skipping fetch.");
+    if (!Array.isArray(teamNamesArray) || teamNamesArray.length === 0) {
         return {};
     }
+    const uniqueTeams = [...new Set(teamNamesArray)].filter(Boolean);
+    if (uniqueTeams.length === 0) return {};
 
     const client = window.supabaseClient || window.supabase;
-    if (!client) {
-        console.error("❌ [Logo Debugger] Supabase client not found globally! Make sure window.supabaseClient is set in config.js.");
-        return {};
-    }
+    if (!client) return {};
 
     try {
-        console.log("🚀 [Logo Debugger] Querying Supabase 'team logos' table...");
         const { data, error } = await client
-            .from('team logos') 
+            .from('team_logos') 
             .select('team_name, logo_url') 
             .in('team_name', uniqueTeams);
 
-        if (error) {
-            console.error("❌ [Logo Debugger] Supabase logo fetch error:", error.message);
-            return {};
-        }
-
-        console.log("📥 [Logo Debugger] Raw data returned from Supabase:", data);
+        if (error || !data) return {};
 
         const logoMap = {};
-        if (data && data.length > 0) {
-            data.forEach(item => {
-                if (item.team_name && item.logo_url) {
-                    const trimmedName = item.team_name.trim();
-                    logoMap[trimmedName] = item.logo_url;
-                    console.log(`✅ [Logo Mapped] "${trimmedName}" -> ${item.logo_url}`);
-                }
-            });
-        } else {
-            console.warn("⚠️ [Logo Debugger] Query succeeded, but 0 matching logos were found in Supabase for these team names.");
-        }
-
-        console.log("🗺️ [Logo Debugger] Final compiled logoMap object:", logoMap);
+        data.forEach(item => {
+            if (item?.team_name && item?.logo_url) {
+                logoMap[item.team_name.trim()] = item.logo_url;
+            }
+        });
         return logoMap;
     } catch (err) {
-        console.error("💥 [Logo Debugger] Unexpected error during batch fetch:", err);
         return {};
     }
 }
 
-// 2. Register download and helper functions globally so HTML onclick bindings work
-// Global download helper
-// Global download helper
-// Global download helper
 function downloadPanelData(panelKey) {
     const data = window.latestMatchData?.[panelKey];
     if (!data) {
@@ -868,7 +844,6 @@ function downloadPanelData(panelKey) {
     URL.revokeObjectURL(url);
 }
 
-// Helper to safely extract string/number from nested objects
 function safeText(val, fallback = '-') {
     if (val === null || val === undefined) return fallback;
     if (typeof val === 'string' || typeof val === 'number') return val;
@@ -900,14 +875,15 @@ async function renderIncomingMatchDetails(matchPayload) {
     const homeTeamName = safeText(data.homeTeam || data.home, 'Home Team');
     const awayTeamName = safeText(data.awayTeam || data.away, 'Away Team');
     
-    // 🛡️ Correct Team Form path mapping based on your console logs
+    // Extract Form Lists safely from teamForm object
     const teamFormObj = data.teamForm || {};
-    const homeFormRaw = teamFormObj.homeTeam_previous || [];
-    const awayFormRaw = teamFormObj.awayTeam_previous || [];
+    const homeFormRaw = teamFormObj.homeTeam_previous || teamFormObj.homePrevious || teamFormObj.home || [];
+    const awayFormRaw = teamFormObj.awayTeam_previous || teamFormObj.awayPrevious || teamFormObj.away || [];
     
     const homeFormList = Array.isArray(homeFormRaw) ? homeFormRaw : Object.values(homeFormRaw || {});
     const awayFormList = Array.isArray(awayFormRaw) ? awayFormRaw : Object.values(awayFormRaw || {});
     
+    // Extract Head-to-Head safely
     const h2hRaw = data.previousMeetings || [];
     const previousMeetings = Array.isArray(h2hRaw) ? h2hRaw : Object.values(h2hRaw || {});
     
@@ -915,7 +891,7 @@ async function renderIncomingMatchDetails(matchPayload) {
     const homeStanding = standings.homeTeamStanding || {};
     const awayStanding = standings.awayTeamStanding || {};
 
-    // 1. Safe Standings / Stats Renderer (Uses standings since match statistics are empty for upcoming games)
+    // 1. Standings Stats Renderer
     function renderStandingStats(standingObj) {
         if (!standingObj || Object.keys(standingObj).length === 0) {
             return `<div class="text-xs text-slate-500 italic">No standing metrics available.</div>`;
@@ -931,7 +907,7 @@ async function renderIncomingMatchDetails(matchPayload) {
         }).join('');
     }
 
-    // 2. Safe Form List Renderer
+    // 2. Form List Renderer
     function renderFormList(formList, getLogoFunc) {
         if (!Array.isArray(formList) || formList.length === 0) {
             return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
@@ -961,12 +937,13 @@ async function renderIncomingMatchDetails(matchPayload) {
         }).join('');
     }
 
-    // Collect team names for logos
+    // Collect team names for batch logos
     const allTeamsToFetch = [
         homeTeamName,
         awayTeamName,
         ...homeFormList.map(item => safeText(item?.opponent || item?.team)), 
-        ...awayFormList.map(item => safeText(item?.opponent || item?.team))  
+        ...awayFormList.map(item => safeText(item?.opponent || item?.team)),
+        ...previousMeetings.map(m => safeText(m?.homeTeam || m?.home || m?.team1))
     ].filter(Boolean);
 
     const logoMap = await fetchTeamLogosBatch(allTeamsToFetch);
@@ -1066,10 +1043,10 @@ async function renderIncomingMatchDetails(matchPayload) {
                                 mRes = safeText(meeting[2]);
                                 mAway = safeText(meeting[3]);
                             } else if (typeof meeting === 'object' && meeting !== null) {
-                                mDate = safeText(meeting.date || meeting.matchDate);
-                                mHome = safeText(meeting.homeTeam || meeting.home);
-                                mRes = safeText(meeting.result || meeting.score);
-                                mAway = safeText(meeting.awayTeam || meeting.away);
+                                mDate = safeText(meeting.date || meeting.matchDate || meeting.round || meeting.matchweek);
+                                mHome = safeText(meeting.homeTeam || meeting.home || meeting.team1);
+                                mRes = safeText(meeting.result || meeting.score || meeting.fullTime);
+                                mAway = safeText(meeting.awayTeam || meeting.away || meeting.team2);
                             }
                             return `
                                 <div class="flex flex-col md:flex-row items-center justify-between bg-slate-950 p-3 rounded border border-slate-800/80 gap-2">
