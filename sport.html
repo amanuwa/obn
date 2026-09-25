@@ -877,22 +877,28 @@ window.renderStatRows = function(statsObj) {
  * 2. Main Match Details Renderer using exact n8n Payload structure
  */
 async function renderIncomingMatchDetails(matchPayload) {
-    const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) return;
 
     // Handle array or direct object response from n8n webhook
     const payload = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
     const data = payload.data || payload;
     
-    const homeTeamName = data.homeTeam || 'Home Team';
-    const awayTeamName = data.awayTeam || 'Away Team';
+    // Save to window for easy debugging in console
+    window.latestMatchData = data; 
     
-    // Extract required data arrays based on your exact n8n structure
-    const seasonStats = data.statistics?.seasonSoFar || {};
-    const teamFormPrev = data.teamForm_previous || {};
-    const homeFormList = teamFormPrev.homeTeam || [];
-    const awayFormList = teamFormPrev.awayTeam || [];
-    const previousMeetings = data.previousMeetings || [];
+    const homeTeamName = data.homeTeam || data.home_team || 'Home Team';
+    const awayTeamName = data.awayTeam || data.away_team || 'Away Team';
+    
+    // Flexible extractions with fallbacks for different key names
+    const statsObj = data.statistics || data.stats || {};
+    const seasonStats = statsObj.seasonSoFar || statsObj.season || statsObj;
+    
+    const teamFormPrev = data.teamForm_previous || data.teamForm || data.form || {};
+    const homeFormList = teamFormPrev.homeTeam || teamFormPrev.home || [];
+    const awayFormList = teamFormPrev.awayTeam || teamFormPrev.away || [];
+    
+    const previousMeetings = data.previousMeetings || data.headToHead || data.h2h || [];
     const standings = data.standings || {};
 
     // Collect main teams AND all opponent team names from previous form arrays (index 1)
