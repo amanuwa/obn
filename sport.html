@@ -876,29 +876,26 @@ window.renderStatRows = function(statsObj) {
 /**
  * 2. Main Match Details Renderer using exact n8n Payload structure
  */
+/**
+ * Main Match Details Renderer using exact n8n Payload structure
+ */
 async function renderIncomingMatchDetails(matchPayload) {
-const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+    const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) return;
 
     // Handle array or direct object response from n8n webhook
     const payload = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
     const data = payload.data || payload;
     
-    // Save to window for easy debugging in console
-    window.latestMatchData = data; 
+    const homeTeamName = data.homeTeam || 'Home Team';
+    const awayTeamName = data.awayTeam || 'Away Team';
     
-    const homeTeamName = data.homeTeam || data.home_team || 'Home Team';
-    const awayTeamName = data.awayTeam || data.away_team || 'Away Team';
-    
-    // Flexible extractions with fallbacks for different key names
-    const statsObj = data.statistics || data.stats || {};
-    const seasonStats = statsObj.seasonSoFar || statsObj.season || statsObj;
-    
-    const teamFormPrev = data.teamForm_previous || data.teamForm || data.form || {};
-    const homeFormList = teamFormPrev.homeTeam || teamFormPrev.home || [];
-    const awayFormList = teamFormPrev.awayTeam || teamFormPrev.away || [];
-    
-    const previousMeetings = data.previousMeetings || data.headToHead || data.h2h || [];
+    // Exact mapping based on your console keys output
+    const seasonStats = data.seasonSoFar || {};
+    const teamFormObj = data.teamForm || {};
+    const homeFormList = teamFormObj.homePrevious || [];
+    const awayFormList = teamFormObj.awayPrevious || [];
+    const previousMeetings = data.previousMeetings || [];
     const standings = data.standings || {};
 
     // Collect main teams AND all opponent team names from previous form arrays (index 1)
@@ -910,7 +907,7 @@ const detailPanel = document.getElementById('matchDetailSubPanel') || document.g
     ];
 
     console.log("🎯 [Renderer] Triggering logo batch fetch for teams:", allTeamsToFetch);
-console.log("🔍 [Debug Keys inside data]:", Object.keys(data), data);
+
     // Show loading state while fetching logos
     detailPanel.innerHTML = `
         <div class="p-8 bg-slate-950 text-slate-100 font-mono rounded-xl border border-yellow-500/30 shadow-2xl flex flex-col items-center justify-center space-y-3">
@@ -936,7 +933,7 @@ console.log("🔍 [Debug Keys inside data]:", Object.keys(data), data);
                     <img src="${homeLogoUrl}" alt="${homeTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
                     <div>
                         <div class="text-xl font-bold text-green-300">${homeTeamName} vs ${awayTeamName}</div>
-                        <div class="text-xs text-slate-400">${data.matchDate || ''} • ${data.location || ''}</div>
+                        <div class="text-xs text-slate-400">${data.matchDate || ''} • ${data.venue || ''}</div>
                     </div>
                     <img src="${awayLogoUrl}" alt="${awayTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
                 </div>
@@ -963,7 +960,7 @@ console.log("🔍 [Debug Keys inside data]:", Object.keys(data), data);
                             <span class="text-sm font-bold text-green-300">${homeTeamName}</span>
                         </div>
                         <div class="space-y-1.5 text-xs">
-                            ${renderStatRows(seasonStats.home)}
+                            ${renderStatRows(seasonStats.homeTeam || seasonStats.home || {})}
                         </div>
                     </div>
 
@@ -974,7 +971,7 @@ console.log("🔍 [Debug Keys inside data]:", Object.keys(data), data);
                             <span class="text-sm font-bold text-blue-300">${awayTeamName}</span>
                         </div>
                         <div class="space-y-1.5 text-xs">
-                            ${renderStatRows(seasonStats.away)}
+                            ${renderStatRows(seasonStats.awayTeam || seasonStats.away || {})}
                         </div>
                     </div>
                 </div>
@@ -985,7 +982,7 @@ console.log("🔍 [Debug Keys inside data]:", Object.keys(data), data);
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Last 5 Matches Form (with Opponent Logos)</span>
-                    <button onclick="downloadPanelData('teamForm_previous', ${JSON.stringify(teamFormPrev).replace(/"/g, '&quot;')})" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Form Data">
+                    <button onclick="downloadPanelData('teamForm', ${JSON.stringify(teamFormObj).replace(/"/g, '&quot;')})" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Form Data">
                         <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                 </div>
@@ -1064,17 +1061,24 @@ console.log("🔍 [Debug Keys inside data]:", Object.keys(data), data);
                 </div>
 
                 <div class="space-y-2">
-                    ${previousMeetings.length > 0 ? previousMeetings.map(meeting => `
-                        <div class="flex flex-col md:flex-row items-center justify-between bg-slate-950 p-3 rounded border border-slate-800/80 gap-2">
-                            <span class="text-[11px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${meeting.date}</span>
-                            <div class="text-xs font-medium text-slate-200 text-center">
-                                <span class="text-green-300 font-bold">${meeting.homeTeam}</span> 
-                                <span class="text-yellow-400 px-2 font-bold">${meeting.result}</span> 
-                                <span class="text-blue-300 font-bold">${meeting.awayTeam}</span>
+                    ${previousMeetings.length > 0 ? previousMeetings.map(meeting => {
+                        // Handle whether meeting is an array or object format
+                        const mDate = meeting.date || meeting[0] || '';
+                        const mHome = meeting.homeTeam || meeting[1] || '';
+                        const mRes = meeting.result || meeting[2] || '';
+                        const mAway = meeting.awayTeam || meeting[3] || '';
+                        return `
+                            <div class="flex flex-col md:flex-row items-center justify-between bg-slate-950 p-3 rounded border border-slate-800/80 gap-2">
+                                <span class="text-[11px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${mDate}</span>
+                                <div class="text-xs font-medium text-slate-200 text-center">
+                                    <span class="text-green-300 font-bold">${mHome}</span> 
+                                    <span class="text-yellow-400 px-2 font-bold">${mRes}</span> 
+                                    <span class="text-blue-300 font-bold">${mAway}</span>
+                                </div>
+                                <span class="text-[10px] text-slate-500 uppercase">Completed</span>
                             </div>
-                            <span class="text-[10px] text-slate-500 uppercase">Completed</span>
-                        </div>
-                    `).join('') : '<div class="text-xs text-slate-500 italic py-2">No previous head-to-head records found.</div>'}
+                        `;
+                    }).join('') : '<div class="text-xs text-slate-500 italic py-2">No previous head-to-head records found.</div>'}
                 </div>
             </div>
 
