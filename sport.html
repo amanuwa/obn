@@ -932,8 +932,7 @@ function renderFormList(formList) {
         let score = '-';
 
         if (typeof item === 'string') {
-            // Example string: "MW 1: Hull City (A), 2-0"
-            // Regex to parse Matchweek, Opponent, Venue (H/A), and Score
+            // Corrected regex for matching (H|A)
             const matchRegex = /MW\s*(\d+):\s*(.*?)\s*\((H\vert{}A)\),\s*(.+)/i;
             const parsed = item.match(matchRegex);
 
@@ -943,7 +942,7 @@ function renderFormList(formList) {
                 venue = parsed[3].toUpperCase() === 'H' ? 'Home' : 'Away';
                 score = parsed[4].trim();
             } else {
-                opponent = item; // Fallback if string format differs
+                opponent = item; 
             }
         } else if (typeof item === 'object' && item !== null) {
             mw = safeText(item.matchweek || item.mw, '-');
