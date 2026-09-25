@@ -880,6 +880,7 @@ window.renderStatRows = function(statsObj) {
  * Main Match Details Renderer using exact n8n Payload structure
  */
 // Global download helper (place this once in your script)
+// Global download helper
 function downloadPanelData(panelKey) {
     const data = window.latestMatchData?.[panelKey];
     if (!data) {
@@ -901,33 +902,34 @@ async function renderIncomingMatchDetails(matchPayload) {
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) return;
 
-    // Handle array or direct object response from n8n webhook
-    const payload = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
-    const data = payload.data || payload;
+    // 1. Properly unwrap n8n webhook response structures (handles .json, .data, or direct object)
+    const raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
+    const data = raw.json || raw.data || raw;
     
-    // Save to window for debugging & safe downloads
     window.latestMatchData = data; 
+    console.log("✅ Successfully unwrapped match data:", data);
+
+    const homeTeamName = data.homeTeam || data.home || 'Home Team';
+    const awayTeamName = data.awayTeam || data.away || 'Away Team';
     
-    const homeTeamName = data.homeTeam || 'Home Team';
-    const awayTeamName = data.awayTeam || 'Away Team';
-    
-    const seasonStats = data.seasonSoFar || {};
-    const teamFormObj = data.teamForm || {};
+    const seasonStats = data.seasonSoFar || data.season_so_far || {};
+    const teamFormObj = data.teamForm || data.team_form || {};
     const homeFormList = teamFormObj.homePrevious || teamFormObj.home || [];
     const awayFormList = teamFormObj.awayPrevious || teamFormObj.away || [];
-    const previousMeetings = data.previousMeetings || [];
+    const previousMeetings = data.previousMeetings || data.headToHead || data.h2h || [];
     const standings = data.standings || {};
 
-    const homeStats = seasonStats.homeTeam || seasonStats.home || seasonStats.homeStats || {};
-    const awayStats = seasonStats.awayTeam || seasonStats.away || seasonStats.awayStats || {};
+    const homeStats = seasonStats.homeTeam || seasonStats.home || seasonStats;
+    const awayStats = seasonStats.awayTeam || seasonStats.away || {};
 
-    // Dynamic stats renderer handling objects or arrays safely
+    // 2. Safe Dynamic Stats Renderer
     function renderDynamicStats(statsObj) {
-        const entries = Array.isArray(statsObj) ? statsObj.map((v, i) => [`Stat ${i+1}`, v]) : Object.entries(statsObj || {});
-        if (entries.length === 0) return '<div class="text-xs text-slate-500 italic">No metrics available.</div>';
+        if (!statsObj || typeof statsObj !== 'object') return `<div class="text-xs text-slate-500 italic">No metrics available.</div>`;
+        const entries = Object.entries(statsObj).filter(([k]) => !k.toLowerCase().includes('citation'));
         
+        if (entries.length === 0) return '<div class="text-xs text-slate-500 italic">No metrics available.</div>';
+
         return entries.map(([key, val]) => {
-            if (typeof key === 'string' && key.toLowerCase().includes('citation')) return '';
             const displayVal = (typeof val === 'object' && val !== null) ? JSON.stringify(val) : val;
             return `
                 <div class="flex justify-between items-center py-1 border-b border-slate-900">
@@ -938,7 +940,7 @@ async function renderIncomingMatchDetails(matchPayload) {
         }).join('');
     }
 
-    // Bulletproof Form List Renderer
+    // 3. Safe Form List Renderer
     function renderFormList(formList) {
         const list = Array.isArray(formList) ? formList : Object.values(formList || {});
         if (list.length === 0) {
@@ -971,7 +973,7 @@ async function renderIncomingMatchDetails(matchPayload) {
         }).join('');
     }
 
-    // Collect all teams for batch logo fetching
+    // Logo resolution
     const allTeamsToFetch = [
         homeTeamName,
         awayTeamName,
@@ -985,7 +987,7 @@ async function renderIncomingMatchDetails(matchPayload) {
     const homeLogoUrl = getLogo(homeTeamName);
     const awayLogoUrl = getLogo(awayTeamName);
 
-    // Render layout using safe key-based download triggers
+    // 4. Render Layout Markup
     detailPanel.innerHTML = `
         <div class="p-6 bg-slate-950 text-slate-100 font-mono rounded-xl border border-yellow-500/30 shadow-2xl space-y-8">
             
@@ -995,12 +997,12 @@ async function renderIncomingMatchDetails(matchPayload) {
                     <img src="${homeLogoUrl}" alt="${homeTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
                     <div>
                         <div class="text-xl font-bold text-green-300">${homeTeamName} vs ${awayTeamName}</div>
-                        <div class="text-xs text-slate-400">${data.matchDate || ''} • ${data.venue || ''}</div>
+                        <div class="text-xs text-slate-400">${data.matchDate || data.date || ''} • ${data.venue || ''}</div>
                     </div>
                     <img src="${awayLogoUrl}" alt="${awayTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
                 </div>
                 <span class="text-xs text-yellow-400 bg-yellow-950/60 px-3 py-1.5 rounded border border-yellow-500/40 font-bold">
-                    // ${standings.round || 'Fixture Preview'}
+                    // ${standings.round || data.round || 'Fixture Preview'}
                 </span>
             </div>
 
