@@ -900,11 +900,10 @@ async function renderIncomingMatchDetails(matchPayload) {
     const previousMeetings = data.previousMeetings || [];
     const standings = data.standings || {};
 
-    // ================= PASTE THE ROBUST RENDERERS HERE =================
+    // Season Stats Renderer Helper
     const homeStats = seasonStats.homeTeam || seasonStats.home || {};
     const awayStats = seasonStats.awayTeam || seasonStats.away || {};
 
-    // Helper to render stats dynamically whether they are objects or key-value pairs
     function renderDynamicStats(statsObj) {
         const entries = Object.entries(statsObj);
         if (entries.length === 0) return '<div class="text-xs text-slate-500 italic">No metrics available.</div>';
@@ -920,20 +919,22 @@ async function renderIncomingMatchDetails(matchPayload) {
         }).join('');
     }
 
-    // Helper for rendering form lists safely
+    // ================= 1. BULLETPROOF FORM RENDERER =================
     function renderFormList(formList) {
-        if (!Array.isArray(formList) || formList.length === 0) {
+        const list = Array.isArray(formList) ? formList : Object.values(formList || {});
+        if (list.length === 0) {
             return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
         }
 
-        return formList.map(match => {
-            let mw, opponent, score, venue;
+        return list.map(match => {
+            let mw = '', opponent = 'Unknown', score = '-', venue = '';
+            
             if (Array.isArray(match)) {
                 [mw, opponent, score, venue] = match;
             } else if (typeof match === 'object' && match !== null) {
-                mw = match.matchweek || match.mw || match.date || '';
-                opponent = match.opponent || match.team || match.vs || 'Unknown';
-                score = match.score || match.result || '-';
+                mw = match.matchweek || match.mw || match.date || match.round || '';
+                opponent = match.opponent || match.team || match.vs || match.homeTeam || match.awayTeam || 'Unknown';
+                score = match.score || match.result || match.fullTime || '-';
                 venue = match.venue || match.homeOrAway || '';
             }
 
@@ -941,16 +942,15 @@ async function renderIncomingMatchDetails(matchPayload) {
             return `
                 <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
                     <div class="flex items-center gap-2.5">
-                        <span class="text-[10px] text-slate-500 font-bold w-10">${mw || ''}</span>
+                        <span class="text-[10px] text-slate-500 font-bold w-10">${mw}</span>
                         <img src="${oppLogo}" alt="${opponent}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5" title="${opponent}">
-                        <span class="text-xs text-slate-200">vs ${opponent} <span class="text-[10px] text-slate-400">(${venue || ''})</span></span>
+                        <span class="text-xs text-slate-200">vs ${opponent} <span class="text-[10px] text-slate-400">(${venue})</span></span>
                     </div>
-                    <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${score || '-'}</span>
+                    <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${score}</span>
                 </div>
             `;
         }).join('');
     }
-    // ====================================================================
 
     // Collect main teams AND all opponent team names for batch logo fetching
     const allTeamsToFetch = [
@@ -1031,17 +1031,22 @@ async function renderIncomingMatchDetails(matchPayload) {
                 </div>
             </div>
 
-            <!-- PANEL 3: HEAD-TO-HEAD -->
+            <!-- ================= 2. HEAD-TO-HEAD PREVIOUS MEETINGS ================= -->
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head Previous Meetings</span>
                 </div>
                 <div class="space-y-2">
                     ${previousMeetings.length > 0 ? previousMeetings.map(meeting => {
-                        const mDate = meeting.date || meeting[0] || '';
-                        const mHome = meeting.homeTeam || meeting[1] || '';
-                        const mRes = meeting.result || meeting[2] || '';
-                        const mAway = meeting.awayTeam || meeting[3] || '';
+                        let mDate = '', mHome = '', mRes = '', mAway = '';
+                        if (Array.isArray(meeting)) {
+                            [mDate, mHome, mRes, mAway] = meeting;
+                        } else if (typeof meeting === 'object' && meeting !== null) {
+                            mDate = meeting.date || meeting.matchDate || '';
+                            mHome = meeting.homeTeam || meeting.home || '';
+                            mRes = meeting.result || meeting.score || '';
+                            mAway = meeting.awayTeam || meeting.away || '';
+                        }
                         return `
                             <div class="flex flex-col md:flex-row items-center justify-between bg-slate-950 p-3 rounded border border-slate-800/80 gap-2">
                                 <span class="text-[11px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${mDate}</span>
@@ -1060,7 +1065,6 @@ async function renderIncomingMatchDetails(matchPayload) {
         </div>
     `;
 }
-// Helper function for default panel rendering fallback
 // function renderDefaultDetails(result) {
 //     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
 //     if (detailPanel) {
