@@ -910,7 +910,7 @@ const detailPanel = document.getElementById('matchDetailSubPanel') || document.g
     ];
 
     console.log("🎯 [Renderer] Triggering logo batch fetch for teams:", allTeamsToFetch);
-
+console.log("🔍 [Debug Keys inside data]:", Object.keys(data), data);
     // Show loading state while fetching logos
     detailPanel.innerHTML = `
         <div class="p-8 bg-slate-950 text-slate-100 font-mono rounded-xl border border-yellow-500/30 shadow-2xl flex flex-col items-center justify-center space-y-3">
