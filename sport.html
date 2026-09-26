@@ -798,9 +798,7 @@ function renderPastMatchDetails(match) {
  * allowing the rest of the text and statistics to render safely.
  */
 async function fetchTeamLogosBatch(teamNamesArray) {
-    if (!Array.isArray(teamNamesArray) || teamNamesArray.length === 0) {
-        return {};
-    }
+    if (!Array.isArray(teamNamesArray) || teamNamesArray.length === 0) return {};
     const uniqueTeams = [...new Set(teamNamesArray)].filter(Boolean);
     if (uniqueTeams.length === 0) return {};
 
@@ -818,7 +816,7 @@ async function fetchTeamLogosBatch(teamNamesArray) {
         const logoMap = {};
         data.forEach(item => {
             if (item?.team_name && item?.logo_url) {
-                logoMap[item.team_name.trim()] = item.logo_url;
+                logoMap[String(item.team_name).trim()] = item.logo_url;
             }
         });
         return logoMap;
@@ -828,27 +826,31 @@ async function fetchTeamLogosBatch(teamNamesArray) {
 }
 
 function downloadPanelData(panelKey) {
-    const data = window.latestMatchData?.[panelKey];
-    if (!data) {
-        console.warn("No data found for panel:", panelKey);
-        return;
+    try {
+        const data = window.latestMatchData?.[panelKey];
+        if (!data) {
+            console.warn("No data found for panel:", panelKey);
+            return;
+        }
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${panelKey}-export.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        console.error("Download failed:", e);
     }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${panelKey}-export.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
 }
 
 function safeText(val, fallback = '-') {
     if (val === null || val === undefined) return fallback;
-    if (typeof val === 'string' || typeof val === 'number') return val;
+    if (typeof val === 'string' || typeof val === 'number') return String(val);
     if (typeof val === 'object') {
-        return val.name || val.team || val.value || val.score || val.result || JSON.stringify(val);
+        return val.name || val.team || val.value || val.score || val.result || val.opponent || JSON.stringify(val);
     }
     return String(val);
 }
@@ -857,215 +859,210 @@ async function renderIncomingMatchDetails(matchPayload) {
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) return;
 
-    if (!matchPayload) {
-        detailPanel.innerHTML = `<div class="p-4 text-xs text-slate-500 italic">No match data available to render.</div>`;
-        return;
-    }
-
-    const raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
-    const data = raw?.json || raw?.data || raw;
-    
-    if (!data || typeof data !== 'object') {
-        detailPanel.innerHTML = `<div class="p-4 text-xs text-red-400 italic">Received invalid match data format.</div>`;
-        return;
-    }
-
-    window.latestMatchData = data; 
-
-    const homeTeamName = safeText(data.homeTeam || data.home, 'Home Team');
-    const awayTeamName = safeText(data.awayTeam || data.away, 'Away Team');
-    
-    // Extract Form Lists safely from teamForm object
-    const teamFormObj = data.teamForm || {};
-    const homeFormRaw = teamFormObj.homeTeam_previous || teamFormObj.homePrevious || teamFormObj.home || [];
-    const awayFormRaw = teamFormObj.awayTeam_previous || teamFormObj.awayPrevious || teamFormObj.away || [];
-    
-    const homeFormList = Array.isArray(homeFormRaw) ? homeFormRaw : Object.values(homeFormRaw || {});
-    const awayFormList = Array.isArray(awayFormRaw) ? awayFormRaw : Object.values(awayFormRaw || {});
-    
-    // Extract Head-to-Head safely
-    const h2hRaw = data.previousMeetings || [];
-    const previousMeetings = Array.isArray(h2hRaw) ? h2hRaw : Object.values(h2hRaw || {});
-    
-    const standings = data.standings || {};
-    const homeStanding = standings.homeTeamStanding || {};
-    const awayStanding = standings.awayTeamStanding || {};
-
-    // 1. Standings Stats Renderer
-    function renderStandingStats(standingObj) {
-        if (!standingObj || Object.keys(standingObj).length === 0) {
-            return `<div class="text-xs text-slate-500 italic">No standing metrics available.</div>`;
+    try {
+        if (!matchPayload) {
+            detailPanel.innerHTML = `<div class="p-4 text-xs text-slate-500 italic">No match data available to render.</div>`;
+            return;
         }
 
-        return Object.entries(standingObj).map(([key, val]) => {
-            return `
-                <div class="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span class="text-slate-400 uppercase text-[10px]">${String(key).replace(/([A-Z])/g, ' $1')}</span>
-                    <span class="text-slate-200 font-bold">${safeText(val)}</span>
-                </div>
-            `;
-        }).join('');
-    }
-
-    // 2. Form List Renderer
-    function renderFormList(formList, getLogoFunc) {
-        if (!Array.isArray(formList) || formList.length === 0) {
-            return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
+        const raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
+        const data = raw?.json || raw?.data || raw;
+        
+        if (!data || typeof data !== 'object') {
+            detailPanel.innerHTML = `<div class="p-4 text-xs text-red-400 italic">Received invalid match data format.</div>`;
+            return;
         }
 
-        return formList.map(match => {
-            let mw = '', opponent = 'Unknown', score = '-', venue = '';
-            
-            if (typeof match === 'object' && match !== null) {
-                mw = safeText(match.matchweek || match.mw || match.date || match.round);
-                opponent = safeText(match.opponent || match.team || match.vs || match.homeTeam || match.awayTeam, 'Unknown');
-                score = safeText(match.score || match.result || match.fullTime, '-');
-                venue = safeText(match.venue || match.homeOrAway, '');
+        window.latestMatchData = data; 
+
+        const homeTeamName = safeText(data.homeTeam || data.home, 'Home Team');
+        const awayTeamName = safeText(data.awayTeam || data.away, 'Away Team');
+        
+        // Safe extraction with fallback structures
+        const teamFormObj = (data.teamForm && typeof data.teamForm === 'object') ? data.teamForm : {};
+        const homeFormRaw = teamFormObj.homeTeam_previous || teamFormObj.homePrevious || teamFormObj.home || [];
+        const awayFormRaw = teamFormObj.awayTeam_previous || teamFormObj.awayPrevious || teamFormObj.away || [];
+        
+        const homeFormList = Array.isArray(homeFormRaw) ? homeFormRaw : Object.values(homeFormRaw || {});
+        const awayFormList = Array.isArray(awayFormRaw) ? awayFormRaw : Object.values(awayFormRaw || {});
+        
+        const h2hRaw = data.previousMeetings || data.headToHead || [];
+        const previousMeetings = Array.isArray(h2hRaw) ? h2hRaw : Object.values(h2hRaw || {});
+        
+        const standings = (data.standings && typeof data.standings === 'object') ? data.standings : {};
+        const homeStanding = (standings.homeTeamStanding && typeof standings.homeTeamStanding === 'object') ? standings.homeTeamStanding : {};
+        const awayStanding = (standings.awayTeamStanding && typeof standings.awayTeamStanding === 'object') ? standings.awayTeamStanding : {};
+
+        // 1. Standings Stats Renderer
+        function renderStandingStats(standingObj) {
+            if (!standingObj || typeof standingObj !== 'object' || Object.keys(standingObj).length === 0) {
+                return `<div class="text-xs text-slate-500 italic">No standing metrics available.</div>`;
+            }
+            return Object.entries(standingObj)
+                .filter(([k]) => k && !String(k).toLowerCase().includes('citation'))
+                .map(([key, val]) => `
+                    <div class="flex justify-between items-center py-1 border-b border-slate-900">
+                        <span class="text-slate-400 uppercase text-[10px]">${String(key).replace(/([A-Z])/g, ' $1')}</span>
+                        <span class="text-slate-200 font-bold">${safeText(val)}</span>
+                    </div>
+                `).join('');
+        }
+
+        // 2. Form List Renderer
+        function renderFormList(formList, getLogoFunc) {
+            if (!Array.isArray(formList) || formList.length === 0) {
+                return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
             }
 
-            const oppLogo = getLogoFunc(opponent);
-            return `
-                <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
-                    <div class="flex items-center gap-2.5">
-                        <span class="text-[10px] text-slate-500 font-bold w-10">${mw}</span>
-                        <img src="${oppLogo}" alt="${opponent}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5" title="${opponent}">
-                        <span class="text-xs text-slate-200">vs ${opponent} <span class="text-[10px] text-slate-400">(${venue})</span></span>
-                    </div>
-                    <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${score}</span>
-                </div>
-            `;
-        }).join('');
-    }
+            return formList.map(match => {
+                if (!match || typeof match !== 'object') return '';
+                const mw = safeText(match.matchweek || match.mw || match.date || match.round || match.matchDate, 'MW');
+                const opponent = safeText(match.opponent || match.team || match.vs || match.homeTeam || match.awayTeam, 'Unknown');
+                const score = safeText(match.score || match.result || match.fullTime, '-');
+                const venue = safeText(match.venue || match.homeOrAway, '');
 
-    // Collect team names for batch logos
-    const allTeamsToFetch = [
-        homeTeamName,
-        awayTeamName,
-        ...homeFormList.map(item => safeText(item?.opponent || item?.team)), 
-        ...awayFormList.map(item => safeText(item?.opponent || item?.team)),
-        ...previousMeetings.map(m => safeText(m?.homeTeam || m?.home || m?.team1))
-    ].filter(Boolean);
-
-    const logoMap = await fetchTeamLogosBatch(allTeamsToFetch);
-    const getLogo = (name) => logoMap[name] || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Team')}&background=0f172a&color=facc15&size=128`;
-
-    const homeLogoUrl = getLogo(homeTeamName);
-    const awayLogoUrl = getLogo(awayTeamName);
-
-    // Render Layout Markup
-    detailPanel.innerHTML = `
-        <div class="p-6 bg-slate-950 text-slate-100 font-mono rounded-xl border border-yellow-500/30 shadow-2xl space-y-8">
-            
-            <!-- Header -->
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-5 gap-4">
-                <div class="flex items-center gap-4">
-                    <img src="${homeLogoUrl}" alt="${homeTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
-                    <div>
-                        <div class="text-xl font-bold text-green-300">${homeTeamName} vs ${awayTeamName}</div>
-                        <div class="text-xs text-slate-400">${safeText(data.matchDate || data.date)} • ${safeText(data.venue)}</div>
-                    </div>
-                    <img src="${awayLogoUrl}" alt="${awayTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
-                </div>
-                <span class="text-xs text-yellow-400 bg-yellow-950/60 px-3 py-1.5 rounded border border-yellow-500/40 font-bold">
-                    // ${safeText(standings.round || data.round, 'Fixture Preview')}
-                </span>
-            </div>
-
-            <!-- PANEL 1: SEASON STANDINGS -->
-            <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 1. Season Standings Overview</span>
-                    <button onclick="downloadPanelData('standings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Standings">
-                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    </button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                    <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
-                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
-                            <img src="${homeLogoUrl}" alt="${homeTeamName}" class="w-8 h-8 object-contain bg-slate-900 p-0.5 rounded">
-                            <span class="text-sm font-bold text-green-300">${homeTeamName}</span>
+                const oppLogo = getLogoFunc(opponent);
+                return `
+                    <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-[10px] text-slate-500 font-bold w-10">${mw}</span>
+                            <img src="${oppLogo}" alt="${opponent}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5" title="${opponent}">
+                            <span class="text-xs text-slate-200">vs ${opponent} ${venue ? `<span class="text-[10px] text-slate-400">(${venue})</span>` : ''}</span>
                         </div>
-                        <div class="space-y-1.5 text-xs">${renderStandingStats(homeStanding)}</div>
+                        <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${score}</span>
                     </div>
-                    <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
-                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
-                            <img src="${awayLogoUrl}" alt="${awayTeamName}" class="w-8 h-8 object-contain bg-slate-900 p-0.5 rounded">
-                            <span class="text-sm font-bold text-blue-300">${awayTeamName}</span>
-                        </div>
-                        <div class="space-y-1.5 text-xs">${renderStandingStats(awayStanding)}</div>
-                    </div>
-                </div>
-            </div>
+                `;
+            }).join('');
+        }
 
-            <!-- PANEL 2: TEAM FORM -->
-            <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Last 5 Matches Form</span>
-                    <button onclick="downloadPanelData('teamForm')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Form Data">
-                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    </button>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
-                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
-                            <img src="${homeLogoUrl}" alt="${homeTeamName}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
-                            <span class="text-xs font-bold text-green-300 uppercase">${homeTeamName} - Recent Form</span>
-                        </div>
-                        <div class="space-y-2">${renderFormList(homeFormList, getLogo)}</div>
-                    </div>
-                    <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
-                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
-                            <img src="${awayLogoUrl}" alt="${awayTeamName}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
-                            <span class="text-xs font-bold text-blue-300 uppercase">${awayTeamName} - Recent Form</span>
-                        </div>
-                        <div class="space-y-2">${renderFormList(awayFormList, getLogo)}</div>
-                    </div>
-                </div>
-            </div>
+        // Collect team names safely
+        const allTeamsToFetch = [
+            homeTeamName,
+            awayTeamName,
+            ...homeFormList.map(item => item && typeof item === 'object' ? safeText(item.opponent || item.team) : ''), 
+            ...awayFormList.map(item => item && typeof item === 'object' ? safeText(item.opponent || item.team) : '')
+        ].filter(Boolean);
 
-            <!-- PANEL 3: HEAD-TO-HEAD -->
-            <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head Previous Meetings</span>
-                    <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Data">
-                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    </button>
+        const logoMap = await fetchTeamLogosBatch(allTeamsToFetch);
+        const getLogo = (name) => logoMap[name] || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Team')}&background=0f172a&color=facc15&size=128`;
+
+        const homeLogoUrl = getLogo(homeTeamName);
+        const awayLogoUrl = getLogo(awayTeamName);
+
+        // Render Layout Markup
+        detailPanel.innerHTML = `
+            <div class="p-6 bg-slate-950 text-slate-100 font-mono rounded-xl border border-yellow-500/30 shadow-2xl space-y-8">
+                
+                <!-- Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-5 gap-4">
+                    <div class="flex items-center gap-4">
+                        <img src="${homeLogoUrl}" alt="${homeTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
+                        <div>
+                            <div class="text-xl font-bold text-green-300">${homeTeamName} vs ${awayTeamName}</div>
+                            <div class="text-xs text-slate-400">${safeText(data.matchDate || data.date)} • ${safeText(data.venue)}</div>
+                        </div>
+                        <img src="${awayLogoUrl}" alt="${awayTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
+                    </div>
+                    <span class="text-xs text-yellow-400 bg-yellow-950/60 px-3 py-1.5 rounded border border-yellow-500/40 font-bold">
+                        // ${safeText(standings.round || data.round, 'Fixture Preview')}
+                    </span>
                 </div>
-                <div class="space-y-2">
-                    ${(() => {
-                        if (previousMeetings.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No previous head-to-head records found.</div>';
-                        
-                        return previousMeetings.map(meeting => {
-                            let mDate = '', mHome = '', mRes = '', mAway = '';
-                            if (Array.isArray(meeting)) {
-                                mDate = safeText(meeting[0]);
-                                mHome = safeText(meeting[1]);
-                                mRes = safeText(meeting[2]);
-                                mAway = safeText(meeting[3]);
-                            } else if (typeof meeting === 'object' && meeting !== null) {
-                                mDate = safeText(meeting.date || meeting.matchDate || meeting.round || meeting.matchweek);
-                                mHome = safeText(meeting.homeTeam || meeting.home || meeting.team1);
-                                mRes = safeText(meeting.result || meeting.score || meeting.fullTime);
-                                mAway = safeText(meeting.awayTeam || meeting.away || meeting.team2);
+
+                <!-- PANEL 1: SEASON STANDINGS -->
+                <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 1. Season Standings Overview</span>
+                        <button onclick="downloadPanelData('standings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Standings">
+                            <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                        <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
+                            <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                                <img src="${homeLogoUrl}" alt="${homeTeamName}" class="w-8 h-8 object-contain bg-slate-900 p-0.5 rounded">
+                                <span class="text-sm font-bold text-green-300">${homeTeamName}</span>
+                            </div>
+                            <div class="space-y-1.5 text-xs">${renderStandingStats(homeStanding)}</div>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
+                            <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                                <img src="${awayLogoUrl}" alt="${awayTeamName}" class="w-8 h-8 object-contain bg-slate-900 p-0.5 rounded">
+                                <span class="text-sm font-bold text-blue-300">${awayTeamName}</span>
+                            </div>
+                            <div class="space-y-1.5 text-xs">${renderStandingStats(awayStanding)}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL 2: TEAM FORM -->
+                <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Last 5 Matches Form</span>
+                        <button onclick="downloadPanelData('teamForm')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Form Data">
+                            <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
+                            <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                                <img src="${homeLogoUrl}" alt="${homeTeamName}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
+                                <span class="text-xs font-bold text-green-300 uppercase">${homeTeamName} - Recent Form</span>
+                            </div>
+                            <div class="space-y-2">${renderFormList(homeFormList, getLogo)}</div>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
+                            <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                                <img src="${awayLogoUrl}" alt="${awayTeamName}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
+                                <span class="text-xs font-bold text-blue-300 uppercase">${awayTeamName} - Recent Form</span>
+                            </div>
+                            <div class="space-y-2">${renderFormList(awayFormList, getLogo)}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL 3: HEAD-TO-HEAD -->
+                <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head Previous Meetings</span>
+                        <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Data">
+                            <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        </button>
+                    </div>
+                    <div class="space-y-2">
+                        ${(() => {
+                            if (!Array.isArray(previousMeetings) || previousMeetings.length === 0) {
+                                return '<div class="text-xs text-slate-500 italic py-2">No previous head-to-head records found.</div>';
                             }
-                            return `
-                                <div class="flex flex-col md:flex-row items-center justify-between bg-slate-950 p-3 rounded border border-slate-800/80 gap-2">
-                                    <span class="text-[11px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${mDate}</span>
-                                    <div class="text-xs font-medium text-slate-200 text-center">
-                                        <span class="text-green-300 font-bold">${mHome}</span> 
-                                        <span class="text-yellow-400 px-2 font-bold">${mRes}</span> 
-                                        <span class="text-blue-300 font-bold">${mAway}</span>
-                                    </div>
-                                    <span class="text-[10px] text-slate-500 uppercase">Completed</span>
-                                </div>
-                            `;
-                        }).join('');
-                    })()}
-                </div>
-            </div>
+                            
+                            return previousMeetings.map(meeting => {
+                                if (!meeting || typeof meeting !== 'object') return '';
+                                const mDate = safeText(meeting.date || meeting.matchDate || meeting.round || meeting.matchweek, 'Date');
+                                const mHome = safeText(meeting.homeTeam || meeting.home || meeting.team1, 'Home');
+                                const mRes = safeText(meeting.result || meeting.score || meeting.fullTime, '-');
+                                const mAway = safeText(meeting.awayTeam || meeting.away || meeting.team2, 'Away');
 
-        </div>
-    `;
+                                return `
+                                    <div class="flex flex-col md:flex-row items-center justify-between bg-slate-950 p-3 rounded border border-slate-800/80 gap-2">
+                                        <span class="text-[11px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${mDate}</span>
+                                        <div class="text-xs font-medium text-slate-200 text-center">
+                                            <span class="text-green-300 font-bold">${mHome}</span> 
+                                            <span class="text-yellow-400 px-2 font-bold">${mRes}</span> 
+                                            <span class="text-blue-300 font-bold">${mAway}</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-500 uppercase">Completed</span>
+                                    </div>
+                                `;
+                            }).join('');
+                        })()}
+                    </div>
+                </div>
+
+            </div>
+        `;
+    } catch (err) {
+        console.error("Crash prevented inside renderIncomingMatchDetails:", err);
+        detailPanel.innerHTML = `<div class="p-4 text-xs text-red-400 italic">Error rendering match details: ${err.message}</div>`;
+    }
 }
 // function renderDefaultDetails(result) {
 //     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
