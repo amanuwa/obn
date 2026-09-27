@@ -790,6 +790,8 @@ function renderPastMatchDetails(match) {
 // ==========================================
 // 1. SAFE TEXT UTILITY
 // ==========================================
+// 1. SAFE TEXT UTILITY
+// ==========================================
 function safeText(val, fallback = '-') {
     if (val === null || val === undefined) return fallback;
     if (typeof val === 'string' || typeof val === 'number') return String(val);
@@ -877,7 +879,7 @@ function renderIncomingMatchDetails(matchPayload) {
 // 5. ISOLATED PANEL RENDERER
 // ==========================================
 async function renderWithIsolatedPanels(data) {
-    console.log("LOG [RENDERER]: Full Match Data Payload ->", data);
+    console.log("LOG [RENDERER]: Full Match Data ->", data);
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) return;
 
@@ -895,24 +897,31 @@ async function renderWithIsolatedPanels(data) {
         </div>
     `;
 
-    // Flexible extraction helpers for form & h2h
-    const teamFormObj = data.teamForm || data.form || {};
-    const teamFormPrevious = teamFormObj.previous || teamFormObj;
-    
-    // Try matching team name flexibly (exact or case-insensitive)
-    const getTeamFormList = (tName) => {
-        if (!teamFormPrevious) return [];
-        if (Array.isArray(teamFormPrevious[tName])) return teamFormPrevious[tName];
-        // Try finding case-insensitive key match
-        const foundKey = Object.keys(teamFormPrevious).find(k => k.toLowerCase() === tName.toLowerCase());
-        return foundKey && Array.isArray(teamFormPrevious[foundKey]) ? teamFormPrevious[foundKey] : [];
+    // Flexible Form Extractor checking various potential JSON paths
+    const findFormList = (teamName) => {
+        const tf = data.teamForm || data.form || {};
+        const containers = [
+            tf.previous,
+            tf,
+            data.teamFormPrevious
+        ];
+        
+        for (const container of containers) {
+            if (!container) continue;
+            // Check exact key match
+            if (Array.isArray(container[teamName])) return container[teamName];
+            // Check case-insensitive key match
+            const foundKey = Object.keys(container).find(k => k.toLowerCase() === teamName.toLowerCase());
+            if (foundKey && Array.isArray(container[foundKey])) return container[foundKey];
+        }
+        return [];
     };
 
-    const homeFormList = getTeamFormList(homeTeamName);
-    const awayFormList = getTeamFormList(awayTeamName);
+    const homeFormList = findFormList(homeTeamName);
+    const awayFormList = findFormList(awayTeamName);
 
     const h2h = data.previousMeetings || data.headToHead || data.h2h || {};
-    const h2hMatches = Array.isArray(h2h.matches) ? h2h.matches : (Array.isArray(h2h.list) ? h2h.list : []);
+    const h2hMatches = Array.isArray(h2h.matches) ? h2h.matches : (Array.isArray(h2h.list) ? h2h.list : (Array.isArray(h2h.history) ? h2h.history : []));
 
     // Extract all team names for batch logo fetching
     let logoMap = {};
@@ -920,9 +929,9 @@ async function renderWithIsolatedPanels(data) {
         const allTeams = [
             homeTeamName, 
             awayTeamName,
-            ...Array.from(homeFormList).map(m => safeText(m?.opponent || m?.team)),
-            ...Array.from(awayFormList).map(m => safeText(m?.opponent || m?.team)),
-            ...Array.from(h2hMatches).flatMap(m => [safeText(m?.homeTeam || m?.home), safeText(m?.awayTeam || m?.away)])
+            ...homeFormList.map(m => safeText(m?.opponent || m?.team || m?.rival)),
+            ...awayFormList.map(m => safeText(m?.opponent || m?.team || m?.rival)),
+            ...h2hMatches.flatMap(m => [safeText(m?.homeTeam || m?.home || m?.team1), safeText(m?.awayTeam || m?.away || m?.team2)])
         ].filter(Boolean);
 
         logoMap = await fetchTeamLogosBatch(allTeams);
@@ -1003,7 +1012,7 @@ async function renderWithIsolatedPanels(data) {
             return formList.map(match => {
                 if (!match || typeof match !== 'object') return '';
                 const mw = safeText(match.matchweek || match.mw || match.round, 'MW');
-                const opponent = safeText(match.opponent || match.team, 'Unknown');
+                const opponent = safeText(match.opponent || match.team || match.rival, 'Unknown');
                 const score = match.result || match.score || match.fullTime || match.ft || '-';
                 const venueText = safeText(match.venue || match.location, '');
 
@@ -1054,8 +1063,8 @@ async function renderWithIsolatedPanels(data) {
                 return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
             }
             return h2hMatches.map(m => {
-                const hTeam = safeText(m.homeTeam || m.home, 'Home Team');
-                const aTeam = safeText(m.awayTeam || m.away, 'Away Team');
+                const hTeam = safeText(m.homeTeam || m.home || m.team1, 'Home Team');
+                const aTeam = safeText(m.awayTeam || m.away || m.team2, 'Away Team');
                 const scoreVal = safeText(m.score || m.result || m.fullTime, '0 - 0');
                 const dateVal = safeText(m.date || m.matchDate, 'Recent');
 
@@ -1114,12 +1123,13 @@ async function renderWithIsolatedPanels(data) {
                 </div>
                 <div class="space-y-2 pt-2 border-t border-slate-800/60">
                     <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List</div>
-                    ${renderH2HList()}
+                    <div class="max-h-72 overflow-y-auto space-y-2 pr-1">
+                        ${renderH2HList()}
+                    </div>
                 </div>
             </div>`;
     } catch (err) {}
 }
-
 function renderMatchList(matchesArray) {
     const container = document.getElementById('matchListSubPanel');
     
