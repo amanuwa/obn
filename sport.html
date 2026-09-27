@@ -803,6 +803,9 @@ function renderPastMatchDetails(match) {
 // ==========================================
 // 1. SAFE TEXT UTILITY
 // ==========================================
+// ==========================================
+// 1. SAFE TEXT UTILITY
+// ==========================================
 function safeText(val, fallback = '-') {
     if (val === null || val === undefined) return fallback;
     if (typeof val === 'string' || typeof val === 'number') return String(val);
