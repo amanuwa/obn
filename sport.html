@@ -791,100 +791,8 @@ function renderPastMatchDetails(match) {
 // 1. SAFE TEXT UTILITY
 // ==========================================
 // ==========================================
-// 1. SAFE TEXT UTILITY
 // ==========================================
-// ==========================================
-// 1. SAFE TEXT UTILITY
-// ==========================================
-function safeText(val, fallback = '-') {
-    if (val === null || val === undefined) return fallback;
-    if (typeof val === 'string' || typeof val === 'number') return String(val);
-    if (typeof val === 'object') {
-        return val.score || val.result || val.name || val.team || val.value || val.opponent || JSON.stringify(val);
-    }
-    return String(val);
-}
-
-// ==========================================
-// 2. WORKING SUPABASE LOGO FETCHER
-// ==========================================
-async function fetchTeamLogosBatch(teamNamesArray) {
-    if (!Array.isArray(teamNamesArray) || teamNamesArray.length === 0) return {};
-    const uniqueTeams = [...new Set(teamNamesArray)].filter(Boolean);
-    if (uniqueTeams.length === 0) return {};
-
-    const client = window.supabaseClient || window.supabase;
-    if (!client) return {};
-
-    try {
-        const { data, error } = await client
-            .from('team logos') 
-            .select('team_name, logo_url') 
-            .in('team_name', uniqueTeams);
-
-        if (error || !data) return {};
-
-        const logoMap = {};
-        data.forEach(item => {
-            if (item?.team_name && item?.logo_url) {
-                logoMap[item.team_name.trim()] = item.logo_url;
-            }
-        });
-        return logoMap;
-    } catch (err) {
-        return {};
-    }
-}
-
-// ==========================================
-// 3. EXPORT / DOWNLOAD HELPER
-// ==========================================
-function downloadPanelData(panelKey) {
-    try {
-        const data = window.tempMatchCache?.[panelKey] || window.latestMatchData?.[panelKey];
-        if (!data) return;
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${panelKey}-export.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    } catch (e) {}
-}
-
-// ==========================================
-// 4. ENTRY FUNCTION (UNWRAPS WEBHOOK DATA)
-// ==========================================
-function saveAndRenderMatchData(matchPayload) {
-    try {
-        let raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
-        if (raw?.json) raw = raw.json;
-        if (raw?.data) raw = raw.data;
-        if (Array.isArray(raw)) raw = raw[0];
-
-        if (!raw || typeof raw !== 'object') return;
-
-        window.tempMatchCache = raw;
-        window.latestMatchData = raw;
-        try {
-            sessionStorage.setItem('savedMatchPayload', JSON.stringify(raw));
-        } catch (e) {}
-
-        renderWithIsolatedPanels(raw);
-    } catch (err) {
-        console.error("LOG [ERROR]: Failed parsing match data ->", err);
-    }
-}
-
-function renderIncomingMatchDetails(matchPayload) {
-    saveAndRenderMatchData(matchPayload);
-}
-
-// ==========================================
-// 5. ISOLATED PANEL RENDERER (STRING PARSER)
+// 5. ISOLATED PANEL RENDERER (UPDATED PREVIOUS MEETINGS SUMMARY)
 // ==========================================
 async function renderWithIsolatedPanels(data) {
     console.log("LOG [RENDERER]: COMPLETE RAW PAYLOAD RECEIVED ->", data);
@@ -906,12 +814,11 @@ async function renderWithIsolatedPanels(data) {
         </div>
     `;
 
-    // --- EXTRACT TEAM FORM STRINGS (homePrevious / awayPrevious) ---
+    // --- EXTRACT TEAM FORM STRINGS ---
     const teamFormObj = data.teamForm || {};
     const rawHomeForm = teamFormObj.homePrevious || teamFormObj.home || data.homePrevious || [];
     const rawAwayForm = teamFormObj.awayPrevious || teamFormObj.away || data.awayPrevious || [];
 
-    // Helper to parse strings like "MW1: Hull City 0-2 Manchester United"
     const parseFormString = (str, mainTeam) => {
         if (typeof str !== 'object' && typeof str !== 'string') return null;
         if (typeof str === 'object') {
@@ -923,7 +830,6 @@ async function renderWithIsolatedPanels(data) {
             };
         }
 
-        // Example: "MW1: Hull City 0-2 Manchester United"
         let mw = 'MW';
         let remaining = str;
 
@@ -933,7 +839,6 @@ async function renderWithIsolatedPanels(data) {
             remaining = parts.slice(1).join(':').trim();
         }
 
-        // Match standard football score format inside string (e.g. " 0-2 ", " 1-1 ")
         const scoreRegex = /\s+(\d+[-–]\d+)\s+/;
         const match = remaining.match(scoreRegex);
 
@@ -942,8 +847,6 @@ async function renderWithIsolatedPanels(data) {
             const scoreIndex = remaining.indexOf(score);
             const teamA = remaining.substring(0, scoreIndex).trim();
             const teamB = remaining.substring(scoreIndex + score.length).trim();
-
-            // Determine which one is the opponent
             const opponent = teamA.toLowerCase() === mainTeam.toLowerCase() ? teamB : teamA;
             return { mw, opponent, score, venueText: '' };
         }
@@ -955,8 +858,7 @@ async function renderWithIsolatedPanels(data) {
     const awayFormList = Array.isArray(rawAwayForm) ? rawAwayForm.map(s => parseFormString(s, awayTeamName)).filter(Boolean) : [];
 
     // --- H2H MATCHES EXTRACTION ---
-    const h2hObj = data.previousMeetings || data.headToHead || data.h2h || {};
-    const h2hMatches = h2hObj.matches || h2hObj.list || h2hObj.history || (Array.isArray(h2hObj) ? h2hObj : []) || [];
+    const h2hMatches = data.previousMeetings || data.matches || data.headToHead || data.h2h || [];
 
     // Gather all team names for batch logo fetching
     let logoMap = {};
@@ -1038,7 +940,7 @@ async function renderWithIsolatedPanels(data) {
             </div>`;
     } catch (err) {}
 
-    // --- FORM SLOT (PANEL 2 - FORM LIST) ---
+    // --- FORM SLOT (PANEL 2) ---
     try {
         const renderFormList = (formList) => {
             if (!Array.isArray(formList) || formList.length === 0) {
@@ -1086,7 +988,7 @@ async function renderWithIsolatedPanels(data) {
             </div>`;
     } catch (err) {}
 
-    // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
+    // --- H2H SLOT (PANEL 3 - MAPPED TO previousMeetingsSummary) ---
     try {
         const renderH2HList = () => {
             if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) {
@@ -1120,16 +1022,18 @@ async function renderWithIsolatedPanels(data) {
             }).join('');
         };
 
-        const totalPlayed = h2hObj.played || h2hObj.totalPlayed || h2hObj.total || h2hMatches.length || 0;
-        const homeWins = h2hObj.homeTeamWins || h2hObj.homeWins || h2hObj.home_wins || 0;
-        const awayWins = h2hObj.awayTeamWins || h2hObj.awayWins || h2hObj.away_wins || 0;
-        const draws = h2hObj.draws || h2hObj.draw || 0;
+        // Read directly from previousMeetingsSummary object
+        const summary = data.previousMeetingsSummary || {};
+        const totalPlayed = summary.played ?? h2hMatches.length ?? 0;
+        const homeWins = summary.homeWins ?? 0;
+        const awayWins = summary.awayWins ?? 0;
+        const draws = summary.draws ?? 0;
 
         document.getElementById('panel-h2h-slot').innerHTML = `
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head History & Match List</span>
-                    <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Data">
+                    <button onclick="downloadPanelData('previousMeetingsSummary')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Data">
                         <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                 </div>
@@ -1159,8 +1063,7 @@ async function renderWithIsolatedPanels(data) {
                 </div>
             </div>`;
     } catch (err) {}
-}
-function renderMatchList(matchesArray) {
+}function renderMatchList(matchesArray) {
     const container = document.getElementById('matchListSubPanel');
     
     if (!container) {
