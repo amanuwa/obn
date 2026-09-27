@@ -807,7 +807,7 @@ function safeText(val, fallback = '-') {
     if (val === null || val === undefined) return fallback;
     if (typeof val === 'string' || typeof val === 'number') return String(val);
     if (typeof val === 'object') {
-        return val.name || val.team || val.value || val.score || val.result || val.opponent || JSON.stringify(val);
+        return val.score || val.result || val.name || val.team || val.value || val.opponent || JSON.stringify(val);
     }
     return String(val);
 }
@@ -815,15 +815,9 @@ function safeText(val, fallback = '-') {
 // ==========================================
 // 2. WORKING SUPABASE LOGO FETCHER
 // ==========================================
-// ==========================================
-// 2. WORKING SUPABASE LOGO FETCHER (FIXED TABLE NAME)
-// ==========================================
 async function fetchTeamLogosBatch(teamNamesArray) {
     console.log("LOG [SUPABASE]: Fetching logos for teams ->", teamNamesArray);
-    if (!Array.isArray(teamNamesArray) || teamNamesArray.length === 0) {
-        console.log("LOG [SUPABASE]: Team names array is empty.");
-        return {};
-    }
+    if (!Array.isArray(teamNamesArray) || teamNamesArray.length === 0) return {};
     const uniqueTeams = [...new Set(teamNamesArray)].filter(Boolean);
     if (uniqueTeams.length === 0) return {};
 
@@ -834,25 +828,22 @@ async function fetchTeamLogosBatch(teamNamesArray) {
     }
 
     try {
-        // NOTE: Notice the exact table name 'team logos' matching your Supabase UI
         const { data, error } = await client
             .from('team logos') 
             .select('team_name, logo_url') 
             .in('team_name', uniqueTeams);
 
-        if (error) {
+        if (error || !data) {
             console.error("LOG [SUPABASE]: Error querying 'team logos' table:", error);
             return {};
         }
 
         const logoMap = {};
-        if (data) {
-            data.forEach(item => {
-                if (item?.team_name && item?.logo_url) {
-                    logoMap[item.team_name.trim()] = item.logo_url;
-                }
-            });
-        }
+        data.forEach(item => {
+            if (item?.team_name && item?.logo_url) {
+                logoMap[item.team_name.trim()] = item.logo_url;
+            }
+        });
         console.log("LOG [SUPABASE]: Logo map built successfully ->", logoMap);
         return logoMap;
     } catch (err) {
@@ -866,10 +857,10 @@ async function fetchTeamLogosBatch(teamNamesArray) {
 // ==========================================
 function downloadPanelData(panelKey) {
     try {
-        console.log("LOG: Downloading panel data for:", panelKey);
+        console.log(`LOG [DOWNLOAD]: Export requested for panel key: '${panelKey}'`);
         const data = window.tempMatchCache?.[panelKey] || window.latestMatchData?.[panelKey];
         if (!data) {
-            console.warn("LOG: No data found to download for panel:", panelKey);
+            console.warn(`LOG [DOWNLOAD]: No data found for panel key: '${panelKey}'`);
             return;
         }
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -882,7 +873,7 @@ function downloadPanelData(panelKey) {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     } catch (e) {
-        console.error("LOG: Download failed:", e);
+        console.error("LOG [DOWNLOAD]: Download failed:", e);
     }
 }
 
@@ -890,14 +881,13 @@ function downloadPanelData(panelKey) {
 // 4. TEMPORARY CACHE & ENTRY FUNCTION
 // ==========================================
 function saveAndRenderMatchData(matchPayload) {
-    console.log("LOG [2/7]: saveAndRenderMatchData called with payload:", matchPayload);
+    console.log("LOG [ENTRY]: saveAndRenderMatchData invoked with payload:", matchPayload);
     try {
-        // Correctly unwrap n8n array wrapper and .data property
         const raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
         const data = raw?.data || raw?.json || raw;
         
         if (!data || typeof data !== 'object') {
-            console.error("LOG [2/7]: Invalid data payload received!");
+            console.error("LOG [ENTRY]: Invalid data payload format:", data);
             return;
         }
 
@@ -905,30 +895,26 @@ function saveAndRenderMatchData(matchPayload) {
         window.latestMatchData = data;
         try {
             sessionStorage.setItem('savedMatchPayload', JSON.stringify(data));
-            console.log("LOG [2/7]: Data successfully cached to sessionStorage.");
-        } catch (e) {
-            console.warn("LOG [2/7]: Session storage failed:", e);
-        }
+        } catch (e) {}
 
         renderWithIsolatedPanels(data);
     } catch (err) {
-        console.error("LOG [2/7]: Critical error inside saveAndRenderMatchData:", err);
+        console.error("LOG [ENTRY]: Critical error in saveAndRenderMatchData:", err);
     }
 }
 
 function renderIncomingMatchDetails(matchPayload) {
-    console.log("LOG: renderIncomingMatchDetails alias triggered.");
     saveAndRenderMatchData(matchPayload);
 }
 
 // ==========================================
-// 5. ISOLATED PANEL RENDERER WITH LOGS
+// 5. ISOLATED PANEL RENDERER
 // ==========================================
 async function renderWithIsolatedPanels(data) {
-    console.log("LOG [3/7]: Starting renderWithIsolatedPanels...", data);
+    console.log("LOG [RENDERER]: Starting renderWithIsolatedPanels with match object:", data);
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) {
-        console.error("LOG [3/7]: Target container panel not found in DOM!");
+        console.error("LOG [RENDERER]: Target detail panel element not found in DOM!");
         return;
     }
 
@@ -946,30 +932,32 @@ async function renderWithIsolatedPanels(data) {
         </div>
     `;
 
-    // Extract team names for batch logo fetching using exact JSON structure
+    // Extract all team names for batch logo fetching
     let logoMap = {};
     try {
         const teamFormPrevious = data.teamForm?.previous || {};
         const homeFormList = teamFormPrevious[homeTeamName] || [];
         const awayFormList = teamFormPrevious[awayTeamName] || [];
+        const h2hList = Array.isArray(data.previousMeetings?.matches) ? data.previousMeetings.matches : [];
 
         const allTeams = [
             homeTeamName, 
             awayTeamName,
-            ...homeFormList.map(m => safeText(m?.opponent)),
-            ...awayFormList.map(m => safeText(m?.opponent))
+            ...Array.from(homeFormList).map(m => safeText(m?.opponent)),
+            ...Array.from(awayFormList).map(m => safeText(m?.opponent)),
+            ...Array.from(h2hList).flatMap(m => [safeText(m?.homeTeam), safeText(m?.awayTeam)])
         ].filter(Boolean);
 
         logoMap = await fetchTeamLogosBatch(allTeams);
     } catch (e) {
-        console.warn("LOG: Logo extraction skipped:", e);
+        console.warn("LOG [RENDERER]: Logo extraction warning:", e);
     }
     
     const getLogo = (name) => logoMap[name] || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Team')}&background=0f172a&color=facc15&size=128`;
 
-    // --- 1. RENDER HEADER SLOT ---
+    // --- 1. HEADER SLOT ---
     try {
-        console.log("LOG [4/7]: Rendering Header Slot...");
+        console.log("LOG [PANEL 1/4 - HEADER]: Rendering header slot...");
         document.getElementById('panel-header-slot').innerHTML = `
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-5 gap-4">
                 <div class="flex items-center gap-4">
@@ -985,12 +973,12 @@ async function renderWithIsolatedPanels(data) {
                 </span>
             </div>`;
     } catch (err) {
-        console.error("LOG [4/7]: Header render error:", err);
+        console.error("LOG [PANEL 1/4 - HEADER]: Error:", err);
     }
 
-    // --- 2. RENDER STANDINGS SLOT ---
+    // --- 2. STANDINGS SLOT ---
     try {
-        console.log("LOG [5/7]: Rendering Standings Slot...");
+        console.log("LOG [PANEL 2/4 - STANDINGS]: Rendering standings slot...");
         const standings = data.standings || {};
         const homeStanding = standings.homeTeamStanding || {};
         const awayStanding = standings.awayTeamStanding || {};
@@ -1034,12 +1022,12 @@ async function renderWithIsolatedPanels(data) {
                 </div>
             </div>`;
     } catch (err) {
-        console.error("LOG [5/7]: Standings panel error:", err);
+        console.error("LOG [PANEL 2/4 - STANDINGS]: Error:", err);
     }
 
-    // --- 3. RENDER FORM SLOT ---
+    // --- 3. FORM SLOT ---
     try {
-        console.log("LOG [6/7]: Rendering Form Slot...");
+        console.log("LOG [PANEL 3/4 - FORM]: Rendering form slot...");
         const teamFormPrevious = data.teamForm?.previous || {};
         const homeFormList = Array.isArray(teamFormPrevious[homeTeamName]) ? teamFormPrevious[homeTeamName] : [];
         const awayFormList = Array.isArray(teamFormPrevious[awayTeamName]) ? teamFormPrevious[awayTeamName] : [];
@@ -1052,17 +1040,17 @@ async function renderWithIsolatedPanels(data) {
                 if (!match || typeof match !== 'object') return '';
                 const mw = safeText(match.matchweek, 'MW');
                 const opponent = safeText(match.opponent, 'Unknown');
-                const score = safeText(match.result, '-');
-                const venue = safeText(match.venue, '');
+                const score = match.result || match.score || match.fullTime || match.ft || '-';
+                const venueText = safeText(match.venue, '');
 
                 return `
                     <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
                         <div class="flex items-center gap-2.5">
                             <span class="text-[10px] text-slate-500 font-bold w-10">MW ${mw}</span>
                             <img src="${getLogo(opponent)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
-                            <span class="text-xs text-slate-200">vs ${opponent} ${venue ? `<span class="text-[10px] text-slate-400">(${venue})</span>` : ''}</span>
+                            <span class="text-xs text-slate-200">vs ${opponent} ${venueText ? `<span class="text-[10px] text-slate-400">(${venueText})</span>` : ''}</span>
                         </div>
-                        <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${score}</span>
+                        <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">${safeText(score)}</span>
                     </div>
                 `;
             }).join('');
@@ -1094,18 +1082,51 @@ async function renderWithIsolatedPanels(data) {
                 </div>
             </div>`;
     } catch (err) {
-        console.error("LOG [6/7]: Form panel error:", err);
+        console.error("LOG [PANEL 3/4 - FORM]: Error:", err);
     }
 
-    // --- 4. RENDER H2H SLOT (Handles Aggregate Stats from JSON) ---
+    // --- 4. H2H SLOT (Summary + Expanded Match History List) ---
     try {
-        console.log("LOG [7/7]: Rendering H2H Slot...");
+        console.log("LOG [PANEL 4/4 - H2H]: Rendering H2H slot...");
         const h2h = data.previousMeetings || {};
-        
+        const h2hMatches = Array.isArray(h2h.matches) ? h2h.matches : [];
+
+        const renderH2HList = () => {
+            if (h2hMatches.length === 0) {
+                return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
+            }
+            return h2hMatches.map(m => {
+                const hTeam = safeText(m.homeTeam, 'Home Team');
+                const aTeam = safeText(m.awayTeam, 'Away Team');
+                const scoreVal = safeText(m.score || m.result, '0 - 0');
+                const dateVal = safeText(m.date || m.matchDate, 'Recent');
+
+                return `
+                    <div class="flex items-center justify-between bg-slate-900/80 p-3 rounded border border-slate-800">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-1.5">
+                                <img src="${getLogo(hTeam)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
+                                <span class="text-xs font-bold text-slate-200">${hTeam}</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500">vs</span>
+                            <div class="flex items-center gap-1.5">
+                                <img src="${getLogo(aTeam)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
+                                <span class="text-xs font-bold text-slate-200">${aTeam}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] text-slate-400">${dateVal}</span>
+                            <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">${scoreVal}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
         document.getElementById('panel-h2h-slot').innerHTML = `
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head History Summary</span>
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head History & Summary</span>
                     <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Data">
                         <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
@@ -1128,15 +1149,19 @@ async function renderWithIsolatedPanels(data) {
                         <div class="text-lg font-bold text-yellow-300">${safeText(h2h.draws, '0')}</div>
                     </div>
                 </div>
+                <div class="space-y-2 pt-2 border-t border-slate-800/60">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List</div>
+                    ${renderH2HList()}
+                </div>
             </div>`;
-        console.log("LOG [7/7]: All panels rendered successfully.");
     } catch (err) {
-        console.error("LOG [7/7]: H2H panel error:", err);
+        console.error("LOG [PANEL 4/4 - H2H]: Error:", err);
     }
+    
+    console.log("LOG [RENDERER]: All panels execution completed successfully.");
 }
 
 
-    //////////////////////////
 function renderMatchList(matchesArray) {
     const container = document.getElementById('matchListSubPanel');
     
