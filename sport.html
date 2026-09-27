@@ -790,6 +790,7 @@ function renderPastMatchDetails(match) {
 // ==========================================
 // 1. SAFE TEXT UTILITY
 // ==========================================
+// ==========================================
 // 1. SAFE TEXT UTILITY
 // ==========================================
 function safeText(val, fallback = '-') {
@@ -852,23 +853,27 @@ function downloadPanelData(panelKey) {
 }
 
 // ==========================================
-// 4. TEMPORARY CACHE & ENTRY FUNCTION
+// 4. ENTRY FUNCTION (UNWRAPS WEBHOOK DATA)
 // ==========================================
 function saveAndRenderMatchData(matchPayload) {
     try {
-        const raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
-        const data = raw?.data || raw?.json || raw;
-        
-        if (!data || typeof data !== 'object') return;
+        let raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
+        if (raw?.json) raw = raw.json;
+        if (raw?.data) raw = raw.data;
+        if (Array.isArray(raw)) raw = raw[0];
 
-        window.tempMatchCache = data;
-        window.latestMatchData = data;
+        if (!raw || typeof raw !== 'object') return;
+
+        window.tempMatchCache = raw;
+        window.latestMatchData = raw;
         try {
-            sessionStorage.setItem('savedMatchPayload', JSON.stringify(data));
+            sessionStorage.setItem('savedMatchPayload', JSON.stringify(raw));
         } catch (e) {}
 
-        renderWithIsolatedPanels(data);
-    } catch (err) {}
+        renderWithIsolatedPanels(raw);
+    } catch (err) {
+        console.error("LOG [ERROR]: Failed parsing match data ->", err);
+    }
 }
 
 function renderIncomingMatchDetails(matchPayload) {
@@ -879,14 +884,15 @@ function renderIncomingMatchDetails(matchPayload) {
 // 5. ISOLATED PANEL RENDERER
 // ==========================================
 async function renderWithIsolatedPanels(data) {
-    console.log("LOG [RENDERER]: Full Match Data ->", data);
+    console.log("LOG [RENDERER]: Unwrapped Match Data ->", data);
+
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) return;
 
-    const homeTeamName = safeText(data.homeTeam, 'Home Team');
-    const awayTeamName = safeText(data.awayTeam, 'Away Team');
+    const homeTeamName = safeText(data.homeTeam || data.home, 'Home Team');
+    const awayTeamName = safeText(data.awayTeam || data.away, 'Away Team');
     const venue = safeText(data.location || data.venue, 'Stadium');
-    const matchDate = safeText(data.matchDate, 'TBD');
+    const matchDate = safeText(data.matchDate || data.date, 'TBD');
 
     detailPanel.innerHTML = `
         <div class="p-6 bg-slate-950 text-slate-100 font-mono rounded-xl border border-yellow-500/30 shadow-2xl space-y-8">
@@ -897,41 +903,48 @@ async function renderWithIsolatedPanels(data) {
         </div>
     `;
 
-    // Flexible Form Extractor checking various potential JSON paths
-    const findFormList = (teamName) => {
-        const tf = data.teamForm || data.form || {};
-        const containers = [
-            tf.previous,
-            tf,
-            data.teamFormPrevious
-        ];
+    // --- FORM DATA EXTRACTION ---
+    // Looks into teamForm, form, or direct properties for each team
+    const extractFormList = (teamName) => {
+        const tf = data.teamForm || data.form || data.recentForm || {};
         
-        for (const container of containers) {
-            if (!container) continue;
-            // Check exact key match
-            if (Array.isArray(container[teamName])) return container[teamName];
-            // Check case-insensitive key match
-            const foundKey = Object.keys(container).find(k => k.toLowerCase() === teamName.toLowerCase());
-            if (foundKey && Array.isArray(container[foundKey])) return container[foundKey];
-        }
+        // Direct property check
+        if (Array.isArray(tf[teamName])) return tf[teamName];
+        if (tf.previous && Array.isArray(tf.previous[teamName])) return tf.previous[teamName];
+        
+        // Case-insensitive key match inside teamForm object
+        const matchingKey = Object.keys(tf).find(k => k.toLowerCase() === teamName.toLowerCase());
+        if (matchingKey && Array.isArray(tf[matchingKey])) return tf[matchingKey];
+
+        // Fallback to separate top-level keys if they exist
+        if (teamName === homeTeamName && Array.isArray(data.homeTeamForm)) return data.homeTeamForm;
+        if (teamName === awayTeamName && Array.isArray(data.awayTeamForm)) return data.awayTeamForm;
+
         return [];
     };
 
-    const homeFormList = findFormList(homeTeamName);
-    const awayFormList = findFormList(awayTeamName);
+    const homeFormList = extractFormList(homeTeamName);
+    const awayFormList = extractFormList(awayTeamName);
 
+    // --- H2H MATCHES EXTRACTION ---
     const h2h = data.previousMeetings || data.headToHead || data.h2h || {};
-    const h2hMatches = Array.isArray(h2h.matches) ? h2h.matches : (Array.isArray(h2h.list) ? h2h.list : (Array.isArray(h2h.history) ? h2h.history : []));
+    const h2hMatches = Array.isArray(h2h.matches) 
+        ? h2h.matches 
+        : (Array.isArray(h2h.list) 
+            ? h2h.list 
+            : (Array.isArray(h2h.history) 
+                ? h2h.history 
+                : (Array.isArray(h2h) ? h2h : (Array.isArray(data.previousMeetingsList) ? data.previousMeetingsList : []))));
 
-    // Extract all team names for batch logo fetching
+    // Gather all team names for batch logo fetching
     let logoMap = {};
     try {
         const allTeams = [
             homeTeamName, 
             awayTeamName,
-            ...homeFormList.map(m => safeText(m?.opponent || m?.team || m?.rival)),
-            ...awayFormList.map(m => safeText(m?.opponent || m?.team || m?.rival)),
-            ...h2hMatches.flatMap(m => [safeText(m?.homeTeam || m?.home || m?.team1), safeText(m?.awayTeam || m?.away || m?.team2)])
+            ...homeFormList.map(m => safeText(m?.opponent || m?.team || m?.awayTeam || m?.homeTeam)),
+            ...awayFormList.map(m => safeText(m?.opponent || m?.team || m?.awayTeam || m?.homeTeam)),
+            ...h2hMatches.flatMap(m => [safeText(m?.homeTeam || m?.home), safeText(m?.awayTeam || m?.away)])
         ].filter(Boolean);
 
         logoMap = await fetchTeamLogosBatch(allTeams);
@@ -939,7 +952,7 @@ async function renderWithIsolatedPanels(data) {
     
     const getLogo = (name) => logoMap[name] || logoMap[Object.keys(logoMap).find(k => k.toLowerCase() === String(name).toLowerCase())] || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Team')}&background=0f172a&color=facc15&size=128`;
 
-    // --- 1. HEADER SLOT ---
+    // --- HEADER SLOT ---
     try {
         document.getElementById('panel-header-slot').innerHTML = `
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-5 gap-4">
@@ -952,12 +965,12 @@ async function renderWithIsolatedPanels(data) {
                     <img src="${getLogo(awayTeamName)}" alt="${awayTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
                 </div>
                 <span class="text-xs text-yellow-400 bg-yellow-950/60 px-3 py-1.5 rounded border border-yellow-500/40 font-bold">
-                    // ${safeText(data.round, 'Fixture Preview')}
+                    // ${safeText(data.round || data.matchweek, 'Fixture Preview')}
                 </span>
             </div>`;
     } catch (err) {}
 
-    // --- 2. STANDINGS SLOT ---
+    // --- STANDINGS SLOT (PANEL 1 - CORRECT) ---
     try {
         const standings = data.standings || {};
         const homeStanding = standings.homeTeamStanding || standings.home || {};
@@ -1003,7 +1016,7 @@ async function renderWithIsolatedPanels(data) {
             </div>`;
     } catch (err) {}
 
-    // --- 3. FORM SLOT ---
+    // --- FORM SLOT (PANEL 2 - FORM LIST) ---
     try {
         const renderFormList = (formList) => {
             if (!Array.isArray(formList) || formList.length === 0) {
@@ -1012,7 +1025,7 @@ async function renderWithIsolatedPanels(data) {
             return formList.map(match => {
                 if (!match || typeof match !== 'object') return '';
                 const mw = safeText(match.matchweek || match.mw || match.round, 'MW');
-                const opponent = safeText(match.opponent || match.team || match.rival, 'Unknown');
+                const opponent = safeText(match.opponent || match.team || match.awayTeam || match.homeTeam, 'Unknown');
                 const score = match.result || match.score || match.fullTime || match.ft || '-';
                 const venueText = safeText(match.venue || match.location, '');
 
@@ -1032,7 +1045,7 @@ async function renderWithIsolatedPanels(data) {
         document.getElementById('panel-form-slot').innerHTML = `
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Last 5 Matches Form</span>
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Last 5 Matches Form List</span>
                     <button onclick="downloadPanelData('teamForm')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Form Data">
                         <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
@@ -1043,28 +1056,28 @@ async function renderWithIsolatedPanels(data) {
                             <img src="${getLogo(homeTeamName)}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
                             <span class="text-xs font-bold text-green-300 uppercase">${homeTeamName} - Recent Form</span>
                         </div>
-                        <div class="space-y-2">${renderFormList(homeFormList)}</div>
+                        <div class="space-y-2 max-h-64 overflow-y-auto pr-1">${renderFormList(homeFormList)}</div>
                     </div>
                     <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
                         <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
                             <img src="${getLogo(awayTeamName)}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
                             <span class="text-xs font-bold text-blue-300 uppercase">${awayTeamName} - Recent Form</span>
                         </div>
-                        <div class="space-y-2">${renderFormList(awayFormList)}</div>
+                        <div class="space-y-2 max-h-64 overflow-y-auto pr-1">${renderFormList(awayFormList)}</div>
                     </div>
                 </div>
             </div>`;
     } catch (err) {}
 
-    // --- 4. H2H SLOT ---
+    // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST & SUMMARY) ---
     try {
         const renderH2HList = () => {
             if (h2hMatches.length === 0) {
                 return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
             }
             return h2hMatches.map(m => {
-                const hTeam = safeText(m.homeTeam || m.home || m.team1, 'Home Team');
-                const aTeam = safeText(m.awayTeam || m.away || m.team2, 'Away Team');
+                const hTeam = safeText(m.homeTeam || m.home, 'Home Team');
+                const aTeam = safeText(m.awayTeam || m.away, 'Away Team');
                 const scoreVal = safeText(m.score || m.result || m.fullTime, '0 - 0');
                 const dateVal = safeText(m.date || m.matchDate, 'Recent');
 
@@ -1098,7 +1111,7 @@ async function renderWithIsolatedPanels(data) {
         document.getElementById('panel-h2h-slot').innerHTML = `
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head History & Summary</span>
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head History & Match List</span>
                     <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Data">
                         <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
