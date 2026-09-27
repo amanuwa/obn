@@ -815,9 +815,13 @@ function safeText(val, fallback = '-') {
 // ==========================================
 // 2. WORKING SUPABASE LOGO FETCHER
 // ==========================================
+// ==========================================
+// 2. WORKING SUPABASE LOGO FETCHER (FIXED TABLE NAME)
+// ==========================================
 async function fetchTeamLogosBatch(teamNamesArray) {
-    console.log("LOG [1/7]: Fetching logos for teams:", teamNamesArray);
+    console.log("LOG [SUPABASE]: Fetching logos for teams ->", teamNamesArray);
     if (!Array.isArray(teamNamesArray) || teamNamesArray.length === 0) {
+        console.log("LOG [SUPABASE]: Team names array is empty.");
         return {};
     }
     const uniqueTeams = [...new Set(teamNamesArray)].filter(Boolean);
@@ -825,31 +829,34 @@ async function fetchTeamLogosBatch(teamNamesArray) {
 
     const client = window.supabaseClient || window.supabase;
     if (!client) {
-        console.warn("LOG [1/7]: Supabase client not found.");
+        console.warn("LOG [SUPABASE]: Supabase client not found on window.");
         return {};
     }
 
     try {
+        // NOTE: Notice the exact table name 'team logos' matching your Supabase UI
         const { data, error } = await client
-            .from('team_logos') 
+            .from('team logos') 
             .select('team_name, logo_url') 
             .in('team_name', uniqueTeams);
 
-        if (error || !data) {
-            console.error("LOG [1/7]: Supabase error:", error);
+        if (error) {
+            console.error("LOG [SUPABASE]: Error querying 'team logos' table:", error);
             return {};
         }
 
         const logoMap = {};
-        data.forEach(item => {
-            if (item?.team_name && item?.logo_url) {
-                logoMap[item.team_name.trim()] = item.logo_url;
-            }
-        });
-        console.log("LOG [1/7]: Logo map built successfully:", logoMap);
+        if (data) {
+            data.forEach(item => {
+                if (item?.team_name && item?.logo_url) {
+                    logoMap[item.team_name.trim()] = item.logo_url;
+                }
+            });
+        }
+        console.log("LOG [SUPABASE]: Logo map built successfully ->", logoMap);
         return logoMap;
     } catch (err) {
-        console.error("LOG [1/7]: Logo fetch exception:", err);
+        console.error("LOG [SUPABASE]: Exception caught during logo fetch:", err);
         return {};
     }
 }
