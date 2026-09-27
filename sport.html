@@ -884,7 +884,7 @@ function renderIncomingMatchDetails(matchPayload) {
 // 5. ISOLATED PANEL RENDERER
 // ==========================================
 async function renderWithIsolatedPanels(data) {
-    console.log("LOG [RENDERER]: Unwrapped Match Data ->", data);
+    console.log("LOG [RENDERER]: Complete Payload ->", data);
 
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) return;
@@ -903,22 +903,31 @@ async function renderWithIsolatedPanels(data) {
         </div>
     `;
 
-    // --- FORM DATA EXTRACTION ---
-    // Looks into teamForm, form, or direct properties for each team
+    // --- ADVANCED FORM DATA EXTRACTOR ---
     const extractFormList = (teamName) => {
-        const tf = data.teamForm || data.form || data.recentForm || {};
-        
-        // Direct property check
-        if (Array.isArray(tf[teamName])) return tf[teamName];
-        if (tf.previous && Array.isArray(tf.previous[teamName])) return tf.previous[teamName];
-        
-        // Case-insensitive key match inside teamForm object
-        const matchingKey = Object.keys(tf).find(k => k.toLowerCase() === teamName.toLowerCase());
-        if (matchingKey && Array.isArray(tf[matchingKey])) return tf[matchingKey];
+        // 1. Check standard containers
+        const containers = [
+            data.teamForm,
+            data.form,
+            data.recentForm,
+            data.teamForm?.previous,
+            data.form?.previous
+        ];
 
-        // Fallback to separate top-level keys if they exist
+        for (const container of containers) {
+            if (!container || typeof container !== 'object') continue;
+            // Direct key match
+            if (Array.isArray(container[teamName])) return container[teamName];
+            // Case-insensitive key match
+            const foundKey = Object.keys(container).find(k => k.toLowerCase() === teamName.toLowerCase());
+            if (foundKey && Array.isArray(container[foundKey])) return container[foundKey];
+        }
+
+        // 2. Check top-level property naming conventions
         if (teamName === homeTeamName && Array.isArray(data.homeTeamForm)) return data.homeTeamForm;
         if (teamName === awayTeamName && Array.isArray(data.awayTeamForm)) return data.awayTeamForm;
+        if (teamName === homeTeamName && Array.isArray(data.homeForm)) return data.homeForm;
+        if (teamName === awayTeamName && Array.isArray(data.awayForm)) return data.awayForm;
 
         return [];
     };
@@ -926,15 +935,45 @@ async function renderWithIsolatedPanels(data) {
     const homeFormList = extractFormList(homeTeamName);
     const awayFormList = extractFormList(awayTeamName);
 
-    // --- H2H MATCHES EXTRACTION ---
-    const h2h = data.previousMeetings || data.headToHead || data.h2h || {};
-    const h2hMatches = Array.isArray(h2h.matches) 
-        ? h2h.matches 
-        : (Array.isArray(h2h.list) 
-            ? h2h.list 
-            : (Array.isArray(h2h.history) 
-                ? h2h.history 
-                : (Array.isArray(h2h) ? h2h : (Array.isArray(data.previousMeetingsList) ? data.previousMeetingsList : []))));
+    // --- ADVANCED H2H MATCHES EXTRACTOR ---
+    const extractH2HMatches = () => {
+        const h2hObj = data.previousMeetings || data.headToHead || data.h2h || {};
+        
+        // Check common array properties inside H2H object
+        const possibleArrays = [
+            h2hObj.matches,
+            h2hObj.list,
+            h2hObj.history,
+            h2hObj.data,
+            data.previousMeetingsList,
+            data.headToHeadMatches,
+            Array.isArray(h2hObj) ? h2hObj : null
+        ];
+
+        for (const arr of possibleArrays) {
+            if (Array.isArray(arr) && arr.length > 0) return arr;
+        }
+
+        // Deep search: find any array inside the payload that looks like match history objects
+        for (const key of Object.keys(data)) {
+            const val = data[key];
+            if (Array.isArray(val) && val.length > 0 && (val[0]?.score || val[0]?.result || val[0]?.homeTeam || val[0]?.awayTeam)) {
+                return val;
+            }
+            if (val && typeof val === 'object') {
+                for (const subKey of Object.keys(val)) {
+                    const subVal = val[subKey];
+                    if (Array.isArray(subVal) && subVal.length > 0 && (subVal[0]?.score || subVal[0]?.result || subVal[0]?.homeTeam || subVal[0]?.awayTeam)) {
+                        return subVal;
+                    }
+                }
+            }
+        }
+
+        return [];
+    };
+
+    const h2hMatches = extractH2HMatches();
 
     // Gather all team names for batch logo fetching
     let logoMap = {};
@@ -970,7 +1009,7 @@ async function renderWithIsolatedPanels(data) {
             </div>`;
     } catch (err) {}
 
-    // --- STANDINGS SLOT (PANEL 1 - CORRECT) ---
+    // --- STANDINGS SLOT (PANEL 1) ---
     try {
         const standings = data.standings || {};
         const homeStanding = standings.homeTeamStanding || standings.home || {};
@@ -1069,16 +1108,16 @@ async function renderWithIsolatedPanels(data) {
             </div>`;
     } catch (err) {}
 
-    // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST & SUMMARY) ---
+    // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
     try {
         const renderH2HList = () => {
             if (h2hMatches.length === 0) {
                 return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
             }
             return h2hMatches.map(m => {
-                const hTeam = safeText(m.homeTeam || m.home, 'Home Team');
-                const aTeam = safeText(m.awayTeam || m.away, 'Away Team');
-                const scoreVal = safeText(m.score || m.result || m.fullTime, '0 - 0');
+                const hTeam = safeText(m.homeTeam || m.home || m.teamA, 'Home Team');
+                const aTeam = safeText(m.awayTeam || m.away || m.teamB, 'Away Team');
+                const scoreVal = safeText(m.score || m.result || m.fullTime || m.ft, '0 - 0');
                 const dateVal = safeText(m.date || m.matchDate, 'Recent');
 
                 return `
@@ -1103,6 +1142,7 @@ async function renderWithIsolatedPanels(data) {
             }).join('');
         };
 
+        const h2h = data.previousMeetings || data.headToHead || data.h2h || {};
         const totalPlayed = h2h.played || h2h.totalPlayed || h2h.total || h2hMatches.length || 0;
         const homeWins = h2h.homeTeamWins || h2h.homeWins || h2h.home_wins || 0;
         const awayWins = h2h.awayTeamWins || h2h.awayWins || h2h.away_wins || 0;
