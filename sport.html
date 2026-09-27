@@ -787,22 +787,6 @@ function renderPastMatchDetails(match) {
     `;
 }
 
-/**
- * 1. Safe batch logo fetcher with built-in fallbacks.
- * Even if Supabase fails or isn't loaded yet, it returns an empty map 
- * allowing the rest of the text and statistics to render safely.
- */
-/**
- * 1. Safe batch logo fetcher with built-in fallbacks.
- * Even if Supabase fails or isn't loaded yet, it returns an empty map 
- * allowing the rest of the text and statistics to render safely.
- */
-// ==========================================
-// 1. SAFE TEXT UTILITY
-// ==========================================
-// ==========================================
-// 1. SAFE TEXT UTILITY
-// ==========================================
 // ==========================================
 // 1. SAFE TEXT UTILITY
 // ==========================================
@@ -819,16 +803,12 @@ function safeText(val, fallback = '-') {
 // 2. WORKING SUPABASE LOGO FETCHER
 // ==========================================
 async function fetchTeamLogosBatch(teamNamesArray) {
-    console.log("LOG [SUPABASE]: Fetching logos for teams ->", teamNamesArray);
     if (!Array.isArray(teamNamesArray) || teamNamesArray.length === 0) return {};
     const uniqueTeams = [...new Set(teamNamesArray)].filter(Boolean);
     if (uniqueTeams.length === 0) return {};
 
     const client = window.supabaseClient || window.supabase;
-    if (!client) {
-        console.warn("LOG [SUPABASE]: Supabase client not found on window.");
-        return {};
-    }
+    if (!client) return {};
 
     try {
         const { data, error } = await client
@@ -836,10 +816,7 @@ async function fetchTeamLogosBatch(teamNamesArray) {
             .select('team_name, logo_url') 
             .in('team_name', uniqueTeams);
 
-        if (error || !data) {
-            console.error("LOG [SUPABASE]: Error querying 'team logos' table:", error);
-            return {};
-        }
+        if (error || !data) return {};
 
         const logoMap = {};
         data.forEach(item => {
@@ -847,10 +824,8 @@ async function fetchTeamLogosBatch(teamNamesArray) {
                 logoMap[item.team_name.trim()] = item.logo_url;
             }
         });
-        console.log("LOG [SUPABASE]: Logo map built successfully ->", logoMap);
         return logoMap;
     } catch (err) {
-        console.error("LOG [SUPABASE]: Exception caught during logo fetch:", err);
         return {};
     }
 }
@@ -860,12 +835,8 @@ async function fetchTeamLogosBatch(teamNamesArray) {
 // ==========================================
 function downloadPanelData(panelKey) {
     try {
-        console.log(`LOG [DOWNLOAD]: Export requested for panel key: '${panelKey}'`);
         const data = window.tempMatchCache?.[panelKey] || window.latestMatchData?.[panelKey];
-        if (!data) {
-            console.warn(`LOG [DOWNLOAD]: No data found for panel key: '${panelKey}'`);
-            return;
-        }
+        if (!data) return;
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -875,24 +846,18 @@ function downloadPanelData(panelKey) {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-    } catch (e) {
-        console.error("LOG [DOWNLOAD]: Download failed:", e);
-    }
+    } catch (e) {}
 }
 
 // ==========================================
 // 4. TEMPORARY CACHE & ENTRY FUNCTION
 // ==========================================
 function saveAndRenderMatchData(matchPayload) {
-    console.log("LOG [ENTRY]: saveAndRenderMatchData invoked with payload:", matchPayload);
     try {
         const raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
         const data = raw?.data || raw?.json || raw;
         
-        if (!data || typeof data !== 'object') {
-            console.error("LOG [ENTRY]: Invalid data payload format:", data);
-            return;
-        }
+        if (!data || typeof data !== 'object') return;
 
         window.tempMatchCache = data;
         window.latestMatchData = data;
@@ -901,9 +866,7 @@ function saveAndRenderMatchData(matchPayload) {
         } catch (e) {}
 
         renderWithIsolatedPanels(data);
-    } catch (err) {
-        console.error("LOG [ENTRY]: Critical error in saveAndRenderMatchData:", err);
-    }
+    } catch (err) {}
 }
 
 function renderIncomingMatchDetails(matchPayload) {
@@ -914,12 +877,9 @@ function renderIncomingMatchDetails(matchPayload) {
 // 5. ISOLATED PANEL RENDERER
 // ==========================================
 async function renderWithIsolatedPanels(data) {
-    console.log("LOG [RENDERER]: Starting renderWithIsolatedPanels with match object:", data);
+    console.log("LOG [RENDERER]: Full Match Data Payload ->", data);
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
-    if (!detailPanel) {
-        console.error("LOG [RENDERER]: Target detail panel element not found in DOM!");
-        return;
-    }
+    if (!detailPanel) return;
 
     const homeTeamName = safeText(data.homeTeam, 'Home Team');
     const awayTeamName = safeText(data.awayTeam, 'Away Team');
@@ -935,32 +895,43 @@ async function renderWithIsolatedPanels(data) {
         </div>
     `;
 
+    // Flexible extraction helpers for form & h2h
+    const teamFormObj = data.teamForm || data.form || {};
+    const teamFormPrevious = teamFormObj.previous || teamFormObj;
+    
+    // Try matching team name flexibly (exact or case-insensitive)
+    const getTeamFormList = (tName) => {
+        if (!teamFormPrevious) return [];
+        if (Array.isArray(teamFormPrevious[tName])) return teamFormPrevious[tName];
+        // Try finding case-insensitive key match
+        const foundKey = Object.keys(teamFormPrevious).find(k => k.toLowerCase() === tName.toLowerCase());
+        return foundKey && Array.isArray(teamFormPrevious[foundKey]) ? teamFormPrevious[foundKey] : [];
+    };
+
+    const homeFormList = getTeamFormList(homeTeamName);
+    const awayFormList = getTeamFormList(awayTeamName);
+
+    const h2h = data.previousMeetings || data.headToHead || data.h2h || {};
+    const h2hMatches = Array.isArray(h2h.matches) ? h2h.matches : (Array.isArray(h2h.list) ? h2h.list : []);
+
     // Extract all team names for batch logo fetching
     let logoMap = {};
     try {
-        const teamFormPrevious = data.teamForm?.previous || {};
-        const homeFormList = teamFormPrevious[homeTeamName] || [];
-        const awayFormList = teamFormPrevious[awayTeamName] || [];
-        const h2hList = Array.isArray(data.previousMeetings?.matches) ? data.previousMeetings.matches : [];
-
         const allTeams = [
             homeTeamName, 
             awayTeamName,
-            ...Array.from(homeFormList).map(m => safeText(m?.opponent)),
-            ...Array.from(awayFormList).map(m => safeText(m?.opponent)),
-            ...Array.from(h2hList).flatMap(m => [safeText(m?.homeTeam), safeText(m?.awayTeam)])
+            ...Array.from(homeFormList).map(m => safeText(m?.opponent || m?.team)),
+            ...Array.from(awayFormList).map(m => safeText(m?.opponent || m?.team)),
+            ...Array.from(h2hMatches).flatMap(m => [safeText(m?.homeTeam || m?.home), safeText(m?.awayTeam || m?.away)])
         ].filter(Boolean);
 
         logoMap = await fetchTeamLogosBatch(allTeams);
-    } catch (e) {
-        console.warn("LOG [RENDERER]: Logo extraction warning:", e);
-    }
+    } catch (e) {}
     
-    const getLogo = (name) => logoMap[name] || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Team')}&background=0f172a&color=facc15&size=128`;
+    const getLogo = (name) => logoMap[name] || logoMap[Object.keys(logoMap).find(k => k.toLowerCase() === String(name).toLowerCase())] || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Team')}&background=0f172a&color=facc15&size=128`;
 
     // --- 1. HEADER SLOT ---
     try {
-        console.log("LOG [PANEL 1/4 - HEADER]: Rendering header slot...");
         document.getElementById('panel-header-slot').innerHTML = `
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-5 gap-4">
                 <div class="flex items-center gap-4">
@@ -975,16 +946,13 @@ async function renderWithIsolatedPanels(data) {
                     // ${safeText(data.round, 'Fixture Preview')}
                 </span>
             </div>`;
-    } catch (err) {
-        console.error("LOG [PANEL 1/4 - HEADER]: Error:", err);
-    }
+    } catch (err) {}
 
     // --- 2. STANDINGS SLOT ---
     try {
-        console.log("LOG [PANEL 2/4 - STANDINGS]: Rendering standings slot...");
         const standings = data.standings || {};
-        const homeStanding = standings.homeTeamStanding || {};
-        const awayStanding = standings.awayTeamStanding || {};
+        const homeStanding = standings.homeTeamStanding || standings.home || {};
+        const awayStanding = standings.awayTeamStanding || standings.away || {};
         
         const renderStats = (obj) => {
             if (!obj || typeof obj !== 'object' || Object.keys(obj).length === 0) {
@@ -1024,32 +992,25 @@ async function renderWithIsolatedPanels(data) {
                     </div>
                 </div>
             </div>`;
-    } catch (err) {
-        console.error("LOG [PANEL 2/4 - STANDINGS]: Error:", err);
-    }
+    } catch (err) {}
 
     // --- 3. FORM SLOT ---
     try {
-        console.log("LOG [PANEL 3/4 - FORM]: Rendering form slot...");
-        const teamFormPrevious = data.teamForm?.previous || {};
-        const homeFormList = Array.isArray(teamFormPrevious[homeTeamName]) ? teamFormPrevious[homeTeamName] : [];
-        const awayFormList = Array.isArray(teamFormPrevious[awayTeamName]) ? teamFormPrevious[awayTeamName] : [];
-
         const renderFormList = (formList) => {
             if (!Array.isArray(formList) || formList.length === 0) {
                 return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
             }
             return formList.map(match => {
                 if (!match || typeof match !== 'object') return '';
-                const mw = safeText(match.matchweek, 'MW');
-                const opponent = safeText(match.opponent, 'Unknown');
+                const mw = safeText(match.matchweek || match.mw || match.round, 'MW');
+                const opponent = safeText(match.opponent || match.team, 'Unknown');
                 const score = match.result || match.score || match.fullTime || match.ft || '-';
-                const venueText = safeText(match.venue, '');
+                const venueText = safeText(match.venue || match.location, '');
 
                 return `
                     <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
                         <div class="flex items-center gap-2.5">
-                            <span class="text-[10px] text-slate-500 font-bold w-10">MW ${mw}</span>
+                            <span class="text-[10px] text-slate-500 font-bold w-10">${mw}</span>
                             <img src="${getLogo(opponent)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
                             <span class="text-xs text-slate-200">vs ${opponent} ${venueText ? `<span class="text-[10px] text-slate-400">(${venueText})</span>` : ''}</span>
                         </div>
@@ -1084,24 +1045,18 @@ async function renderWithIsolatedPanels(data) {
                     </div>
                 </div>
             </div>`;
-    } catch (err) {
-        console.error("LOG [PANEL 3/4 - FORM]: Error:", err);
-    }
+    } catch (err) {}
 
-    // --- 4. H2H SLOT (Summary + Expanded Match History List) ---
+    // --- 4. H2H SLOT ---
     try {
-        console.log("LOG [PANEL 4/4 - H2H]: Rendering H2H slot...");
-        const h2h = data.previousMeetings || {};
-        const h2hMatches = Array.isArray(h2h.matches) ? h2h.matches : [];
-
         const renderH2HList = () => {
             if (h2hMatches.length === 0) {
                 return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
             }
             return h2hMatches.map(m => {
-                const hTeam = safeText(m.homeTeam, 'Home Team');
-                const aTeam = safeText(m.awayTeam, 'Away Team');
-                const scoreVal = safeText(m.score || m.result, '0 - 0');
+                const hTeam = safeText(m.homeTeam || m.home, 'Home Team');
+                const aTeam = safeText(m.awayTeam || m.away, 'Away Team');
+                const scoreVal = safeText(m.score || m.result || m.fullTime, '0 - 0');
                 const dateVal = safeText(m.date || m.matchDate, 'Recent');
 
                 return `
@@ -1126,6 +1081,11 @@ async function renderWithIsolatedPanels(data) {
             }).join('');
         };
 
+        const totalPlayed = h2h.played || h2h.totalPlayed || h2h.total || h2hMatches.length || 0;
+        const homeWins = h2h.homeTeamWins || h2h.homeWins || h2h.home_wins || 0;
+        const awayWins = h2h.awayTeamWins || h2h.awayWins || h2h.away_wins || 0;
+        const draws = h2h.draws || h2h.draw || 0;
+
         document.getElementById('panel-h2h-slot').innerHTML = `
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -1137,19 +1097,19 @@ async function renderWithIsolatedPanels(data) {
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div class="bg-slate-950 p-3 rounded border border-slate-800">
                         <div class="text-[10px] text-slate-400 uppercase">Total Played</div>
-                        <div class="text-lg font-bold text-slate-100">${safeText(h2h.played, '0')}</div>
+                        <div class="text-lg font-bold text-slate-100">${totalPlayed}</div>
                     </div>
                     <div class="bg-slate-950 p-3 rounded border border-slate-800">
                         <div class="text-[10px] text-green-400 uppercase">${homeTeamName} Wins</div>
-                        <div class="text-lg font-bold text-green-300">${safeText(h2h.homeTeamWins, '0')}</div>
+                        <div class="text-lg font-bold text-green-300">${homeWins}</div>
                     </div>
                     <div class="bg-slate-950 p-3 rounded border border-slate-800">
                         <div class="text-[10px] text-blue-400 uppercase">${awayTeamName} Wins</div>
-                        <div class="text-lg font-bold text-blue-300">${safeText(h2h.awayTeamWins, '0')}</div>
+                        <div class="text-lg font-bold text-blue-300">${awayWins}</div>
                     </div>
                     <div class="bg-slate-950 p-3 rounded border border-slate-800">
                         <div class="text-[10px] text-yellow-400 uppercase">Draws</div>
-                        <div class="text-lg font-bold text-yellow-300">${safeText(h2h.draws, '0')}</div>
+                        <div class="text-lg font-bold text-yellow-300">${draws}</div>
                     </div>
                 </div>
                 <div class="space-y-2 pt-2 border-t border-slate-800/60">
@@ -1157,13 +1117,8 @@ async function renderWithIsolatedPanels(data) {
                     ${renderH2HList()}
                 </div>
             </div>`;
-    } catch (err) {
-        console.error("LOG [PANEL 4/4 - H2H]: Error:", err);
-    }
-    
-    console.log("LOG [RENDERER]: All panels execution completed successfully.");
+    } catch (err) {}
 }
-
 
 function renderMatchList(matchesArray) {
     const container = document.getElementById('matchListSubPanel');
