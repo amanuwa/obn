@@ -792,6 +792,9 @@ function renderPastMatchDetails(match) {
 // ==========================================
 // 1. SAFE TEXT UTILITY
 // ==========================================
+// ==========================================
+// 1. SAFE TEXT HELPER
+// ==========================================
 function safeText(val, fallback = '-') {
     if (val === null || val === undefined) return fallback;
     if (typeof val === 'string' || typeof val === 'number') return String(val);
@@ -854,9 +857,6 @@ function downloadPanelData(panelKey) {
 // ==========================================
 // 4. ENTRY FUNCTION (UNWRAPS WEBHOOK DATA)
 // ==========================================
-// ==========================================
-// 4. ENTRY FUNCTION (UNWRAPS WEBHOOK DATA)
-// ==========================================
 function saveAndRenderMatchData(matchPayload) {
     try {
         let raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
@@ -864,7 +864,6 @@ function saveAndRenderMatchData(matchPayload) {
 
         if (!raw || typeof raw !== 'object') return;
 
-        // Save the full item wrapper to cache
         window.tempMatchCache = raw;
         window.latestMatchData = raw;
         
@@ -872,7 +871,6 @@ function saveAndRenderMatchData(matchPayload) {
             sessionStorage.setItem('savedMatchPayload', JSON.stringify(raw));
         } catch (e) {}
 
-        // Pass 'raw' (which contains the .data property) into the renderer
         renderWithIsolatedPanels(raw);
     } catch (err) {
         console.error("LOG [ERROR]: Failed parsing match data ->", err);
@@ -884,14 +882,18 @@ function renderIncomingMatchDetails(matchPayload) {
 }
 
 // ==========================================
-// 5. ISOLATED PANEL RENDERER (STRING PARSER)
+// 5. ISOLATED PANEL RENDERER
 // ==========================================
-async function renderWithIsolatedPanels(data) {
-    console.log("LOG [RENDERER]: COMPLETE RAW PAYLOAD RECEIVED ->", data);
+async function renderWithIsolatedPanels(rawPayload) {
+    console.log("LOG [RENDERER]: COMPLETE RAW PAYLOAD RECEIVED ->", rawPayload);
+
+    // CRITICAL FIX: Ensure 'data' points to the inner object where team properties actually live
+    const data = rawPayload?.data || rawPayload;
 
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) return;
 
+    // Now these will correctly evaluate to "Liverpool" and "Manchester City"
     const homeTeamName = safeText(data.homeTeam || data.home || data.teamA, 'Home Team');
     const awayTeamName = safeText(data.awayTeam || data.away || data.teamB, 'Away Team');
     const venue = safeText(data.location || data.venue, 'Stadium');
@@ -906,12 +908,12 @@ async function renderWithIsolatedPanels(data) {
         </div>
     `;
 
-    // --- EXTRACT TEAM FORM STRINGS (homePrevious / awayPrevious) ---
+    // --- PARSE FORM DATA (HANDLING DYNAMIC TEAM KEYS) ---
     const teamFormObj = data.teamForm || {};
-    const rawHomeForm = teamFormObj.homePrevious || teamFormObj.home || data.homePrevious || [];
-    const rawAwayForm = teamFormObj.awayPrevious || teamFormObj.away || data.awayPrevious || [];
+    // CRITICAL FIX: The payload keys are the literal team names (e.g., teamForm['Liverpool'])
+    const rawHomeForm = teamFormObj[homeTeamName] || teamFormObj.homeTeam || teamFormObj.home || [];
+    const rawAwayForm = teamFormObj[awayTeamName] || teamFormObj.awayTeam || teamFormObj.away || [];
 
-    // Helper to parse strings like "MW1: Hull City 0-2 Manchester United"
     const parseFormString = (str, mainTeam) => {
         if (typeof str !== 'object' && typeof str !== 'string') return null;
         if (typeof str === 'object') {
@@ -919,46 +921,35 @@ async function renderWithIsolatedPanels(data) {
                 mw: safeText(str.matchweek || str.mw, 'MW'),
                 opponent: safeText(str.opponent || str.team, 'Unknown'),
                 score: safeText(str.score || str.result, '-'),
-                venueText: safeText(str.venue, '')
             };
         }
 
-        // Example: "MW1: Hull City 0-2 Manchester United"
-        let mw = 'MW';
-        let remaining = str;
-
-        if (str.includes(':')) {
-            const parts = str.split(':');
-            mw = parts[0].trim();
-            remaining = parts.slice(1).join(':').trim();
-        }
-
-        // Match standard football score format inside string (e.g. " 0-2 ", " 1-1 ")
-        const scoreRegex = /\s+(\d+[-–]\d+)\s+/;
-        const match = remaining.match(scoreRegex);
-
+        // Match pattern: "MW1 Newcastle United (A) 2-2"
+        const regex = /^(MW\d+)\s+(.*?)\s+\([HA]\)\s+(.+)$/;
+        const match = str.match(regex);
+        
         if (match) {
-            const score = match[1];
-            const scoreIndex = remaining.indexOf(score);
-            const teamA = remaining.substring(0, scoreIndex).trim();
-            const teamB = remaining.substring(scoreIndex + score.length).trim();
-
-            // Determine which one is the opponent
-            const opponent = teamA.toLowerCase() === mainTeam.toLowerCase() ? teamB : teamA;
-            return { mw, opponent, score, venueText: '' };
+            return { mw: match[1], opponent: match[2], score: match[3] };
         }
-
-        return { mw, opponent: remaining, score: '-', venueText: '' };
+        
+        // Fallback for messy strings
+        return { mw: 'MW', opponent: str.substring(0, 15) + '...', score: '-' };
     };
 
     const homeFormList = Array.isArray(rawHomeForm) ? rawHomeForm.map(s => parseFormString(s, homeTeamName)).filter(Boolean) : [];
     const awayFormList = Array.isArray(rawAwayForm) ? rawAwayForm.map(s => parseFormString(s, awayTeamName)).filter(Boolean) : [];
 
-    // --- H2H MATCHES EXTRACTION ---
+    // --- PARSE H2H DATA (HANDLING DYNAMIC WINS KEYS) ---
     const h2hObj = data.previousMeetings || data.headToHead || data.h2h || {};
     const h2hMatches = h2hObj.matches || h2hObj.list || h2hObj.history || (Array.isArray(h2hObj) ? h2hObj : []) || [];
+    
+    // CRITICAL FIX: The payload uses keys like 'LiverpoolWins'
+    const totalPlayed = h2hObj.played || h2hObj.totalPlayed || h2hMatches.length || 0;
+    const homeWins = h2hObj[`${homeTeamName}Wins`] || h2hObj.homeTeamWins || 0;
+    const awayWins = h2hObj[`${awayTeamName}Wins`] || h2hObj.awayTeamWins || 0;
+    const draws = h2hObj.draws || h2hObj.draw || 0;
 
-    // Gather all team names for batch logo fetching
+    // --- FETCH LOGOS ---
     let logoMap = {};
     try {
         const allTeams = [
@@ -966,7 +957,7 @@ async function renderWithIsolatedPanels(data) {
             awayTeamName,
             ...homeFormList.map(m => m?.opponent),
             ...awayFormList.map(m => m?.opponent),
-            ...h2hMatches.flatMap(m => [safeText(m?.homeTeam || m?.home || m?.teamA), safeText(m?.awayTeam || m?.away || m?.teamB)])
+            ...h2hMatches.flatMap(m => [safeText(m?.homeTeam || m?.home), safeText(m?.awayTeam || m?.away)])
         ].filter(Boolean);
 
         logoMap = await fetchTeamLogosBatch(allTeams);
@@ -987,30 +978,21 @@ async function renderWithIsolatedPanels(data) {
                     <img src="${getLogo(awayTeamName)}" alt="${awayTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
                 </div>
                 <span class="text-xs text-yellow-400 bg-yellow-950/60 px-3 py-1.5 rounded border border-yellow-500/40 font-bold">
-                    // ${safeText(data.round || data.matchweek, 'Fixture Preview')}
+                    // ${safeText(data.round || data.matchweek, 'Fixture Overview')}
                 </span>
             </div>`;
     } catch (err) {
-    console.error("LOG [ERROR]: Panel 1 (Standings) failed ->", err);
-    const standingsSlot = document.getElementById('panel-standings-slot');
-    if (standingsSlot) {
-        standingsSlot.innerHTML = `
-            <div class="bg-red-950/40 border border-red-900/60 p-4 rounded text-xs text-red-400">
-                // ERROR: Panel 1 failed to render. Check console for details.
-            </div>`;
+        console.error("LOG [ERROR]: Panel Header failed ->", err);
     }
-}
 
     // --- STANDINGS SLOT (PANEL 1) ---
     try {
         const standings = data.standings || {};
-        const homeStanding = standings.homeTeamStanding || standings.home || {};
-        const awayStanding = standings.awayTeamStanding || standings.away || {};
+        const homeStanding = standings.homeTeamStanding || standings[homeTeamName] || {};
+        const awayStanding = standings.awayTeamStanding || standings[awayTeamName] || {};
         
         const renderStats = (obj) => {
-            if (!obj || typeof obj !== 'object' || Object.keys(obj).length === 0) {
-                return `<div class="text-xs text-slate-500 italic">No standing metrics.</div>`;
-            }
+            if (!obj || typeof obj !== 'object' || Object.keys(obj).length === 0) return `<div class="text-xs text-slate-500 italic">No standing metrics.</div>`;
             return Object.entries(obj)
                 .filter(([k]) => k && !String(k).toLowerCase().includes('citation'))
                 .map(([k, v]) => `
@@ -1024,9 +1006,6 @@ async function renderWithIsolatedPanels(data) {
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 1. Season Standings Overview</span>
-                    <button onclick="downloadPanelData('standings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Standings">
-                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    </button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                     <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
@@ -1045,70 +1024,30 @@ async function renderWithIsolatedPanels(data) {
                     </div>
                 </div>
             </div>`;
-  } catch (err) {
-    console.error("LOG [ERROR]: Panel 2 (Form) failed ->", err);
-    const formSlot = document.getElementById('panel-form-slot');
-    if (formSlot) {
-        formSlot.innerHTML = `
-            <div class="bg-red-950/40 border border-red-900/60 p-4 rounded text-xs text-red-400">
-                // ERROR: Panel 2 failed to render. Check console for details.
-            </div>`;
+    } catch (err) {
+        console.error("LOG [ERROR]: Panel 1 (Standings) failed ->", err);
     }
-}
 
     // --- FORM SLOT (PANEL 2 - FORM LIST) ---
-// --- FORM SLOT (PANEL 2 - FORM LIST) ---
     try {
         const renderFormList = (formList) => {
-            if (!Array.isArray(formList) || formList.length === 0) {
-                return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
-            }
-            return formList.map(item => {
-                if (!item) return '';
-                
-                // If item is a string like "MW1 Newcastle United (A) 2-2", parse it dynamically:
-                let mw = "";
-                let opponent = item;
-                let score = "";
-
-                if (typeof item === 'string') {
-                    // Match pattern: "MW1 Team Name (H/A) 2-1"
-                    const parts = item.match(/^(MW\d+)\s+(.*?)\s+\([HA]\)\s+(.+)$/);
-                    if (parts) {
-                        mw = parts[1];
-                        opponent = parts[2];
-                        score = parts[3];
-                    }
-                } else if (typeof item === 'object') {
-                    mw = item.mw || '';
-                    opponent = item.opponent || '';
-                    score = item.score || '';
-                }
-
-                return `
-                    <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
-                        <div class="flex items-center gap-2.5">
-                            <span class="text-[10px] text-slate-500 font-bold w-10">${mw}</span>
-                            <img src="${getLogo(opponent)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
-                            <span class="text-xs text-slate-200">vs ${opponent}</span>
-                        </div>
-                        <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">${score}</span>
+            if (!Array.isArray(formList) || formList.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
+            return formList.map(match => `
+                <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-[10px] text-slate-500 font-bold w-10">${match.mw}</span>
+                        <img src="${getLogo(match.opponent)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
+                        <span class="text-xs text-slate-200">vs ${match.opponent}</span>
                     </div>
-                `;
-            }).join('');
+                    <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">${match.score}</span>
+                </div>
+            `).join('');
         };
-
-        // Extract using your actual n8n path structure
-        const homeFormList = data.teamForm?.homeTeam || [];
-        const awayFormList = data.teamForm?.awayTeam || [];
 
         document.getElementById('panel-form-slot').innerHTML = `
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Last 5 Matches Form List</span>
-                    <button onclick="downloadPanelData('teamForm')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Form Data">
-                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    </button>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
@@ -1129,21 +1068,12 @@ async function renderWithIsolatedPanels(data) {
             </div>`;
     } catch (err) {
         console.error("LOG [ERROR]: Panel 2 (Form) failed ->", err);
-        const formSlot = document.getElementById('panel-form-slot');
-        if (formSlot) {
-            formSlot.innerHTML = `
-                <div class="bg-red-950/40 border border-red-900/60 p-4 rounded text-xs text-red-400">
-                    // ERROR: Panel 2 failed to render. Check console for details.
-                </div>`;
-        }
     }
 
     // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
     try {
         const renderH2HList = () => {
-            if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) {
-                return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
-            }
+            if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
             return h2hMatches.map(m => {
                 const hTeam = safeText(m.homeTeam || m.home || m.teamA, 'Home Team');
                 const aTeam = safeText(m.awayTeam || m.away || m.teamB, 'Away Team');
@@ -1172,18 +1102,10 @@ async function renderWithIsolatedPanels(data) {
             }).join('');
         };
 
-        const totalPlayed = h2hObj.played || h2hObj.totalPlayed || h2hObj.total || h2hMatches.length || 0;
-        const homeWins = h2hObj.homeTeamWins || h2hObj.homeWins || h2hObj.home_wins || 0;
-        const awayWins = h2hObj.awayTeamWins || h2hObj.awayWins || h2hObj.away_wins || 0;
-        const draws = h2hObj.draws || h2hObj.draw || 0;
-
         document.getElementById('panel-h2h-slot').innerHTML = `
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head History & Match List</span>
-                    <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Data">
-                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    </button>
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div class="bg-slate-950 p-3 rounded border border-slate-800">
@@ -1211,15 +1133,8 @@ async function renderWithIsolatedPanels(data) {
                 </div>
             </div>`;
    } catch (err) {
-    console.error("LOG [ERROR]: Panel 3 (H2H) failed ->", err);
-    const h2hSlot = document.getElementById('panel-h2h-slot');
-    if (h2hSlot) {
-        h2hSlot.innerHTML = `
-            <div class="bg-red-950/40 border border-red-900/60 p-4 rounded text-xs text-red-400">
-                // ERROR: Panel 3 failed to render. Check console for details.
-            </div>`;
-    }
-}
+       console.error("LOG [ERROR]: Panel 3 (H2H) failed ->", err);
+   }
 }
     function renderMatchList(matchesArray) {
     const container = document.getElementById('matchListSubPanel');
