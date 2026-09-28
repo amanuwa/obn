@@ -1033,19 +1033,15 @@ async function renderWithIsolatedPanels(rawPayload) {
 // --- PANEL 2 (RECENT FORM RENDERER WITH DEBUGGER) ---
     // --- PANEL 2 (RECENT FORM RENDERER - SAFEGUARDED) ---
 // ==========================================
-// PANEL 2: RECENT FORM ANALYSIS CODE BLOCK
+// ==========================================
+// PANEL 2: RECENT FORM ANALYSIS (UPDATED)
 // ==========================================
 try {
-    console.log("=== PANEL 2 DEBUG START ===");
     const teamFormObj = data.teamForm || data.form || {};
-    console.log("PANEL 2 raw teamFormObj:", teamFormObj);
-
-    // Correctly lookup using literal team names, dynamic keys, or standard fallbacks
-    const rawHomeForm = teamFormObj[homeTeamName] || teamFormObj.homeTeamPrevious || teamFormObj.home || teamFormObj.homeForm || [];
-    const rawAwayForm = teamFormObj[awayTeamName] || teamFormObj.awayTeamPrevious || teamFormObj.away || teamFormObj.awayForm || [];
     
-    console.log("PANEL 2 resolved rawHomeForm:", rawHomeForm);
-    console.log("PANEL 2 resolved rawAwayForm:", rawAwayForm);
+    // Explicitly check n8n's "homeTeam" and "awayTeam" keys first, with fallbacks
+    const rawHomeForm = teamFormObj.homeTeam || teamFormObj[homeTeamName] || teamFormObj.home || [];
+    const rawAwayForm = teamFormObj.awayTeam || teamFormObj[awayTeamName] || teamFormObj.away || [];
 
     const parseFormItem = (item) => {
         if (!item) return null;
@@ -1057,28 +1053,34 @@ try {
                 venue: safeText(item.venue, '')
             };
         }
+        
+        // Matches your string pattern: "MW1 Newcastle United (A) 2-2"
+        const regex = /^(MW\d+)\s+(.*?)\s+\([HA]\)\s+(.+)$/;
+        const match = String(item).match(regex);
+        if (match) {
+            return { mw: match[1], opponent: match[2], score: match[3] };
+        }
+        
         return { mw: 'MW', opponent: String(item), score: '-' };
     };
 
     const homeFormList = Array.isArray(rawHomeForm) ? rawHomeForm.map(parseFormItem).filter(Boolean) : [];
     const awayFormList = Array.isArray(rawAwayForm) ? rawAwayForm.map(parseFormItem).filter(Boolean) : [];
-    console.log("PANEL 2 final homeFormList:", homeFormList);
-    console.log("PANEL 2 final awayFormList:", awayFormList);
 
     const renderFormItems = (list) => {
         if (!list || list.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No recent form data available.</div>';
         return list.map(item => `
             <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded border border-slate-800">
                 <div class="flex items-center gap-2">
-                    <span class="text-[10px] text-yellow-400 font-bold bg-slate-900 px-1.5 py-0.5 rounded">MW${item.mw}</span>
-                    <span class="text-xs text-slate-200 truncate max-w-[130px]">vs ${item.opponent} ${item.venue ? `(${item.venue})` : ''}</span>
+                    <span class="text-[10px] text-yellow-400 font-bold bg-slate-900 px-1.5 py-0.5 rounded">${item.mw}</span>
+                    <span class="text-xs text-slate-200 truncate max-w-[130px]">vs ${item.opponent}</span>
                 </div>
                 <span class="text-xs font-bold text-slate-100 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${item.score}</span>
             </div>
         `).join('');
     };
 
-    let panel2El = document.getElementById('panel-form-slot');
+    const panel2El = document.getElementById('panel-form-slot');
     if (panel2El) {
         panel2El.innerHTML = `
             <div id="form-panel-card" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
@@ -1106,7 +1108,6 @@ try {
                 </div>
             </div>`;
     }
-    console.log("=== PANEL 2 DEBUG END ===");
 } catch (err) {
     console.error("LOG [ERROR]: Panel 2 failed ->", err);
 }
@@ -1114,22 +1115,22 @@ try {
 // ==========================================
 // PANEL 3: PREVIOUS MEETINGS (H2H) CODE BLOCK
 // ==========================================
+// PANEL 3: PREVIOUS MEETINGS (H2H) (FULL LIST)
+// ==========================================
 try {
-    console.log("=== PANEL 3 DEBUG START ===");
     const h2hObj = data.previousMeetings || data.headToHead || data.h2h || {};
-    console.log("PANEL 3 raw h2hObj:", h2hObj);
-
-    // Target the 'recentMeetings' array structure matching your payload
-    const h2hMatches = h2hObj.recentMeetings || h2hObj.matches || h2hObj.list || h2hObj.history || (Array.isArray(h2hObj) ? h2hObj : []);
-    console.log("PANEL 3 resolved h2hMatches array:", h2hMatches);
-
+    
+    // Pulls the full list of recent matches from n8n payload
+    const h2hMatches = h2hObj.recentMatches || h2hObj.matches || h2hObj.list || h2hObj.history || (Array.isArray(h2hObj) ? h2hObj : []);
     const totalPlayed = h2hObj.played || h2hMatches.length || 0;
 
     const renderH2HList = () => {
         if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) {
             return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
         }
-        return h2hMatches.map(m => {
+        
+        // Maps through EVERY match item in the array so all data is displayed
+        return h2hMatches.map((m, index) => {
             if (!m) return '';
             const hTeam = m.homeTeam || m.home || 'Home Team';
             const aTeam = m.awayTeam || m.away || 'Away Team';
@@ -1140,7 +1141,7 @@ try {
             return `
                 <div class="flex items-center justify-between bg-slate-900/90 hover:bg-slate-900 px-4 py-3 rounded-md border border-slate-800 transition-colors">
                     <div class="flex items-center gap-3 w-1/3">
-                        <span class="text-xs font-semibold text-slate-200 text-right w-full truncate">${hTeam}</span>
+                        <span class="text-xs font-semibold text-slate-200 text-right w-full truncate" title="${hTeam}">${hTeam}</span>
                     </div>
                     <div class="flex flex-col items-center justify-center w-1/3">
                         <a ${citationAttr} class="text-xs font-bold text-yellow-400 bg-slate-950 px-3 py-1 rounded border border-slate-800/80 tracking-widest hover:border-yellow-400/50 transition-colors" title="View Citation">
@@ -1149,14 +1150,14 @@ try {
                         <span class="text-[10px] text-slate-500 mt-1">${dateVal}</span>
                     </div>
                     <div class="flex items-center gap-3 w-1/3 justify-end">
-                        <span class="text-xs font-semibold text-slate-200 text-left w-full truncate">${aTeam}</span>
+                        <span class="text-xs font-semibold text-slate-200 text-left w-full truncate" title="${aTeam}">${aTeam}</span>
                     </div>
                 </div>
             `;
         }).join('');
     };
 
-    let panel3El = document.getElementById('panel-h2h-slot');
+    const panel3El = document.getElementById('panel-h2h-slot');
     if (panel3El) {
         panel3El.innerHTML = `
             <div id="h2h-panel-card" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-5">
@@ -1176,17 +1177,16 @@ try {
                     </div>
                 </div>
                 <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List</div>
-                    <div class="max-h-72 overflow-y-auto space-y-2 pr-1">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List (${h2hMatches.length} Matches Displayed)</div>
+                    <div class="max-h-80 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                         ${renderH2HList()}
                     </div>
                 </div>
             </div>`;
     }
-    console.log("=== PANEL 3 DEBUG END ===");
 } catch (err) {
     console.error("LOG [ERROR]: Panel 3 failed ->", err);
-}}
+}
     function renderMatchList(matchesArray) {
     const container = document.getElementById('matchListSubPanel');
     
