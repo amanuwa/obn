@@ -1028,7 +1028,7 @@ const formattedH2HMatches = h2hArray.map(match => ({
     } catch (err) {}
 
     // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
-    try {
+try {
         const renderH2HList = () => {
             if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) {
                 return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
@@ -1095,11 +1095,13 @@ const formattedH2HMatches = h2hArray.map(match => ({
                 <div class="space-y-2 pt-2 border-t border-slate-800/60">
                     <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List</div>
                     <div class="max-h-72 overflow-y-auto space-y-2 pr-1">
-                        ${renderH2HList()}
+                        ${renderH2HList()} <!-- THIS WAS MISSING -->
                     </div>
                 </div>
             </div>`;
-    } catch (err) {}
+    } catch (err) {
+        console.error("Error rendering Panel 3:", err);
+    }
 }
     function renderMatchList(matchesArray) {
     const container = document.getElementById('matchListSubPanel');
