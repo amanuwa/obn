@@ -1030,77 +1030,108 @@ async function renderWithIsolatedPanels(rawPayload) {
 
     // --- FORM SLOT (PANEL 2 - FORM LIST) ---
 // --- FORM SLOT (PANEL 2 - FORM LIST WITH DEBUGGING) ---
+ // --- PANEL 2 (RECENT FORM RENDERER WITH DOWNLOAD BUTTON) ---
     try {
-        console.log("LOG [PANEL 2 DEBUG]: teamForm object received ->", teamFormObj);
-        console.log("LOG [PANEL 2 DEBUG]: Looking for home team key:", homeTeamName);
-        console.log("LOG [PANEL 2 DEBUG]: Looking for away team key:", awayTeamName);
+        // Look for form data in various possible paths
+        const formObj = data.teamForm || data.form || {};
         
-        console.log("LOG [PANEL 2 DEBUG]: rawHomeForm found ->", rawHomeForm);
-        console.log("LOG [PANEL 2 DEBUG]: rawAwayForm found ->", rawAwayForm);
+        let rawHomeForm = formObj.home || formObj.homeForm || data.homeForm || [];
+        let rawAwayForm = formObj.away || formObj.awayForm || data.awayForm || [];
 
-        console.log("LOG [PANEL 2 DEBUG]: Parsed homeFormList ->", homeFormList);
-        console.log("LOG [PANEL 2 DEBUG]: Parsed awayFormList ->", awayFormList);
+        const homeFormList = Array.isArray(rawHomeForm) ? rawHomeForm : [];
+        const awayFormList = Array.isArray(rawAwayForm) ? rawAwayForm : [];
 
-        const renderFormList = (formList) => {
-            if (!Array.isArray(formList) || formList.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
-            return formList.map(match => `
-                <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
-                    <div class="flex items-center gap-2.5">
-                        <span class="text-[10px] text-slate-500 font-bold w-10">${match.mw}</span>
-                        <img src="${getLogo(match.opponent)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
-                        <span class="text-xs text-slate-200">vs ${match.opponent}</span>
+        const renderFormItems = (list) => {
+            if (!list || list.length === 0) {
+                return '<div class="text-xs text-slate-500 italic py-2">No recent form data available.</div>';
+            }
+            return list.map(item => {
+                const mw = safeText(item.mw || item.matchWeek || 'MW', 'MW');
+                const opponent = safeText(item.opponent || item.vs || 'Opponent', 'Match');
+                const score = safeText(item.score || item.result || '-', '-');
+                
+                return `
+                    <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded border border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-yellow-400 font-bold bg-slate-900 px-1.5 py-0.5 rounded">${mw}</span>
+                            <span class="text-xs text-slate-200 truncate max-w-[120px]">${opponent}</span>
+                        </div>
+                        <span class="text-xs font-bold text-slate-100 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${score}</span>
                     </div>
-                    <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">${match.score}</span>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         };
 
-        document.getElementById('panel-form-slot').innerHTML = `
-            <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Last 5 Matches Form List</span>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
-                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
-                            <img src="${getLogo(homeTeamName)}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
-                            <span class="text-xs font-bold text-green-300 uppercase">${homeTeamName} - Recent Form</span>
-                        </div>
-                        <div class="space-y-2 max-h-64 overflow-y-auto pr-1">${renderFormList(homeFormList)}</div>
+        const panel2El = document.getElementById('panel-form-slot') || document.getElementById('panel-2-slot');
+        if (panel2El) {
+            panel2El.innerHTML = `
+                <div id="form-panel-card" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Recent Form Analysis</span>
+                        <button onclick="downloadFormImage()" title="Download Panel as Image" class="text-slate-400 hover:text-yellow-400 bg-slate-950 p-1.5 rounded border border-slate-800 transition-colors flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                        </button>
                     </div>
-                    <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
-                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
-                            <img src="${getLogo(awayTeamName)}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
-                            <span class="text-xs font-bold text-blue-300 uppercase">${awayTeamName} - Recent Form</span>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Home Team Form -->
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-900 pb-2">
+                                <span class="text-xs font-bold text-green-400 uppercase tracking-wider">${homeTeamName}</span>
+                                <img src="${getLogo(homeTeamName)}" class="w-5 h-5 object-contain">
+                            </div>
+                            <div class="space-y-2">
+                                ${renderFormItems(homeFormList)}
+                            </div>
                         </div>
-                        <div class="space-y-2 max-h-64 overflow-y-auto pr-1">${renderFormList(awayFormList)}</div>
+
+                        <!-- Away Team Form -->
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-900 pb-2">
+                                <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">${awayTeamName}</span>
+                                <img src="${getLogo(awayTeamName)}" class="w-5 h-5 object-contain">
+                            </div>
+                            <div class="space-y-2">
+                                ${renderFormItems(awayFormList)}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            `;
+                </div>`;
+        }
+
+        // Attach global download function for Panel 2
+        if (!window.downloadFormImage) {
+            window.downloadFormImage = function() {
+                if (typeof html2canvas !== 'undefined') {
+                    html2canvas(document.getElementById('form-panel-card'), { backgroundColor: '#020617' }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = 'team-form-analysis.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    });
+                } else {
+                    alert('html2canvas library is not loaded.');
+                }
+            };
+        }
     } catch (err) {
-        console.error("LOG [ERROR]: Panel 2 (Form) failed ->", err);
+        console.error("LOG [ERROR]: Panel 2 failed ->", err);
     }
 
     // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
    // --- H2H SLOT (PANEL 3 - WITH DOWNLOAD IMAGE BUTTON) ---
+ // --- H2H SLOT (PANEL 3 - WITH DOWNLOAD IMAGE BUTTON) ---
     try {
         let h2hMatches = [];
         if (Array.isArray(h2hObj)) {
             h2hMatches = h2hObj;
         } else if (h2hObj && typeof h2hObj === 'object') {
-            h2hMatches = h2hObj.matches || h2hObj.list || h2hObj.history || [];
+            h2hMatches = h2hObj.matches || h2hObj.list || h2hObj.history || Object.values(h2hObj).filter(v => typeof v === 'object' && v !== null);
         }
 
-        const totalPlayed = h2hObj.totalPlayed || h2hMatches.length || 0;
-        const homeWinsTotal = h2hObj.homeWinsTotal || h2hObj[`${homeTeamName}Wins`] || 0;
-        const homeWinsHome = h2hObj.homeWinsHome || 0;
-        const homeWinsAway = h2hObj.homeWinsAway || 0;
-        
-        const awayWinsTotal = h2hObj.awayWinsTotal || h2hObj[`${awayTeamName}Wins`] || 0;
-        const awayWinsHome = h2hObj.awayWinsHome || 0;
-        const awayWinsAway = h2hObj.awayWinsAway || 0;
-
-        const draws = h2hObj.draws || 0;
+        const totalPlayed = h2hMatches.length;
 
         const renderH2HList = () => {
             if (h2hMatches.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
@@ -1109,6 +1140,7 @@ async function renderWithIsolatedPanels(rawPayload) {
                 const aTeam = safeText(m.away || m.awayTeam, 'Away Team');
                 const scoreVal = safeText(m.result || m.score, '0 - 0');
                 const dateVal = safeText(m.date || m.matchDate, 'Recent');
+                const citationUrl = m.citation ? `href="${m.citation}" target="_blank"` : '';
 
                 return `
                     <div class="flex items-center justify-between bg-slate-900/90 hover:bg-slate-900 px-4 py-3 rounded-md border border-slate-800 transition-colors">
@@ -1117,7 +1149,9 @@ async function renderWithIsolatedPanels(rawPayload) {
                             <img src="${getLogo(hTeam)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5 flex-shrink-0">
                         </div>
                         <div class="flex flex-col items-center justify-center w-1/3">
-                            <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-3 py-1 rounded border border-slate-800/80 tracking-widest">${scoreVal}</span>
+                            <a ${citationUrl} class="text-xs font-bold text-yellow-400 bg-slate-950 px-3 py-1 rounded border border-slate-800/80 tracking-widest hover:border-yellow-400/50 transition-colors" title="View Match Citation">
+                                ${scoreVal}
+                            </a>
                             <span class="text-[10px] text-slate-500 mt-1">${dateVal}</span>
                         </div>
                         <div class="flex items-center gap-3 w-1/3 justify-end">
@@ -1141,39 +1175,16 @@ async function renderWithIsolatedPanels(rawPayload) {
                 </div>
 
                 <!-- Top Stats Summary Bar -->
-                <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-4">
+                <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-2">
                             <img src="${getLogo(homeTeamName)}" class="w-5 h-5 object-contain">
                             <span class="text-xs font-bold text-slate-200">${homeTeamName}</span>
                         </div>
-                        <span class="text-xs font-bold text-slate-300 tracking-wider">Played ${totalPlayed}</span>
+                        <span class="text-xs font-bold text-slate-300 tracking-wider">Total Meetings Recorded: ${totalPlayed}</span>
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-bold text-slate-200">${awayTeamName}</span>
                             <img src="${getLogo(awayTeamName)}" class="w-5 h-5 object-contain">
-                        </div>
-                    </div>
-
-                    <!-- Ratio Bar -->
-                    <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden flex">
-                        <div class="bg-red-500 h-full" style="width: 45%;"></div>
-                        <div class="bg-slate-600 h-full" style="width: 10%;"></div>
-                        <div class="bg-blue-500 h-full" style="width: 45%;"></div>
-                    </div>
-
-                    <!-- Detailed Breakdown Grid -->
-                    <div class="flex justify-between items-center pt-2 border-t border-slate-900 text-xs">
-                        <div class="space-y-1">
-                            <div class="text-[10px] text-slate-400 uppercase">Wins <span class="text-slate-100 font-bold">${homeWinsTotal}</span></div>
-                            <div class="text-[10px] text-slate-500">Home ${homeWinsHome} &bull; Away ${homeWinsAway}</div>
-                        </div>
-                        <div class="text-center space-y-1">
-                            <div class="text-[10px] text-slate-400 uppercase">Draws</div>
-                            <div class="text-xs font-bold text-yellow-400">${draws}</div>
-                        </div>
-                        <div class="space-y-1 text-right">
-                            <div class="text-[10px] text-slate-400 uppercase">Wins <span class="text-slate-100 font-bold">${awayWinsTotal}</span></div>
-                            <div class="text-[10px] text-slate-500">Away ${awayWinsAway} &bull; Home ${awayWinsHome}</div>
                         </div>
                     </div>
                 </div>
@@ -1187,7 +1198,7 @@ async function renderWithIsolatedPanels(rawPayload) {
                 </div>
             </div>`;
 
-        // Attach the download handler function globally if not already present
+        // Attach global download function for Panel 3
         if (!window.downloadH2HImage) {
             window.downloadH2HImage = function() {
                 if (typeof html2canvas !== 'undefined') {
@@ -1198,7 +1209,7 @@ async function renderWithIsolatedPanels(rawPayload) {
                         link.click();
                     });
                 } else {
-                    alert('Please ensure html2canvas library is included in your project to export images directly.');
+                    alert('html2canvas library is not loaded.');
                 }
             };
         }
