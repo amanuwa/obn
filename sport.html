@@ -1032,41 +1032,53 @@ async function renderWithIsolatedPanels(rawPayload) {
 // --- FORM SLOT (PANEL 2 - FORM LIST WITH DEBUGGING) ---
 // --- PANEL 2 (RECENT FORM RENDERER WITH DEBUGGER) ---
     // --- PANEL 2 (RECENT FORM RENDERER - SAFEGUARDED) ---
+// ==========================================
+// PANEL 2: RECENT FORM ANALYSIS CODE BLOCK
+// ==========================================
 try {
     console.log("=== PANEL 2 DEBUG START ===");
-    const homeName = typeof homeTeamName !== 'undefined' ? homeTeamName : (data?.homeTeam || data?.home || "Home Team");
-    const awayName = typeof awayTeamName !== 'undefined' ? awayTeamName : (data?.awayTeam || data?.away || "Away Team");
-    
-    const formObj = data?.teamForm || data?.form || {};
-    
-    // Safely fallback through possible property naming conventions
-    let rawHomeForm = formObj?.homeTeamPrevious || formObj?.home || formObj?.homeForm || data?.homeForm || [];
-    let rawAwayForm = formObj?.awayTeamPrevious || formObj?.away || formObj?.awayForm || data?.awayForm || [];
+    const teamFormObj = data.teamForm || data.form || {};
+    console.log("PANEL 2 raw teamFormObj:", teamFormObj);
 
-    const renderFormItems = (list) => {
-        if (!Array.isArray(list) || list.length === 0) {
-            return '<div class="text-xs text-slate-500 italic py-2">No recent form data available.</div>';
+    // Correctly lookup using literal team names, dynamic keys, or standard fallbacks
+    const rawHomeForm = teamFormObj[homeTeamName] || teamFormObj.homeTeamPrevious || teamFormObj.home || teamFormObj.homeForm || [];
+    const rawAwayForm = teamFormObj[awayTeamName] || teamFormObj.awayTeamPrevious || teamFormObj.away || teamFormObj.awayForm || [];
+    
+    console.log("PANEL 2 resolved rawHomeForm:", rawHomeForm);
+    console.log("PANEL 2 resolved rawAwayForm:", rawAwayForm);
+
+    const parseFormItem = (item) => {
+        if (!item) return null;
+        if (typeof item === 'object') {
+            return {
+                mw: safeText(item.matchweek || item.mw, 'MW'),
+                opponent: safeText(item.opponent || item.team || item.vs, 'Unknown'),
+                score: safeText(item.score || item.result, '-'),
+                venue: safeText(item.venue, '')
+            };
         }
-        return list.map(item => {
-            if (!item) return '';
-            const mwLabel = item.matchweek ? `MW${item.matchweek}` : (item.mw || 'MW');
-            const opp = item.opponent || item.vs || item.match || 'Match';
-            const scr = item.score || item.result || '-';
-            const venue = item.venue ? `(${item.venue})` : '';
-
-            return `
-                <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded border border-slate-800">
-                    <div class="flex items-center gap-2">
-                        <span class="text-[10px] text-yellow-400 font-bold bg-slate-900 px-1.5 py-0.5 rounded">${mwLabel}</span>
-                        <span class="text-xs text-slate-200 truncate max-w-[130px]">vs ${opp} <span class="text-[10px] text-slate-500">${venue}</span></span>
-                    </div>
-                    <span class="text-xs font-bold text-slate-100 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${scr}</span>
-                </div>
-            `;
-        }).join('');
+        return { mw: 'MW', opponent: String(item), score: '-' };
     };
 
-    let panel2El = document.getElementById('panel-form-slot') || document.getElementById('panel-2-slot');
+    const homeFormList = Array.isArray(rawHomeForm) ? rawHomeForm.map(parseFormItem).filter(Boolean) : [];
+    const awayFormList = Array.isArray(rawAwayForm) ? rawAwayForm.map(parseFormItem).filter(Boolean) : [];
+    console.log("PANEL 2 final homeFormList:", homeFormList);
+    console.log("PANEL 2 final awayFormList:", awayFormList);
+
+    const renderFormItems = (list) => {
+        if (!list || list.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No recent form data available.</div>';
+        return list.map(item => `
+            <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded border border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-yellow-400 font-bold bg-slate-900 px-1.5 py-0.5 rounded">MW${item.mw}</span>
+                    <span class="text-xs text-slate-200 truncate max-w-[130px]">vs ${item.opponent} ${item.venue ? `(${item.venue})` : ''}</span>
+                </div>
+                <span class="text-xs font-bold text-slate-100 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${item.score}</span>
+            </div>
+        `).join('');
+    };
+
+    let panel2El = document.getElementById('panel-form-slot');
     if (panel2El) {
         panel2El.innerHTML = `
             <div id="form-panel-card" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
@@ -1081,59 +1093,37 @@ try {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
                         <div class="flex items-center justify-between border-b border-slate-900 pb-2">
-                            <span class="text-xs font-bold text-green-400 uppercase tracking-wider">${homeName}</span>
+                            <span class="text-xs font-bold text-green-400 uppercase tracking-wider">${homeTeamName}</span>
                         </div>
-                        <div class="space-y-2">${renderFormItems(rawHomeForm)}</div>
+                        <div class="space-y-2">${renderFormItems(homeFormList)}</div>
                     </div>
                     <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
                         <div class="flex items-center justify-between border-b border-slate-900 pb-2">
-                            <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">${awayName}</span>
+                            <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">${awayTeamName}</span>
                         </div>
-                        <div class="space-y-2">${renderFormItems(rawAwayForm)}</div>
+                        <div class="space-y-2">${renderFormItems(awayFormList)}</div>
                     </div>
                 </div>
             </div>`;
     }
     console.log("=== PANEL 2 DEBUG END ===");
-
-    if (!window.downloadFormImage) {
-        window.downloadFormImage = function() {
-            if (typeof html2canvas !== 'undefined') {
-                html2canvas(document.getElementById('form-panel-card'), { backgroundColor: '#020617' }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = 'team-form-analysis.png';
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                });
-            } else {
-                alert('html2canvas library is not loaded on this page.');
-            }
-        };
-    }
 } catch (err) {
     console.error("LOG [ERROR]: Panel 2 failed ->", err);
 }
 
-    // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
-   // --- H2H SLOT (PANEL 3 - WITH DOWNLOAD IMAGE BUTTON) ---
-// --- H2H SLOT (PANEL 3 - DIRECT ARRAY MAPPING) ---
-   // --- PANEL 3 (PREVIOUS MEETINGS RENDERER WITH DEBUGGER) ---
-   // --- PANEL 3 (PREVIOUS MEETINGS RENDERER - SAFEGUARDED) ---
+// ==========================================
+// PANEL 3: PREVIOUS MEETINGS (H2H) CODE BLOCK
+// ==========================================
 try {
     console.log("=== PANEL 3 DEBUG START ===");
-    const homeName = typeof homeTeamName !== 'undefined' ? homeTeamName : (data?.homeTeam || data?.home || "Home Team");
-    const awayName = typeof awayTeamName !== 'undefined' ? awayTeamName : (data?.awayTeam || data?.away || "Away Team");
+    const h2hObj = data.previousMeetings || data.headToHead || data.h2h || {};
+    console.log("PANEL 3 raw h2hObj:", h2hObj);
 
-    let h2hMatches = [];
-    let rawH2H = typeof h2hObj !== 'undefined' ? h2hObj : (data?.h2h || data?.previousMeetings || data?.headToHead || {});
-    
-    if (Array.isArray(rawH2H)) {
-        h2hMatches = rawH2H;
-    } else if (rawH2H && typeof rawH2H === 'object') {
-        h2hMatches = rawH2H?.recentMeetings || rawH2H?.matches || rawH2H?.list || rawH2H?.history || [];
-    }
+    // Target the 'recentMeetings' array structure matching your payload
+    const h2hMatches = h2hObj.recentMeetings || h2hObj.matches || h2hObj.list || h2hObj.history || (Array.isArray(h2hObj) ? h2hObj : []);
+    console.log("PANEL 3 resolved h2hMatches array:", h2hMatches);
 
-    const totalPlayed = rawH2H?.played || h2hMatches.length;
+    const totalPlayed = h2hObj.played || h2hMatches.length || 0;
 
     const renderH2HList = () => {
         if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) {
@@ -1166,7 +1156,7 @@ try {
         }).join('');
     };
 
-    let panel3El = document.getElementById('panel-h2h-slot') || document.getElementById('panel-3-slot');
+    let panel3El = document.getElementById('panel-h2h-slot');
     if (panel3El) {
         panel3El.innerHTML = `
             <div id="h2h-panel-card" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-5">
@@ -1180,9 +1170,9 @@ try {
                 </div>
                 <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
                     <div class="flex justify-between items-center text-xs text-slate-300 font-bold">
-                        <span>${homeName}</span>
+                        <span>${homeTeamName}</span>
                         <span>Total Meetings Recorded: ${totalPlayed}</span>
-                        <span>${awayName}</span>
+                        <span>${awayTeamName}</span>
                     </div>
                 </div>
                 <div class="space-y-2 pt-2 border-t border-slate-800/60">
@@ -1194,21 +1184,6 @@ try {
             </div>`;
     }
     console.log("=== PANEL 3 DEBUG END ===");
-
-    if (!window.downloadH2HImage) {
-        window.downloadH2HImage = function() {
-            if (typeof html2canvas !== 'undefined') {
-                html2canvas(document.getElementById('h2h-panel-card'), { backgroundColor: '#020617' }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = 'head-to-head-analysis.png';
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                });
-            } else {
-                alert('html2canvas library is not loaded on this page.');
-            }
-        };
-    }
 } catch (err) {
     console.error("LOG [ERROR]: Panel 3 failed ->", err);
 }}
