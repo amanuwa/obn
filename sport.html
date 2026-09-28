@@ -844,51 +844,59 @@ async function renderWithIsolatedPanels(data) {
     const rawAwayForm = teamFormObj.awayPrevious || teamFormObj.away || data.awayPrevious || [];
 
     // Helper to parse strings like "MW1: Hull City 0-2 Manchester United"
-    const parseFormString = (str, mainTeam) => {
-        if (typeof str !== 'object' && typeof str !== 'string') return null;
-        if (typeof str === 'object') {
-            return {
-                mw: safeText(str.matchweek || str.mw, 'MW'),
-                opponent: safeText(str.opponent || str.team, 'Unknown'),
-                score: safeText(str.score || str.result, '-'),
-                venueText: safeText(str.venue, '')
-            };
-        }
+     const parseFormString = (str) => {
+    if (typeof str !== 'string') return null;
+    let mw = 'MW';
+    let remaining = str;
 
-        // Example: "MW1: Hull City 0-2 Manchester United"
-        let mw = 'MW';
-        let remaining = str;
+    const parts = str.split(' ');
+    if (parts.length > 0 && parts[0].startsWith('MW')) {
+        mw = parts[0];
+        remaining = parts.slice(1).join(' ');
+    }
 
-        if (str.includes(':')) {
-            const parts = str.split(':');
-            mw = parts[0].trim();
-            remaining = parts.slice(1).join(':').trim();
-        }
+    const scoreMatch = remaining.match(/(\d+[-–]\d+)$/);
+    const score = scoreMatch ? scoreMatch[1] : '-';
 
-        // Match standard football score format inside string (e.g. " 0-2 ", " 1-1 ")
-        const scoreRegex = /\s+(\d+[-–]\d+)\s+/;
-        const match = remaining.match(scoreRegex);
+    if (scoreMatch) {
+        remaining = remaining.replace(scoreMatch[1], '').trim();
+    }
 
-        if (match) {
-            const score = match[1];
-            const scoreIndex = remaining.indexOf(score);
-            const teamA = remaining.substring(0, scoreIndex).trim();
-            const teamB = remaining.substring(scoreIndex + score.length).trim();
+    let venueText = '';
+    if (remaining.endsWith('(A)')) {
+        venueText = 'Away';
+        remaining = remaining.replace('(A)', '').trim();
+    } else if (remaining.endsWith('(H)')) {
+        venueText = 'Home';
+        remaining = remaining.replace('(H)', '').trim();
+    }
 
-            // Determine which one is the opponent
-            const opponent = teamA.toLowerCase() === mainTeam.toLowerCase() ? teamB : teamA;
-            return { mw, opponent, score, venueText: '' };
-        }
+    const opponent = remaining;
+    return { mw, opponent, score, venueText };
+};
 
-        return { mw, opponent: remaining, score: '-', venueText: '' };
-    };
+// 2. Extract and parse using n8n's exact structure (homeTeam & awayTeam)
+const teamFormObj = data.teamForm || {};
+const rawHomeForm = teamFormObj.homeTeam || [];
+const rawAwayForm = teamFormObj.awayTeam || [];
 
-    const homeFormList = Array.isArray(rawHomeForm) ? rawHomeForm.map(s => parseFormString(s, homeTeamName)).filter(Boolean) : [];
-    const awayFormList = Array.isArray(rawAwayForm) ? rawAwayForm.map(s => parseFormString(s, awayTeamName)).filter(Boolean) : [];
+const homeFormList = rawHomeForm.map(parseFormString).filter(Boolean);
+const awayFormList = rawAwayForm.map(parseFormString).filter(Boolean);
+
+   
 
     // --- H2H MATCHES EXTRACTION ---
-    const h2hObj = data.previousMeetings || data.headToHead || data.h2h || {};
-    const h2hMatches = h2hObj.matches || h2hObj.list || h2hObj.history || (Array.isArray(h2hObj) ? h2hObj : []) || [];
+   const h2hArray = Array.isArray(data.previousMeetings) 
+    ? data.previousMeetings 
+    : (Array.isArray(data.headToHead) ? data.headToHead : (Array.isArray(data) ? data : []));
+
+const formattedH2HMatches = h2hArray.map(match => ({
+    date: match.date || '',
+    homeTeam: match.home || 'Home',
+    awayTeam: match.away || 'Away',
+    score: match.result || '0-0',
+    citation: match.citation || ''
+}));
 
     // Gather all team names for batch logo fetching
     let logoMap = {};
