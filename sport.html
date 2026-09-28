@@ -1029,7 +1029,18 @@ async function renderWithIsolatedPanels(rawPayload) {
     }
 
     // --- FORM SLOT (PANEL 2 - FORM LIST) ---
+// --- FORM SLOT (PANEL 2 - FORM LIST WITH DEBUGGING) ---
     try {
+        console.log("LOG [PANEL 2 DEBUG]: teamForm object received ->", teamFormObj);
+        console.log("LOG [PANEL 2 DEBUG]: Looking for home team key:", homeTeamName);
+        console.log("LOG [PANEL 2 DEBUG]: Looking for away team key:", awayTeamName);
+        
+        console.log("LOG [PANEL 2 DEBUG]: rawHomeForm found ->", rawHomeForm);
+        console.log("LOG [PANEL 2 DEBUG]: rawAwayForm found ->", rawAwayForm);
+
+        console.log("LOG [PANEL 2 DEBUG]: Parsed homeFormList ->", homeFormList);
+        console.log("LOG [PANEL 2 DEBUG]: Parsed awayFormList ->", awayFormList);
+
         const renderFormList = (formList) => {
             if (!Array.isArray(formList) || formList.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
             return formList.map(match => `
@@ -1065,7 +1076,7 @@ async function renderWithIsolatedPanels(rawPayload) {
                         <div class="space-y-2 max-h-64 overflow-y-auto pr-1">${renderFormList(awayFormList)}</div>
                     </div>
                 </div>
-            </div>`;
+            `;
     } catch (err) {
         console.error("LOG [ERROR]: Panel 2 (Form) failed ->", err);
     }
