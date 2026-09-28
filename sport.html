@@ -1122,16 +1122,21 @@ async function renderWithIsolatedPanels(rawPayload) {
 
     // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
    // --- H2H SLOT (PANEL 3 - WITH DOWNLOAD IMAGE BUTTON) ---
- // --- H2H SLOT (PANEL 3 - WITH DOWNLOAD IMAGE BUTTON) ---
+// --- H2H SLOT (PANEL 3 - DIRECT ARRAY MAPPING) ---
     try {
+        // Handle case where h2hObj itself is the array of matches
         let h2hMatches = [];
         if (Array.isArray(h2hObj)) {
             h2hMatches = h2hObj;
         } else if (h2hObj && typeof h2hObj === 'object') {
-            h2hMatches = h2hObj.matches || h2hObj.list || h2hObj.history || Object.values(h2hObj).filter(v => typeof v === 'object' && v !== null);
+            h2hMatches = h2hObj.matches || h2hObj.list || h2hObj.history || [];
         }
 
         const totalPlayed = h2hMatches.length;
+        // Direct mapping from h2hObj if properties exist, otherwise leave as '-' or 0
+        const homeWins = h2hObj[`${homeTeamName}Wins`] !== undefined ? h2hObj[`${homeTeamName}Wins`] : '-';
+        const awayWins = h2hObj[`${awayTeamName}Wins`] !== undefined ? h2hObj[`${awayTeamName}Wins`] : '-';
+        const draws = h2hObj.draws !== undefined ? h2hObj.draws : '-';
 
         const renderH2HList = () => {
             if (h2hMatches.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
@@ -1140,23 +1145,23 @@ async function renderWithIsolatedPanels(rawPayload) {
                 const aTeam = safeText(m.away || m.awayTeam, 'Away Team');
                 const scoreVal = safeText(m.result || m.score, '0 - 0');
                 const dateVal = safeText(m.date || m.matchDate, 'Recent');
-                const citationUrl = m.citation ? `href="${m.citation}" target="_blank"` : '';
 
                 return `
-                    <div class="flex items-center justify-between bg-slate-900/90 hover:bg-slate-900 px-4 py-3 rounded-md border border-slate-800 transition-colors">
-                        <div class="flex items-center gap-3 w-1/3">
-                            <span class="text-xs font-semibold text-slate-200 text-right w-full truncate">${hTeam}</span>
-                            <img src="${getLogo(hTeam)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5 flex-shrink-0">
+                    <div class="flex items-center justify-between bg-slate-900/80 p-3 rounded border border-slate-800">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-1.5">
+                                <img src="${getLogo(hTeam)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
+                                <span class="text-xs font-bold text-slate-200">${hTeam}</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500">vs</span>
+                            <div class="flex items-center gap-1.5">
+                                <img src="${getLogo(aTeam)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
+                                <span class="text-xs font-bold text-slate-200">${aTeam}</span>
+                            </div>
                         </div>
-                        <div class="flex flex-col items-center justify-center w-1/3">
-                            <a ${citationUrl} class="text-xs font-bold text-yellow-400 bg-slate-950 px-3 py-1 rounded border border-slate-800/80 tracking-widest hover:border-yellow-400/50 transition-colors" title="View Match Citation">
-                                ${scoreVal}
-                            </a>
-                            <span class="text-[10px] text-slate-500 mt-1">${dateVal}</span>
-                        </div>
-                        <div class="flex items-center gap-3 w-1/3 justify-end">
-                            <img src="${getLogo(aTeam)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5 flex-shrink-0">
-                            <span class="text-xs font-semibold text-slate-200 text-left w-full truncate">${aTeam}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] text-slate-400">${dateVal}</span>
+                            <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">${scoreVal}</span>
                         </div>
                     </div>
                 `;
@@ -1164,55 +1169,35 @@ async function renderWithIsolatedPanels(rawPayload) {
         };
 
         document.getElementById('panel-h2h-slot').innerHTML = `
-            <div id="h2h-panel-card" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-5">
+            <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Previous Meetings</span>
-                    <button onclick="downloadH2HImage()" title="Download Panel as Image" class="text-slate-400 hover:text-yellow-400 bg-slate-950 p-1.5 rounded border border-slate-800 transition-colors flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                    </button>
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head History & Match List</span>
                 </div>
-
-                <!-- Top Stats Summary Bar -->
-                <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2">
-                            <img src="${getLogo(homeTeamName)}" class="w-5 h-5 object-contain">
-                            <span class="text-xs font-bold text-slate-200">${homeTeamName}</span>
-                        </div>
-                        <span class="text-xs font-bold text-slate-300 tracking-wider">Total Meetings Recorded: ${totalPlayed}</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold text-slate-200">${awayTeamName}</span>
-                            <img src="${getLogo(awayTeamName)}" class="w-5 h-5 object-contain">
-                        </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800">
+                        <div class="text-[10px] text-slate-400 uppercase">Total Played</div>
+                        <div class="text-lg font-bold text-slate-100">${totalPlayed}</div>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800">
+                        <div class="text-[10px] text-green-400 uppercase">${homeTeamName} Wins</div>
+                        <div class="text-lg font-bold text-green-300">${homeWins}</div>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800">
+                        <div class="text-[10px] text-blue-400 uppercase">${awayTeamName} Wins</div>
+                        <div class="text-lg font-bold text-blue-300">${awayWins}</div>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800">
+                        <div class="text-[10px] text-yellow-400 uppercase">Draws</div>
+                        <div class="text-lg font-bold text-yellow-300">${draws}</div>
                     </div>
                 </div>
-
-                <!-- Match List Feed -->
                 <div class="space-y-2 pt-2 border-t border-slate-800/60">
                     <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List</div>
                     <div class="max-h-72 overflow-y-auto space-y-2 pr-1">
                         ${renderH2HList()}
                     </div>
                 </div>
-            </div>`;
-
-        // Attach global download function for Panel 3
-        if (!window.downloadH2HImage) {
-            window.downloadH2HImage = function() {
-                if (typeof html2canvas !== 'undefined') {
-                    html2canvas(document.getElementById('h2h-panel-card'), { backgroundColor: '#020617' }).then(canvas => {
-                        const link = document.createElement('a');
-                        link.download = 'head-to-head-analysis.png';
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                    });
-                } else {
-                    alert('html2canvas library is not loaded.');
-                }
-            };
-        }
+            `;
     } catch (err) {
         console.error("LOG [ERROR]: Panel 3 (H2H) failed ->", err);
     }
