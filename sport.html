@@ -650,7 +650,7 @@
         });
     };
 
-    window.executeScraperWorkflow = async function(payload) {
+   window.executeScraperWorkflow = async function(payload) {
     console.log("1. Workflow triggered with payload:", payload);
     
     const loader = document.getElementById('fullPageLoader');
@@ -692,36 +692,25 @@
             console.log("🔍 MATCH DETAIL ROUTER DEBUGGER ACTIVATED");
             console.log("Raw Match Data Object:", rawData);
             
-            // --- SECONDARY (NESTED) IF/ELSE FOR MATCH STATUS ---
             const matchState = rawData.value || rawData.matchStatus;
             console.log(`Evaluated matchState parameter value: "${matchState}"`);
 
             if (matchState === 'past') {
                 console.log("--> MATCH ROUTE MATCHED: 'past'. Sending to past match renderer.");
-                console.log("Payload data being passed:", rawData);
-                console.log("==========================================");
-                
                 if (typeof renderPastMatchDetails === 'function') {
                     renderPastMatchDetails(rawData);
                 } else {
-                    console.warn("⚠️ Warning: renderPastMatchDetails function is not defined. Falling back to default.");
                     renderDefaultDetails(rawData);
                 }
             } else if (matchState === 'incoming' || matchState === 'upcoming') {
                 console.log("--> MATCH ROUTE MATCHED: 'incoming' / 'upcoming'. Sending to incoming match renderer.");
-                console.log("Payload data being passed:", rawData);
-                console.log("==========================================");
-                
                 if (typeof renderIncomingMatchDetails === 'function') {
                     renderIncomingMatchDetails(rawData);
                 } else {
-                    console.warn("⚠️ Warning: renderIncomingMatchDetails function is not defined. Falling back to default.");
                     renderDefaultDetails(rawData);
                 }
             } else {
                 console.warn(`⚠️ Warning: Unrecognized matchState value: "${matchState}". Fallback triggered.`);
-                console.log("==========================================");
-                
                 if (typeof renderMatchDetails === 'function') {
                     renderMatchDetails(rawData);
                 } else {
@@ -730,7 +719,6 @@
             }
 
         } else if (Array.isArray(dataArray)) {
-            // Route for lists like match fixtures or news
             if (payload.targetMatrix === 'hot_news' || dataArray[0]?.headline || dataArray[0]?.news_title) {
                 console.log("Routing to News Matrix renderer...");
                 if (typeof renderNewsMatrix === 'function') renderNewsMatrix(dataArray);
@@ -758,24 +746,21 @@ function renderDefaultDetails(result) {
         detailPanel.innerHTML = `<div class="p-3 text-xs text-green-400 font-mono"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
     }
 }
-    // 1. Renderer for Past Matches (Completed)
+
+// 1. Renderer for Past Matches (Completed)
 function renderPastMatchDetails(match) {
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
     if (!detailPanel) return;
 
-    // Build your custom HTML structure for past matches here using match.data
     detailPanel.innerHTML = `
         <div class="p-4 text-white font-sans">
             <h2 class="text-lg font-bold text-green-400">🏁 Completed Match: ${match.data.homeTeam} vs ${match.data.awayTeam}</h2>
             <p class="text-sm text-gray-300">Result: ${match.data.matchResult}</p>
             <p class="text-xs text-gray-500">Stadium: ${match.data.stadium}</p>
-            <!-- Add more custom UI elements for stats, lineups, goals -->
         </div>
     `;
 }
 
-// ==========================================
-// 1. SAFE TEXT UTILITY
 // ==========================================
 // 1. SAFE TEXT UTILITY
 // ==========================================
@@ -889,67 +874,52 @@ async function renderWithIsolatedPanels(data) {
         </div>
     `;
 
-    // --- EXTRACT TEAM FORM STRINGS (homePrevious / awayPrevious) ---
+    // --- EXTRACT TEAM FORM STRINGS ---
     const teamFormObj = data.teamForm || {};
     const rawHomeForm = teamFormObj.homePrevious || teamFormObj.home || data.homePrevious || [];
     const rawAwayForm = teamFormObj.awayPrevious || teamFormObj.away || data.awayPrevious || [];
 
-    // Helper to parse strings like "MW1: Hull City 0-2 Manchester United"
-     const parseFormString = (str) => {
-    if (typeof str !== 'string') return null;
-    let mw = 'MW';
-    let remaining = str;
+    const parseFormString = (str) => {
+        if (typeof str !== 'string') return null;
+        let mw = 'MW';
+        let remaining = str;
 
-    const parts = str.split(' ');
-    if (parts.length > 0 && parts[0].startsWith('MW')) {
-        mw = parts[0];
-        remaining = parts.slice(1).join(' ');
-    }
+        const parts = str.split(' ');
+        if (parts.length > 0 && parts[0].startsWith('MW')) {
+            mw = parts[0];
+            remaining = parts.slice(1).join(' ');
+        }
 
-    const scoreMatch = remaining.match(/(\d+[-–]\d+)$/);
-    const score = scoreMatch ? scoreMatch[1] : '-';
+        const scoreMatch = remaining.match(/(\d+[-–]\d+)$/);
+        const score = scoreMatch ? scoreMatch[1] : '-';
 
-    if (scoreMatch) {
-        remaining = remaining.replace(scoreMatch[1], '').trim();
-    }
+        if (scoreMatch) {
+            remaining = remaining.replace(scoreMatch[1], '').trim();
+        }
 
-    let venueText = '';
-    if (remaining.endsWith('(A)')) {
-        venueText = 'Away';
-        remaining = remaining.replace('(A)', '').trim();
-    } else if (remaining.endsWith('(H)')) {
-        venueText = 'Home';
-        remaining = remaining.replace('(H)', '').trim();
-    }
+        let venueText = '';
+        if (remaining.endsWith('(A)')) {
+            venueText = 'Away';
+            remaining = remaining.replace('(A)', '').trim();
+        } else if (remaining.endsWith('(H)')) {
+            venueText = 'Home';
+            remaining = remaining.replace('(H)', '').trim();
+        }
 
-    const opponent = remaining;
-    return { mw, opponent, score, venueText };
-};
+        const opponent = remaining;
+        return { mw, opponent, score, venueText };
+    };
 
-// 2. Extract and parse using n8n's exact structure (homeTeam & awayTeam)
-// //const teamFormObj = data.teamForm || {};
-// const rawHomeForm = teamFormObj.homeTeam || [];
-// const rawAwayForm = teamFormObj.awayTeam || [];
-
-const homeFormList = rawHomeForm.map(parseFormString).filter(Boolean);
-const awayFormList = rawAwayForm.map(parseFormString).filter(Boolean);
-
-   
+    const homeFormList = rawHomeForm.map(parseFormString).filter(Boolean);
+    const awayFormList = rawAwayForm.map(parseFormString).filter(Boolean);
 
     // --- H2H MATCHES EXTRACTION ---
-   const h2hArray = Array.isArray(data.previousMeetings) 
-    ? data.previousMeetings 
-    : (Array.isArray(data.headToHead) ? data.headToHead : (Array.isArray(data) ? data : []));
+    const h2hObj = data.headToHeadObject || data.h2hSummary || data.headToHead || {};
+    const h2hMatches = Array.isArray(data.previousMeetings) 
+        ? data.previousMeetings 
+        : (Array.isArray(data.headToHead) ? data.headToHead : (Array.isArray(h2hObj.matches) ? h2hObj.matches : []));
 
-const formattedH2HMatches = h2hArray.map(match => ({
-    date: match.date || '',
-    homeTeam: match.home || 'Home',
-    awayTeam: match.away || 'Away',
-    score: match.result || '0-0',
-    citation: match.citation || ''
-}));
-
-    // Gather all team names for batch logo fetching
+    // --- GATHER ALL TEAM NAMES FOR LOGO FETCHING ---
     let logoMap = {};
     try {
         const allTeams = [
@@ -1029,8 +999,7 @@ const formattedH2HMatches = h2hArray.map(match => ({
             </div>`;
     } catch (err) {}
 
-    // --- FORM SLOT (PANEL 2 - FORM LIST) ---
- 
+    // --- FORM SLOT (PANEL 2) ---
     try {
         const renderFormList = (formList) => {
             if (!Array.isArray(formList) || formList.length === 0) {
@@ -1078,8 +1047,8 @@ const formattedH2HMatches = h2hArray.map(match => ({
             </div>`;
     } catch (err) {}
 
-    // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
-try {
+    // --- H2H SLOT (PANEL 3) ---
+    try {
         const renderH2HList = () => {
             if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) {
                 return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
@@ -1146,7 +1115,7 @@ try {
                 <div class="space-y-2 pt-2 border-t border-slate-800/60">
                     <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List</div>
                     <div class="max-h-72 overflow-y-auto space-y-2 pr-1">
-                        ${renderH2HList()} <!-- THIS WAS MISSING -->
+                        ${renderH2HList()}
                     </div>
                 </div>
             </div>`;
