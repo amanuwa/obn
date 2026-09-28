@@ -1026,17 +1026,7 @@ const formattedH2HMatches = h2hArray.map(match => ({
                 </div>
             </div>`;
     } catch (err) {}
-const h2hArray = Array.isArray(data.previousMeetings) 
-    ? data.previousMeetings 
-    : (Array.isArray(data.headToHead) ? data.headToHead : (Array.isArray(data) ? data : []));
 
-const formattedH2HMatches = h2hArray.map(match => ({
-    date: match.date || '',
-    homeTeam: match.home || 'Home',
-    awayTeam: match.away || 'Away',
-    score: match.result || '0-0',
-    citation: match.citation || ''
-}));
     // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
     try {
         const renderH2HList = () => {
