@@ -88,7 +88,8 @@
             border-top: 2px solid #1e293b;
             border-bottom: 2px solid #1e293b;
             padding: 24px 32px;
-            min-height: calc(100vw * 0.707);
+            /* A4 proportion feel: min-height simulating proportion */
+            min-height: calc(100vw * 0.707); /* A4 Ratio factor */
             max-height: 900px;
             box-sizing: border-box;
         }
@@ -169,7 +170,7 @@
 
         <main class="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 md:p-6 w-full items-start">
             
-            <!-- CONTROLS SIDE PANEL -->
+            <!-- CONTROLS SIDE PANEL (Minimized Height to wrap content) -->
             <div class="col-span-1 bg-slate-950/60 p-5 border-2 border-slate-800 flex flex-col rounded-xl shadow-2xl backdrop-blur-lg self-start">
                 <h3 class="text-[11px] font-bold text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Select Categories
@@ -292,6 +293,7 @@
         </div>
 
     </div>
+
 
 <script type="module">
     import { N8N_sport_GATEWAY_WEBHOOK } from './config.js';
@@ -597,43 +599,617 @@
         });
     };
 
-    window.executeScraperWorkflow = async function(payload) {
-        console.log("1. Workflow triggered with payload:", payload);
+    // window.executeScraperWorkflow = async function(payload) {
+    //     console.log("1. Workflow triggered with payload:", payload);
         
-        const loader = document.getElementById('fullPageLoader');
-        const loaderTitle = document.getElementById('loaderTitle');
-        const loaderSubtext = document.getElementById('loaderSubtext');
+    //     const loader = document.getElementById('fullPageLoader');
+    //     const loaderTitle = document.getElementById('loaderTitle');
+    //     const loaderSubtext = document.getElementById('loaderSubtext');
 
-        if (loader) {
-            if (loaderTitle) loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
-            loader.classList.remove('hidden');
-            loader.classList.add('flex');
-        }
+    //     if (loader) {
+    //         if (loaderTitle) loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
+    //         loader.classList.remove('hidden');
+    //         loader.classList.add('flex');
+    //     }
 
-        try {
-            const response = await fetch(N8N_sport_GATEWAY_WEBHOOK, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+    //     try {
+    //         const response = await fetch(N8N_sport_GATEWAY_WEBHOOK, {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify(payload)
+    //         });
 
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const result = await response.json();
-            console.log("Workflow response received:", result);
+    //         console.log("2. HTTP Response status received:", response.status);
+
+    //         const result = await response.json();
+    //         console.log("3. Data successfully parsed to JSON:", result);
             
-            // Add your handling for the workflow results here
-        } catch (error) {
-            console.error("Workflow transmission error:", error);
-            if (loaderSubtext) loaderSubtext.innerText = "Error executing pipeline. Check console.";
-        } finally {
-            setTimeout(() => {
-                if (loader) {
-                    loader.classList.remove('flex');
-                    loader.classList.add('hidden');
-                }
-            }, 1000);
+    //         if (loader) {
+    //             loader.classList.remove('flex');
+    //             loader.classList.add('hidden');
+    //         }
+
+    //         // --- 3-WAY DATA ROUTER (ADD THIS HERE) ---
+    //         let dataArray = Array.isArray(result) ? result : (result.data || result.json || Object.values(result).find(val => Array.isArray(val)));
+
+    //         if (Array.isArray(dataArray)) {
+    //             if (payload.targetMatrix === 'hot_news' || dataArray[0]?.headline || dataArray[0]?.news_title) {
+    //                 console.log("Routing to News Matrix renderer...");
+    //                 if (typeof renderNewsMatrix === 'function') renderNewsMatrix(dataArray);
+    //             } else {
+    //                 console.log("Routing to Match List renderer...");
+    //                 if (typeof renderMatchList === 'function') renderMatchList(dataArray);
+    //             }
+    //         } else if (result && typeof result === 'object' && Object.keys(result).length > 0) {
+    //             console.log("Routing to Match Details telemetry renderer...");
+    //             if (typeof renderMatchDetails === 'function') {
+    //                 renderMatchDetails(result);
+    //             } else {
+    //                 const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+    //                 if (detailPanel) {
+    //                     detailPanel.innerHTML = `<div class="p-3 text-xs text-green-400 font-mono"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+    //                 }
+    //             }
+    //         } else {
+    //             console.warn("Received empty or unrecognized data structure:", result);
+    //         }
+
+    //     } catch (err) {
+    //         console.error("Workflow error caught:", err);
+    //         if (loader) {
+    //             loader.classList.remove('flex');
+    //             loader.classList.add('hidden');
+    //         }
+    //     }
+    // };
+
+    window.executeScraperWorkflow = async function(payload) {
+    console.log("1. Workflow triggered with payload:", payload);
+    
+    const loader = document.getElementById('fullPageLoader');
+    const loaderTitle = document.getElementById('loaderTitle');
+    const loaderSubtext = document.getElementById('loaderSubtext');
+
+    if (loader) {
+        if (loaderTitle) loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
+        loader.classList.remove('hidden');
+        loader.classList.add('flex');
+    }
+
+    try {
+        const response = await fetch(N8N_sport_GATEWAY_WEBHOOK, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        console.log("2. HTTP Response status received:", response.status);
+
+        const result = await response.json();
+        console.log("3. Data successfully parsed to JSON:", result);
+        
+        if (loader) {
+            loader.classList.remove('flex');
+            loader.classList.add('hidden');
         }
+
+        // Normalize raw data to check structure
+        const rawData = Array.isArray(result) ? result[0] : result;
+        let dataArray = Array.isArray(result) ? result : (result.data || result.json || Object.values(result).find(val => Array.isArray(val)));
+
+        // --- PRIMARY ROUTER CHECK: Match Details vs Lists/News ---
+        const isMatchDetail = rawData && typeof rawData === 'object' && (rawData.matchResult !== undefined || rawData.value !== undefined || rawData.matchStatus !== undefined);
+
+        if (isMatchDetail) {
+            console.log("==========================================");
+            console.log("🔍 MATCH DETAIL ROUTER DEBUGGER ACTIVATED");
+            console.log("Raw Match Data Object:", rawData);
+            
+            // --- SECONDARY (NESTED) IF/ELSE FOR MATCH STATUS ---
+            const matchState = rawData.value || rawData.matchStatus;
+            console.log(`Evaluated matchState parameter value: "${matchState}"`);
+
+            if (matchState === 'past') {
+                console.log("--> MATCH ROUTE MATCHED: 'past'. Sending to past match renderer.");
+                console.log("Payload data being passed:", rawData);
+                console.log("==========================================");
+                
+                if (typeof renderPastMatchDetails === 'function') {
+                    renderPastMatchDetails(rawData);
+                } else {
+                    console.warn("⚠️ Warning: renderPastMatchDetails function is not defined. Falling back to default.");
+                    renderDefaultDetails(rawData);
+                }
+            } else if (matchState === 'incoming' || matchState === 'upcoming') {
+                console.log("--> MATCH ROUTE MATCHED: 'incoming' / 'upcoming'. Sending to incoming match renderer.");
+                console.log("Payload data being passed:", rawData);
+                console.log("==========================================");
+                
+                if (typeof renderIncomingMatchDetails === 'function') {
+                    renderIncomingMatchDetails(rawData);
+                } else {
+                    console.warn("⚠️ Warning: renderIncomingMatchDetails function is not defined. Falling back to default.");
+                    renderDefaultDetails(rawData);
+                }
+            } else {
+                console.warn(`⚠️ Warning: Unrecognized matchState value: "${matchState}". Fallback triggered.`);
+                console.log("==========================================");
+                
+                if (typeof renderMatchDetails === 'function') {
+                    renderMatchDetails(rawData);
+                } else {
+                    renderDefaultDetails(rawData);
+                }
+            }
+
+        } else if (Array.isArray(dataArray)) {
+            // Route for lists like match fixtures or news
+            if (payload.targetMatrix === 'hot_news' || dataArray[0]?.headline || dataArray[0]?.news_title) {
+                console.log("Routing to News Matrix renderer...");
+                if (typeof renderNewsMatrix === 'function') renderNewsMatrix(dataArray);
+            } else {
+                console.log("Routing to Match List renderer...");
+                if (typeof renderMatchList === 'function') renderMatchList(dataArray);
+            }
+        } else {
+            console.warn("Received empty or unrecognized data structure:", result);
+        }
+
+    } catch (err) {
+        console.error("Workflow error caught:", err);
+        if (loader) {
+            loader.classList.remove('flex');
+            loader.classList.add('hidden');
+        }
+    }
+};
+
+// Helper function for default panel rendering fallback
+function renderDefaultDetails(result) {
+    const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+    if (detailPanel) {
+        detailPanel.innerHTML = `<div class="p-3 text-xs text-green-400 font-mono"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+    }
+}
+    // 1. Renderer for Past Matches (Completed)
+function renderPastMatchDetails(match) {
+    const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+    if (!detailPanel) return;
+
+    // Build your custom HTML structure for past matches here using match.data
+    detailPanel.innerHTML = `
+        <div class="p-4 text-white font-sans">
+            <h2 class="text-lg font-bold text-green-400">🏁 Completed Match: ${match.data.homeTeam} vs ${match.data.awayTeam}</h2>
+            <p class="text-sm text-gray-300">Result: ${match.data.matchResult}</p>
+            <p class="text-xs text-gray-500">Stadium: ${match.data.stadium}</p>
+            <!-- Add more custom UI elements for stats, lineups, goals -->
+        </div>
+    `;
+}
+
+// ==========================================
+// 1. SAFE TEXT UTILITY
+// ==========================================
+// 1. SAFE TEXT UTILITY
+// ==========================================
+function safeText(val, fallback = '-') {
+    if (val === null || val === undefined) return fallback;
+    if (typeof val === 'string' || typeof val === 'number') return String(val);
+    if (typeof val === 'object') {
+        return val.score || val.result || val.name || val.team || val.value || val.opponent || JSON.stringify(val);
+    }
+    return String(val);
+}
+
+// ==========================================
+// 2. WORKING SUPABASE LOGO FETCHER
+// ==========================================
+async function fetchTeamLogosBatch(teamNamesArray) {
+    if (!Array.isArray(teamNamesArray) || teamNamesArray.length === 0) return {};
+    const uniqueTeams = [...new Set(teamNamesArray)].filter(Boolean);
+    if (uniqueTeams.length === 0) return {};
+
+    const client = window.supabaseClient || window.supabase;
+    if (!client) return {};
+
+    try {
+        const { data, error } = await client
+            .from('team logos') 
+            .select('team_name, logo_url') 
+            .in('team_name', uniqueTeams);
+
+        if (error || !data) return {};
+
+        const logoMap = {};
+        data.forEach(item => {
+            if (item?.team_name && item?.logo_url) {
+                logoMap[item.team_name.trim()] = item.logo_url;
+            }
+        });
+        return logoMap;
+    } catch (err) {
+        return {};
+    }
+}
+
+// ==========================================
+// 3. EXPORT / DOWNLOAD HELPER
+// ==========================================
+function downloadPanelData(panelKey) {
+    try {
+        const data = window.tempMatchCache?.[panelKey] || window.latestMatchData?.[panelKey];
+        if (!data) return;
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${panelKey}-export.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (e) {}
+}
+
+// ==========================================
+// 4. ENTRY FUNCTION (UNWRAPS WEBHOOK DATA)
+// ==========================================
+function saveAndRenderMatchData(matchPayload) {
+    try {
+        let raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
+        if (raw?.json) raw = raw.json;
+        if (raw?.data) raw = raw.data;
+        if (Array.isArray(raw)) raw = raw[0];
+
+        if (!raw || typeof raw !== 'object') return;
+
+        window.tempMatchCache = raw;
+        window.latestMatchData = raw;
+        try {
+            sessionStorage.setItem('savedMatchPayload', JSON.stringify(raw));
+        } catch (e) {}
+
+        renderWithIsolatedPanels(raw);
+    } catch (err) {
+        console.error("LOG [ERROR]: Failed parsing match data ->", err);
+    }
+}
+
+function renderIncomingMatchDetails(matchPayload) {
+    saveAndRenderMatchData(matchPayload);
+}
+
+// ==========================================
+// 5. ISOLATED PANEL RENDERER (STRING PARSER)
+// ==========================================
+async function renderWithIsolatedPanels(data) {
+    console.log("LOG [RENDERER]: COMPLETE RAW PAYLOAD RECEIVED ->", data);
+
+    const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+    if (!detailPanel) return;
+
+    const homeTeamName = safeText(data.homeTeam || data.home || data.teamA, 'Home Team');
+    const awayTeamName = safeText(data.awayTeam || data.away || data.teamB, 'Away Team');
+    const venue = safeText(data.location || data.venue, 'Stadium');
+    const matchDate = safeText(data.matchDate || data.date, 'TBD');
+
+    detailPanel.innerHTML = `
+        <div class="p-6 bg-slate-950 text-slate-100 font-mono rounded-xl border border-yellow-500/30 shadow-2xl space-y-8">
+            <div id="panel-header-slot"></div>
+            <div id="panel-standings-slot"></div>
+            <div id="panel-form-slot"></div>
+            <div id="panel-h2h-slot"></div>
+        </div>
+    `;
+
+    // --- EXTRACT TEAM FORM STRINGS (homePrevious / awayPrevious) ---
+    const teamFormObj = data.teamForm || {};
+    const rawHomeForm = teamFormObj.homePrevious || teamFormObj.home || data.homePrevious || [];
+    const rawAwayForm = teamFormObj.awayPrevious || teamFormObj.away || data.awayPrevious || [];
+
+    // Helper to parse strings like "MW1: Hull City 0-2 Manchester United"
+    const parseFormString = (str, mainTeam) => {
+        if (typeof str !== 'object' && typeof str !== 'string') return null;
+        if (typeof str === 'object') {
+            return {
+                mw: safeText(str.matchweek || str.mw, 'MW'),
+                opponent: safeText(str.opponent || str.team, 'Unknown'),
+                score: safeText(str.score || str.result, '-'),
+                venueText: safeText(str.venue, '')
+            };
+        }
+
+        // Example: "MW1: Hull City 0-2 Manchester United"
+        let mw = 'MW';
+        let remaining = str;
+
+        if (str.includes(':')) {
+            const parts = str.split(':');
+            mw = parts[0].trim();
+            remaining = parts.slice(1).join(':').trim();
+        }
+
+        // Match standard football score format inside string (e.g. " 0-2 ", " 1-1 ")
+        const scoreRegex = /\s+(\d+[-–]\d+)\s+/;
+        const match = remaining.match(scoreRegex);
+
+        if (match) {
+            const score = match[1];
+            const scoreIndex = remaining.indexOf(score);
+            const teamA = remaining.substring(0, scoreIndex).trim();
+            const teamB = remaining.substring(scoreIndex + score.length).trim();
+
+            // Determine which one is the opponent
+            const opponent = teamA.toLowerCase() === mainTeam.toLowerCase() ? teamB : teamA;
+            return { mw, opponent, score, venueText: '' };
+        }
+
+        return { mw, opponent: remaining, score: '-', venueText: '' };
     };
+
+    const homeFormList = Array.isArray(rawHomeForm) ? rawHomeForm.map(s => parseFormString(s, homeTeamName)).filter(Boolean) : [];
+    const awayFormList = Array.isArray(rawAwayForm) ? rawAwayForm.map(s => parseFormString(s, awayTeamName)).filter(Boolean) : [];
+
+    // --- H2H MATCHES EXTRACTION ---
+    const h2hObj = data.previousMeetings || data.headToHead || data.h2h || {};
+    const h2hMatches = h2hObj.matches || h2hObj.list || h2hObj.history || (Array.isArray(h2hObj) ? h2hObj : []) || [];
+
+    // Gather all team names for batch logo fetching
+    let logoMap = {};
+    try {
+        const allTeams = [
+            homeTeamName, 
+            awayTeamName,
+            ...homeFormList.map(m => m?.opponent),
+            ...awayFormList.map(m => m?.opponent),
+            ...h2hMatches.flatMap(m => [safeText(m?.homeTeam || m?.home || m?.teamA), safeText(m?.awayTeam || m?.away || m?.teamB)])
+        ].filter(Boolean);
+
+        logoMap = await fetchTeamLogosBatch(allTeams);
+    } catch (e) {}
+    
+    const getLogo = (name) => logoMap[name] || logoMap[Object.keys(logoMap).find(k => k.toLowerCase() === String(name).toLowerCase())] || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Team')}&background=0f172a&color=facc15&size=128`;
+
+    // --- HEADER SLOT ---
+    try {
+        document.getElementById('panel-header-slot').innerHTML = `
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-5 gap-4">
+                <div class="flex items-center gap-4">
+                    <img src="${getLogo(homeTeamName)}" alt="${homeTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
+                    <div>
+                        <div class="text-xl font-bold text-green-300">${homeTeamName} vs ${awayTeamName}</div>
+                        <div class="text-xs text-slate-400">${matchDate} • ${venue}</div>
+                    </div>
+                    <img src="${getLogo(awayTeamName)}" alt="${awayTeamName}" class="w-12 h-12 object-contain bg-slate-900 p-1.5 rounded border border-slate-800">
+                </div>
+                <span class="text-xs text-yellow-400 bg-yellow-950/60 px-3 py-1.5 rounded border border-yellow-500/40 font-bold">
+                    // ${safeText(data.round || data.matchweek, 'Fixture Preview')}
+                </span>
+            </div>`;
+    } catch (err) {}
+
+    // --- STANDINGS SLOT (PANEL 1) ---
+    try {
+        const standings = data.standings || {};
+        const homeStanding = standings.homeTeamStanding || standings.home || {};
+        const awayStanding = standings.awayTeamStanding || standings.away || {};
+        
+        const renderStats = (obj) => {
+            if (!obj || typeof obj !== 'object' || Object.keys(obj).length === 0) {
+                return `<div class="text-xs text-slate-500 italic">No standing metrics.</div>`;
+            }
+            return Object.entries(obj)
+                .filter(([k]) => k && !String(k).toLowerCase().includes('citation'))
+                .map(([k, v]) => `
+                    <div class="flex justify-between items-center py-1 border-b border-slate-900 text-xs">
+                        <span class="text-slate-400 uppercase text-[10px]">${String(k).replace(/([A-Z])/g, ' $1')}</span>
+                        <span class="text-slate-200 font-bold">${safeText(v)}</span>
+                    </div>`).join('');
+        };
+
+        document.getElementById('panel-standings-slot').innerHTML = `
+            <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 1. Season Standings Overview</span>
+                    <button onclick="downloadPanelData('standings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Standings">
+                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
+                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                            <img src="${getLogo(homeTeamName)}" class="w-8 h-8 object-contain bg-slate-900 p-0.5 rounded">
+                            <span class="text-sm font-bold text-green-300">${homeTeamName}</span>
+                        </div>
+                        <div class="space-y-1.5 text-xs">${renderStats(homeStanding)}</div>
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
+                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                            <img src="${getLogo(awayTeamName)}" class="w-8 h-8 object-contain bg-slate-900 p-0.5 rounded">
+                            <span class="text-sm font-bold text-blue-300">${awayTeamName}</span>
+                        </div>
+                        <div class="space-y-1.5 text-xs">${renderStats(awayStanding)}</div>
+                    </div>
+                </div>
+            </div>`;
+    } catch (err) {}
+
+    // --- FORM SLOT (PANEL 2 - FORM LIST) ---
+    try {
+        const renderFormList = (formList) => {
+            if (!Array.isArray(formList) || formList.length === 0) {
+                return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
+            }
+            return formList.map(match => {
+                if (!match) return '';
+                return `
+                    <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-[10px] text-slate-500 font-bold w-10">${match.mw}</span>
+                            <img src="${getLogo(match.opponent)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
+                            <span class="text-xs text-slate-200">vs ${match.opponent}</span>
+                        </div>
+                        <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">${match.score}</span>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        document.getElementById('panel-form-slot').innerHTML = `
+            <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Last 5 Matches Form List</span>
+                    <button onclick="downloadPanelData('teamForm')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download Form Data">
+                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
+                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                            <img src="${getLogo(homeTeamName)}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
+                            <span class="text-xs font-bold text-green-300 uppercase">${homeTeamName} - Recent Form</span>
+                        </div>
+                        <div class="space-y-2 max-h-64 overflow-y-auto pr-1">${renderFormList(homeFormList)}</div>
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
+                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                            <img src="${getLogo(awayTeamName)}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
+                            <span class="text-xs font-bold text-blue-300 uppercase">${awayTeamName} - Recent Form</span>
+                        </div>
+                        <div class="space-y-2 max-h-64 overflow-y-auto pr-1">${renderFormList(awayFormList)}</div>
+                    </div>
+                </div>
+            </div>`;
+    } catch (err) {}
+
+    // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
+    try {
+        const renderH2HList = () => {
+            if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) {
+                return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
+            }
+            return h2hMatches.map(m => {
+                const hTeam = safeText(m.homeTeam || m.home || m.teamA, 'Home Team');
+                const aTeam = safeText(m.awayTeam || m.away || m.teamB, 'Away Team');
+                const scoreVal = safeText(m.score || m.result || m.fullTime || m.ft, '0 - 0');
+                const dateVal = safeText(m.date || m.matchDate, 'Recent');
+
+                return `
+                    <div class="flex items-center justify-between bg-slate-900/80 p-3 rounded border border-slate-800">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-1.5">
+                                <img src="${getLogo(hTeam)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
+                                <span class="text-xs font-bold text-slate-200">${hTeam}</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500">vs</span>
+                            <div class="flex items-center gap-1.5">
+                                <img src="${getLogo(aTeam)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
+                                <span class="text-xs font-bold text-slate-200">${aTeam}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] text-slate-400">${dateVal}</span>
+                            <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">${scoreVal}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        const totalPlayed = h2hObj.played || h2hObj.totalPlayed || h2hObj.total || h2hMatches.length || 0;
+        const homeWins = h2hObj.homeTeamWins || h2hObj.homeWins || h2hObj.home_wins || 0;
+        const awayWins = h2hObj.awayTeamWins || h2hObj.awayWins || h2hObj.away_wins || 0;
+        const draws = h2hObj.draws || h2hObj.draw || 0;
+
+        document.getElementById('panel-h2h-slot').innerHTML = `
+            <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head History & Match List</span>
+                    <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Data">
+                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800">
+                        <div class="text-[10px] text-slate-400 uppercase">Total Played</div>
+                        <div class="text-lg font-bold text-slate-100">${totalPlayed}</div>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800">
+                        <div class="text-[10px] text-green-400 uppercase">${homeTeamName} Wins</div>
+                        <div class="text-lg font-bold text-green-300">${homeWins}</div>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800">
+                        <div class="text-[10px] text-blue-400 uppercase">${awayTeamName} Wins</div>
+                        <div class="text-lg font-bold text-blue-300">${awayWins}</div>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800">
+                        <div class="text-[10px] text-yellow-400 uppercase">Draws</div>
+                        <div class="text-lg font-bold text-yellow-300">${draws}</div>
+                    </div>
+                </div>
+                <div class="space-y-2 pt-2 border-t border-slate-800/60">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List</div>
+                    <div class="max-h-72 overflow-y-auto space-y-2 pr-1">
+                        ${renderH2HList()}
+                    </div>
+                </div>
+            </div>`;
+    } catch (err) {}
+}
+    function renderMatchList(matchesArray) {
+    const container = document.getElementById('matchListSubPanel');
+    
+    if (!container) {
+        console.error("Target container 'matchListSubPanel' not found in the DOM.");
+        return;
+    }
+
+    if (!Array.isArray(matchesArray) || matchesArray.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 italic font-normal text-center py-4">// No match fixtures available in stream</p>';
+        return;
+    }
+
+    let html = '<div class="space-y-2 overflow-y-auto max-h-[380px] pr-1">';
+    
+    matchesArray.forEach(match => {
+        // Safe variables for passing names or URLs into your actions
+        const homeTeam = match.home_team_name || 'Home';
+        const awayTeam = match.away_team_name || 'Away';
+        const matchQuery = `${homeTeam} vs ${awayTeam}`;
+
+        html += `
+            <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs hover:border-emerald-500/50 transition-all">
+                <div class="space-y-1">
+                    <div class="text-emerald-400 font-mono text-[10px] tracking-wide">
+                        ${match.match_date || 'TBD'} • ${match.Kick_off_time || '00:00'}
+                    </div>
+                    <div class="text-white font-bold tracking-tight text-sm">
+                        ${homeTeam} <span class="text-slate-500 font-normal px-1">vs</span> ${awayTeam}
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <!-- ANALYZE Button -->
+                    <button onclick="executeScraperWorkflow({ action: 'analyze', matchUrl: '${match.match_url}' })" 
+                            class="bg-emerald-600/90 hover:bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
+                        ANALYZE
+                    </button>
+                    
+                    <!-- GET NEWS Button -->
+                    <button onclick="executeScraperWorkflow({ action: 'get_news', query: '${matchQuery}' })" 
+                            class="bg-sky-600/90 hover:bg-sky-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
+                        GET NEWS
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    console.log("Successfully rendered match list with dual actions into #matchListSubPanel.");
+}
+
 </script>
 </body>
 </html>
