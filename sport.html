@@ -1060,7 +1060,14 @@ async function renderWithIsolatedPanels(data) {
     } catch (err) {}
 
     // --- H2H SLOT (PANEL 3) WITH JSON FALLBACK ---
+   // --- H2H SLOT (PANEL 3) WITH ROBUST JSON FALLBACK ---
     try {
+        // Broaden search for H2H matches or summary object
+        const h2hObj = data.headToHeadObject || data.h2hSummary || data.headToHead || data.h2h || {};
+        const h2hMatches = Array.isArray(data.previousMeetings) 
+            ? data.previousMeetings 
+            : (Array.isArray(data.headToHead) ? data.headToHead : (Array.isArray(h2hObj.matches) ? h2hObj.matches : (Array.isArray(data.h2h) ? data.h2h : [])));
+
         const renderH2HList = () => {
             if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) return null;
             return h2hMatches.map(m => {
@@ -1097,6 +1104,12 @@ async function renderWithIsolatedPanels(data) {
         const awayWins = h2hObj.awayTeamWins || h2hObj.awayWins || h2hObj.away_wins || 0;
         const draws = h2hObj.draws || h2hObj.draw || 0;
 
+        // Fallback object to display if no specific H2H array is found
+        const h2hFallbackData = Object.keys(h2hObj).length > 0 ? h2hObj : { 
+            message: "No specific H2H object found under standard keys", 
+            availableKeys: Object.keys(data) 
+        };
+
         document.getElementById('panel-h2h-slot').innerHTML = `
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -1130,12 +1143,14 @@ async function renderWithIsolatedPanels(data) {
                     </div>
                 ` : `
                     <div class="p-3 bg-slate-950 rounded border border-slate-800 text-xs text-yellow-400 font-mono overflow-x-auto max-h-48">
-                        <div class="text-[10px] text-slate-500 mb-1">// Raw JSON Fallback (H2H data structure unmatched)</div>
-                        <pre>${JSON.stringify(h2hObj, null, 2)}</pre>
+                        <div class="text-[10px] text-slate-500 mb-1">// Raw JSON Fallback (Inspecting available keys)</div>
+                        <pre>${JSON.stringify(h2hFallbackData, null, 2)}</pre>
                     </div>
                 `}
             </div>`;
-    } catch (err) {}
+    } catch (err) {
+        console.error("Error rendering Panel 3:", err);
+    }
 }
     function renderMatchList(matchesArray) {
     const container = document.getElementById('matchListSubPanel');
