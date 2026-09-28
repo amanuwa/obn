@@ -599,7 +599,69 @@
         });
     };
 
- 
+    // window.executeScraperWorkflow = async function(payload) {
+    //     console.log("1. Workflow triggered with payload:", payload);
+        
+    //     const loader = document.getElementById('fullPageLoader');
+    //     const loaderTitle = document.getElementById('loaderTitle');
+    //     const loaderSubtext = document.getElementById('loaderSubtext');
+
+    //     if (loader) {
+    //         if (loaderTitle) loaderTitle.innerText = payload.matchUrl ? "// SCRAPING MATCH TELEMETRY..." : "// INITIALIZING PIPELINE CONNECTOR...";
+    //         loader.classList.remove('hidden');
+    //         loader.classList.add('flex');
+    //     }
+
+    //     try {
+    //         const response = await fetch(N8N_sport_GATEWAY_WEBHOOK, {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify(payload)
+    //         });
+
+    //         console.log("2. HTTP Response status received:", response.status);
+
+    //         const result = await response.json();
+    //         console.log("3. Data successfully parsed to JSON:", result);
+            
+    //         if (loader) {
+    //             loader.classList.remove('flex');
+    //             loader.classList.add('hidden');
+    //         }
+
+    //         // --- 3-WAY DATA ROUTER (ADD THIS HERE) ---
+    //         let dataArray = Array.isArray(result) ? result : (result.data || result.json || Object.values(result).find(val => Array.isArray(val)));
+
+    //         if (Array.isArray(dataArray)) {
+    //             if (payload.targetMatrix === 'hot_news' || dataArray[0]?.headline || dataArray[0]?.news_title) {
+    //                 console.log("Routing to News Matrix renderer...");
+    //                 if (typeof renderNewsMatrix === 'function') renderNewsMatrix(dataArray);
+    //             } else {
+    //                 console.log("Routing to Match List renderer...");
+    //                 if (typeof renderMatchList === 'function') renderMatchList(dataArray);
+    //             }
+    //         } else if (result && typeof result === 'object' && Object.keys(result).length > 0) {
+    //             console.log("Routing to Match Details telemetry renderer...");
+    //             if (typeof renderMatchDetails === 'function') {
+    //                 renderMatchDetails(result);
+    //             } else {
+    //                 const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
+    //                 if (detailPanel) {
+    //                     detailPanel.innerHTML = `<div class="p-3 text-xs text-green-400 font-mono"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+    //                 }
+    //             }
+    //         } else {
+    //             console.warn("Received empty or unrecognized data structure:", result);
+    //         }
+
+    //     } catch (err) {
+    //         console.error("Workflow error caught:", err);
+    //         if (loader) {
+    //             loader.classList.remove('flex');
+    //             loader.classList.add('hidden');
+    //         }
+    //     }
+    // };
 
     window.executeScraperWorkflow = async function(payload) {
     console.log("1. Workflow triggered with payload:", payload);
@@ -969,12 +1031,15 @@ async function renderWithIsolatedPanels(rawPayload) {
     // --- FORM SLOT (PANEL 2 - FORM LIST) ---
 // --- FORM SLOT (PANEL 2 - FORM LIST WITH DEBUGGING) ---
 // --- PANEL 2 (RECENT FORM RENDERER WITH DEBUGGER) ---
+    // --- PANEL 2 (RECENT FORM RENDERER - SAFEGUARDED) ---
 // ==========================================
-
+// ==========================================
+// PANEL 2: RECENT FORM ANALYSIS (UPDATED)
+// ==========================================
 try {
-    const teamFormObj = data?.teamForm || data?.form || {};
+    const teamFormObj = data.teamForm || data.form || {};
     
-    // Fallback checks for n8n's exact structure or alternative keys
+    // Explicitly check n8n's "homeTeam" and "awayTeam" keys first, with fallbacks
     const rawHomeForm = teamFormObj.homeTeam || teamFormObj[homeTeamName] || teamFormObj.home || [];
     const rawAwayForm = teamFormObj.awayTeam || teamFormObj[awayTeamName] || teamFormObj.away || [];
 
@@ -989,7 +1054,7 @@ try {
             };
         }
         
-        // Handles strings like "MW1 Newcastle United (A) 2-2"
+        // Matches your string pattern: "MW1 Newcastle United (A) 2-2"
         const regex = /^(MW\d+)\s+(.*?)\s+\([HA]\)\s+(.+)$/;
         const match = String(item).match(regex);
         if (match) {
@@ -1007,10 +1072,10 @@ try {
         return list.map(item => `
             <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded border border-slate-800">
                 <div class="flex items-center gap-2">
-                    <span class="text-[10px] text-yellow-400 font-bold bg-slate-900 px-1.5 py-0.5 rounded">${safeText(item.mw, 'MW')}</span>
-                    <span class="text-xs text-slate-200 truncate max-w-[130px]">vs ${safeText(item.opponent, 'Unknown')}</span>
+                    <span class="text-[10px] text-yellow-400 font-bold bg-slate-900 px-1.5 py-0.5 rounded">${item.mw}</span>
+                    <span class="text-xs text-slate-200 truncate max-w-[130px]">vs ${item.opponent}</span>
                 </div>
-                <span class="text-xs font-bold text-slate-100 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${safeText(item.score, '-')}</span>
+                <span class="text-xs font-bold text-slate-100 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${item.score}</span>
             </div>
         `).join('');
     };
@@ -1048,12 +1113,14 @@ try {
 }
 
 // ==========================================
-// PANEL 3: PREVIOUS MEETINGS (H2H) (BULLETPROOF)
+// PANEL 3: PREVIOUS MEETINGS (H2H) CODE BLOCK
+// ==========================================
+// PANEL 3: PREVIOUS MEETINGS (H2H) (FULL LIST)
 // ==========================================
 try {
-    const h2hObj = data?.previousMeetings || data?.headToHead || data?.h2h || {};
+    const h2hObj = data.previousMeetings || data.headToHead || data.h2h || {};
     
-    // Safely retrieve recentMatches array from n8n payload structure
+    // Pulls the full list of recent matches from n8n payload
     const h2hMatches = h2hObj.recentMatches || h2hObj.matches || h2hObj.list || h2hObj.history || (Array.isArray(h2hObj) ? h2hObj : []);
     const totalPlayed = h2hObj.played || h2hMatches.length || 0;
 
@@ -1061,18 +1128,20 @@ try {
         if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) {
             return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
         }
-        return h2hMatches.map(m => {
+        
+        // Maps through EVERY match item in the array so all data is displayed
+        return h2hMatches.map((m, index) => {
             if (!m) return '';
-            const hTeam = m.home || m.homeTeam || 'Home Team';
-            const aTeam = m.away || m.awayTeam || 'Away Team';
-            const scoreVal = m.result || m.score || '0 - 0';
+            const hTeam = m.homeTeam || m.home || 'Home Team';
+            const aTeam = m.awayTeam || m.away || 'Away Team';
+            const scoreVal = m.score || m.result || '0 - 0';
             const dateVal = m.date || m.matchDate || 'Recent';
             const citationAttr = m.citation ? `href="${m.citation}" target="_blank"` : '';
 
             return `
                 <div class="flex items-center justify-between bg-slate-900/90 hover:bg-slate-900 px-4 py-3 rounded-md border border-slate-800 transition-colors">
                     <div class="flex items-center gap-3 w-1/3">
-                        <span class="text-xs font-semibold text-slate-200 text-right w-full truncate">${hTeam}</span>
+                        <span class="text-xs font-semibold text-slate-200 text-right w-full truncate" title="${hTeam}">${hTeam}</span>
                     </div>
                     <div class="flex flex-col items-center justify-center w-1/3">
                         <a ${citationAttr} class="text-xs font-bold text-yellow-400 bg-slate-950 px-3 py-1 rounded border border-slate-800/80 tracking-widest hover:border-yellow-400/50 transition-colors" title="View Citation">
@@ -1081,7 +1150,7 @@ try {
                         <span class="text-[10px] text-slate-500 mt-1">${dateVal}</span>
                     </div>
                     <div class="flex items-center gap-3 w-1/3 justify-end">
-                        <span class="text-xs font-semibold text-slate-200 text-left w-full truncate">${aTeam}</span>
+                        <span class="text-xs font-semibold text-slate-200 text-left w-full truncate" title="${aTeam}">${aTeam}</span>
                     </div>
                 </div>
             `;
@@ -1108,8 +1177,8 @@ try {
                     </div>
                 </div>
                 <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List</div>
-                    <div class="max-h-72 overflow-y-auto space-y-2 pr-1">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List (${h2hMatches.length} Matches Displayed)</div>
+                    <div class="max-h-80 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                         ${renderH2HList()}
                     </div>
                 </div>
@@ -1169,8 +1238,8 @@ try {
     
     html += '</div>';
     container.innerHTML = html;
-    console.log("Successfully rendered match list with dual actions into #matchListSubPanel."); }
-
+    console.log("Successfully rendered match list with dual actions into #matchListSubPanel.");
+}
 
 </script>
 </body>
