@@ -854,21 +854,25 @@ function downloadPanelData(panelKey) {
 // ==========================================
 // 4. ENTRY FUNCTION (UNWRAPS WEBHOOK DATA)
 // ==========================================
+// ==========================================
+// 4. ENTRY FUNCTION (UNWRAPS WEBHOOK DATA)
+// ==========================================
 function saveAndRenderMatchData(matchPayload) {
     try {
         let raw = Array.isArray(matchPayload) ? matchPayload[0] : matchPayload;
         if (raw?.json) raw = raw.json;
-        if (raw?.data) raw = raw.data;
-        if (Array.isArray(raw)) raw = raw[0];
 
         if (!raw || typeof raw !== 'object') return;
 
+        // Save the full item wrapper to cache
         window.tempMatchCache = raw;
         window.latestMatchData = raw;
+        
         try {
             sessionStorage.setItem('savedMatchPayload', JSON.stringify(raw));
         } catch (e) {}
 
+        // Pass 'raw' (which contains the .data property) into the renderer
         renderWithIsolatedPanels(raw);
     } catch (err) {
         console.error("LOG [ERROR]: Failed parsing match data ->", err);
@@ -1053,25 +1057,50 @@ async function renderWithIsolatedPanels(data) {
 }
 
     // --- FORM SLOT (PANEL 2 - FORM LIST) ---
+// --- FORM SLOT (PANEL 2 - FORM LIST) ---
     try {
         const renderFormList = (formList) => {
             if (!Array.isArray(formList) || formList.length === 0) {
                 return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
             }
-            return formList.map(match => {
-                if (!match) return '';
+            return formList.map(item => {
+                if (!item) return '';
+                
+                // If item is a string like "MW1 Newcastle United (A) 2-2", parse it dynamically:
+                let mw = "";
+                let opponent = item;
+                let score = "";
+
+                if (typeof item === 'string') {
+                    // Match pattern: "MW1 Team Name (H/A) 2-1"
+                    const parts = item.match(/^(MW\d+)\s+(.*?)\s+\([HA]\)\s+(.+)$/);
+                    if (parts) {
+                        mw = parts[1];
+                        opponent = parts[2];
+                        score = parts[3];
+                    }
+                } else if (typeof item === 'object') {
+                    mw = item.mw || '';
+                    opponent = item.opponent || '';
+                    score = item.score || '';
+                }
+
                 return `
                     <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
                         <div class="flex items-center gap-2.5">
-                            <span class="text-[10px] text-slate-500 font-bold w-10">${match.mw}</span>
-                            <img src="${getLogo(match.opponent)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
-                            <span class="text-xs text-slate-200">vs ${match.opponent}</span>
+                            <span class="text-[10px] text-slate-500 font-bold w-10">${mw}</span>
+                            <img src="${getLogo(opponent)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
+                            <span class="text-xs text-slate-200">vs ${opponent}</span>
                         </div>
-                        <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">${match.score}</span>
+                        <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">${score}</span>
                     </div>
                 `;
             }).join('');
         };
+
+        // Extract using your actual n8n path structure
+        const homeFormList = data.teamForm?.homeTeam || [];
+        const awayFormList = data.teamForm?.awayTeam || [];
 
         document.getElementById('panel-form-slot').innerHTML = `
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
@@ -1098,16 +1127,16 @@ async function renderWithIsolatedPanels(data) {
                     </div>
                 </div>
             </div>`;
-  } catch (err) {
-    console.error("LOG [ERROR]: Panel 2 (Form) failed ->", err);
-    const formSlot = document.getElementById('panel-form-slot');
-    if (formSlot) {
-        formSlot.innerHTML = `
-            <div class="bg-red-950/40 border border-red-900/60 p-4 rounded text-xs text-red-400">
-                // ERROR: Panel 2 failed to render. Check console for details.
-            </div>`;
+    } catch (err) {
+        console.error("LOG [ERROR]: Panel 2 (Form) failed ->", err);
+        const formSlot = document.getElementById('panel-form-slot');
+        if (formSlot) {
+            formSlot.innerHTML = `
+                <div class="bg-red-950/40 border border-red-900/60 p-4 rounded text-xs text-red-400">
+                    // ERROR: Panel 2 failed to render. Check console for details.
+                </div>`;
+        }
     }
-}
 
     // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
     try {
