@@ -986,7 +986,16 @@ async function renderWithIsolatedPanels(data) {
                     // ${safeText(data.round || data.matchweek, 'Fixture Preview')}
                 </span>
             </div>`;
-    } catch (err) {}
+    } catch (err) {
+    console.error("LOG [ERROR]: Panel 1 (Standings) failed ->", err);
+    const standingsSlot = document.getElementById('panel-standings-slot');
+    if (standingsSlot) {
+        standingsSlot.innerHTML = `
+            <div class="bg-red-950/40 border border-red-900/60 p-4 rounded text-xs text-red-400">
+                // ERROR: Panel 1 failed to render. Check console for details.
+            </div>`;
+    }
+}
 
     // --- STANDINGS SLOT (PANEL 1) ---
     try {
@@ -1032,7 +1041,16 @@ async function renderWithIsolatedPanels(data) {
                     </div>
                 </div>
             </div>`;
-    } catch (err) {}
+  } catch (err) {
+    console.error("LOG [ERROR]: Panel 2 (Form) failed ->", err);
+    const formSlot = document.getElementById('panel-form-slot');
+    if (formSlot) {
+        formSlot.innerHTML = `
+            <div class="bg-red-950/40 border border-red-900/60 p-4 rounded text-xs text-red-400">
+                // ERROR: Panel 2 failed to render. Check console for details.
+            </div>`;
+    }
+}
 
     // --- FORM SLOT (PANEL 2 - FORM LIST) ---
     try {
@@ -1080,7 +1098,16 @@ async function renderWithIsolatedPanels(data) {
                     </div>
                 </div>
             </div>`;
-    } catch (err) {}
+  } catch (err) {
+    console.error("LOG [ERROR]: Panel 2 (Form) failed ->", err);
+    const formSlot = document.getElementById('panel-form-slot');
+    if (formSlot) {
+        formSlot.innerHTML = `
+            <div class="bg-red-950/40 border border-red-900/60 p-4 rounded text-xs text-red-400">
+                // ERROR: Panel 2 failed to render. Check console for details.
+            </div>`;
+    }
+}
 
     // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
     try {
@@ -1154,7 +1181,16 @@ async function renderWithIsolatedPanels(data) {
                     </div>
                 </div>
             </div>`;
-    } catch (err) {}
+   } catch (err) {
+    console.error("LOG [ERROR]: Panel 3 (H2H) failed ->", err);
+    const h2hSlot = document.getElementById('panel-h2h-slot');
+    if (h2hSlot) {
+        h2hSlot.innerHTML = `
+            <div class="bg-red-950/40 border border-red-900/60 p-4 rounded text-xs text-red-400">
+                // ERROR: Panel 3 failed to render. Check console for details.
+            </div>`;
+    }
+}
 }
     function renderMatchList(matchesArray) {
     const container = document.getElementById('matchListSubPanel');
