@@ -1032,155 +1032,155 @@ async function renderWithIsolatedPanels(rawPayload) {
 // --- FORM SLOT (PANEL 2 - FORM LIST WITH DEBUGGING) ---
 // --- PANEL 2 (RECENT FORM RENDERER WITH DEBUGGER) ---
 // ==========================================
-// PANEL 2: RECENT FORM ANALYSIS (BULLETPROOF)
+PANEL 2: RECENT FORM ANALYSIS (BULLETPROOF)
+==========================================
+try {
+    const teamFormObj = data?.teamForm || data?.form || {};
+    
+    // Fallback checks for n8n's exact structure or alternative keys
+    const rawHomeForm = teamFormObj.homeTeam || teamFormObj[homeTeamName] || teamFormObj.home || [];
+    const rawAwayForm = teamFormObj.awayTeam || teamFormObj[awayTeamName] || teamFormObj.away || [];
+
+    const parseFormItem = (item) => {
+        if (!item) return null;
+        if (typeof item === 'object') {
+            return {
+                mw: safeText(item.matchweek || item.mw, 'MW'),
+                opponent: safeText(item.opponent || item.team || item.vs, 'Unknown'),
+                score: safeText(item.score || item.result, '-'),
+                venue: safeText(item.venue, '')
+            };
+        }
+        
+        // Handles strings like "MW1 Newcastle United (A) 2-2"
+        const regex = /^(MW\d+)\s+(.*?)\s+\([HA]\)\s+(.+)$/;
+        const match = String(item).match(regex);
+        if (match) {
+            return { mw: match[1], opponent: match[2], score: match[3] };
+        }
+        
+        return { mw: 'MW', opponent: String(item), score: '-' };
+    };
+
+    const homeFormList = Array.isArray(rawHomeForm) ? rawHomeForm.map(parseFormItem).filter(Boolean) : [];
+    const awayFormList = Array.isArray(rawAwayForm) ? rawAwayForm.map(parseFormItem).filter(Boolean) : [];
+
+    const renderFormItems = (list) => {
+        if (!list || list.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No recent form data available.</div>';
+        return list.map(item => `
+            <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded border border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-yellow-400 font-bold bg-slate-900 px-1.5 py-0.5 rounded">${safeText(item.mw, 'MW')}</span>
+                    <span class="text-xs text-slate-200 truncate max-w-[130px]">vs ${safeText(item.opponent, 'Unknown')}</span>
+                </div>
+                <span class="text-xs font-bold text-slate-100 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${safeText(item.score, '-')}</span>
+            </div>
+        `).join('');
+    };
+
+    const panel2El = document.getElementById('panel-form-slot');
+    if (panel2El) {
+        panel2El.innerHTML = `
+            <div id="form-panel-card" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Recent Form Analysis</span>
+                    <button onclick="window.downloadFormImage && window.downloadFormImage()" title="Download Panel as Image" class="text-slate-400 hover:text-yellow-400 bg-slate-950 p-1.5 rounded border border-slate-800 transition-colors flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-900 pb-2">
+                            <span class="text-xs font-bold text-green-400 uppercase tracking-wider">${homeTeamName}</span>
+                        </div>
+                        <div class="space-y-2">${renderFormItems(homeFormList)}</div>
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-900 pb-2">
+                            <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">${awayTeamName}</span>
+                        </div>
+                        <div class="space-y-2">${renderFormItems(awayFormList)}</div>
+                    </div>
+                </div>
+            </div>`;
+    }
+} catch (err) {
+    console.error("LOG [ERROR]: Panel 2 failed ->", err);
+}
+
 // ==========================================
-// try {
-//     const teamFormObj = data?.teamForm || data?.form || {};
+// PANEL 3: PREVIOUS MEETINGS (H2H) (BULLETPROOF)
+// ==========================================
+try {
+    const h2hObj = data?.previousMeetings || data?.headToHead || data?.h2h || {};
     
-//     // Fallback checks for n8n's exact structure or alternative keys
-//     const rawHomeForm = teamFormObj.homeTeam || teamFormObj[homeTeamName] || teamFormObj.home || [];
-//     const rawAwayForm = teamFormObj.awayTeam || teamFormObj[awayTeamName] || teamFormObj.away || [];
+    // Safely retrieve recentMatches array from n8n payload structure
+    const h2hMatches = h2hObj.recentMatches || h2hObj.matches || h2hObj.list || h2hObj.history || (Array.isArray(h2hObj) ? h2hObj : []);
+    const totalPlayed = h2hObj.played || h2hMatches.length || 0;
 
-//     const parseFormItem = (item) => {
-//         if (!item) return null;
-//         if (typeof item === 'object') {
-//             return {
-//                 mw: safeText(item.matchweek || item.mw, 'MW'),
-//                 opponent: safeText(item.opponent || item.team || item.vs, 'Unknown'),
-//                 score: safeText(item.score || item.result, '-'),
-//                 venue: safeText(item.venue, '')
-//             };
-//         }
-        
-//         // Handles strings like "MW1 Newcastle United (A) 2-2"
-//         const regex = /^(MW\d+)\s+(.*?)\s+\([HA]\)\s+(.+)$/;
-//         const match = String(item).match(regex);
-//         if (match) {
-//             return { mw: match[1], opponent: match[2], score: match[3] };
-//         }
-        
-//         return { mw: 'MW', opponent: String(item), score: '-' };
-//     };
+    const renderH2HList = () => {
+        if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) {
+            return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
+        }
+        return h2hMatches.map(m => {
+            if (!m) return '';
+            const hTeam = m.home || m.homeTeam || 'Home Team';
+            const aTeam = m.away || m.awayTeam || 'Away Team';
+            const scoreVal = m.result || m.score || '0 - 0';
+            const dateVal = m.date || m.matchDate || 'Recent';
+            const citationAttr = m.citation ? `href="${m.citation}" target="_blank"` : '';
 
-//     const homeFormList = Array.isArray(rawHomeForm) ? rawHomeForm.map(parseFormItem).filter(Boolean) : [];
-//     const awayFormList = Array.isArray(rawAwayForm) ? rawAwayForm.map(parseFormItem).filter(Boolean) : [];
+            return `
+                <div class="flex items-center justify-between bg-slate-900/90 hover:bg-slate-900 px-4 py-3 rounded-md border border-slate-800 transition-colors">
+                    <div class="flex items-center gap-3 w-1/3">
+                        <span class="text-xs font-semibold text-slate-200 text-right w-full truncate">${hTeam}</span>
+                    </div>
+                    <div class="flex flex-col items-center justify-center w-1/3">
+                        <a ${citationAttr} class="text-xs font-bold text-yellow-400 bg-slate-950 px-3 py-1 rounded border border-slate-800/80 tracking-widest hover:border-yellow-400/50 transition-colors" title="View Citation">
+                            ${scoreVal}
+                        </a>
+                        <span class="text-[10px] text-slate-500 mt-1">${dateVal}</span>
+                    </div>
+                    <div class="flex items-center gap-3 w-1/3 justify-end">
+                        <span class="text-xs font-semibold text-slate-200 text-left w-full truncate">${aTeam}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    };
 
-//     const renderFormItems = (list) => {
-//         if (!list || list.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No recent form data available.</div>';
-//         return list.map(item => `
-//             <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded border border-slate-800">
-//                 <div class="flex items-center gap-2">
-//                     <span class="text-[10px] text-yellow-400 font-bold bg-slate-900 px-1.5 py-0.5 rounded">${safeText(item.mw, 'MW')}</span>
-//                     <span class="text-xs text-slate-200 truncate max-w-[130px]">vs ${safeText(item.opponent, 'Unknown')}</span>
-//                 </div>
-//                 <span class="text-xs font-bold text-slate-100 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${safeText(item.score, '-')}</span>
-//             </div>
-//         `).join('');
-//     };
-
-//     const panel2El = document.getElementById('panel-form-slot');
-//     if (panel2El) {
-//         panel2El.innerHTML = `
-//             <div id="form-panel-card" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
-//                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-//                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Recent Form Analysis</span>
-//                     <button onclick="window.downloadFormImage && window.downloadFormImage()" title="Download Panel as Image" class="text-slate-400 hover:text-yellow-400 bg-slate-950 p-1.5 rounded border border-slate-800 transition-colors flex items-center justify-center">
-//                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-//                         </svg>
-//                     </button>
-//                 </div>
-//                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-//                     <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
-//                         <div class="flex items-center justify-between border-b border-slate-900 pb-2">
-//                             <span class="text-xs font-bold text-green-400 uppercase tracking-wider">${homeTeamName}</span>
-//                         </div>
-//                         <div class="space-y-2">${renderFormItems(homeFormList)}</div>
-//                     </div>
-//                     <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
-//                         <div class="flex items-center justify-between border-b border-slate-900 pb-2">
-//                             <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">${awayTeamName}</span>
-//                         </div>
-//                         <div class="space-y-2">${renderFormItems(awayFormList)}</div>
-//                     </div>
-//                 </div>
-//             </div>`;
-//     }
-// } catch (err) {
-//     console.error("LOG [ERROR]: Panel 2 failed ->", err);
-// }
-
-// // ==========================================
-// // PANEL 3: PREVIOUS MEETINGS (H2H) (BULLETPROOF)
-// // ==========================================
-// try {
-//     const h2hObj = data?.previousMeetings || data?.headToHead || data?.h2h || {};
-    
-//     // Safely retrieve recentMatches array from n8n payload structure
-//     const h2hMatches = h2hObj.recentMatches || h2hObj.matches || h2hObj.list || h2hObj.history || (Array.isArray(h2hObj) ? h2hObj : []);
-//     const totalPlayed = h2hObj.played || h2hMatches.length || 0;
-
-//     const renderH2HList = () => {
-//         if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) {
-//             return '<div class="text-xs text-slate-500 italic py-2">No head-to-head match history available.</div>';
-//         }
-//         return h2hMatches.map(m => {
-//             if (!m) return '';
-//             const hTeam = m.home || m.homeTeam || 'Home Team';
-//             const aTeam = m.away || m.awayTeam || 'Away Team';
-//             const scoreVal = m.result || m.score || '0 - 0';
-//             const dateVal = m.date || m.matchDate || 'Recent';
-//             const citationAttr = m.citation ? `href="${m.citation}" target="_blank"` : '';
-
-//             return `
-//                 <div class="flex items-center justify-between bg-slate-900/90 hover:bg-slate-900 px-4 py-3 rounded-md border border-slate-800 transition-colors">
-//                     <div class="flex items-center gap-3 w-1/3">
-//                         <span class="text-xs font-semibold text-slate-200 text-right w-full truncate">${hTeam}</span>
-//                     </div>
-//                     <div class="flex flex-col items-center justify-center w-1/3">
-//                         <a ${citationAttr} class="text-xs font-bold text-yellow-400 bg-slate-950 px-3 py-1 rounded border border-slate-800/80 tracking-widest hover:border-yellow-400/50 transition-colors" title="View Citation">
-//                             ${scoreVal}
-//                         </a>
-//                         <span class="text-[10px] text-slate-500 mt-1">${dateVal}</span>
-//                     </div>
-//                     <div class="flex items-center gap-3 w-1/3 justify-end">
-//                         <span class="text-xs font-semibold text-slate-200 text-left w-full truncate">${aTeam}</span>
-//                     </div>
-//                 </div>
-//             `;
-//         }).join('');
-//     };
-
-//     const panel3El = document.getElementById('panel-h2h-slot');
-//     if (panel3El) {
-//         panel3El.innerHTML = `
-//             <div id="h2h-panel-card" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-5">
-//                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-//                     <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Previous Meetings</span>
-//                     <button onclick="window.downloadH2HImage && window.downloadH2HImage()" title="Download Panel as Image" class="text-slate-400 hover:text-yellow-400 bg-slate-950 p-1.5 rounded border border-slate-800 transition-colors flex items-center justify-center">
-//                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-//                         </svg>
-//                     </button>
-//                 </div>
-//                 <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
-//                     <div class="flex justify-between items-center text-xs text-slate-300 font-bold">
-//                         <span>${homeTeamName}</span>
-//                         <span>Total Meetings Recorded: ${totalPlayed}</span>
-//                         <span>${awayTeamName}</span>
-//                     </div>
-//                 </div>
-//                 <div class="space-y-2 pt-2 border-t border-slate-800/60">
-//                     <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List</div>
-//                     <div class="max-h-72 overflow-y-auto space-y-2 pr-1">
-//                         ${renderH2HList()}
-//                     </div>
-//                 </div>
-//             </div>`;
-//     }
-// } catch (err) {
-//     console.error("LOG [ERROR]: Panel 3 failed ->", err);
-// }
+    const panel3El = document.getElementById('panel-h2h-slot');
+    if (panel3El) {
+        panel3El.innerHTML = `
+            <div id="h2h-panel-card" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-5">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Previous Meetings</span>
+                    <button onclick="window.downloadH2HImage && window.downloadH2HImage()" title="Download Panel as Image" class="text-slate-400 hover:text-yellow-400 bg-slate-950 p-1.5 rounded border border-slate-800 transition-colors flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
+                    <div class="flex justify-between items-center text-xs text-slate-300 font-bold">
+                        <span>${homeTeamName}</span>
+                        <span>Total Meetings Recorded: ${totalPlayed}</span>
+                        <span>${awayTeamName}</span>
+                    </div>
+                </div>
+                <div class="space-y-2 pt-2 border-t border-slate-800/60">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List</div>
+                    <div class="max-h-72 overflow-y-auto space-y-2 pr-1">
+                        ${renderH2HList()}
+                    </div>
+                </div>
+            </div>`;
+    }
+} catch (err) {
+    console.error("LOG [ERROR]: Panel 3 failed ->", err);
+}
     function renderMatchList(matchesArray) {
     const container = document.getElementById('matchListSubPanel');
     
