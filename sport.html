@@ -1030,94 +1030,56 @@ async function renderWithIsolatedPanels(rawPayload) {
 
     // --- FORM SLOT (PANEL 2 - FORM LIST) ---
 // --- FORM SLOT (PANEL 2 - FORM LIST WITH DEBUGGING) ---
- // --- PANEL 2 (RECENT FORM RENDERER WITH DOWNLOAD BUTTON) ---
+// --- FORM SLOT (PANEL 2 - FORM LIST WITH DEBUGGING) ---
     try {
-        // Look for form data in various possible paths
-        const formObj = data.teamForm || data.form || {};
+        console.log("LOG [PANEL 2 DEBUG]: teamForm object received ->", teamFormObj);
+        console.log("LOG [PANEL 2 DEBUG]: Looking for home team key:", homeTeamName);
+        console.log("LOG [PANEL 2 DEBUG]: Looking for away team key:", awayTeamName);
         
-        let rawHomeForm = formObj.home || formObj.homeForm || data.homeForm || [];
-        let rawAwayForm = formObj.away || formObj.awayForm || data.awayForm || [];
+        console.log("LOG [PANEL 2 DEBUG]: rawHomeForm found ->", rawHomeForm);
+        console.log("LOG [PANEL 2 DEBUG]: rawAwayForm found ->", rawAwayForm);
 
-        const homeFormList = Array.isArray(rawHomeForm) ? rawHomeForm : [];
-        const awayFormList = Array.isArray(rawAwayForm) ? rawAwayForm : [];
+        console.log("LOG [PANEL 2 DEBUG]: Parsed homeFormList ->", homeFormList);
+        console.log("LOG [PANEL 2 DEBUG]: Parsed awayFormList ->", awayFormList);
 
-        const renderFormItems = (list) => {
-            if (!list || list.length === 0) {
-                return '<div class="text-xs text-slate-500 italic py-2">No recent form data available.</div>';
-            }
-            return list.map(item => {
-                const mw = safeText(item.mw || item.matchWeek || 'MW', 'MW');
-                const opponent = safeText(item.opponent || item.vs || 'Opponent', 'Match');
-                const score = safeText(item.score || item.result || '-', '-');
-                
-                return `
-                    <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded border border-slate-800">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] text-yellow-400 font-bold bg-slate-900 px-1.5 py-0.5 rounded">${mw}</span>
-                            <span class="text-xs text-slate-200 truncate max-w-[120px]">${opponent}</span>
-                        </div>
-                        <span class="text-xs font-bold text-slate-100 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${score}</span>
+        const renderFormList = (formList) => {
+            if (!Array.isArray(formList) || formList.length === 0) return '<div class="text-xs text-slate-500 italic py-2">No form data available.</div>';
+            return formList.map(match => `
+                <div class="flex items-center justify-between bg-slate-900/80 p-2.5 rounded border border-slate-800">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-[10px] text-slate-500 font-bold w-10">${match.mw}</span>
+                        <img src="${getLogo(match.opponent)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
+                        <span class="text-xs text-slate-200">vs ${match.opponent}</span>
                     </div>
-                `;
-            }).join('');
+                    <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">${match.score}</span>
+                </div>
+            `).join('');
         };
 
-        const panel2El = document.getElementById('panel-form-slot') || document.getElementById('panel-2-slot');
-        if (panel2El) {
-            panel2El.innerHTML = `
-                <div id="form-panel-card" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Recent Form Analysis</span>
-                        <button onclick="downloadFormImage()" title="Download Panel as Image" class="text-slate-400 hover:text-yellow-400 bg-slate-950 p-1.5 rounded border border-slate-800 transition-colors flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Home Team Form -->
-                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
-                            <div class="flex items-center justify-between border-b border-slate-900 pb-2">
-                                <span class="text-xs font-bold text-green-400 uppercase tracking-wider">${homeTeamName}</span>
-                                <img src="${getLogo(homeTeamName)}" class="w-5 h-5 object-contain">
-                            </div>
-                            <div class="space-y-2">
-                                ${renderFormItems(homeFormList)}
-                            </div>
+        document.getElementById('panel-form-slot').innerHTML = `
+            <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 2. Last 5 Matches Form List</span>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
+                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                            <img src="${getLogo(homeTeamName)}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
+                            <span class="text-xs font-bold text-green-300 uppercase">${homeTeamName} - Recent Form</span>
                         </div>
-
-                        <!-- Away Team Form -->
-                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
-                            <div class="flex items-center justify-between border-b border-slate-900 pb-2">
-                                <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">${awayTeamName}</span>
-                                <img src="${getLogo(awayTeamName)}" class="w-5 h-5 object-contain">
-                            </div>
-                            <div class="space-y-2">
-                                ${renderFormItems(awayFormList)}
-                            </div>
-                        </div>
+                        <div class="space-y-2 max-h-64 overflow-y-auto pr-1">${renderFormList(homeFormList)}</div>
                     </div>
-                </div>`;
-        }
-
-        // Attach global download function for Panel 2
-        if (!window.downloadFormImage) {
-            window.downloadFormImage = function() {
-                if (typeof html2canvas !== 'undefined') {
-                    html2canvas(document.getElementById('form-panel-card'), { backgroundColor: '#020617' }).then(canvas => {
-                        const link = document.createElement('a');
-                        link.download = 'team-form-analysis.png';
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                    });
-                } else {
-                    alert('html2canvas library is not loaded.');
-                }
-            };
-        }
+                    <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
+                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                            <img src="${getLogo(awayTeamName)}" class="w-7 h-7 object-contain bg-slate-900 p-0.5 rounded">
+                            <span class="text-xs font-bold text-blue-300 uppercase">${awayTeamName} - Recent Form</span>
+                        </div>
+                        <div class="space-y-2 max-h-64 overflow-y-auto pr-1">${renderFormList(awayFormList)}</div>
+                    </div>
+                </div>
+            `;
     } catch (err) {
-        console.error("LOG [ERROR]: Panel 2 failed ->", err);
+        console.error("LOG [ERROR]: Panel 2 (Form) failed ->", err);
     }
 
     // --- H2H SLOT (PANEL 3 - HEAD TO HEAD LIST) ---
