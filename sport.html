@@ -583,17 +583,16 @@
         animateGlobePipeline();
     }
 // --- THUMBNAIL DESIGNER CONTROLLER ---
-// --- THUMBNAIL DESIGNER CONTROLLER ---
 window.updateThumbnailCanvas = function() {
     const platform = document.getElementById('thumbPlatformSelect').value;
     const wrapper = document.getElementById('thumbCanvasWrapper');
 
     if (platform === 'youtube') {
-        wrapper.className = "relative w-full aspect-video bg-gradient-to-b from-blue-900 via-blue-950 to-slate-950 rounded border border-slate-800 flex flex-col justify-between p-6 shadow-2xl transition-all duration-300 overflow-hidden";
+        wrapper.className = "relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col justify-between p-0 shadow-2xl transition-all duration-300 overflow-hidden";
     } else if (platform === 'tiktok') {
-        wrapper.className = "relative w-48 mx-auto aspect-[9/16] bg-gradient-to-b from-blue-900 via-blue-950 to-slate-950 rounded border border-slate-800 flex flex-col justify-between p-4 shadow-2xl transition-all duration-300 overflow-hidden";
+        wrapper.className = "relative w-48 mx-auto aspect-[9/16] bg-slate-950 rounded border border-slate-800 flex flex-col justify-between p-0 shadow-2xl transition-all duration-300 overflow-hidden";
     } else {
-        wrapper.className = "relative w-64 mx-auto aspect-square bg-gradient-to-b from-blue-900 via-blue-950 to-slate-950 rounded border border-slate-800 flex flex-col justify-between p-4 shadow-2xl transition-all duration-300 overflow-hidden";
+        wrapper.className = "relative w-64 mx-auto aspect-square bg-slate-950 rounded border border-slate-800 flex flex-col justify-between p-0 shadow-2xl transition-all duration-300 overflow-hidden";
     }
 
     const p1Url = document.getElementById('urlPlayer1').value.trim();
@@ -609,20 +608,35 @@ window.updateThumbnailCanvas = function() {
     }
 
     const logo1Elem = document.getElementById('previewHomeLogo');
+    const logo1Placeholder = document.getElementById('previewHomeLogoPlaceholder');
     if (t1Logo) {
         logo1Elem.src = t1Logo;
         logo1Elem.classList.remove('hidden');
+        logo1Placeholder.classList.add('hidden');
     } else {
         logo1Elem.classList.add('hidden');
+        logo1Placeholder.classList.remove('hidden');
     }
 
     const logo2Elem = document.getElementById('previewAwayLogo');
+    const logo2Placeholder = document.getElementById('previewAwayLogoPlaceholder');
     if (t2Logo) {
         logo2Elem.src = t2Logo;
         logo2Elem.classList.remove('hidden');
+        logo2Placeholder.classList.add('hidden');
     } else {
         logo2Elem.classList.add('hidden');
+        logo2Placeholder.classList.remove('hidden');
     }
+
+    // Update Text fields
+    const t1Name = document.getElementById('inputTeam1Name').value;
+    const t2Name = document.getElementById('inputTeam2Name').value;
+    const dateTime = document.getElementById('inputMatchDateTime').value;
+
+    document.getElementById('previewTeam1Name').innerText = t1Name || 'TEAM 1';
+    document.getElementById('previewTeam2Name').innerText = t2Name || 'TEAM 2';
+    document.getElementById('previewDateTime').innerText = dateTime || '';
 };
 
 window.updateGalleryCanvas = function() {
@@ -668,8 +682,7 @@ window.downloadGalleryAsset = function() {
 document.addEventListener("DOMContentLoaded", () => {
     updateThumbnailCanvas();
     updateGalleryCanvas();
-});
-    /////////////////////////////
+});    /////////////////////////////
     function animateGlobePipeline() {
         requestAnimationFrame(animateGlobePipeline);
         const delta = clock.getDelta();
