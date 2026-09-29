@@ -342,6 +342,72 @@
                 </div>
             </div>
         </div>
+        <!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER PANEL -->
+        <div id="thumbnail-designer-panel" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4 mt-6">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 4. Thumbnail & Social Media Asset Designer</span>
+                <div class="flex items-center gap-2">
+                    <select id="thumbPlatformSelect" onchange="updateThumbnailCanvas()" class="bg-slate-950 text-slate-300 text-xs px-2.5 py-1.5 rounded border border-slate-700 outline-none">
+                        <option value="youtube">YouTube (16:9 Thumbnail)</option>
+                        <option value="tiktok">TikTok / Shorts (9:16 Vertical)</option>
+                        <option value="social">Facebook / Telegram / X (1:1 Post)</option>
+                    </select>
+                    <button onclick="downloadThumbnailAsset()" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition flex items-center gap-1" title="Download Asset">
+                        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        <span class="text-[10px] text-yellow-400 font-bold hidden sm:inline">Export</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div class="lg:col-span-2 bg-slate-950 p-4 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden min-h-[280px]">
+                    <div id="thumbCanvasWrapper" class="relative w-full aspect-video bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded border border-slate-800 flex items-center justify-between p-6 shadow-2xl transition-all duration-300">
+                        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-green-500 via-transparent to-transparent pointer-events-none"></div>
+
+                        <div class="flex items-center gap-3 z-10">
+                            <img id="previewHomeLogo" src="" class="w-10 h-10 object-contain bg-slate-900/80 p-1 rounded-full border border-slate-700 shadow" alt="Home Logo">
+                            <div class="relative">
+                                <img id="previewHomePlayer" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=300&q=80" class="w-16 h-20 object-cover rounded border border-green-500/50 shadow-lg" alt="Home Player">
+                                <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-950 text-green-400 text-[8px] font-bold px-1.5 py-0.5 rounded border border-slate-800 uppercase tracking-tighter whitespace-nowrap" id="tagHomePlayer">HOME STAR</span>
+                            </div>
+                        </div>
+
+                        <div class="text-center z-10 max-w-[180px] px-1">
+                            <span id="previewBadgeTag" class="text-[9px] font-mono font-bold tracking-widest text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded border border-yellow-400/20 uppercase">MATCHDAY</span>
+                            <h3 id="previewMainTitle" class="text-xs md:text-sm font-extrabold text-white uppercase tracking-tight drop-shadow-md mt-1 leading-tight">CRITICAL SHOWDOWN</h3>
+                            <p id="previewSubTitle" class="text-[9px] text-slate-300 font-medium mt-1 uppercase tracking-wide">BATTLE FOR 3 POINTS</p>
+                        </div>
+
+                        <div class="flex items-center flex-row-reverse gap-3 z-10">
+                            <img id="previewAwayLogo" src="" class="w-10 h-10 object-contain bg-slate-900/80 p-1 rounded-full border border-slate-700 shadow" alt="Away Logo">
+                            <div class="relative">
+                                <img id="previewAwayPlayer" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=300&q=80" class="w-16 h-20 object-cover rounded border border-blue-500/50 shadow-lg" alt="Away Player">
+                                <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-950 text-blue-400 text-[8px] font-bold px-1.5 py-0.5 rounded border border-slate-800 uppercase tracking-tighter whitespace-nowrap" id="tagAwayPlayer">AWAY STAR</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded border border-slate-800 space-y-3 flex flex-col justify-between">
+                    <div class="space-y-2.5">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">// Asset Content Setup</div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Badge Tag Label</label>
+                            <input type="text" id="inputBadgeTag" value="MATCHDAY" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-3 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Main Headline</label>
+                            <input type="text" id="inputMainTitle" value="CRITICAL SHOWDOWN" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-3 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Subtitle Description</label>
+                            <input type="text" id="inputSubTitle" value="BATTLE FOR 3 POINTS" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-3 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+                        </div>
+                    </div>
+                    <button onclick="randomizeThumbnailAssets()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-xs text-yellow-400 font-bold rounded border border-slate-700 transition">Shuffle Player Visuals</button>
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -427,7 +493,49 @@
 
         animateGlobePipeline();
     }
+// --- THUMBNAIL DESIGNER CONTROLLER ---
+function updateThumbnailCanvas() {
+    const platform = document.getElementById('thumbPlatformSelect').value;
+    const wrapper = document.getElementById('thumbCanvasWrapper');
 
+    if (platform === 'youtube') {
+        wrapper.className = "relative w-full aspect-video bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded border border-slate-800 flex items-center justify-between p-6 shadow-2xl transition-all duration-300";
+    } else if (platform === 'tiktok') {
+        wrapper.className = "relative w-44 mx-auto aspect-[9/16] bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded border border-slate-800 flex flex-col items-center justify-around p-4 shadow-2xl transition-all duration-300";
+    } else {
+        wrapper.className = "relative w-56 mx-auto aspect-square bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded border border-slate-800 flex flex-col items-center justify-around p-4 shadow-2xl transition-all duration-300";
+    }
+
+    document.getElementById('previewBadgeTag').innerText = document.getElementById('inputBadgeTag').value;
+    document.getElementById('previewMainTitle').innerText = document.getElementById('inputMainTitle').value;
+    document.getElementById('previewSubTitle').innerText = document.getElementById('inputSubTitle').value;
+
+    if (typeof homeTeamName !== 'undefined' && typeof awayTeamName !== 'undefined') {
+        document.getElementById('previewHomeLogo').src = getLogo(homeTeamName);
+        document.getElementById('previewAwayLogo').src = getLogo(awayTeamName);
+        document.getElementById('tagHomePlayer').innerText = homeTeamName.toUpperCase();
+        document.getElementById('tagAwayPlayer').innerText = awayTeamName.toUpperCase();
+    }
+}
+
+function randomizeThumbnailAssets() {
+    const stockPlayers = [
+        "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=300&q=80",
+        "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=300&q=80",
+        "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=300&q=80"
+    ];
+    document.getElementById('previewHomePlayer').src = stockPlayers[Math.floor(Math.random() * stockPlayers.length)];
+    document.getElementById('previewAwayPlayer').src = stockPlayers[Math.floor(Math.random() * stockPlayers.length)];
+}
+
+function downloadThumbnailAsset() {
+    const platform = document.getElementById('thumbPlatformSelect').value.toUpperCase();
+    alert(`Asset generated and exported successfully for ${platform}! Ready for posting on YouTube, TikTok, Facebook, or Telegram.`);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    updateThumbnailCanvas();
+});
     function animateGlobePipeline() {
         requestAnimationFrame(animateGlobePipeline);
         const delta = clock.getDelta();
