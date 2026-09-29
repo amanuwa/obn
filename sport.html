@@ -343,7 +343,6 @@
             </div>
         </div>
 <!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER (WITH REAL PNG EXPORT) -->
-<!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER (SPLIT CLASH STYLE) -->
 <div id="thumbnail-designer-panel" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-6 mt-6">
     
     <!-- Top Bar: Panel Title & Main Asset Export Controller -->
@@ -408,17 +407,16 @@
                 <!-- Player 1 Side -->
                 <div class="bg-slate-950 border-r-2 border-yellow-500/50 flex items-center justify-center relative overflow-hidden h-full">
                     <img id="previewHomePlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover object-center" alt="Player 1">
-                    <!-- Heavy bottom gradient overlay to make text crystal clear over image -->
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-95 pointer-events-none"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none"></div>
                     
-                    <!-- Adaptive Team 1 Logo Container -->
-                    <div id="logoContainer1" class="absolute top-4 left-4 z-30 w-20 h-20 bg-slate-950/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 shadow-2xl flex items-center justify-center pointer-events-none">
-                        <img id="previewHomeLogo" crossorigin="anonymous" src="" class="max-h-full max-w-full object-contain filter drop-shadow hidden" alt="Team 1 Logo">
-                        <span id="previewHomeLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic">Logo 1</span>
+                    <!-- Clean Pure Logo Overlay (No Background Panel) -->
+                    <div class="absolute top-4 left-4 z-30 pointer-events-none flex items-center justify-center">
+                        <img id="previewHomeLogo" crossorigin="anonymous" src="" class="w-12 h-12 md:w-16 md:h-16 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] hidden" alt="Team 1 Logo">
+                        <span id="previewHomeLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 1</span>
                     </div>
 
-                    <!-- Team 1 Name Overlay at Bottom Left -->
-                    <div class="absolute bottom-3 left-4 z-30 pointer-events-none truncate max-w-[85%]">
+                    <!-- Team 1 Name: Positioned Near the Center Line -->
+                    <div class="absolute bottom-6 right-4 z-30 pointer-events-none text-right max-w-[85%]">
                         <span id="previewTeam1Name" class="font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">LIVERPOOL</span>
                     </div>
                 </div>
@@ -426,31 +424,30 @@
                 <!-- Player 2 Side -->
                 <div class="bg-slate-950 flex items-center justify-center relative overflow-hidden h-full">
                     <img id="previewAwayPlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover object-center" alt="Player 2">
-                    <!-- Heavy bottom gradient overlay -->
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-95 pointer-events-none"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none"></div>
                     
-                    <!-- Adaptive Team 2 Logo Container -->
-                    <div id="logoContainer2" class="absolute top-4 right-4 z-30 w-20 h-20 bg-slate-950/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 shadow-2xl flex items-center justify-center pointer-events-none">
-                        <img id="previewAwayLogo" crossorigin="anonymous" src="" class="max-h-full max-w-full object-contain filter drop-shadow hidden" alt="Team 2 Logo">
-                        <span id="previewAwayLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic">Logo 2</span>
+                    <!-- Clean Pure Logo Overlay (No Background Panel) -->
+                    <div class="absolute top-4 right-4 z-30 pointer-events-none flex items-center justify-center">
+                        <img id="previewAwayLogo" crossorigin="anonymous" src="" class="w-12 h-12 md:w-16 md:h-16 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] hidden" alt="Team 2 Logo">
+                        <span id="previewAwayLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 2</span>
                     </div>
 
-                    <!-- Team 2 Name Overlay at Bottom Right -->
-                    <div class="absolute bottom-3 right-4 z-30 pointer-events-none truncate max-w-[85%] text-right">
+                    <!-- Team 2 Name: Positioned Near the Center Line -->
+                    <div class="absolute bottom-6 left-4 z-30 pointer-events-none text-left max-w-[85%]">
                         <span id="previewTeam2Name" class="font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">MANCHESTER CITY</span>
                     </div>
                 </div>
 
                 <!-- Adaptive Center "VS" Badge -->
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-                    <div id="vsBadge" class="w-14 h-14 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-base rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12">
+                    <div id="vsBadge" class="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-sm md:text-base rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12">
                         VS
                     </div>
                 </div>
 
-                <!-- Match Date & Time Footer Floating Banner (Overlaid at bottom center) -->
-                <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
-                    <div id="dateBadgeContainer" class="bg-slate-950/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-yellow-500/50 shadow-2xl">
+                <!-- Match Date & Time Footer Floating Banner (Below Center) -->
+                <div class="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
+                    <div id="dateBadgeContainer" class="bg-slate-950/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-yellow-500/50 shadow-2xl whitespace-nowrap">
                         <p id="previewDateTime" class="font-mono uppercase tracking-widest font-black text-yellow-400 text-[9px] md:text-xs">29.09.2026 • 21:00</p>
                     </div>
                 </div>
@@ -611,8 +608,6 @@
 window.updateThumbnailCanvas = function() {
     const platform = document.getElementById('thumbPlatformSelect').value;
     const wrapper = document.getElementById('thumbCanvasWrapper');
-    const logoContainer1 = document.getElementById('logoContainer1');
-    const logoContainer2 = document.getElementById('logoContainer2');
     const vsBadge = document.getElementById('vsBadge');
     const dateBadgeContainer = document.getElementById('dateBadgeContainer');
     const team1NameElem = document.getElementById('previewTeam1Name');
@@ -621,30 +616,21 @@ window.updateThumbnailCanvas = function() {
 
     if (platform === 'youtube') {
         wrapper.className = "relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
-        logoContainer1.className = "absolute top-4 left-4 z-30 w-20 h-20 bg-slate-950/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 shadow-2xl flex items-center justify-center pointer-events-none";
-        logoContainer2.className = "absolute top-4 right-4 z-30 w-20 h-20 bg-slate-950/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 shadow-2xl flex items-center justify-center pointer-events-none";
         vsBadge.className = "w-14 h-14 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-base rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12";
         team1NameElem.className = "font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]";
         team2NameElem.className = "font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]";
-        dateBadgeContainer.className = "bg-slate-950/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-yellow-500/50 shadow-2xl";
         dateTimeElem.className = "font-mono uppercase tracking-widest font-black text-yellow-400 text-xs md:text-sm";
     } else if (platform === 'tiktok') {
         wrapper.className = "relative w-44 mx-auto aspect-[9/16] bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
-        logoContainer1.className = "absolute top-3 left-3 z-30 w-12 h-12 bg-slate-950/80 backdrop-blur-md rounded-lg p-1.5 border border-slate-700 shadow-xl flex items-center justify-center pointer-events-none";
-        logoContainer2.className = "absolute top-3 right-3 z-30 w-12 h-12 bg-slate-950/80 backdrop-blur-md rounded-lg p-1.5 border border-slate-700 shadow-xl flex items-center justify-center pointer-events-none";
         vsBadge.className = "w-9 h-9 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-xs rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(250,204,21,0.9)] border-2 border-slate-950 transform rotate-12";
         team1NameElem.className = "font-black text-white uppercase tracking-wider text-[9px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]";
         team2NameElem.className = "font-black text-white uppercase tracking-wider text-[9px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]";
-        dateBadgeContainer.className = "bg-slate-950/90 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-yellow-500/50 shadow-xl";
         dateTimeElem.className = "font-mono uppercase tracking-wider font-black text-yellow-400 text-[8px]";
     } else {
         wrapper.className = "relative w-64 mx-auto aspect-square bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
-        logoContainer1.className = "absolute top-3 left-3 z-30 w-14 h-14 bg-slate-950/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 shadow-xl flex items-center justify-center pointer-events-none";
-        logoContainer2.className = "absolute top-3 right-3 z-30 w-14 h-14 bg-slate-950/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 shadow-xl flex items-center justify-center pointer-events-none";
         vsBadge.className = "w-11 h-11 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-sm rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.9)] border-3 border-slate-950 transform rotate-12";
         team1NameElem.className = "font-black text-white uppercase tracking-wider text-[11px] drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)]";
         team2NameElem.className = "font-black text-white uppercase tracking-wider text-[11px] drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)]";
-        dateBadgeContainer.className = "bg-slate-950/90 backdrop-blur-md px-3 py-1 rounded-full border border-yellow-500/50 shadow-2xl";
         dateTimeElem.className = "font-mono uppercase tracking-widest font-black text-yellow-400 text-[10px]";
     }
 
@@ -731,7 +717,7 @@ window.downloadGalleryAsset = function() {
     const platform = document.getElementById('gridPlatformSelect').value;
 
     html2canvas(wrapper, { useCORS: true, scale: 2 }).then(canvas => {
-        const link = document.exitElement ? null : document.createElement('a');
+        const link = document.createElement('a');
         link.download = `gallery-asset-${platform}-${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
