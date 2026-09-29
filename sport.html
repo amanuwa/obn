@@ -407,16 +407,16 @@
                 <!-- Player 1 Side -->
                 <div class="bg-slate-950 border-r-2 border-yellow-500/50 flex items-center justify-center relative overflow-hidden h-full">
                     <img id="previewHomePlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover object-center" alt="Player 1">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent pointer-events-none"></div>
                     
-                    <!-- Clean Pure Logo Overlay (No Background Panel) -->
+                    <!-- Increased Logo Size (Clean Overlay) -->
                     <div class="absolute top-4 left-4 z-30 pointer-events-none flex items-center justify-center">
-                        <img id="previewHomeLogo" crossorigin="anonymous" src="" class="w-12 h-12 md:w-16 md:h-16 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] hidden" alt="Team 1 Logo">
+                        <img id="previewHomeLogo" crossorigin="anonymous" src="" class="w-16 h-16 md:w-20 md:h-20 object-contain filter drop-shadow-[0_3px_10px_rgba(0,0,0,0.9)] hidden" alt="Team 1 Logo">
                         <span id="previewHomeLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 1</span>
                     </div>
 
-                    <!-- Team 1 Name: Positioned Near the Center Line -->
-                    <div class="absolute bottom-6 right-4 z-30 pointer-events-none text-right max-w-[85%]">
+                    <!-- Team 1 Name: Bottom Left -->
+                    <div class="absolute bottom-3 left-4 z-30 pointer-events-none truncate max-w-[85%]">
                         <span id="previewTeam1Name" class="font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">LIVERPOOL</span>
                     </div>
                 </div>
@@ -424,16 +424,16 @@
                 <!-- Player 2 Side -->
                 <div class="bg-slate-950 flex items-center justify-center relative overflow-hidden h-full">
                     <img id="previewAwayPlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover object-center" alt="Player 2">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent pointer-events-none"></div>
                     
-                    <!-- Clean Pure Logo Overlay (No Background Panel) -->
+                    <!-- Increased Logo Size (Clean Overlay) -->
                     <div class="absolute top-4 right-4 z-30 pointer-events-none flex items-center justify-center">
-                        <img id="previewAwayLogo" crossorigin="anonymous" src="" class="w-12 h-12 md:w-16 md:h-16 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] hidden" alt="Team 2 Logo">
+                        <img id="previewAwayLogo" crossorigin="anonymous" src="" class="w-16 h-16 md:w-20 md:h-20 object-contain filter drop-shadow-[0_3px_10px_rgba(0,0,0,0.9)] hidden" alt="Team 2 Logo">
                         <span id="previewAwayLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 2</span>
                     </div>
 
-                    <!-- Team 2 Name: Positioned Near the Center Line -->
-                    <div class="absolute bottom-6 left-4 z-30 pointer-events-none text-left max-w-[85%]">
+                    <!-- Team 2 Name: Bottom Right -->
+                    <div class="absolute bottom-3 right-4 z-30 pointer-events-none truncate max-w-[85%] text-right">
                         <span id="previewTeam2Name" class="font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">MANCHESTER CITY</span>
                     </div>
                 </div>
@@ -445,10 +445,10 @@
                     </div>
                 </div>
 
-                <!-- Match Date & Time Footer Floating Banner (Below Center) -->
-                <div class="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
-                    <div id="dateBadgeContainer" class="bg-slate-950/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-yellow-500/50 shadow-2xl whitespace-nowrap">
-                        <p id="previewDateTime" class="font-mono uppercase tracking-widest font-black text-yellow-400 text-[9px] md:text-xs">29.09.2026 • 21:00</p>
+                <!-- Match Date & Time Footer Floating Banner (Bottom Center) -->
+                <div class="absolute bottom-2.5 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
+                    <div id="dateBadgeContainer" class="bg-slate-950/95 backdrop-blur-md px-4 py-1.5 rounded-full border border-yellow-500/60 shadow-2xl whitespace-nowrap">
+                        <p id="previewDateTime" class="font-mono uppercase tracking-widest font-black text-yellow-400 text-[10px] md:text-xs">29.09.2026 • 21:00</p>
                     </div>
                 </div>
 
@@ -520,7 +520,6 @@
         </div>
     </div>
 </div>
-    </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script type="module">
@@ -730,7 +729,8 @@ window.downloadGalleryAsset = function() {
 document.addEventListener("DOMContentLoaded", () => {
     updateThumbnailCanvas();
     updateGalleryCanvas();
-});/////////////////////////////
+});
+    /////////////////////////////
     function animateGlobePipeline() {
         requestAnimationFrame(animateGlobePipeline);
         const delta = clock.getDelta();
