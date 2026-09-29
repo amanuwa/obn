@@ -343,7 +343,6 @@
             </div>
         </div>
 <!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER (WITH REAL PNG EXPORT) -->
-<!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER (SPLIT CLASH STYLE) -->
 <div id="thumbnail-designer-panel" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-6 mt-6">
     
     <!-- Top Bar: Panel Title & Main Asset Export Controller -->
@@ -398,61 +397,57 @@
         </div>
     </div>
 
-    <!-- Live Visual Preview Area (Split Clash Style with Zero Gap) -->
+    <!-- Live Visual Preview Area (Clean Floating Logos + Bottom Date/Time) -->
     <div class="bg-slate-950 p-4 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden min-h-[420px]">
         <div id="thumbCanvasWrapper" class="relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col justify-between p-0 shadow-2xl transition-all duration-300 overflow-hidden">
             
-            <!-- TOP BANNER OVERLAY: Large Prominent Team Logos Floating on Sides with Match Info Center -->
-            <div class="absolute inset-x-0 top-0 z-30 flex justify-between items-center px-6 py-3 bg-gradient-to-b from-slate-950/90 via-slate-950/50 to-transparent pointer-events-none">
-                <!-- Team 1 Logo Container (Much Larger) -->
-                <div class="w-16 h-16 md:w-20 md:h-20 bg-slate-900/90 rounded-xl border border-slate-700 p-2 shadow-2xl flex items-center justify-center backdrop-blur-md">
-                    <img id="previewHomeLogo" src="" class="max-h-full max-w-full object-contain hidden" alt="Team 1 Logo">
-                    <span id="previewHomeLogoPlaceholder" class="text-[9px] text-slate-500 font-mono text-center">T1 Logo</span>
-                </div>
-
-                <!-- Center Match Metadata Badge -->
-                <div class="bg-slate-900/90 border border-slate-700 px-4 py-1.5 rounded-full shadow-2xl backdrop-blur-md text-center">
-                    <p id="previewDateTime" class="text-[9px] text-yellow-400 font-mono uppercase tracking-widest font-bold">29.09.2026 • 21:00</p>
-                </div>
-
-                <!-- Team 2 Logo Container (Much Larger) -->
-                <div class="w-16 h-16 md:w-20 md:h-20 bg-slate-900/90 rounded-xl border border-slate-700 p-2 shadow-2xl flex items-center justify-center backdrop-blur-md">
-                    <img id="previewAwayLogo" src="" class="max-h-full max-w-full object-contain hidden" alt="Team 2 Logo">
-                    <span id="previewAwayLogoPlaceholder" class="text-[9px] text-slate-500 font-mono text-center">T2 Logo</span>
-                </div>
-            </div>
-
-            <!-- MIDDLE SPLIT SECTION: Side-by-Side Player Images with Glowing Center VS Badge -->
+            <!-- MIDDLE SPLIT SECTION: Players with Large Floating Logos Directly Over Them -->
             <div class="grid grid-cols-2 z-10 flex-1 relative">
-                <!-- Player 1 Side -->
+                <!-- Player 1 Side with Large Team 1 Logo Floating Top-Left -->
                 <div class="bg-slate-950 border-r border-slate-800 flex items-center justify-center overflow-hidden relative group">
                     <img id="previewHomePlayer" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Player 1">
-                    <!-- Subtle Gradient Vignette -->
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80"></div>
+                    
+                    <!-- Large Team 1 Logo (No Panel, Directly Floating Over Player) -->
+                    <div class="absolute top-4 left-4 z-30 w-24 h-24 md:w-32 md:h-32 flex items-center justify-center drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] pointer-events-none">
+                        <img id="previewHomeLogo" src="" class="max-h-full max-w-full object-contain filter drop-shadow-lg hidden" alt="Team 1 Logo">
+                        <span id="previewHomeLogoPlaceholder" class="text-[10px] text-slate-500 font-mono italic">No Logo 1</span>
+                    </div>
                 </div>
 
-                <!-- Player 2 Side -->
+                <!-- Player 2 Side with Large Team 2 Logo Floating Top-Right -->
                 <div class="bg-slate-950 flex items-center justify-center overflow-hidden relative group">
                     <img id="previewAwayPlayer" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Player 2">
-                    <!-- Subtle Gradient Vignette -->
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80"></div>
+                    
+                    <!-- Large Team 2 Logo (No Panel, Directly Floating Over Player) -->
+                    <div class="absolute top-4 right-4 z-30 w-24 h-24 md:w-32 md:h-32 flex items-center justify-center drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] pointer-events-none">
+                        <img id="previewAwayLogo" src="" class="max-h-full max-w-full object-contain filter drop-shadow-lg hidden" alt="Team 2 Logo">
+                        <span id="previewAwayLogoPlaceholder" class="text-[10px] text-slate-500 font-mono italic">No Logo 2</span>
+                    </div>
                 </div>
 
                 <!-- Glowing Center "VS" Badge -->
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                    <div class="w-10 h-10 md:w-12 md:h-12 bg-yellow-400 text-slate-950 font-black text-xs md:text-sm rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.6)] border-2 border-slate-950 transform rotate-12">
+                    <div class="w-10 h-10 md:w-12 md:h-12 bg-yellow-400 text-slate-950 font-black text-xs md:text-sm rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.8)] border-2 border-slate-950 transform rotate-12">
                         VS
                     </div>
                 </div>
             </div>
 
-            <!-- BOTTOM BAR: Full Width Bold Team Name Banners -->
-            <div class="grid grid-cols-2 z-20 bg-slate-900 border-t border-slate-700 text-center py-2.5">
-                <div class="border-r border-slate-700 px-2 truncate">
-                    <span id="previewTeam1Name" class="text-xs md:text-sm font-black text-white uppercase tracking-wider">SPAIN</span>
+            <!-- BOTTOM BAR: Full Width Team Names & Larger Prominent Match Date/Time -->
+            <div class="z-20 bg-slate-900 border-t border-slate-700">
+                <div class="grid grid-cols-2 text-center py-2.5 border-b border-slate-800">
+                    <div class="border-r border-slate-700 px-2 truncate">
+                        <span id="previewTeam1Name" class="text-xs md:text-sm font-black text-white uppercase tracking-wider">SPAIN</span>
+                    </div>
+                    <div class="px-2 truncate">
+                        <span id="previewTeam2Name" class="text-xs md:text-sm font-black text-white uppercase tracking-wider">CROATIA</span>
+                    </div>
                 </div>
-                <div class="px-2 truncate">
-                    <span id="previewTeam2Name" class="text-xs md:text-sm font-black text-white uppercase tracking-wider">CROATIA</span>
+                <!-- Larger Bold Match Date & Time Footer -->
+                <div class="bg-slate-950 py-2 text-center">
+                    <p id="previewDateTime" class="text-xs md:text-sm text-yellow-400 font-mono uppercase tracking-widest font-black">29.09.2026 • 21:00</p>
                 </div>
             </div>
         </div>
@@ -520,7 +515,7 @@
             </div>
         </div>
     </div>
-</div>
+</div>   
     </div>
 
 
@@ -606,7 +601,6 @@
         animateGlobePipeline();
     }
 // --- THUMBNAIL DESIGNER CONTROLLER ---
-// --- GLOBAL CONTROLLER & EXPORT FUNCTIONS ---
 window.updateThumbnailCanvas = function() {
     const platform = document.getElementById('thumbPlatformSelect').value;
     const wrapper = document.getElementById('thumbCanvasWrapper');
@@ -706,7 +700,7 @@ window.downloadGalleryAsset = function() {
 document.addEventListener("DOMContentLoaded", () => {
     updateThumbnailCanvas();
     updateGalleryCanvas();
-});  /////////////////////////////
+}); /////////////////////////////
     function animateGlobePipeline() {
         requestAnimationFrame(animateGlobePipeline);
         const delta = clock.getDelta();
