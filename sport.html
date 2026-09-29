@@ -405,50 +405,50 @@
             <div class="grid grid-cols-2 w-full h-full relative overflow-hidden">
                 
                 <!-- Player 1 Side -->
-                <div class="bg-slate-950 border-r-2 border-yellow-500/50 flex items-center justify-center relative overflow-hidden h-full">
+                <div id="side1Container" class="bg-slate-950 border-r-2 border-yellow-500/50 flex items-center justify-center relative overflow-hidden h-full">
                     <img id="previewHomePlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover object-center" alt="Player 1">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent pointer-events-none"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/30 to-transparent pointer-events-none"></div>
                     
-                    <!-- Increased Logo Size (Clean Overlay) -->
-                    <div class="absolute top-4 left-4 z-30 pointer-events-none flex items-center justify-center">
-                        <img id="previewHomeLogo" crossorigin="anonymous" src="" class="w-16 h-16 md:w-20 md:h-20 object-contain filter drop-shadow-[0_3px_10px_rgba(0,0,0,0.9)] hidden" alt="Team 1 Logo">
+                    <!-- Logo Wrapper -->
+                    <div id="logo1Wrapper" class="absolute top-3 left-3 z-30 pointer-events-none flex items-center justify-center">
+                        <img id="previewHomeLogo" crossorigin="anonymous" src="" class="w-20 h-20 md:w-28 md:h-28 object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] hidden" alt="Team 1 Logo">
                         <span id="previewHomeLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 1</span>
                     </div>
 
-                    <!-- Team 1 Name: Bottom Left -->
-                    <div class="absolute bottom-3 left-4 z-30 pointer-events-none truncate max-w-[85%]">
-                        <span id="previewTeam1Name" class="font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">LIVERPOOL</span>
+                    <!-- Team 1 Name Banner (Bottom Center of Left Half) -->
+                    <div id="name1Wrapper" class="absolute bottom-4 left-3 right-3 z-30 pointer-events-none text-center">
+                        <span id="previewTeam1Name" class="font-black text-white uppercase tracking-wider text-base md:text-xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate">LIVERPOOL</span>
                     </div>
                 </div>
 
                 <!-- Player 2 Side -->
-                <div class="bg-slate-950 flex items-center justify-center relative overflow-hidden h-full">
+                <div id="side2Container" class="bg-slate-950 flex items-center justify-center relative overflow-hidden h-full">
                     <img id="previewAwayPlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover object-center" alt="Player 2">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent pointer-events-none"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/30 to-transparent pointer-events-none"></div>
                     
-                    <!-- Increased Logo Size (Clean Overlay) -->
-                    <div class="absolute top-4 right-4 z-30 pointer-events-none flex items-center justify-center">
-                        <img id="previewAwayLogo" crossorigin="anonymous" src="" class="w-16 h-16 md:w-20 md:h-20 object-contain filter drop-shadow-[0_3px_10px_rgba(0,0,0,0.9)] hidden" alt="Team 2 Logo">
+                    <!-- Logo Wrapper -->
+                    <div id="logo2Wrapper" class="absolute top-3 right-3 z-30 pointer-events-none flex items-center justify-center">
+                        <img id="previewAwayLogo" crossorigin="anonymous" src="" class="w-20 h-20 md:w-28 md:h-28 object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] hidden" alt="Team 2 Logo">
                         <span id="previewAwayLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 2</span>
                     </div>
 
-                    <!-- Team 2 Name: Bottom Right -->
-                    <div class="absolute bottom-3 right-4 z-30 pointer-events-none truncate max-w-[85%] text-right">
-                        <span id="previewTeam2Name" class="font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">MANCHESTER CITY</span>
+                    <!-- Team 2 Name Banner (Bottom Center of Right Half) -->
+                    <div id="name2Wrapper" class="absolute bottom-4 left-3 right-3 z-30 pointer-events-none text-center">
+                        <span id="previewTeam2Name" class="font-black text-white uppercase tracking-wider text-base md:text-xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate">MANCHESTER CITY</span>
                     </div>
                 </div>
 
                 <!-- Adaptive Center "VS" Badge -->
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-                    <div id="vsBadge" class="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-sm md:text-base rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12">
+                    <div id="vsBadge" class="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-base md:text-lg rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12">
                         VS
                     </div>
                 </div>
 
                 <!-- Match Date & Time Footer Floating Banner (Bottom Center) -->
-                <div class="absolute bottom-2.5 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
+                <div class="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
                     <div id="dateBadgeContainer" class="bg-slate-950/95 backdrop-blur-md px-4 py-1.5 rounded-full border border-yellow-500/60 shadow-2xl whitespace-nowrap">
-                        <p id="previewDateTime" class="font-mono uppercase tracking-widest font-black text-yellow-400 text-[10px] md:text-xs">29.09.2026 • 21:00</p>
+                        <p id="previewDateTime" class="font-mono uppercase tracking-widest font-black text-yellow-400 text-xs md:text-sm">29.09.2026 • 21:00</p>
                     </div>
                 </div>
 
@@ -520,6 +520,7 @@
         </div>
     </div>
 </div>
+    </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script type="module">
@@ -612,25 +613,36 @@ window.updateThumbnailCanvas = function() {
     const team1NameElem = document.getElementById('previewTeam1Name');
     const team2NameElem = document.getElementById('previewTeam2Name');
     const dateTimeElem = document.getElementById('previewDateTime');
+    const logo1Img = document.getElementById('previewHomeLogo');
+    const logo2Img = document.getElementById('previewAwayLogo');
 
     if (platform === 'youtube') {
+        // YouTube (16:9): Large logos, big team names covering the bottom of player images
         wrapper.className = "relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
-        vsBadge.className = "w-14 h-14 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-base rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12";
-        team1NameElem.className = "font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]";
-        team2NameElem.className = "font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]";
+        vsBadge.className = "w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-base md:text-lg rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12";
+        team1NameElem.className = "font-black text-white uppercase tracking-wider text-base md:text-2xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate";
+        team2NameElem.className = "font-black text-white uppercase tracking-wider text-base md:text-2xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate";
         dateTimeElem.className = "font-mono uppercase tracking-widest font-black text-yellow-400 text-xs md:text-sm";
+        logo1Img.className = "w-24 h-24 md:w-32 md:h-32 object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] hidden";
+        logo2Img.className = "w-24 h-24 md:w-32 md:h-32 object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] hidden";
     } else if (platform === 'tiktok') {
+        // TikTok (9:16): Downsized small logos at top ends, names covering bottom
         wrapper.className = "relative w-44 mx-auto aspect-[9/16] bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
         vsBadge.className = "w-9 h-9 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-xs rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(250,204,21,0.9)] border-2 border-slate-950 transform rotate-12";
-        team1NameElem.className = "font-black text-white uppercase tracking-wider text-[9px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]";
-        team2NameElem.className = "font-black text-white uppercase tracking-wider text-[9px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]";
+        team1NameElem.className = "font-black text-white uppercase tracking-wider text-[11px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] block truncate";
+        team2NameElem.className = "font-black text-white uppercase tracking-wider text-[11px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] block truncate";
         dateTimeElem.className = "font-mono uppercase tracking-wider font-black text-yellow-400 text-[8px]";
+        logo1Img.className = "w-10 h-10 object-contain filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] hidden";
+        logo2Img.className = "w-10 h-10 object-contain filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] hidden";
     } else {
+        // Social 1:1 Post: Downsized small logos at top ends, names covering bottom
         wrapper.className = "relative w-64 mx-auto aspect-square bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
         vsBadge.className = "w-11 h-11 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-sm rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.9)] border-3 border-slate-950 transform rotate-12";
-        team1NameElem.className = "font-black text-white uppercase tracking-wider text-[11px] drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)]";
-        team2NameElem.className = "font-black text-white uppercase tracking-wider text-[11px] drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)]";
+        team1NameElem.className = "font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] block truncate";
+        team2NameElem.className = "font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] block truncate";
         dateTimeElem.className = "font-mono uppercase tracking-widest font-black text-yellow-400 text-[10px]";
+        logo1Img.className = "w-12 h-12 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] hidden";
+        logo2Img.className = "w-12 h-12 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] hidden";
     }
 
     const p1Url = document.getElementById('urlPlayer1').value.trim();
@@ -641,25 +653,23 @@ window.updateThumbnailCanvas = function() {
     if (p1Url) { document.getElementById('previewHomePlayer').src = p1Url; }
     if (p2Url) { document.getElementById('previewAwayPlayer').src = p2Url; }
 
-    const logo1Elem = document.getElementById('previewHomeLogo');
     const logo1Placeholder = document.getElementById('previewHomeLogoPlaceholder');
     if (t1Logo) {
-        logo1Elem.src = t1Logo;
-        logo1Elem.classList.remove('hidden');
+        logo1Img.src = t1Logo;
+        logo1Img.classList.remove('hidden');
         logo1Placeholder.classList.add('hidden');
     } else {
-        logo1Elem.classList.add('hidden');
+        logo1Img.classList.add('hidden');
         logo1Placeholder.classList.remove('hidden');
     }
 
-    const logo2Elem = document.getElementById('previewAwayLogo');
     const logo2Placeholder = document.getElementById('previewAwayLogoPlaceholder');
     if (t2Logo) {
-        logo2Elem.src = t2Logo;
-        logo2Elem.classList.remove('hidden');
+        logo2Img.src = t2Logo;
+        logo2Img.classList.remove('hidden');
         logo2Placeholder.classList.add('hidden');
     } else {
-        logo2Elem.classList.add('hidden');
+        logo2Img.classList.add('hidden');
         logo2Placeholder.classList.remove('hidden');
     }
 
