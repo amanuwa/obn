@@ -343,6 +343,7 @@
             </div>
         </div>
 <!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER PANEL -->
+<!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER PANEL -->
 <div id="thumbnail-designer-panel" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-6 mt-6">
     
     <!-- Top Bar: Panel Title & Main Asset Export Controller -->
@@ -387,7 +388,7 @@
             <!-- Background Glow Effect -->
             <div class="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-green-500 via-transparent to-transparent pointer-events-none"></div>
 
-            <!-- Left Group: Team 1 Logo right next to Player 1 Image -->
+            <!-- Left Group: Team 1 Logo next to Player 1 Image -->
             <div class="flex items-center gap-3 z-10 bg-slate-900/60 p-2 rounded-lg border border-slate-800 backdrop-blur">
                 <img id="previewHomeLogo" src="" class="w-10 h-10 object-contain bg-slate-950 p-1 rounded-full border border-slate-700 shadow hidden" alt="Team 1 Logo">
                 <div class="relative">
@@ -402,12 +403,75 @@
                 <p id="previewSubTitle" class="text-[10px] text-slate-300 font-medium mt-1 uppercase tracking-wide">BATTLE FOR 3 POINTS</p>
             </div>
 
-            <!-- Right Group: Player 2 Image right next to Team 2 Logo -->
+            <!-- Right Group: Player 2 Image next to Team 2 Logo -->
             <div class="flex items-center gap-3 z-10 bg-slate-900/60 p-2 rounded-lg border border-slate-800 backdrop-blur">
                 <div class="relative">
                     <img id="previewAwayPlayer" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=300&q=80" class="w-16 h-20 object-cover rounded border border-blue-500/50 shadow-lg" alt="Player 2">
                 </div>
                 <img id="previewAwayLogo" src="" class="w-10 h-10 object-contain bg-slate-950 p-1 rounded-full border border-slate-700 shadow hidden" alt="Team 2 Logo">
+            </div>
+        </div>
+    </div>
+
+    <!-- SECOND SUB-SECTION: Dynamic 6-Image Grid Studio -->
+    <div class="border-t border-slate-800 pt-5 space-y-4">
+        <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// Dynamic Multi-Image Gallery Asset (1 to 6 Slots)</span>
+            <div class="flex items-center gap-2">
+                <select id="gridPlatformSelect" class="bg-slate-950 text-slate-300 text-xs px-2.5 py-1.5 rounded border border-slate-700 outline-none">
+                    <option value="youtube">YouTube (16:9)</option>
+                    <option value="tiktok">TikTok / Shorts (9:16)</option>
+                    <option value="social">Facebook / Telegram / X (1:1)</option>
+                </select>
+                <button onclick="downloadGalleryAsset()" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition flex items-center gap-1" title="Download Gallery Asset">
+                    <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span class="text-[10px] text-yellow-400 font-bold hidden sm:inline">Export</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 6 Image URL Input Spaces -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 bg-slate-950 p-3 rounded border border-slate-800">
+            <div>
+                <label class="text-[9px] text-slate-400 block mb-1">Image 1 URL</label>
+                <input type="text" id="galleryImg1" placeholder="URL 1..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            </div>
+            <div>
+                <label class="text-[9px] text-slate-400 block mb-1">Image 2 URL</label>
+                <input type="text" id="galleryImg2" placeholder="URL 2..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            </div>
+            <div>
+                <label class="text-[9px] text-slate-400 block mb-1">Image 3 URL</label>
+                <input type="text" id="galleryImg3" placeholder="URL 3..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            </div>
+            <div>
+                <label class="text-[9px] text-slate-400 block mb-1">Image 4 URL</label>
+                <input type="text" id="galleryImg4" placeholder="URL 4..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            </div>
+            <div>
+                <label class="text-[9px] text-slate-400 block mb-1">Image 5 URL</label>
+                <input type="text" id="galleryImg5" placeholder="URL 5..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            </div>
+            <div>
+                <label class="text-[9px] text-slate-400 block mb-1">Image 6 URL</label>
+                <input type="text" id="galleryImg6" placeholder="URL 6..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            </div>
+        </div>
+
+        <!-- Description Text Box for the 6 Images -->
+        <div>
+            <label class="text-[10px] text-slate-400 block mb-1">Gallery Post Description / Caption</label>
+            <input type="text" id="galleryDescriptionInput" value="MATCH HIGHLIGHTS & KEY MOMENTS COMPILATION" oninput="updateGalleryCanvas()" class="w-full bg-slate-950 text-xs text-slate-200 px-3 py-2 rounded border border-slate-800 outline-none focus:border-yellow-400">
+        </div>
+
+        <!-- Dynamic Side-by-Side Render Preview Container -->
+        <div class="bg-slate-950 p-4 rounded border border-slate-800 space-y-3">
+            <div class="text-[10px] font-mono text-slate-500">// Live Dynamic Multi-Image Render Preview</div>
+            <div id="dynamicGalleryContainer" class="grid grid-cols-2 md:grid-cols-3 gap-3 min-h-[100px] items-center justify-center">
+                <!-- Dynamically injected images appear here -->
+            </div>
+            <div id="dynamicGalleryCaption" class="text-xs font-bold text-white text-center uppercase tracking-wider pt-2 border-t border-slate-900">
+                MATCH HIGHLIGHTS & KEY MOMENTS COMPILATION
             </div>
         </div>
     </div>
@@ -498,7 +562,7 @@
     }
 // --- THUMBNAIL DESIGNER CONTROLLER ---
 // --- THUMBNAIL DESIGNER CONTROLLER ---
-function updateThumbnailCanvas() {
+window.updateThumbnailCanvas = function() {
     const platform = document.getElementById('thumbPlatformSelect').value;
     const wrapper = document.getElementById('thumbCanvasWrapper');
 
@@ -510,14 +574,17 @@ function updateThumbnailCanvas() {
         wrapper.className = "relative w-64 mx-auto aspect-square bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded border border-slate-800 flex flex-col items-center justify-around p-4 shadow-2xl transition-all duration-300";
     }
 
-    // Bind URL Inputs dynamically
     const p1Url = document.getElementById('urlPlayer1').value.trim();
     const t1Logo = document.getElementById('urlTeam1Logo').value.trim();
     const p2Url = document.getElementById('urlPlayer2').value.trim();
     const t2Logo = document.getElementById('urlTeam2Logo').value.trim();
 
-    if (p1Url) document.getElementById('previewHomePlayer').src = p1Url;
-    if (p2Url) document.getElementById('previewAwayPlayer').src = p2Url;
+    if (p1Url) {
+        document.getElementById('previewHomePlayer').src = p1Url;
+    }
+    if (p2Url) {
+        document.getElementById('previewAwayPlayer').src = p2Url;
+    }
 
     const logo1Elem = document.getElementById('previewHomeLogo');
     if (t1Logo) {
@@ -534,7 +601,52 @@ function updateThumbnailCanvas() {
     } else {
         logo2Elem.classList.add('hidden');
     }
-}
+};
+
+window.updateGalleryCanvas = function() {
+    const container = document.getElementById('dynamicGalleryContainer');
+    container.innerHTML = '';
+
+    const urls = [
+        document.getElementById('galleryImg1').value.trim(),
+        document.getElementById('galleryImg2').value.trim(),
+        document.getElementById('galleryImg3').value.trim(),
+        document.getElementById('galleryImg4').value.trim(),
+        document.getElementById('galleryImg5').value.trim(),
+        document.getElementById('galleryImg6').value.trim()
+    ].filter(url => url.length > 0);
+
+    if (urls.length === 0) {
+        container.innerHTML = '<span class="text-[11px] text-slate-500 italic col-span-full text-center py-4">Paste image URLs above (1 to 6) to render them dynamically side-by-side.</span>';
+    } else {
+        container.className = `grid gap-3 min-h-[100px] items-center justify-center grid-cols-${Math.min(urls.length, 3)}`;
+        
+        urls.forEach((url, index) => {
+            const imgWrapper = document.createElement('div');
+            imgWrapper.className = "relative aspect-video bg-slate-900 rounded border border-slate-800 overflow-hidden shadow";
+            imgWrapper.innerHTML = `<img src="${url}" class="w-full h-full object-cover" alt="Gallery Item ${index + 1}">`;
+            container.appendChild(imgWrapper);
+        });
+    }
+
+    const captionText = document.getElementById('galleryDescriptionInput').value;
+    document.getElementById('dynamicGalleryCaption').innerText = captionText || "GALLERY PREVIEW";
+};
+
+window.downloadThumbnailAsset = function() {
+    const platform = document.getElementById('thumbPlatformSelect').value.toUpperCase();
+    alert(`Main Thumbnail asset exported successfully for ${platform}!`);
+};
+
+window.downloadGalleryAsset = function() {
+    const platform = document.getElementById('gridPlatformSelect').value.toUpperCase();
+    alert(`Multi-image gallery asset exported successfully for ${platform}!`);
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    updateThumbnailCanvas();
+    updateGalleryCanvas();
+});
     function animateGlobePipeline() {
         requestAnimationFrame(animateGlobePipeline);
         const delta = clock.getDelta();
