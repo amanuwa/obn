@@ -617,32 +617,32 @@ window.updateThumbnailCanvas = function() {
     const logo2Img = document.getElementById('previewAwayLogo');
 
     if (platform === 'youtube') {
-        // YouTube (16:9): Large logos, big team names covering the bottom of player images
+        // YouTube (16:9): Extra large transparent logos, big team names covering bottom
         wrapper.className = "relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
         vsBadge.className = "w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-base md:text-lg rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12";
         team1NameElem.className = "font-black text-white uppercase tracking-wider text-base md:text-2xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate";
         team2NameElem.className = "font-black text-white uppercase tracking-wider text-base md:text-2xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate";
         dateTimeElem.className = "font-mono uppercase tracking-widest font-black text-yellow-400 text-xs md:text-sm";
-        logo1Img.className = "w-24 h-24 md:w-32 md:h-32 object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] hidden";
-        logo2Img.className = "w-24 h-24 md:w-32 md:h-32 object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] hidden";
+        logo1Img.className = "w-36 h-36 md:w-48 md:h-48 object-contain filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] hidden";
+        logo2Img.className = "w-36 h-36 md:w-48 md:h-48 object-contain filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] hidden";
     } else if (platform === 'tiktok') {
-        // TikTok (9:16): Downsized small logos at top ends, names covering bottom
+        // TikTok (9:16): Downsized transparent logos at top ends
         wrapper.className = "relative w-44 mx-auto aspect-[9/16] bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
         vsBadge.className = "w-9 h-9 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-xs rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(250,204,21,0.9)] border-2 border-slate-950 transform rotate-12";
         team1NameElem.className = "font-black text-white uppercase tracking-wider text-[11px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] block truncate";
         team2NameElem.className = "font-black text-white uppercase tracking-wider text-[11px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] block truncate";
         dateTimeElem.className = "font-mono uppercase tracking-wider font-black text-yellow-400 text-[8px]";
-        logo1Img.className = "w-10 h-10 object-contain filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] hidden";
-        logo2Img.className = "w-10 h-10 object-contain filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] hidden";
+        logo1Img.className = "w-12 h-12 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] hidden";
+        logo2Img.className = "w-12 h-12 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] hidden";
     } else {
-        // Social 1:1 Post: Downsized small logos at top ends, names covering bottom
+        // Social 1:1 Post: Downsized transparent logos at top ends
         wrapper.className = "relative w-64 mx-auto aspect-square bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
         vsBadge.className = "w-11 h-11 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-sm rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.9)] border-3 border-slate-950 transform rotate-12";
         team1NameElem.className = "font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] block truncate";
         team2NameElem.className = "font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] block truncate";
         dateTimeElem.className = "font-mono uppercase tracking-widest font-black text-yellow-400 text-[10px]";
-        logo1Img.className = "w-12 h-12 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] hidden";
-        logo2Img.className = "w-12 h-12 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] hidden";
+        logo1Img.className = "w-16 h-16 object-contain filter drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] hidden";
+        logo2Img.className = "w-16 h-16 object-contain filter drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] hidden";
     }
 
     const p1Url = document.getElementById('urlPlayer1').value.trim();
