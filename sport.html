@@ -343,6 +343,7 @@
             </div>
         </div>
 <!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER (WITH REAL PNG EXPORT) -->
+<!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER (SPLIT CLASH STYLE) -->
 <div id="thumbnail-designer-panel" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-6 mt-6">
     
     <!-- Top Bar: Panel Title & Main Asset Export Controller -->
@@ -409,13 +410,13 @@
                     <img id="previewHomePlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover object-center" alt="Player 1">
                     <div id="side1Gradient" class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/30 to-transparent pointer-events-none"></div>
                     
-                    <!-- Transparent Logo Wrapper (Locked Top-Left for all or top-corners) -->
+                    <!-- Transparent Logo Wrapper (Locked Top-Left) -->
                     <div id="logo1Wrapper" class="absolute top-2.5 left-2.5 z-30 pointer-events-none flex items-center justify-center bg-transparent">
                         <img id="previewHomeLogo" crossorigin="anonymous" src="" class="w-20 h-20 object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)] hidden" alt="Team 1 Logo">
                         <span id="previewHomeLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 1</span>
                     </div>
 
-                    <!-- Team 1 Name Banner (Bottom for YouTube, or handled dynamically) -->
+                    <!-- Team 1 Name Banner (For YouTube 16:9) -->
                     <div id="name1Wrapper" class="absolute bottom-3 left-2 right-2 z-30 pointer-events-none text-center">
                         <span id="previewTeam1Name" class="font-black text-white uppercase tracking-wider text-xs md:text-xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate">LIVERPOOL</span>
                     </div>
@@ -432,7 +433,7 @@
                         <span id="previewAwayLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 2</span>
                     </div>
 
-                    <!-- Team 2 Name Banner -->
+                    <!-- Team 2 Name Banner (For YouTube 16:9) -->
                     <div id="name2Wrapper" class="absolute bottom-3 left-2 right-2 z-30 pointer-events-none text-center">
                         <span id="previewTeam2Name" class="font-black text-white uppercase tracking-wider text-xs md:text-xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate">MANCHESTER CITY</span>
                     </div>
@@ -445,16 +446,16 @@
                     </div>
                 </div>
 
-                <!-- Match Date & Time / Stacked Team Names Footer Container (Bottom Center) -->
-                <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none w-full px-4 text-center">
+                <!-- Stacked Footer Container (Team Names on Top, Date & Time Below) -->
+                <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none w-full px-3 text-center">
                     <div id="stackedFooterContainer" class="flex flex-col items-center justify-center gap-1">
-                        <!-- Stacked Team Names for TikTok/Social -->
-                        <div id="stackedTeamNames" class="hidden items-center justify-center gap-2 text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                        <!-- Team Names on Top -->
+                        <div id="stackedTeamNames" class="hidden items-center justify-center gap-1.5 font-black text-white uppercase tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                             <span id="previewStackedTeam1">LIVERPOOL</span>
                             <span class="text-yellow-400 font-bold text-[9px]">VS</span>
                             <span id="previewStackedTeam2">MANCHESTER CITY</span>
                         </div>
-                        <!-- Date Badge -->
+                        <!-- Match Date & Time Badge Below -->
                         <div id="dateBadgeContainer" class="bg-slate-950/95 backdrop-blur-md px-3 py-1 rounded-full border border-yellow-500/60 shadow-2xl whitespace-nowrap inline-block">
                             <p id="previewDateTime" class="font-mono uppercase tracking-widest font-black text-yellow-400 text-[9px] md:text-xs">MONDAY • 29.09.2026 • 21:00</p>
                         </div>
@@ -645,7 +646,7 @@ window.updateThumbnailCanvas = function() {
         logo1Img.className = "w-28 h-28 md:w-40 md:h-40 object-contain filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] hidden";
         logo2Img.className = "w-28 h-28 md:w-40 md:h-40 object-contain filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] hidden";
     } else if (platform === 'tiktok') {
-        // TikTok (9:16): Small logos on top corners, stacked names above date badge
+        // TikTok (9:16): Small logos on top corners, team names on top of date badge
         wrapper.className = "relative w-44 mx-auto aspect-[9/16] bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
         vsBadge.className = "w-9 h-9 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-xs rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(250,204,21,0.9)] border-2 border-slate-950 transform rotate-12";
         name1Wrapper.classList.add('hidden');
@@ -657,7 +658,7 @@ window.updateThumbnailCanvas = function() {
         logo1Img.className = "w-9 h-9 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] hidden";
         logo2Img.className = "w-9 h-9 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] hidden";
     } else {
-        // Social 1:1 Post: Small logos on top corners, stacked names above date badge
+        // Social 1:1 Post: Small logos on top corners, team names on top of date badge
         wrapper.className = "relative w-64 mx-auto aspect-square bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
         vsBadge.className = "w-11 h-11 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-sm rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.9)] border-3 border-slate-950 transform rotate-12";
         name1Wrapper.classList.add('hidden');
