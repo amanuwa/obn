@@ -343,7 +343,6 @@
             </div>
         </div>
 <!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER (WITH REAL PNG EXPORT) -->
-<!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER (SPLIT CLASH STYLE) -->
 <div id="thumbnail-designer-panel" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-6 mt-6">
     
     <!-- Top Bar: Panel Title & Main Asset Export Controller -->
@@ -386,11 +385,11 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950 p-3 rounded border border-slate-800">
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Team 1 Name</label>
-            <input type="text" id="inputTeam1Name" value="SPAIN" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            <input type="text" id="inputTeam1Name" value="LIVERPOOL" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Team 2 Name</label>
-            <input type="text" id="inputTeam2Name" value="CROATIA" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            <input type="text" id="inputTeam2Name" value="MANCHESTER CITY" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Match Date & Time</label>
@@ -398,59 +397,65 @@
         </div>
     </div>
 
-    <!-- Live Visual Preview Area (Dynamically Rescaling Elements) -->
+    <!-- Live Visual Preview Area -->
     <div class="bg-slate-950 p-4 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden">
         <div id="thumbCanvasWrapper" class="relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col justify-between shadow-2xl transition-all duration-300 overflow-hidden">
             
-            <!-- MIDDLE SPLIT SECTION: Players + Adaptive Floating Logos -->
+            <!-- SPLIT SECTION: Players + Overlay Logos, VS Badge, Team Names, & Date/Time Footer -->
             <div class="grid grid-cols-2 flex-1 relative overflow-hidden">
+                
                 <!-- Player 1 Side -->
-                <div class="bg-slate-950 border-r border-slate-800 flex items-center justify-center relative overflow-hidden">
-                    <img id="previewHomePlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Player 1">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60"></div>
+                <div class="bg-slate-950 border-r-2 border-yellow-500/50 flex items-center justify-center relative overflow-hidden">
+                    <img id="previewHomePlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover object-center" alt="Player 1">
+                    <!-- Heavy bottom gradient overlay to make text crystal clear over image -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent opacity-90"></div>
                     
                     <!-- Adaptive Team 1 Logo Container -->
-                    <div id="logoContainer1" class="absolute top-3 left-3 z-30 w-16 h-16 md:w-24 md:h-24 flex items-center justify-center pointer-events-none drop-shadow-[0_8px_16px_rgba(0,0,0,0.9)]">
-                        <img id="previewHomeLogo" crossorigin="anonymous" src="" class="max-h-full max-w-full object-contain filter drop-shadow-md hidden" alt="Team 1 Logo">
+                    <div id="logoContainer1" class="absolute top-4 left-4 z-30 w-20 h-20 bg-slate-950/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 shadow-2xl flex items-center justify-center pointer-events-none">
+                        <img id="previewHomeLogo" crossorigin="anonymous" src="" class="max-h-full max-w-full object-contain filter drop-shadow hidden" alt="Team 1 Logo">
                         <span id="previewHomeLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic">Logo 1</span>
+                    </div>
+
+                    <!-- Team 1 Name Overlay at Bottom Left -->
+                    <div class="absolute bottom-3 left-4 z-30 pointer-events-none truncate max-w-[85%]">
+                        <span id="previewTeam1Name" class="font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">LIVERPOOL</span>
                     </div>
                 </div>
 
                 <!-- Player 2 Side -->
                 <div class="bg-slate-950 flex items-center justify-center relative overflow-hidden">
-                    <img id="previewAwayPlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Player 2">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60"></div>
+                    <img id="previewAwayPlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover object-center" alt="Player 2">
+                    <!-- Heavy bottom gradient overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent opacity-90"></div>
                     
                     <!-- Adaptive Team 2 Logo Container -->
-                    <div id="logoContainer2" class="absolute top-3 right-3 z-30 w-16 h-16 md:w-24 md:h-24 flex items-center justify-center pointer-events-none drop-shadow-[0_8px_16px_rgba(0,0,0,0.9)]">
-                        <img id="previewAwayLogo" crossorigin="anonymous" src="" class="max-h-full max-w-full object-contain filter drop-shadow-md hidden" alt="Team 2 Logo">
+                    <div id="logoContainer2" class="absolute top-4 right-4 z-30 w-20 h-20 bg-slate-950/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 shadow-2xl flex items-center justify-center pointer-events-none">
+                        <img id="previewAwayLogo" crossorigin="anonymous" src="" class="max-h-full max-w-full object-contain filter drop-shadow hidden" alt="Team 2 Logo">
                         <span id="previewAwayLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic">Logo 2</span>
+                    </div>
+
+                    <!-- Team 2 Name Overlay at Bottom Right -->
+                    <div class="absolute bottom-3 right-4 z-30 pointer-events-none truncate max-w-[85%] text-right">
+                        <span id="previewTeam2Name" class="font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">MANCHESTER CITY</span>
                     </div>
                 </div>
 
                 <!-- Adaptive Center "VS" Badge -->
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                    <div id="vsBadge" class="w-9 h-9 bg-yellow-400 text-slate-950 font-black text-xs rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.8)] border-2 border-slate-950 transform rotate-12">
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+                    <div id="vsBadge" class="w-14 h-14 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-base rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12">
                         VS
                     </div>
                 </div>
+
+                <!-- Match Date & Time Footer Floating Banner (Overlaid at bottom center) -->
+                <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
+                    <div id="dateBadgeContainer" class="bg-slate-950/90 backdrop-blur-md px-3 py-1 rounded-full border border-yellow-500/50 shadow-2xl">
+                        <p id="previewDateTime" class="font-mono uppercase tracking-widest font-black text-yellow-400 text-[9px] md:text-xs">29.09.2026 • 21:00</p>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- BOTTOM BAR: Team Names & Adaptive Match Date/Time Footer -->
-            <div class="z-20 bg-slate-900 border-t border-slate-700 flex-shrink-0">
-                <div class="grid grid-cols-2 text-center py-1.5 border-b border-slate-800">
-                    <div class="border-r border-slate-700 px-2 truncate">
-                        <span id="previewTeam1Name" class="text-[11px] md:text-xs font-black text-white uppercase tracking-wider">SPAIN</span>
-                    </div>
-                    <div class="px-2 truncate">
-                        <span id="previewTeam2Name" class="text-[11px] md:text-xs font-black text-white uppercase tracking-wider">CROATIA</span>
-                    </div>
-                </div>
-                <!-- Prominent Match Date & Time Footer -->
-                <div class="bg-slate-950 py-2 text-center">
-                    <p id="previewDateTime" class="text-[10px] md:text-xs text-yellow-400 font-mono uppercase tracking-widest font-black">29.09.2026 • 21:00</p>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -608,29 +613,38 @@ window.updateThumbnailCanvas = function() {
     const logoContainer1 = document.getElementById('logoContainer1');
     const logoContainer2 = document.getElementById('logoContainer2');
     const vsBadge = document.getElementById('vsBadge');
+    const dateBadgeContainer = document.getElementById('dateBadgeContainer');
+    const team1NameElem = document.getElementById('previewTeam1Name');
+    const team2NameElem = document.getElementById('previewTeam2Name');
     const dateTimeElem = document.getElementById('previewDateTime');
 
-    // Dynamically adjust wrapper size and inner element classes based on selected platform
     if (platform === 'youtube') {
         wrapper.className = "relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col justify-between shadow-2xl transition-all duration-300 overflow-hidden";
-        logoContainer1.className = "absolute top-3 left-3 z-30 w-24 h-24 flex items-center justify-center pointer-events-none drop-shadow-[0_8px_16px_rgba(0,0,0,0.9)]";
-        logoContainer2.className = "absolute top-3 right-3 z-30 w-24 h-24 flex items-center justify-center pointer-events-none drop-shadow-[0_8px_16px_rgba(0,0,0,0.9)]";
-        vsBadge.className = "w-12 h-12 bg-yellow-400 text-slate-950 font-black text-sm rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.8)] border-2 border-slate-950 transform rotate-12";
-        dateTimeElem.className = "text-xs md:text-sm text-yellow-400 font-mono uppercase tracking-widest font-black";
+        logoContainer1.className = "absolute top-4 left-4 z-30 w-20 h-20 bg-slate-950/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 shadow-2xl flex items-center justify-center pointer-events-none";
+        logoContainer2.className = "absolute top-4 right-4 z-30 w-20 h-20 bg-slate-950/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 shadow-2xl flex items-center justify-center pointer-events-none";
+        vsBadge.className = "w-14 h-14 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-base rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12";
+        team1NameElem.className = "font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]";
+        team2NameElem.className = "font-black text-white uppercase tracking-wider text-xs md:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]";
+        dateBadgeContainer.className = "bg-slate-950/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-yellow-500/50 shadow-2xl";
+        dateTimeElem.className = "font-mono uppercase tracking-widest font-black text-yellow-400 text-xs md:text-sm";
     } else if (platform === 'tiktok') {
-        // Vertical 9:16 layout scaled down to fit nicely in panel
         wrapper.className = "relative w-44 mx-auto aspect-[9/16] bg-slate-950 rounded border border-slate-800 flex flex-col justify-between shadow-2xl transition-all duration-300 overflow-hidden";
-        logoContainer1.className = "absolute top-2 left-2 z-30 w-12 h-12 flex items-center justify-center pointer-events-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]";
-        logoContainer2.className = "absolute top-2 right-2 z-30 w-12 h-12 flex items-center justify-center pointer-events-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]";
-        vsBadge.className = "w-7 h-7 bg-yellow-400 text-slate-950 font-black text-[10px] rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(250,204,21,0.8)] border border-slate-950 transform rotate-12";
-        dateTimeElem.className = "text-[9px] text-yellow-400 font-mono uppercase tracking-wider font-black";
+        logoContainer1.className = "absolute top-3 left-3 z-30 w-12 h-12 bg-slate-950/80 backdrop-blur-md rounded-lg p-1.5 border border-slate-700 shadow-xl flex items-center justify-center pointer-events-none";
+        logoContainer2.className = "absolute top-3 right-3 z-30 w-12 h-12 bg-slate-950/80 backdrop-blur-md rounded-lg p-1.5 border border-slate-700 shadow-xl flex items-center justify-center pointer-events-none";
+        vsBadge.className = "w-9 h-9 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-xs rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(250,204,21,0.9)] border-2 border-slate-950 transform rotate-12";
+        team1NameElem.className = "font-black text-white uppercase tracking-wider text-[9px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]";
+        team2NameElem.className = "font-black text-white uppercase tracking-wider text-[9px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]";
+        dateBadgeContainer.className = "bg-slate-950/90 backdrop-blur-md px-2 py-0.5 rounded-full border border-yellow-500/50 shadow-xl";
+        dateTimeElem.className = "font-mono uppercase tracking-wider font-black text-yellow-400 text-[8px]";
     } else {
-        // Square 1:1 layout
         wrapper.className = "relative w-64 mx-auto aspect-square bg-slate-950 rounded border border-slate-800 flex flex-col justify-between shadow-2xl transition-all duration-300 overflow-hidden";
-        logoContainer1.className = "absolute top-2 left-2 z-30 w-16 h-16 flex items-center justify-center pointer-events-none drop-shadow-[0_6px_12px_rgba(0,0,0,0.9)]";
-        logoContainer2.className = "absolute top-2 right-2 z-30 w-16 h-16 flex items-center justify-center pointer-events-none drop-shadow-[0_6px_12px_rgba(0,0,0,0.9)]";
-        vsBadge.className = "w-9 h-9 bg-yellow-400 text-slate-950 font-black text-xs rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(250,204,21,0.8)] border-2 border-slate-950 transform rotate-12";
-        dateTimeElem.className = "text-[10px] text-yellow-400 font-mono uppercase tracking-widest font-black";
+        logoContainer1.className = "absolute top-3 left-3 z-30 w-14 h-14 bg-slate-950/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 shadow-xl flex items-center justify-center pointer-events-none";
+        logoContainer2.className = "absolute top-3 right-3 z-30 w-14 h-14 bg-slate-950/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 shadow-xl flex items-center justify-center pointer-events-none";
+        vsBadge.className = "w-11 h-11 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-sm rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.9)] border-3 border-slate-950 transform rotate-12";
+        team1NameElem.className = "font-black text-white uppercase tracking-wider text-[11px] drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)]";
+        team2NameElem.className = "font-black text-white uppercase tracking-wider text-[11px] drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)]";
+        dateBadgeContainer.className = "bg-slate-950/90 backdrop-blur-md px-3 py-1 rounded-full border border-yellow-500/50 shadow-2xl";
+        dateTimeElem.className = "font-mono uppercase tracking-widest font-black text-yellow-400 text-[10px]";
     }
 
     const p1Url = document.getElementById('urlPlayer1').value.trim();
@@ -638,12 +652,8 @@ window.updateThumbnailCanvas = function() {
     const p2Url = document.getElementById('urlPlayer2').value.trim();
     const t2Logo = document.getElementById('urlTeam2Logo').value.trim();
 
-    if (p1Url) {
-        document.getElementById('previewHomePlayer').src = p1Url;
-    }
-    if (p2Url) {
-        document.getElementById('previewAwayPlayer').src = p2Url;
-    }
+    if (p1Url) { document.getElementById('previewHomePlayer').src = p1Url; }
+    if (p2Url) { document.getElementById('previewAwayPlayer').src = p2Url; }
 
     const logo1Elem = document.getElementById('previewHomeLogo');
     const logo1Placeholder = document.getElementById('previewHomeLogoPlaceholder');
@@ -667,14 +677,9 @@ window.updateThumbnailCanvas = function() {
         logo2Placeholder.classList.remove('hidden');
     }
 
-    // Update Text fields
-    const t1Name = document.getElementById('inputTeam1Name').value;
-    const t2Name = document.getElementById('inputTeam2Name').value;
-    const dateTime = document.getElementById('inputMatchDateTime').value;
-
-    document.getElementById('previewTeam1Name').innerText = t1Name || 'TEAM 1';
-    document.getElementById('previewTeam2Name').innerText = t2Name || 'TEAM 2';
-    dateTimeElem.innerText = dateTime || '';
+    team1NameElem.innerText = document.getElementById('inputTeam1Name').value || 'TEAM 1';
+    team2NameElem.innerText = document.getElementById('inputTeam2Name').value || 'TEAM 2';
+    dateTimeElem.innerText = document.getElementById('inputMatchDateTime').value || '';
 };
 
 window.updateGalleryCanvas = function() {
@@ -694,7 +699,6 @@ window.updateGalleryCanvas = function() {
         container.innerHTML = '<span class="text-[11px] text-slate-500 italic col-span-full text-center py-4">Paste image URLs above (1 to 6) to render them dynamically side-by-side.</span>';
     } else {
         container.className = `grid gap-3 min-h-[100px] items-center justify-center grid-cols-${Math.min(urls.length, 3)}`;
-        
         urls.forEach((url, index) => {
             const imgWrapper = document.createElement('div');
             imgWrapper.className = "relative aspect-video bg-slate-900 rounded border border-slate-800 overflow-hidden shadow";
@@ -703,8 +707,7 @@ window.updateGalleryCanvas = function() {
         });
     }
 
-    const captionText = document.getElementById('galleryDescriptionInput').value;
-    document.getElementById('dynamicGalleryCaption').innerText = captionText || "GALLERY PREVIEW";
+    document.getElementById('dynamicGalleryCaption').innerText = document.getElementById('galleryDescriptionInput').value || "GALLERY PREVIEW";
 };
 
 window.downloadThumbnailAsset = function() {
