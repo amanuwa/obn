@@ -343,6 +343,7 @@
             </div>
         </div>
 <!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER PANEL -->
+<!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER PANEL -->
 <div id="thumbnail-designer-panel" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-6 mt-6">
     
     <!-- Top Bar: Panel Title & Main Asset Export Controller -->
@@ -397,23 +398,23 @@
         </div>
     </div>
 
-    <!-- Full-Width Live Visual Preview Area (Zero Gap Design) -->
-    <div class="bg-slate-950 p-4 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden min-h-[380px]">
+    <!-- Full-Width Live Visual Preview Area (Larger Team Logos & Zero Gap) -->
+    <div class="bg-slate-950 p-4 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden min-h-[400px]">
         <div id="thumbCanvasWrapper" class="relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col justify-between p-0 shadow-2xl transition-all duration-300 overflow-hidden">
             
-            <!-- ROW 1: Team 1 Logo & Team 2 Logo (Zero gap grid) -->
+            <!-- ROW 1: Larger Team 1 Logo & Team 2 Logo -->
             <div class="grid grid-cols-2 z-10">
-                <div class="bg-slate-900 h-12 border-r border-b border-slate-700 flex items-center justify-center p-2">
+                <div class="bg-slate-900 h-24 border-r border-b border-slate-700 flex items-center justify-center p-3">
                     <img id="previewHomeLogo" src="" class="max-h-full max-w-full object-contain hidden" alt="Team 1 Logo">
-                    <span id="previewHomeLogoPlaceholder" class="text-[10px] text-slate-500 font-mono">Team 1 Logo</span>
+                    <span id="previewHomeLogoPlaceholder" class="text-xs text-slate-500 font-mono">Team 1 Logo</span>
                 </div>
-                <div class="bg-slate-900 h-12 border-b border-slate-700 flex items-center justify-center p-2">
+                <div class="bg-slate-900 h-24 border-b border-slate-700 flex items-center justify-center p-3">
                     <img id="previewAwayLogo" src="" class="max-h-full max-w-full object-contain hidden" alt="Team 2 Logo">
-                    <span id="previewAwayLogoPlaceholder" class="text-[10px] text-slate-500 font-mono">Team 2 Logo</span>
+                    <span id="previewAwayLogoPlaceholder" class="text-xs text-slate-500 font-mono">Team 2 Logo</span>
                 </div>
             </div>
 
-            <!-- ROW 2: Player 1 Image & Player 2 Image (Zero gap grid) -->
+            <!-- ROW 2: Player 1 Image & Player 2 Image -->
             <div class="grid grid-cols-2 z-10 flex-1">
                 <div class="bg-slate-950 border-r border-b border-slate-800 flex items-center justify-center overflow-hidden relative">
                     <img id="previewHomePlayer" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Player 1">
@@ -424,7 +425,7 @@
             </div>
 
             <!-- ROW 3: Team Names (VS) & Match Date & Time -->
-            <div class="text-center z-20 bg-slate-900 py-2 border-t border-slate-700">
+            <div class="text-center z-20 bg-slate-900 py-2.5 border-t border-slate-700">
                 <div class="flex items-center justify-center gap-2">
                     <span id="previewTeam1Name" class="text-xs md:text-sm font-black text-white uppercase tracking-wider">SPAIN</span>
                     <span class="text-[10px] font-mono text-yellow-400 font-bold">VS</span>
@@ -497,7 +498,7 @@
             </div>
         </div>
     </div>
-</div>
+</div>  
     </div>
 
 
@@ -682,7 +683,8 @@ window.downloadGalleryAsset = function() {
 document.addEventListener("DOMContentLoaded", () => {
     updateThumbnailCanvas();
     updateGalleryCanvas();
-});    /////////////////////////////
+});
+    /////////////////////////////
     function animateGlobePipeline() {
         requestAnimationFrame(animateGlobePipeline);
         const delta = clock.getDelta();
