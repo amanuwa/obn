@@ -407,15 +407,15 @@
                 <!-- Player 1 Side -->
                 <div id="side1Container" class="bg-slate-950 border-r-2 border-yellow-500/50 flex items-center justify-center relative overflow-hidden h-full">
                     <img id="previewHomePlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover object-center" alt="Player 1">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/30 to-transparent pointer-events-none"></div>
+                    <div id="side1Gradient" class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/30 to-transparent pointer-events-none"></div>
                     
-                    <!-- Transparent Logo Wrapper (Locked Top-Left) -->
+                    <!-- Transparent Logo Wrapper (Locked Top-Left for all or top-corners) -->
                     <div id="logo1Wrapper" class="absolute top-2.5 left-2.5 z-30 pointer-events-none flex items-center justify-center bg-transparent">
                         <img id="previewHomeLogo" crossorigin="anonymous" src="" class="w-20 h-20 object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)] hidden" alt="Team 1 Logo">
                         <span id="previewHomeLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 1</span>
                     </div>
 
-                    <!-- Team 1 Name Banner -->
+                    <!-- Team 1 Name Banner (Bottom for YouTube, or handled dynamically) -->
                     <div id="name1Wrapper" class="absolute bottom-3 left-2 right-2 z-30 pointer-events-none text-center">
                         <span id="previewTeam1Name" class="font-black text-white uppercase tracking-wider text-xs md:text-xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate">LIVERPOOL</span>
                     </div>
@@ -424,7 +424,7 @@
                 <!-- Player 2 Side -->
                 <div id="side2Container" class="bg-slate-950 flex items-center justify-center relative overflow-hidden h-full">
                     <img id="previewAwayPlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover object-center" alt="Player 2">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/30 to-transparent pointer-events-none"></div>
+                    <div id="side2Gradient" class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/30 to-transparent pointer-events-none"></div>
                     
                     <!-- Transparent Logo Wrapper (Locked Top-Right) -->
                     <div id="logo2Wrapper" class="absolute top-2.5 right-2.5 z-30 pointer-events-none flex items-center justify-center bg-transparent">
@@ -445,10 +445,19 @@
                     </div>
                 </div>
 
-                <!-- Match Date & Time Footer Floating Banner (Bottom Center) -->
-                <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
-                    <div id="dateBadgeContainer" class="bg-slate-950/95 backdrop-blur-md px-3 py-1 rounded-full border border-yellow-500/60 shadow-2xl whitespace-nowrap">
-                        <p id="previewDateTime" class="font-mono uppercase tracking-widest font-black text-yellow-400 text-[9px] md:text-xs">MONDAY • 29.09.2026 • 21:00</p>
+                <!-- Match Date & Time / Stacked Team Names Footer Container (Bottom Center) -->
+                <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none w-full px-4 text-center">
+                    <div id="stackedFooterContainer" class="flex flex-col items-center justify-center gap-1">
+                        <!-- Stacked Team Names for TikTok/Social -->
+                        <div id="stackedTeamNames" class="hidden items-center justify-center gap-2 text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                            <span id="previewStackedTeam1">LIVERPOOL</span>
+                            <span class="text-yellow-400 font-bold text-[9px]">VS</span>
+                            <span id="previewStackedTeam2">MANCHESTER CITY</span>
+                        </div>
+                        <!-- Date Badge -->
+                        <div id="dateBadgeContainer" class="bg-slate-950/95 backdrop-blur-md px-3 py-1 rounded-full border border-yellow-500/60 shadow-2xl whitespace-nowrap inline-block">
+                            <p id="previewDateTime" class="font-mono uppercase tracking-widest font-black text-yellow-400 text-[9px] md:text-xs">MONDAY • 29.09.2026 • 21:00</p>
+                        </div>
                     </div>
                 </div>
 
@@ -609,36 +618,53 @@ window.updateThumbnailCanvas = function() {
     const platform = document.getElementById('thumbPlatformSelect').value;
     const wrapper = document.getElementById('thumbCanvasWrapper');
     const vsBadge = document.getElementById('vsBadge');
-    const team1NameElem = document.getElementById('previewTeam1Name');
-    const team2NameElem = document.getElementById('previewTeam2Name');
+    const name1Wrapper = document.getElementById('name1Wrapper');
+    const name2Wrapper = document.getElementById('name2Wrapper');
+    const stackedTeamNames = document.getElementById('stackedTeamNames');
     const dateTimeElem = document.getElementById('previewDateTime');
     const logo1Img = document.getElementById('previewHomeLogo');
     const logo2Img = document.getElementById('previewAwayLogo');
 
+    const t1NameVal = document.getElementById('inputTeam1Name').value || 'TEAM 1';
+    const t2NameVal = document.getElementById('inputTeam2Name').value || 'TEAM 2';
+
+    document.getElementById('previewTeam1Name').innerText = t1NameVal;
+    document.getElementById('previewTeam2Name').innerText = t2NameVal;
+    document.getElementById('previewStackedTeam1').innerText = t1NameVal;
+    document.getElementById('previewStackedTeam2').innerText = t2NameVal;
+    dateTimeElem.innerText = document.getElementById('inputMatchDateTime').value || '';
+
     if (platform === 'youtube') {
-        // YouTube (16:9): Large logos, big team names covering bottom
+        // YouTube (16:9): Large logos, side names on bottom
         wrapper.className = "relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
         vsBadge.className = "w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-base md:text-lg rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12";
-        team1NameElem.className = "font-black text-white uppercase tracking-wider text-sm md:text-2xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate";
-        team2NameElem.className = "font-black text-white uppercase tracking-wider text-sm md:text-2xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate";
-        dateTimeElem.className = "font-mono uppercase tracking-widest font-black text-yellow-400 text-xs md:text-sm";
+        name1Wrapper.classList.remove('hidden');
+        name2Wrapper.classList.remove('hidden');
+        stackedTeamNames.classList.add('hidden');
+        stackedTeamNames.classList.remove('flex');
         logo1Img.className = "w-28 h-28 md:w-40 md:h-40 object-contain filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] hidden";
         logo2Img.className = "w-28 h-28 md:w-40 md:h-40 object-contain filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] hidden";
     } else if (platform === 'tiktok') {
-        // TikTok (9:16): Small logos locked to top corners, resized compact names & date
+        // TikTok (9:16): Small logos on top corners, stacked names above date badge
         wrapper.className = "relative w-44 mx-auto aspect-[9/16] bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
         vsBadge.className = "w-9 h-9 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-xs rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(250,204,21,0.9)] border-2 border-slate-950 transform rotate-12";
-        team1NameElem.className = "font-black text-white uppercase tracking-wider text-[10px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] block truncate";
-        team2NameElem.className = "font-black text-white uppercase tracking-wider text-[10px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] block truncate";
+        name1Wrapper.classList.add('hidden');
+        name2Wrapper.classList.add('hidden');
+        stackedTeamNames.classList.remove('hidden');
+        stackedTeamNames.classList.add('flex');
+        stackedTeamNames.className = "flex items-center justify-center gap-1.5 text-[9px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]";
         dateTimeElem.className = "font-mono uppercase tracking-wider font-black text-yellow-400 text-[7px]";
         logo1Img.className = "w-9 h-9 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] hidden";
         logo2Img.className = "w-9 h-9 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] hidden";
     } else {
-        // Social 1:1 Post: Small logos locked to top corners, resized compact names & date
+        // Social 1:1 Post: Small logos on top corners, stacked names above date badge
         wrapper.className = "relative w-64 mx-auto aspect-square bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
         vsBadge.className = "w-11 h-11 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-sm rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.9)] border-3 border-slate-950 transform rotate-12";
-        team1NameElem.className = "font-black text-white uppercase tracking-wider text-[11px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] block truncate";
-        team2NameElem.className = "font-black text-white uppercase tracking-wider text-[11px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] block truncate";
+        name1Wrapper.classList.add('hidden');
+        name2Wrapper.classList.add('hidden');
+        stackedTeamNames.classList.remove('hidden');
+        stackedTeamNames.classList.add('flex');
+        stackedTeamNames.className = "flex items-center justify-center gap-2 text-[11px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]";
         dateTimeElem.className = "font-mono uppercase tracking-widest font-black text-yellow-400 text-[9px]";
         logo1Img.className = "w-11 h-11 object-contain filter drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] hidden";
         logo2Img.className = "w-11 h-11 object-contain filter drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] hidden";
@@ -671,10 +697,6 @@ window.updateThumbnailCanvas = function() {
         logo2Img.classList.add('hidden');
         logo2Placeholder.classList.remove('hidden');
     }
-
-    team1NameElem.innerText = document.getElementById('inputTeam1Name').value || 'TEAM 1';
-    team2NameElem.innerText = document.getElementById('inputTeam2Name').value || 'TEAM 2';
-    dateTimeElem.innerText = document.getElementById('inputMatchDateTime').value || '';
 };
 
 window.updateGalleryCanvas = function() {
