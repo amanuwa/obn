@@ -343,12 +343,11 @@
             </div>
         </div>
 <!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER PANEL -->
-<!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER PANEL -->
 <div id="thumbnail-designer-panel" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-6 mt-6">
     
     <!-- Top Bar: Panel Title & Main Asset Export Controller -->
     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 4. Thumbnail & Social Media Asset Designer</span>
+        <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 4. Thumbnail & Social Media Asset Designer (Broadcast Poster)</span>
         <div class="flex items-center gap-2">
             <select id="thumbPlatformSelect" onchange="updateThumbnailCanvas()" class="bg-slate-950 text-slate-300 text-xs px-2.5 py-1.5 rounded border border-slate-700 outline-none">
                 <option value="youtube">YouTube (16:9 Thumbnail)</option>
@@ -362,8 +361,8 @@
         </div>
     </div>
 
-    <!-- Top URL Inputs: Team 1 Logo, Team 2 Logo, Player 1, Player 2 -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-950 p-3 rounded border border-slate-800">
+    <!-- URL Inputs for Logos & Players -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 bg-slate-950 p-3 rounded border border-slate-800">
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Team 1 Logo URL</label>
             <input type="text" id="urlTeam1Logo" placeholder="https://..." oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
@@ -373,132 +372,139 @@
             <input type="text" id="urlTeam2Logo" placeholder="https://..." oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
         <div>
-            <label class="text-[10px] text-slate-400 block mb-1">Player 1 Image URL</label>
+            <label class="text-[10px] text-slate-400 block mb-1">League/Trophy Image URL</label>
+            <input type="text" id="urlTrophy" placeholder="Trophy or League logo..." oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 block mb-1">Team 1 Main Player URL</label>
             <input type="text" id="urlPlayer1" placeholder="https://..." oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
         <div>
-            <label class="text-[10px] text-slate-400 block mb-1">Player 2 Image URL</label>
+            <label class="text-[10px] text-slate-400 block mb-1">Team 1 Secondary Player URL</label>
+            <input type="text" id="urlPlayer1Sub" placeholder="https://..." oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 block mb-1">Team 2 Main Player URL</label>
             <input type="text" id="urlPlayer2" placeholder="https://..." oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 block mb-1">Team 2 Secondary Player URL</label>
+            <input type="text" id="urlPlayer2Sub" placeholder="https://..." oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
     </div>
 
-    <!-- Extra Text Inputs for Team Names and Match Date/Time -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950 p-3 rounded border border-slate-800">
+    <!-- Text & Matchday Configuration -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-950 p-3 rounded border border-slate-800">
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Team 1 Name</label>
-            <input type="text" id="inputTeam1Name" value="SPAIN" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            <input type="text" id="inputTeam1Name" value="MANCHESTER UNITED" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Team 2 Name</label>
-            <input type="text" id="inputTeam2Name" value="CROATIA" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            <input type="text" id="inputTeam2Name" value="MANCHESTER CITY" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
         <div>
-            <label class="text-[10px] text-slate-400 block mb-1">Match Date & Time</label>
-            <input type="text" id="inputMatchDateTime" value="29.09.2026 • 21:00" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            <label class="text-[10px] text-slate-400 block mb-1">Match Date</label>
+            <input type="text" id="inputMatchDate" value="13 SEPTEMBER" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 block mb-1">Match Time</label>
+            <input type="text" id="inputMatchTime" value="4:30 PM" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
     </div>
 
-    <!-- Full-Width Live Visual Preview Area (Larger Team Logos & Zero Gap) -->
-    <div class="bg-slate-950 p-4 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden min-h-[400px]">
-        <div id="thumbCanvasWrapper" class="relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col justify-between p-0 shadow-2xl transition-all duration-300 overflow-hidden">
+    <!-- LIVE BROADCAST POSTER PREVIEW AREA -->
+    <div class="bg-slate-950 p-4 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden min-h-[460px]">
+        <div id="thumbCanvasWrapper" class="relative w-full aspect-video bg-gradient-to-b from-blue-900 via-slate-950 to-blue-950 rounded border border-slate-800 flex flex-col justify-between p-2 shadow-2xl transition-all duration-300 overflow-hidden">
             
-            <!-- ROW 1: Larger Team 1 Logo & Team 2 Logo -->
-            <div class="grid grid-cols-2 z-10">
-                <div class="bg-slate-900 h-24 border-r border-b border-slate-700 flex items-center justify-center p-3">
-                    <img id="previewHomeLogo" src="" class="max-h-full max-w-full object-contain hidden" alt="Team 1 Logo">
-                    <span id="previewHomeLogoPlaceholder" class="text-xs text-slate-500 font-mono">Team 1 Logo</span>
+            <!-- TOP HEADER CRESTS & LEAGUE LOGO -->
+            <div class="absolute inset-x-0 top-2 z-30 flex justify-between items-center px-4 pointer-events-none">
+                <!-- Team 1 Top Crest -->
+                <div class="w-12 h-12 bg-red-950/80 rounded-full border border-red-500/50 p-1.5 shadow-lg flex items-center justify-center">
+                    <img id="previewTopLogo1" src="" class="max-h-full max-w-full object-contain hidden" alt="T1 Crest">
+                    <span id="previewTopLogo1Placeholder" class="text-[8px] text-red-300 font-mono">T1</span>
                 </div>
-                <div class="bg-slate-900 h-24 border-b border-slate-700 flex items-center justify-center p-3">
-                    <img id="previewAwayLogo" src="" class="max-h-full max-w-full object-contain hidden" alt="Team 2 Logo">
-                    <span id="previewAwayLogoPlaceholder" class="text-xs text-slate-500 font-mono">Team 2 Logo</span>
+                <!-- League / Center Header Branding -->
+                <div class="bg-slate-900/90 border border-slate-700 px-3 py-1 rounded-full text-center shadow-lg">
+                    <span class="text-[9px] font-black text-white uppercase tracking-widest">PREMIER LEAGUE</span>
                 </div>
-            </div>
-
-            <!-- ROW 2: Player 1 Image & Player 2 Image -->
-            <div class="grid grid-cols-2 z-10 flex-1">
-                <div class="bg-slate-950 border-r border-b border-slate-800 flex items-center justify-center overflow-hidden relative">
-                    <img id="previewHomePlayer" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Player 1">
-                </div>
-                <div class="bg-slate-950 border-b border-slate-800 flex items-center justify-center overflow-hidden relative">
-                    <img id="previewAwayPlayer" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Player 2">
+                <!-- Team 2 Top Crest -->
+                <div class="w-12 h-12 bg-blue-950/80 rounded-full border border-blue-500/50 p-1.5 shadow-lg flex items-center justify-center">
+                    <img id="previewTopLogo2" src="" class="max-h-full max-w-full object-contain hidden" alt="T2 Crest">
+                    <span id="previewTopLogo2Placeholder" class="text-[8px] text-blue-300 font-mono">T2</span>
                 </div>
             </div>
 
-            <!-- ROW 3: Team Names (VS) & Match Date & Time -->
-            <div class="text-center z-20 bg-slate-900 py-2.5 border-t border-slate-700">
-                <div class="flex items-center justify-center gap-2">
-                    <span id="previewTeam1Name" class="text-xs md:text-sm font-black text-white uppercase tracking-wider">SPAIN</span>
-                    <span class="text-[10px] font-mono text-yellow-400 font-bold">VS</span>
-                    <span id="previewTeam2Name" class="text-xs md:text-sm font-black text-white uppercase tracking-wider">CROATIA</span>
+            <!-- CENTER BACKGROUND STADIUM GLOW LIGHTS -->
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/20 via-transparent to-transparent pointer-events-none"></div>
+
+            <!-- MULTI-PLAYER GRID COMPOSITION (Left Side Red / Right Side Blue) -->
+            <div class="grid grid-cols-2 z-10 flex-1 relative pt-10 pb-16">
+                <!-- Team 1 Side: 2 Stacked Players -->
+                <div class="relative flex items-end justify-center overflow-hidden border-r border-slate-800/60 px-2">
+                    <!-- Secondary Player Background Layer -->
+                    <div class="absolute top-4 left-2 w-28 h-36 md:w-36 md:h-48 rounded-lg overflow-hidden border border-red-500/30 shadow-2xl opacity-80">
+                        <img id="previewPlayer1SubImg" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover" alt="Player 1 Sub">
+                    </div>
+                    <!-- Main Foreground Player -->
+                    <div class="absolute bottom-6 left-6 w-36 h-48 md:w-48 md:h-64 rounded-xl overflow-hidden border-2 border-red-500/60 shadow-2xl z-20">
+                        <img id="previewPlayer1Img" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Player 1 Main">
+                    </div>
                 </div>
-                <p id="previewDateTime" class="text-[9px] text-slate-400 font-semibold uppercase tracking-widest mt-0.5">29.09.2026 • 21:00</p>
+
+                <!-- Team 2 Side: 2 Stacked Players -->
+                <div class="relative flex items-end justify-center overflow-hidden px-2">
+                    <!-- Main Foreground Player -->
+                    <div class="absolute bottom-6 right-6 w-36 h-48 md:w-48 md:h-64 rounded-xl overflow-hidden border-2 border-blue-500/60 shadow-2xl z-20">
+                        <img id="previewPlayer2Img" src="https://images.unsplash.com/photo-1569074187119-c87815b476da?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Player 2 Main">
+                    </div>
+                    <!-- Secondary Player Background Layer -->
+                    <div class="absolute top-4 right-2 w-28 h-36 md:w-36 md:h-48 rounded-lg overflow-hidden border border-blue-500/30 shadow-2xl opacity-80">
+                        <img id="previewPlayer2SubImg" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover" alt="Player 2 Sub">
+                    </div>
+                </div>
+
+                <!-- CENTER TROPHY & VS BADGE OVERLAY -->
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30">
+                    <div class="w-16 h-20 md:w-20 md:h-24 bg-slate-900/90 rounded-xl border border-yellow-500/60 shadow-[0_0_30px_rgba(234,179,8,0.4)] flex items-center justify-center p-1 backdrop-blur-md mb-2">
+                        <img id="previewTrophyImg" src="" class="max-h-full max-w-full object-contain hidden" alt="Trophy">
+                        <span id="previewTrophyPlaceholder" class="text-[9px] text-yellow-400 font-mono font-bold text-center">🏆 TROPHY</span>
+                    </div>
+                </div>
             </div>
+
+            <!-- BOTTOM FOOTER BARS: Team Name VS Bar + Date/Time Ticker -->
+            <div class="absolute inset-x-2 bottom-2 z-40 space-y-1">
+                <!-- Team Name vs Bar -->
+                <div class="grid grid-cols-2 bg-gradient-to-r from-red-950 via-slate-900 to-blue-950 rounded-lg border border-slate-700 overflow-hidden shadow-2xl text-center py-1.5 px-2 items-center">
+                    <div class="truncate border-r border-slate-700 pr-2">
+                        <span id="previewTeam1Name" class="text-[11px] md:text-xs font-black text-white uppercase tracking-wider">MANCHESTER UNITED</span>
+                    </div>
+                    <div class="absolute left-1/2 transform -translate-x-1/2 bg-yellow-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-slate-950">
+                        VS
+                    </div>
+                    <div class="truncate pl-2">
+                        <span id="previewTeam2Name" class="text-[11px] md:text-xs font-black text-white uppercase tracking-wider">MANCHESTER CITY</span>
+                    </div>
+                </div>
+
+                <!-- Date & Time Ticker Bar -->
+                <div class="bg-slate-950/90 rounded-lg border border-slate-800 py-1.5 px-4 flex justify-center items-center gap-6 shadow-xl">
+                    <div class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span id="previewMatchDate" class="text-[10px] font-bold text-slate-200 uppercase tracking-widest">13 SEPTEMBER</span>
+                    </div>
+                    <span class="text-slate-700">|</span>
+                    <div class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span id="previewMatchTime" class="text-[10px] font-bold text-slate-200 uppercase tracking-widest">4:30 PM</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-
-    <!-- SECOND SUB-SECTION: Dynamic 6-Image Grid Studio -->
-    <div class="border-t border-slate-800 pt-5 space-y-4">
-        <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// Dynamic Multi-Image Gallery Asset (1 to 6 Slots)</span>
-            <div class="flex items-center gap-2">
-                <select id="gridPlatformSelect" class="bg-slate-950 text-slate-300 text-xs px-2.5 py-1.5 rounded border border-slate-700 outline-none">
-                    <option value="youtube">YouTube (16:9)</option>
-                    <option value="tiktok">TikTok / Shorts (9:16)</option>
-                    <option value="social">Facebook / Telegram / X (1:1)</option>
-                </select>
-                <button onclick="downloadGalleryAsset()" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition flex items-center gap-1" title="Download Gallery Asset">
-                    <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    <span class="text-[10px] text-yellow-400 font-bold hidden sm:inline">Export</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- 6 Image URL Input Spaces -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 bg-slate-950 p-3 rounded border border-slate-800">
-            <div>
-                <label class="text-[9px] text-slate-400 block mb-1">Image 1 URL</label>
-                <input type="text" id="galleryImg1" placeholder="URL 1..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
-            </div>
-            <div>
-                <label class="text-[9px] text-slate-400 block mb-1">Image 2 URL</label>
-                <input type="text" id="galleryImg2" placeholder="URL 2..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
-            </div>
-            <div>
-                <label class="text-[9px] text-slate-400 block mb-1">Image 3 URL</label>
-                <input type="text" id="galleryImg3" placeholder="URL 3..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
-            </div>
-            <div>
-                <label class="text-[9px] text-slate-400 block mb-1">Image 4 URL</label>
-                <input type="text" id="galleryImg4" placeholder="URL 4..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
-            </div>
-            <div>
-                <label class="text-[9px] text-slate-400 block mb-1">Image 5 URL</label>
-                <input type="text" id="galleryImg5" placeholder="URL 5..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
-            </div>
-            <div>
-                <label class="text-[9px] text-slate-400 block mb-1">Image 6 URL</label>
-                <input type="text" id="galleryImg6" placeholder="URL 6..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
-            </div>
-        </div>
-
-        <!-- Description Text Box for the 6 Images -->
-        <div>
-            <label class="text-[10px] text-slate-400 block mb-1">Gallery Post Description / Caption</label>
-            <input type="text" id="galleryDescriptionInput" value="MATCH HIGHLIGHTS & KEY MOMENTS COMPILATION" oninput="updateGalleryCanvas()" class="w-full bg-slate-950 text-xs text-slate-200 px-3 py-2 rounded border border-slate-800 outline-none focus:border-yellow-400">
-        </div>
-
-        <!-- Dynamic Side-by-Side Render Preview Container -->
-        <div class="bg-slate-950 p-4 rounded border border-slate-800 space-y-3">
-            <div class="text-[10px] font-mono text-slate-500">// Live Dynamic Multi-Image Render Preview</div>
-            <div id="dynamicGalleryContainer" class="grid grid-cols-2 md:grid-cols-3 gap-3 min-h-[100px] items-center justify-center">
-                <!-- Dynamically injected images appear here -->
-            </div>
-            <div id="dynamicGalleryCaption" class="text-xs font-bold text-white text-center uppercase tracking-wider pt-2 border-t border-slate-900">
-                MATCH HIGHLIGHTS & KEY MOMENTS COMPILATION
-            </div>
-        </div>
-    </div>
-</div>  
+</div>
     </div>
 
 
@@ -589,100 +595,54 @@ window.updateThumbnailCanvas = function() {
     const wrapper = document.getElementById('thumbCanvasWrapper');
 
     if (platform === 'youtube') {
-        wrapper.className = "relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col justify-between p-0 shadow-2xl transition-all duration-300 overflow-hidden";
+        wrapper.className = "relative w-full aspect-video bg-gradient-to-b from-blue-900 via-slate-950 to-blue-950 rounded border border-slate-800 flex flex-col justify-between p-2 shadow-2xl transition-all duration-300 overflow-hidden";
     } else if (platform === 'tiktok') {
-        wrapper.className = "relative w-48 mx-auto aspect-[9/16] bg-slate-950 rounded border border-slate-800 flex flex-col justify-between p-0 shadow-2xl transition-all duration-300 overflow-hidden";
+        wrapper.className = "relative w-48 mx-auto aspect-[9/16] bg-gradient-to-b from-blue-900 via-slate-950 to-blue-950 rounded border border-slate-800 flex flex-col justify-between p-2 shadow-2xl transition-all duration-300 overflow-hidden";
     } else {
-        wrapper.className = "relative w-64 mx-auto aspect-square bg-slate-950 rounded border border-slate-800 flex flex-col justify-between p-0 shadow-2xl transition-all duration-300 overflow-hidden";
+        wrapper.className = "relative w-64 mx-auto aspect-square bg-gradient-to-b from-blue-900 via-slate-950 to-blue-950 rounded border border-slate-800 flex flex-col justify-between p-2 shadow-2xl transition-all duration-300 overflow-hidden";
     }
 
-    const p1Url = document.getElementById('urlPlayer1').value.trim();
+    // Assign Images safely
     const t1Logo = document.getElementById('urlTeam1Logo').value.trim();
-    const p2Url = document.getElementById('urlPlayer2').value.trim();
     const t2Logo = document.getElementById('urlTeam2Logo').value.trim();
+    const trophyUrl = document.getElementById('urlTrophy').value.trim();
+    const p1Main = document.getElementById('urlPlayer1').value.trim();
+    const p1Sub = document.getElementById('urlPlayer1Sub').value.trim();
+    const p2Main = document.getElementById('urlPlayer2').value.trim();
+    const p2Sub = document.getElementById('urlPlayer2Sub').value.trim();
 
-    if (p1Url) {
-        document.getElementById('previewHomePlayer').src = p1Url;
-    }
-    if (p2Url) {
-        document.getElementById('previewAwayPlayer').src = p2Url;
-    }
+    if (p1Main) document.getElementById('previewPlayer1Img').src = p1Main;
+    if (p1Sub) document.getElementById('previewPlayer1SubImg').src = p1Sub;
+    if (p2Main) document.getElementById('previewPlayer2Img').src = p2Main;
+    if (p2Sub) document.getElementById('previewPlayer2SubImg').src = p2Sub;
 
-    const logo1Elem = document.getElementById('previewHomeLogo');
-    const logo1Placeholder = document.getElementById('previewHomeLogoPlaceholder');
-    if (t1Logo) {
-        logo1Elem.src = t1Logo;
-        logo1Elem.classList.remove('hidden');
-        logo1Placeholder.classList.add('hidden');
-    } else {
-        logo1Elem.classList.add('hidden');
-        logo1Placeholder.classList.remove('hidden');
-    }
+    // Top Logos
+    const topL1 = document.getElementById('previewTopLogo1');
+    const pL1 = document.getElementById('previewTopLogo1Placeholder');
+    if (t1Logo) { topL1.src = t1Logo; topL1.classList.remove('hidden'); pL1.classList.add('hidden'); } else { topL1.classList.add('hidden'); pL1.classList.remove('hidden'); }
 
-    const logo2Elem = document.getElementById('previewAwayLogo');
-    const logo2Placeholder = document.getElementById('previewAwayLogoPlaceholder');
-    if (t2Logo) {
-        logo2Elem.src = t2Logo;
-        logo2Elem.classList.remove('hidden');
-        logo2Placeholder.classList.add('hidden');
-    } else {
-        logo2Elem.classList.add('hidden');
-        logo2Placeholder.classList.remove('hidden');
-    }
+    const topL2 = document.getElementById('previewTopLogo2');
+    const pL2 = document.getElementById('previewTopLogo2Placeholder');
+    if (t2Logo) { topL2.src = t2Logo; topL2.classList.remove('hidden'); pL2.classList.add('hidden'); } else { topL2.classList.add('hidden'); pL2.classList.remove('hidden'); }
 
-    // Update Text fields
-    const t1Name = document.getElementById('inputTeam1Name').value;
-    const t2Name = document.getElementById('inputTeam2Name').value;
-    const dateTime = document.getElementById('inputMatchDateTime').value;
+    // Trophy
+    const tImg = document.getElementById('previewTrophyImg');
+    const tPh = document.getElementById('previewTrophyPlaceholder');
+    if (trophyUrl) { tImg.src = trophyUrl; tImg.classList.remove('hidden'); tPh.classList.add('hidden'); } else { tImg.classList.add('hidden'); tPh.classList.remove('hidden'); }
 
-    document.getElementById('previewTeam1Name').innerText = t1Name || 'TEAM 1';
-    document.getElementById('previewTeam2Name').innerText = t2Name || 'TEAM 2';
-    document.getElementById('previewDateTime').innerText = dateTime || '';
-};
-
-window.updateGalleryCanvas = function() {
-    const container = document.getElementById('dynamicGalleryContainer');
-    container.innerHTML = '';
-
-    const urls = [
-        document.getElementById('galleryImg1').value.trim(),
-        document.getElementById('galleryImg2').value.trim(),
-        document.getElementById('galleryImg3').value.trim(),
-        document.getElementById('galleryImg4').value.trim(),
-        document.getElementById('galleryImg5').value.trim(),
-        document.getElementById('galleryImg6').value.trim()
-    ].filter(url => url.length > 0);
-
-    if (urls.length === 0) {
-        container.innerHTML = '<span class="text-[11px] text-slate-500 italic col-span-full text-center py-4">Paste image URLs above (1 to 6) to render them dynamically side-by-side.</span>';
-    } else {
-        container.className = `grid gap-3 min-h-[100px] items-center justify-center grid-cols-${Math.min(urls.length, 3)}`;
-        
-        urls.forEach((url, index) => {
-            const imgWrapper = document.createElement('div');
-            imgWrapper.className = "relative aspect-video bg-slate-900 rounded border border-slate-800 overflow-hidden shadow";
-            imgWrapper.innerHTML = `<img src="${url}" class="w-full h-full object-cover" alt="Gallery Item ${index + 1}">`;
-            container.appendChild(imgWrapper);
-        });
-    }
-
-    const captionText = document.getElementById('galleryDescriptionInput').value;
-    document.getElementById('dynamicGalleryCaption').innerText = captionText || "GALLERY PREVIEW";
+    // Text fields
+    document.getElementById('previewTeam1Name').innerText = document.getElementById('inputTeam1Name').value || 'TEAM 1';
+    document.getElementById('previewTeam2Name').innerText = document.getElementById('inputTeam2Name').value || 'TEAM 2';
+    document.getElementById('previewMatchDate').innerText = document.getElementById('inputMatchDate').value || '';
+    document.getElementById('previewMatchTime').innerText = document.getElementById('inputMatchTime').value || '';
 };
 
 window.downloadThumbnailAsset = function() {
-    const platform = document.getElementById('thumbPlatformSelect').value.toUpperCase();
-    alert(`Main Thumbnail asset exported successfully for ${platform}!`);
-};
-
-window.downloadGalleryAsset = function() {
-    const platform = document.getElementById('gridPlatformSelect').value.toUpperCase();
-    alert(`Multi-image gallery asset exported successfully for ${platform}!`);
+    alert("Broadcast matchday poster asset exported successfully!");
 };
 
 document.addEventListener("DOMContentLoaded", () => {
     updateThumbnailCanvas();
-    updateGalleryCanvas();
 });
     /////////////////////////////
     function animateGlobePipeline() {
