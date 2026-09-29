@@ -1060,93 +1060,22 @@ async function renderWithIsolatedPanels(data) {
     } catch (err) {}
 
     // --- H2H SLOT (PANEL 3) WITH JSON FALLBACK ---
-   // --- H2H SLOT (PANEL 3) WITH ROBUST JSON FALLBACK ---
     try {
-        // Broaden search for H2H matches or summary object
-        const h2hObj = data.headToHeadObject || data.h2hSummary || data.headToHead || data.h2h || {};
-        const h2hMatches = Array.isArray(data.previousMeetings) 
-            ? data.previousMeetings 
-            : (Array.isArray(data.headToHead) ? data.headToHead : (Array.isArray(h2hObj.matches) ? h2hObj.matches : (Array.isArray(data.h2h) ? data.h2h : [])));
-
-        const renderH2HList = () => {
-            if (!Array.isArray(h2hMatches) || h2hMatches.length === 0) return null;
-            return h2hMatches.map(m => {
-                const hTeam = safeText(m.homeTeam || m.home || m.teamA, 'Home Team');
-                const aTeam = safeText(m.awayTeam || m.away || m.teamB, 'Away Team');
-                const scoreVal = safeText(m.score || m.result || m.fullTime || m.ft, '0 - 0');
-                const dateVal = safeText(m.date || m.matchDate, 'Recent');
-
-                return `
-                    <div class="flex items-center justify-between bg-slate-900/80 p-3 rounded border border-slate-800">
-                        <div class="flex items-center gap-3">
-                            <div class="flex items-center gap-1.5">
-                                <img src="${getLogo(hTeam)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
-                                <span class="text-xs font-bold text-slate-200">${hTeam}</span>
-                            </div>
-                            <span class="text-[10px] text-slate-500">vs</span>
-                            <div class="flex items-center gap-1.5">
-                                <img src="${getLogo(aTeam)}" class="w-6 h-6 object-contain bg-slate-950 rounded p-0.5">
-                                <span class="text-xs font-bold text-slate-200">${aTeam}</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-[10px] text-slate-400">${dateVal}</span>
-                            <span class="text-xs font-bold text-yellow-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">${scoreVal}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        };
-
-        const h2hHtml = renderH2HList();
-        const totalPlayed = h2hObj.played || h2hObj.totalPlayed || h2hObj.total || h2hMatches.length || 0;
-        const homeWins = h2hObj.homeTeamWins || h2hObj.homeWins || h2hObj.home_wins || 0;
-        const awayWins = h2hObj.awayTeamWins || h2hObj.awayWins || h2hObj.away_wins || 0;
-        const draws = h2hObj.draws || h2hObj.draw || 0;
-
-        // Fallback object to display if no specific H2H array is found
-        const h2hFallbackData = Object.keys(h2hObj).length > 0 ? h2hObj : { 
-            message: "No specific H2H object found under standard keys", 
-            availableKeys: Object.keys(data) 
-        };
+        // Collect any H2H-related keys or fall back to the entire root data object
+        const h2hData = data.headToHeadObject || data.h2hSummary || data.headToHead || data.h2h || data.previousMeetings || data.h2hMatches || data.history || data;
 
         document.getElementById('panel-h2h-slot').innerHTML = `
             <div class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head History & Match List</span>
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 3. Head-to-Head History & Match List (JSON View)</span>
                     <button onclick="downloadPanelData('previousMeetings')" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition" title="Download H2H Data">
                         <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                 </div>
-                ${h2hHtml ? `
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        <div class="bg-slate-950 p-3 rounded border border-slate-800">
-                            <div class="text-[10px] text-slate-400 uppercase">Total Played</div>
-                            <div class="text-lg font-bold text-slate-100">${totalPlayed}</div>
-                        </div>
-                        <div class="bg-slate-950 p-3 rounded border border-slate-800">
-                            <div class="text-[10px] text-green-400 uppercase">${homeTeamName} Wins</div>
-                            <div class="text-lg font-bold text-green-300">${homeWins}</div>
-                        </div>
-                        <div class="bg-slate-950 p-3 rounded border border-slate-800">
-                            <div class="text-[10px] text-blue-400 uppercase">${awayTeamName} Wins</div>
-                            <div class="text-lg font-bold text-blue-300">${awayWins}</div>
-                        </div>
-                        <div class="bg-slate-950 p-3 rounded border border-slate-800">
-                            <div class="text-[10px] text-yellow-400 uppercase">Draws</div>
-                            <div class="text-lg font-bold text-yellow-300">${draws}</div>
-                        </div>
-                    </div>
-                    <div class="space-y-2 pt-2 border-t border-slate-800/60">
-                        <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">// Recent Match History List</div>
-                        <div class="max-h-72 overflow-y-auto space-y-2 pr-1">${h2hHtml}</div>
-                    </div>
-                ` : `
-                    <div class="p-3 bg-slate-950 rounded border border-slate-800 text-xs text-yellow-400 font-mono overflow-x-auto max-h-48">
-                        <div class="text-[10px] text-slate-500 mb-1">// Raw JSON Fallback (Inspecting available keys)</div>
-                        <pre>${JSON.stringify(h2hFallbackData, null, 2)}</pre>
-                    </div>
-                `}
+                <div class="p-3 bg-slate-950 rounded border border-slate-800 text-xs text-yellow-400 font-mono overflow-x-auto max-h-72">
+                    <div class="text-[10px] text-slate-500 mb-1">// Raw Payload / H2H Data Display</div>
+                    <pre>${JSON.stringify(h2hData, null, 2)}</pre>
+                </div>
             </div>`;
     } catch (err) {
         console.error("Error rendering Panel 3:", err);
