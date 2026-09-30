@@ -343,7 +343,6 @@
             </div>
         </div>
 <!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER (WITH REAL PNG EXPORT) -->
-<!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER (SPLIT CLASH STYLE) -->
 <div id="thumbnail-designer-panel" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-6 mt-6">
     
     <!-- Top Bar: Panel Title & Main Asset Export Controller -->
@@ -382,19 +381,19 @@
         </div>
     </div>
 
-    <!-- INTERACTIVE POSITIONING CONTROLS (PAN & ZOOM) -->
+    <!-- NEW HTML2CANVAS-SAFE POSITIONING CONTROLS (PAN & ZOOM) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950 p-3 rounded border border-slate-800">
         <!-- Player 1 Adjusters -->
         <div class="space-y-2 bg-slate-900/50 p-2.5 rounded border border-slate-800/80">
             <span class="text-[10px] font-bold text-yellow-400 uppercase tracking-wide block">// Player 1 Frame Control</span>
             <div class="grid grid-cols-3 gap-2">
                 <div>
-                    <label class="text-[9px] text-slate-400 block mb-0.5">Pan X (<span id="p1XVal">0</span>%)</label>
-                    <input type="range" id="p1PanX" min="-100" max="100" value="0" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
+                    <label class="text-[9px] text-slate-400 block mb-0.5">Pan X (<span id="p1XVal">50</span>%)</label>
+                    <input type="range" id="p1PanX" min="0" max="100" value="50" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
                 </div>
                 <div>
-                    <label class="text-[9px] text-slate-400 block mb-0.5">Pan Y (<span id="p1YVal">0</span>%)</label>
-                    <input type="range" id="p1PanY" min="-100" max="100" value="0" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
+                    <label class="text-[9px] text-slate-400 block mb-0.5">Pan Y (<span id="p1YVal">50</span>%)</label>
+                    <input type="range" id="p1PanY" min="0" max="100" value="50" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
                 </div>
                 <div>
                     <label class="text-[9px] text-slate-400 block mb-0.5">Zoom (<span id="p1ZoomVal">100</span>%)</label>
@@ -408,12 +407,12 @@
             <span class="text-[10px] font-bold text-yellow-400 uppercase tracking-wide block">// Player 2 Frame Control</span>
             <div class="grid grid-cols-3 gap-2">
                 <div>
-                    <label class="text-[9px] text-slate-400 block mb-0.5">Pan X (<span id="p2XVal">0</span>%)</label>
-                    <input type="range" id="p2PanX" min="-100" max="100" value="0" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
+                    <label class="text-[9px] text-slate-400 block mb-0.5">Pan X (<span id="p2XVal">50</span>%)</label>
+                    <input type="range" id="p2PanX" min="0" max="100" value="50" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
                 </div>
                 <div>
-                    <label class="text-[9px] text-slate-400 block mb-0.5">Pan Y (<span id="p2YVal">0</span>%)</label>
-                    <input type="range" id="p2PanY" min="-100" max="100" value="0" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
+                    <label class="text-[9px] text-slate-400 block mb-0.5">Pan Y (<span id="p2YVal">50</span>%)</label>
+                    <input type="range" id="p2PanY" min="0" max="100" value="50" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
                 </div>
                 <div>
                     <label class="text-[9px] text-slate-400 block mb-0.5">Zoom (<span id="p2ZoomVal">100</span>%)</label>
@@ -447,38 +446,36 @@
             <div class="grid grid-cols-2 w-full h-full relative overflow-hidden">
                 
                 <!-- Player 1 Side -->
-                <div id="side1Container" class="bg-slate-950 border-r-2 border-yellow-500/50 flex items-center justify-center relative overflow-hidden h-full">
-                    <div class="absolute inset-0 overflow-hidden flex items-center justify-center">
-                        <img id="previewHomePlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80" class="absolute max-none select-none transition-transform duration-75" alt="Player 1" style="width: 100%; height: 100%; object-fit: cover;">
+                <div id="side1Container" class="bg-slate-950 border-r-2 border-yellow-500/50 flex items-center justify-center relative overflow-hidden h-full z-10">
+                    <div class="absolute inset-0 overflow-hidden flex items-center justify-center pointer-events-none">
+                        <!-- Removed transform scale, relying purely on width/height/object-position for stable exports -->
+                        <img id="previewHomePlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80" class="max-w-none transition-all duration-75" alt="Player 1" style="width: 100%; height: 100%; flex-shrink: 0; object-fit: cover; object-position: 50% 50%;">
                     </div>
                     <div id="side1Gradient" class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/20 to-transparent pointer-events-none"></div>
                     
-                    <!-- Transparent Logo Wrapper (Locked Top-Left) -->
                     <div id="logo1Wrapper" class="absolute top-2 left-2 z-30 pointer-events-none flex items-center justify-center">
                         <img id="previewHomeLogo" crossorigin="anonymous" src="" class="w-12 h-12 object-contain hidden" alt="Team 1 Logo">
                         <span id="previewHomeLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 1</span>
                     </div>
 
-                    <!-- Team 1 Name Banner (For YouTube 16:9) -->
                     <div id="name1Wrapper" class="absolute bottom-3 left-2 right-2 z-30 pointer-events-none text-center">
                         <span id="previewTeam1Name" class="font-black text-white uppercase tracking-wider text-xs md:text-xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate">LIVERPOOL</span>
                     </div>
                 </div>
 
                 <!-- Player 2 Side -->
-                <div id="side2Container" class="bg-slate-950 flex items-center justify-center relative overflow-hidden h-full">
-                    <div class="absolute inset-0 overflow-hidden flex items-center justify-center">
-                        <img id="previewAwayPlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=600&q=80" class="absolute max-none select-none transition-transform duration-75" alt="Player 2" style="width: 100%; height: 100%; object-fit: cover;">
+                <div id="side2Container" class="bg-slate-950 flex items-center justify-center relative overflow-hidden h-full z-10">
+                    <div class="absolute inset-0 overflow-hidden flex items-center justify-center pointer-events-none">
+                         <!-- Removed transform scale, relying purely on width/height/object-position for stable exports -->
+                        <img id="previewAwayPlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=600&q=80" class="max-w-none transition-all duration-75" alt="Player 2" style="width: 100%; height: 100%; flex-shrink: 0; object-fit: cover; object-position: 50% 50%;">
                     </div>
                     <div id="side2Gradient" class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/20 to-transparent pointer-events-none"></div>
                     
-                    <!-- Transparent Logo Wrapper (Locked Top-Right) -->
                     <div id="logo2Wrapper" class="absolute top-2 right-2 z-30 pointer-events-none flex items-center justify-center">
                         <img id="previewAwayLogo" crossorigin="anonymous" src="" class="w-12 h-12 object-contain hidden" alt="Team 2 Logo">
                         <span id="previewAwayLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 2</span>
                     </div>
 
-                    <!-- Team 2 Name Banner (For YouTube 16:9) -->
                     <div id="name2Wrapper" class="absolute bottom-3 left-2 right-2 z-30 pointer-events-none text-center">
                         <span id="previewTeam2Name" class="font-black text-white uppercase tracking-wider text-xs md:text-xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate">MANCHESTER CITY</span>
                     </div>
@@ -507,64 +504,6 @@
 
             </div>
 
-        </div>
-    </div>
-
-    <!-- SECOND SUB-SECTION: Dynamic 6-Image Grid Studio -->
-    <div class="border-t border-slate-800 pt-5 space-y-4">
-        <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// Dynamic Multi-Image Gallery Asset (1 to 6 Slots)</span>
-            <div class="flex items-center gap-2">
-                <select id="gridPlatformSelect" class="bg-slate-950 text-slate-300 text-xs px-2.5 py-1.5 rounded border border-slate-700 outline-none">
-                    <option value="youtube">YouTube (16:9)</option>
-                    <option value="tiktok">TikTok / Shorts (9:16)</option>
-                    <option value="social">Facebook / Telegram / X (1:1)</option>
-                </select>
-                <button onclick="downloadGalleryAsset()" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition flex items-center gap-1 cursor-pointer" title="Download Gallery Asset">
-                    <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    <span class="text-[10px] text-yellow-400 font-bold hidden sm:inline">Export PNG</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 bg-slate-950 p-3 rounded border border-slate-800">
-            <div>
-                <label class="text-[9px] text-slate-400 block mb-1">Image 1 URL</label>
-                <input type="text" id="galleryImg1" placeholder="URL 1..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
-            </div>
-            <div>
-                <label class="text-[9px] text-slate-400 block mb-1">Image 2 URL</label>
-                <input type="text" id="galleryImg2" placeholder="URL 2..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
-            </div>
-            <div>
-                <label class="text-[9px] text-slate-400 block mb-1">Image 3 URL</label>
-                <input type="text" id="galleryImg3" placeholder="URL 3..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
-            </div>
-            <div>
-                <label class="text-[9px] text-slate-400 block mb-1">Image 4 URL</label>
-                <input type="text" id="galleryImg4" placeholder="URL 4..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
-            </div>
-            <div>
-                <label class="text-[9px] text-slate-400 block mb-1">Image 5 URL</label>
-                <input type="text" id="galleryImg5" placeholder="URL 5..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
-            </div>
-            <div>
-                <label class="text-[9px] text-slate-400 block mb-1">Image 6 URL</label>
-                <input type="text" id="galleryImg6" placeholder="URL 6..." oninput="updateGalleryCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2 py-1 rounded border border-slate-700 outline-none focus:border-yellow-400">
-            </div>
-        </div>
-
-        <div>
-            <label class="text-[10px] text-slate-400 block mb-1">Gallery Post Description / Caption</label>
-            <input type="text" id="galleryDescriptionInput" value="MATCH HIGHLIGHTS & KEY MOMENTS COMPILATION" oninput="updateGalleryCanvas()" class="w-full bg-slate-950 text-xs text-slate-200 px-3 py-2 rounded border border-slate-800 outline-none focus:border-yellow-400">
-        </div>
-
-        <div id="galleryCanvasWrapper" class="bg-slate-950 p-4 rounded border border-slate-800 space-y-3">
-            <div class="text-[10px] font-mono text-slate-500">// Live Dynamic Multi-Image Render Preview</div>
-            <div id="dynamicGalleryContainer" class="grid grid-cols-2 md:grid-cols-3 gap-3 min-h-[100px] items-center justify-center"></div>
-            <div id="dynamicGalleryCaption" class="text-xs font-bold text-white text-center uppercase tracking-wider pt-2 border-t border-slate-900">
-                MATCH HIGHLIGHTS & KEY MOMENTS COMPILATION
-            </div>
         </div>
     </div>
 </div>
@@ -704,7 +643,7 @@ window.updateThumbnailCanvas = function() {
         logo2Img.className = "w-10 h-10 object-contain hidden";
     }
 
-    // Player 1 URL & Transform Values
+    // Player 1 URL & HTML2CANVAS-SAFE POSITIONING
     const p1Url = document.getElementById('urlPlayer1').value.trim();
     if (p1Url) { document.getElementById('previewHomePlayer').src = p1Url; }
     
@@ -715,9 +654,12 @@ window.updateThumbnailCanvas = function() {
     document.getElementById('p1YVal').innerText = p1Y;
     document.getElementById('p1ZoomVal').innerText = p1Zoom;
     
-    document.getElementById('previewHomePlayer').style.transform = `translate(${p1X}%, ${p1Y}%) scale(${p1Zoom / 100})`;
+    const p1Img = document.getElementById('previewHomePlayer');
+    p1Img.style.width = `${p1Zoom}%`;
+    p1Img.style.height = `${p1Zoom}%`;
+    p1Img.style.objectPosition = `${p1X}% ${p1Y}%`;
 
-    // Player 2 URL & Transform Values
+    // Player 2 URL & HTML2CANVAS-SAFE POSITIONING
     const p2Url = document.getElementById('urlPlayer2').value.trim();
     if (p2Url) { document.getElementById('previewAwayPlayer').src = p2Url; }
 
@@ -728,7 +670,10 @@ window.updateThumbnailCanvas = function() {
     document.getElementById('p2YVal').innerText = p2Y;
     document.getElementById('p2ZoomVal').innerText = p2Zoom;
 
-    document.getElementById('previewAwayPlayer').style.transform = `translate(${p2X}%, ${p2Y}%) scale(${p2Zoom / 100})`;
+    const p2Img = document.getElementById('previewAwayPlayer');
+    p2Img.style.width = `${p2Zoom}%`;
+    p2Img.style.height = `${p2Zoom}%`;
+    p2Img.style.objectPosition = `${p2X}% ${p2Y}%`;
 
     // Logos
     const t1Logo = document.getElementById('urlTeam1Logo').value.trim();
@@ -755,67 +700,26 @@ window.updateThumbnailCanvas = function() {
     }
 };
 
-window.updateGalleryCanvas = function() {
-    const container = document.getElementById('dynamicGalleryContainer');
-    container.innerHTML = '';
-
-    const urls = [
-        document.getElementById('galleryImg1').value.trim(),
-        document.getElementById('galleryImg2').value.trim(),
-        document.getElementById('galleryImg3').value.trim(),
-        document.getElementById('galleryImg4').value.trim(),
-        document.getElementById('galleryImg5').value.trim(),
-        document.getElementById('galleryImg6').value.trim()
-    ].filter(url => url.length > 0);
-
-    if (urls.length === 0) {
-        container.innerHTML = '<span class="text-[11px] text-slate-500 italic col-span-full text-center py-4">Paste image URLs above (1 to 6) to render them dynamically side-by-side.</span>';
-    } else {
-        container.className = `grid gap-3 min-h-[100px] items-center justify-center grid-cols-${Math.min(urls.length, 3)}`;
-        urls.forEach((url, index) => {
-            const imgWrapper = document.createElement('div');
-            imgWrapper.className = "relative aspect-video bg-slate-900 rounded border border-slate-800 overflow-hidden shadow";
-            imgWrapper.innerHTML = `<img crossorigin="anonymous" src="${url}" class="w-full h-full object-cover" alt="Gallery Item ${index + 1}">`;
-            container.appendChild(imgWrapper);
-        });
-    }
-
-    document.getElementById('dynamicGalleryCaption').innerText = document.getElementById('galleryDescriptionInput').value || "GALLERY PREVIEW";
-};
-
 window.downloadThumbnailAsset = function() {
     const wrapper = document.getElementById('thumbCanvasWrapper');
     const platform = document.getElementById('thumbPlatformSelect').value;
     
-    html2canvas(wrapper, { useCORS: true, scale: 3, backgroundColor: '#020617' }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `match-clash-${platform}-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    }).catch(err => {
-        console.error("Export failed:", err);
-        alert("Export failed due to external image CORS restrictions. Try using direct image URLs.");
-    });
-};
-
-window.downloadGalleryAsset = function() {
-    const wrapper = document.getElementById('galleryCanvasWrapper');
-    const platform = document.getElementById('gridPlatformSelect').value;
-
-    html2canvas(wrapper, { useCORS: true, scale: 3, backgroundColor: '#020617' }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `gallery-asset-${platform}-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    }).catch(err => {
-        console.error("Export failed:", err);
-        alert("Export failed due to external image CORS restrictions. Try using direct image URLs.");
-    });
+    // Slight delay trick to ensure images are fully computed before export
+    setTimeout(() => {
+        html2canvas(wrapper, { useCORS: true, scale: 3, backgroundColor: '#020617' }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `match-clash-${platform}-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }).catch(err => {
+            console.error("Export failed:", err);
+            alert("Export failed due to external image CORS restrictions. Try using direct image URLs.");
+        });
+    }, 100);
 };
 
 document.addEventListener("DOMContentLoaded", () => {
     updateThumbnailCanvas();
-    updateGalleryCanvas();
 });
     /////////////////////////////
     function animateGlobePipeline() {
