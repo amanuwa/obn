@@ -1517,9 +1517,9 @@ async function renderWithIsolatedPanels(data) {
                         GET NEWS
                     </button>
                     <span> </span><!-- NOTIFY LINEUP BUTTON -->
-               <button onclick="triggerLineupWebhook('${homeTeam.replace(/'/g, "\\'")}', '${awayTeam.replace(/'/g, "\\'")}', this)" 
+             <button onclick="triggerLineupWebhook('${homeTeam.replace(/'/g, "\\'")}', '${awayTeam.replace(/'/g, "\\'")}', '${match.match_date || 'TBD'}', '${match.Kick_off_time || '00:00'}', this)" 
         class="bg-cyan-600/90 hover:bg-cyan-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
-    NOTIFY Linups
+    NOTIFY
 </button>
                 </div>
             </div>
@@ -1536,11 +1536,10 @@ async function renderWithIsolatedPanels(data) {
  * @param {string} awayTeam - The away team name
  * @param {HTMLElement} buttonElement - The button element itself (used for loading state feedback)
  */
-window.triggerLineupWebhook = async function(homeTeam, awayTeam, buttonElement) {
+window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kickoffTime, buttonElement) {
     buttonElement.dataset.originalHtml = buttonElement.innerHTML;
     
     try {
-        // Lock button & show waiting state
         buttonElement.disabled = true;
         buttonElement.classList.add("opacity-60", "cursor-not-allowed", "animate-pulse");
         buttonElement.innerHTML = `
@@ -1553,24 +1552,25 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, buttonElement) 
             </span>
         `;
 
-      //  const webhookUrl = window.CONFIG?.LINEUP_WEBHOOK_URL || CONFIG?.LINEUP_WEBHOOK_URL;
-      //  if (!webhookUrl) throw new Error("Webhook URL is not defined in config.js");
+        const webhookUrl = window.CONFIG?.LINEUP_WEBHOOK_URL || CONFIG?.LINEUP_WEBHOOK_URL;
+        if (!webhookUrl) throw new Error("Webhook URL is not defined in config.js");
 
-        // 1. Trigger the n8n webhook
-        await fetch(LINEUP_WEBHOOK_URL, {
+        // Include match_date and kick_off_time in the payload sent to n8n
+        await fetch(webhookUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 action: "notify_lineup",
                 home_team: homeTeam,
                 away_team: awayTeam,
+                match_date: matchDate,
+                kick_off_time: kickoffTime,
                 timestamp: new Date().toISOString()
             })
         });
 
-        console.log(`Webhook sent for ${homeTeam} vs ${awayTeam}. Polling database for lineups...`);
+        console.log(`Webhook sent for ${homeTeam} vs ${awayTeam} (${matchDate} at ${kickoffTime}). Polling database...`);
 
-        // 2. Start polling Supabase to see when rows are populated
         pollForLineups(homeTeam, awayTeam, buttonElement);
 
     } catch (error) {
@@ -1585,7 +1585,7 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, buttonElement) 
             buttonElement.classList.remove("bg-rose-600", "text-white");
         }, 3000);
     }
-}
+};
   //  async function pollForLineups(homeTeam, awayTeam, buttonElement) {
         window.pollForLineups = async function(homeTeam, awayTeam, buttonElement) {
     const maxAttempts = 30; // Stop after 30 attempts (approx. 2.5 minutes if checking every 5 seconds)
