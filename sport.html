@@ -1517,7 +1517,7 @@ async function renderWithIsolatedPanels(data) {
                         GET NEWS
                     </button>
                     <span> </span><!-- NOTIFY LINEUP BUTTON -->
-             <button onclick="triggerLineupWebhook('${homeTeam.replace(/'/g, "\\'")}', '${awayTeam.replace(/'/g, "\\'")}', '${match.match_date || 'TBD'}', '${match.Kick_off_time || '00:00'}', this)" 
+             <button onclick="triggerLineupWebhook('${homeTeam}', '${awayTeam}', '${match.match_date}', '${match.Kick_off_time}', '${match.league}', this)"
         class="bg-cyan-600/90 hover:bg-cyan-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
     NOTIFY
 </button>
