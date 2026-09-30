@@ -530,6 +530,7 @@
 
         animateGlobePipeline();
     }
+// Master Canvas Renderer Engine (YouTube: Team Names Above, Date Below)
 window.renderMatchCanvas = function() {
     const canvas = document.getElementById('matchPreviewCanvas');
     if (!canvas) return;
@@ -543,7 +544,7 @@ window.renderMatchCanvas = function() {
 
     if (platform === 'youtube') {
         width = 1920;
-        height = 1080; // 16:9
+        height = 1080; // 16:9 YouTube Landscape
     } else if (platform === 'social') {
         width = 1080;
         height = 1080; // 1:1 Square
@@ -565,6 +566,7 @@ window.renderMatchCanvas = function() {
     const p2Y = parseInt(document.getElementById('p2PanY').value) || 50;
     const p2Zoom = parseInt(document.getElementById('p2Zoom').value) / 100;
 
+    // Update slider readouts in UI
     document.getElementById('p1XVal').innerText = p1X;
     document.getElementById('p1YVal').innerText = p1Y;
     document.getElementById('p1ZoomVal').innerText = document.getElementById('p1Zoom').value;
@@ -602,7 +604,6 @@ window.renderMatchCanvas = function() {
             drawH = drawW / imgRatio;
         }
 
-        // Calculate pan offsets based on percentage sliders (0 to 100)
         const maxOffsetX = drawW - w;
         const maxOffsetY = drawH - h;
         
@@ -613,7 +614,7 @@ window.renderMatchCanvas = function() {
         ctx.restore();
     }
 
-    // Draw Side 1 Background/Image
+    // Draw Side 1 Image
     const img1 = new Image();
     img1.crossOrigin = "anonymous";
     img1.onload = () => {
@@ -628,16 +629,15 @@ window.renderMatchCanvas = function() {
     img1.src = p1Url || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80';
 
     function drawSide1Overlays() {
-        // Gradient overlay for bottom readability
-        const grad1 = ctx.createLinearGradient(0, height * 0.6, 0, height);
+        const grad1 = ctx.createLinearGradient(0, height * 0.5, 0, height);
         grad1.addColorStop(0, 'rgba(2, 6, 23, 0)');
         grad1.addColorStop(1, 'rgba(2, 6, 23, 0.95)');
         ctx.fillStyle = grad1;
         ctx.fillRect(0, 0, halfW, height);
 
         // Center Split Border Divider
-        ctx.strokeStyle = 'rgba(234, 179, 8, 0.6)';
-        ctx.lineWidth = platform === 'youtube' ? 6 : 4;
+        ctx.strokeStyle = 'rgba(234, 179, 8, 0.8)';
+        ctx.lineWidth = platform === 'youtube' ? 8 : 4;
         ctx.beginPath();
         ctx.moveTo(halfW, 0);
         ctx.lineTo(halfW, height);
@@ -659,13 +659,12 @@ window.renderMatchCanvas = function() {
     }
 
     function drawSide2Overlays() {
-        const grad2 = ctx.createLinearGradient(halfW, height * 0.6, width, height);
+        const grad2 = ctx.createLinearGradient(halfW, height * 0.5, width, height);
         grad2.addColorStop(0, 'rgba(2, 6, 23, 0)');
         grad2.addColorStop(1, 'rgba(2, 6, 23, 0.95)');
         ctx.fillStyle = grad2;
         ctx.fillRect(halfW, 0, halfW, height);
 
-        // Draw Logos if provided
         loadLogosAndFinalize();
     }
 
@@ -703,54 +702,60 @@ window.renderMatchCanvas = function() {
     }
 
     function renderUIElements(logo1, logo2) {
-        const scaleFactor = width / 1080; // Scale text & badges relative to resolution
+        const scaleFactor = width / 1920; 
 
-        // Draw Logos
+        // Draw Team Logos
+        const lSize = 110 * scaleFactor;
+        const logoY = 40 * scaleFactor;
+
         if (logo1) {
-            const lSize = 100 * scaleFactor;
-            ctx.drawImage(logo1, 40 * scaleFactor, 40 * scaleFactor, lSize, lSize);
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.roundRect(50 * scaleFactor, logoY, lSize, lSize, 14 * scaleFactor);
+            ctx.fill();
+            ctx.drawImage(logo1, (50 * scaleFactor) + 12, logoY + 12, lSize - 24, lSize - 24);
         }
         if (logo2) {
-            const lSize = 100 * scaleFactor;
-            ctx.drawImage(logo2, width - 40 * scaleFactor - lSize, 40 * scaleFactor, lSize, lSize);
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.roundRect(width - 50 * scaleFactor - lSize, logoY, lSize, lSize, 14 * scaleFactor);
+            ctx.fill();
+            ctx.drawImage(logo2, (width - 50 * scaleFactor - lSize) + 12, logoY + 12, lSize - 24, lSize - 24);
         }
 
-        // Names & Badges based on platform layout
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         if (platform === 'youtube') {
-            // YouTube 16:9 Bottom-Left/Right Team Names
+            // YOUTUBE: Team names positioned higher up
             ctx.font = `900 ${48 * scaleFactor}px sans-serif`;
             ctx.fillStyle = '#ffffff';
-            ctx.shadowColor = 'rgba(0,0,0,0.9)';
-            ctx.shadowBlur = 15;
+            ctx.shadowColor = 'rgba(0,0,0,0.95)';
+            ctx.shadowBlur = 18;
             
-            ctx.fillText(t1Name, halfW / 2, height - 80);
-            ctx.fillText(t2Name, halfW + (halfW / 2), height - 80);
-            ctx.shadowBlur = 0; // reset
+            ctx.fillText(t1Name, halfW * 0.5, height - 120);
+            ctx.fillText(t2Name, halfW + (halfW * 0.5), height - 120);
+            ctx.shadowBlur = 0;
         } else {
-            // TikTok / Square Stacked Names
-            ctx.font = `900 ${32 * scaleFactor}px sans-serif`;
+            // Standard Vertical/Square Stacked Text
+            ctx.font = `900 ${36 * scaleFactor}px sans-serif`;
             ctx.fillStyle = '#ffffff';
             ctx.shadowColor = 'rgba(0,0,0,0.9)';
-            ctx.shadowBlur = 10;
-            ctx.fillText(`${t1Name} VS ${t2Name}`, halfW, height - 160 * scaleFactor);
+            ctx.shadowBlur = 12;
+            ctx.fillText(`${t1Name} VS ${t2Name}`, halfW, height - 180);
             ctx.shadowBlur = 0;
         }
 
-        // VS Badge in Center
+        // Center VS Badge
         ctx.save();
         ctx.translate(halfW, height / 2);
-        ctx.rotate((15 * Math.PI) / 180); // Slight rotation like your UI
+        ctx.rotate((12 * Math.PI) / 180);
         
-        const badgeRadius = 65 * scaleFactor;
+        const badgeRadius = platform === 'youtube' ? 70 * scaleFactor : 65 * scaleFactor;
         
-        // Badge Glow/Shadow
-        ctx.shadowColor = 'rgba(250, 204, 21, 0.8)';
+        ctx.shadowColor = 'rgba(250, 204, 21, 0.85)';
         ctx.shadowBlur = 30 * scaleFactor;
 
-        // Gold Gradient Circle
         const vsGrad = ctx.createLinearGradient(-badgeRadius, -badgeRadius, badgeRadius, badgeRadius);
         vsGrad.addColorStop(0, '#fde047');
         vsGrad.addColorStop(1, '#f59e0b');
@@ -759,39 +764,36 @@ window.renderMatchCanvas = function() {
         ctx.arc(0, 0, badgeRadius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Dark Border
         ctx.lineWidth = 6 * scaleFactor;
         ctx.strokeStyle = '#020617';
         ctx.stroke();
 
-        // VS Text
         ctx.shadowBlur = 0;
         ctx.fillStyle = '#020617';
-        ctx.font = `900 ${34 * scaleFactor}px sans-serif`;
+        ctx.font = `900 ${36 * scaleFactor}px sans-serif`;
         ctx.fillText('VS', 0, 2);
         ctx.restore();
 
-        // Date & Time Footer Badge
+        // Date & Time Footer Pill Badge (Placed lower, right below team names for YouTube)
         if (dateTime) {
             ctx.save();
-            ctx.font = `900 ${22 * scaleFactor}px monospace`;
+            ctx.font = `900 ${20 * scaleFactor}px monospace`;
             const textMetrics = ctx.measureText(dateTime);
-            const boxW = textMetrics.width + 60 * scaleFactor;
-            const boxH = 50 * scaleFactor;
+            const boxW = textMetrics.width + 55 * scaleFactor;
+            const boxH = 45 * scaleFactor;
+            
             const boxX = halfW - boxW / 2;
-            const boxY = height - 80 * scaleFactor;
+            const boxY = platform === 'youtube' ? height - 60 : height - 90;
 
-            // Background pill
             ctx.fillStyle = 'rgba(2, 6, 23, 0.95)';
-            ctx.strokeStyle = 'rgba(234, 179, 8, 0.7)';
-            ctx.lineWidth = 2 * scaleFactor;
+            ctx.strokeStyle = 'rgba(234, 179, 8, 0.85)';
+            ctx.lineWidth = 2.5 * scaleFactor;
 
             ctx.beginPath();
             ctx.roundRect(boxX, boxY, boxW, boxH, boxH / 2);
             ctx.fill();
             ctx.stroke();
 
-            // Text
             ctx.fillStyle = '#facc15';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
