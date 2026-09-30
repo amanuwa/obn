@@ -1534,7 +1534,7 @@ async function renderWithIsolatedPanels(data) {
  * @param {string} awayTeam - The away team name
  * @param {HTMLElement} buttonElement - The button element itself (used for loading state feedback)
  */
-async function triggerLineupWebhook(homeTeam, awayTeam, buttonElement) {
+window.triggerLineupWebhook = async function(homeTeam, awayTeam, buttonElement) {
     buttonElement.dataset.originalHtml = buttonElement.innerHTML;
     
     try {
@@ -1584,7 +1584,8 @@ async function triggerLineupWebhook(homeTeam, awayTeam, buttonElement) {
         }, 3000);
     }
 }
-    async function pollForLineups(homeTeam, awayTeam, buttonElement) {
+  //  async function pollForLineups(homeTeam, awayTeam, buttonElement) {
+        window.pollForLineups = async function(homeTeam, awayTeam, buttonElement) {
     const maxAttempts = 30; // Stop after 30 attempts (approx. 2.5 minutes if checking every 5 seconds)
     let attempts = 0;
 
