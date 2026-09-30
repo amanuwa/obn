@@ -1536,13 +1536,21 @@ async function renderWithIsolatedPanels(data) {
  * @param {string} awayTeam - The away team name
  * @param {HTMLElement} buttonElement - The button element itself (used for loading state feedback)
  */
-window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kickoffTime, buttonElement) {
-    buttonElement.dataset.originalHtml = buttonElement.innerHTML;
+window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kickoffTime, league, buttonElement) {
+    // Fallback: if buttonElement wasn't passed correctly, grab it from the event or current target
+    const btn = buttonElement || event?.target?.closest('button');
+    
+    if (!btn) {
+        console.error("TriggerLineupWebhook: Could not find target button element.");
+        return;
+    }
+
+    btn.dataset.originalHtml = btn.innerHTML;
     
     try {
-        buttonElement.disabled = true;
-        buttonElement.classList.add("opacity-60", "cursor-not-allowed", "animate-pulse");
-        buttonElement.innerHTML = `
+        btn.disabled = true;
+        btn.classList.add("opacity-60", "cursor-not-allowed", "animate-pulse");
+        btn.innerHTML = `
             <span class="flex items-center gap-1">
                 <svg class="animate-spin -ml-1 mr-1 h-3 w-3 text-slate-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -1552,11 +1560,10 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kick
             </span>
         `;
 
-      //  const webhookUrl = window.CONFIG?.LINEUP_WEBHOOK_URL || CONFIG?.LINEUP_WEBHOOK_URL;
-     //   if (!webhookUrl) throw new Error("Webhook URL is not defined in config.js");
+        const webhookUrl = window.CONFIG?.LINEUP_WEBHOOK_URL || LINEUP_WEBHOOK_URL;
+        if (!webhookUrl) throw new Error("Webhook URL is not defined in config.js");
 
-        // Include match_date and kick_off_time in the payload sent to n8n
-        await fetch(LINEUP_WEBHOOK_URL, {
+        await fetch(webhookUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1564,26 +1571,26 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kick
                 home_team: homeTeam,
                 away_team: awayTeam,
                 match_date: matchDate,
-                league: league,
                 kick_off_time: kickoffTime,
+                league: league,
                 timestamp: new Date().toISOString()
             })
         });
 
-        console.log(`Webhook sent for ${homeTeam} vs ${awayTeam} (${matchDate} at ${kickoffTime}). Polling database...`);
+        console.log(`Webhook sent for ${homeTeam} vs ${awayTeam} in ${league} (${matchDate} at ${kickoffTime}). Polling database...`);
 
-        pollForLineups(homeTeam, awayTeam, buttonElement);
+        pollForLineups(homeTeam, awayTeam, btn);
 
     } catch (error) {
         console.error("Failed to trigger lineup process:", error);
-        buttonElement.disabled = false;
-        buttonElement.classList.remove("opacity-60", "cursor-not-allowed", "animate-pulse");
-        buttonElement.innerHTML = "ERROR";
-        buttonElement.classList.add("bg-rose-600", "text-white");
+        btn.disabled = false;
+        btn.classList.remove("opacity-60", "cursor-not-allowed", "animate-pulse");
+        btn.innerHTML = "ERROR";
+        btn.classList.add("bg-rose-600", "text-white");
         
         setTimeout(() => {
-            buttonElement.innerHTML = buttonElement.dataset.originalHtml || "NOTIFY";
-            buttonElement.classList.remove("bg-rose-600", "text-white");
+            btn.innerHTML = btn.dataset.originalHtml || "NOTIFY";
+            btn.classList.remove("bg-rose-600", "text-white");
         }, 3000);
     }
 };
