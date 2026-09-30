@@ -349,12 +349,12 @@
     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// 4. Thumbnail & Social Media Asset Designer (Split Clash)</span>
         <div class="flex items-center gap-2">
-            <select id="thumbPlatformSelect" onchange="updateThumbnailCanvas()" class="bg-slate-950 text-slate-300 text-xs px-2.5 py-1.5 rounded border border-slate-700 outline-none">
-                <option value="youtube">YouTube (16:9 Thumbnail)</option>
+            <select id="thumbPlatformSelect" onchange="renderMatchCanvas()" class="bg-slate-950 text-slate-300 text-xs px-2.5 py-1.5 rounded border border-slate-700 outline-none">
                 <option value="tiktok">TikTok / Shorts (9:16 Vertical)</option>
+                <option value="youtube">YouTube (16:9 Thumbnail)</option>
                 <option value="social">Facebook / Telegram / X (1:1 Post)</option>
             </select>
-            <button onclick="downloadThumbnailAsset()" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition flex items-center gap-1 cursor-pointer" title="Download Asset">
+            <button onclick="downloadMatchCanvas()" class="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition flex items-center gap-1 cursor-pointer" title="Download Asset">
                 <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                 <span class="text-[10px] text-yellow-400 font-bold hidden sm:inline">Export PNG</span>
             </button>
@@ -365,23 +365,23 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-950 p-3 rounded border border-slate-800">
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Team 1 Logo URL</label>
-            <input type="text" id="urlTeam1Logo" placeholder="https://..." oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            <input type="text" id="urlTeam1Logo" placeholder="https://..." oninput="renderMatchCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Team 2 Logo URL</label>
-            <input type="text" id="urlTeam2Logo" placeholder="https://..." oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            <input type="text" id="urlTeam2Logo" placeholder="https://..." oninput="renderMatchCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Player 1 Image URL</label>
-            <input type="text" id="urlPlayer1" placeholder="https://..." oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            <input type="text" id="urlPlayer1" value="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80" placeholder="https://..." oninput="renderMatchCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Player 2 Image URL</label>
-            <input type="text" id="urlPlayer2" placeholder="https://..." oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            <input type="text" id="urlPlayer2" value="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=600&q=80" placeholder="https://..." oninput="renderMatchCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
     </div>
 
-    <!-- NEW HTML2CANVAS-SAFE POSITIONING CONTROLS (PAN & ZOOM) -->
+    <!-- PRECISION PAN & ZOOM CONTROLS -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950 p-3 rounded border border-slate-800">
         <!-- Player 1 Adjusters -->
         <div class="space-y-2 bg-slate-900/50 p-2.5 rounded border border-slate-800/80">
@@ -389,15 +389,15 @@
             <div class="grid grid-cols-3 gap-2">
                 <div>
                     <label class="text-[9px] text-slate-400 block mb-0.5">Pan X (<span id="p1XVal">50</span>%)</label>
-                    <input type="range" id="p1PanX" min="0" max="100" value="50" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
+                    <input type="range" id="p1PanX" min="0" max="100" value="50" oninput="renderMatchCanvas()" class="w-full accent-yellow-400 cursor-pointer">
                 </div>
                 <div>
                     <label class="text-[9px] text-slate-400 block mb-0.5">Pan Y (<span id="p1YVal">50</span>%)</label>
-                    <input type="range" id="p1PanY" min="0" max="100" value="50" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
+                    <input type="range" id="p1PanY" min="0" max="100" value="50" oninput="renderMatchCanvas()" class="w-full accent-yellow-400 cursor-pointer">
                 </div>
                 <div>
                     <label class="text-[9px] text-slate-400 block mb-0.5">Zoom (<span id="p1ZoomVal">100</span>%)</label>
-                    <input type="range" id="p1Zoom" min="100" max="250" value="100" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
+                    <input type="range" id="p1Zoom" min="100" max="300" value="100" oninput="renderMatchCanvas()" class="w-full accent-yellow-400 cursor-pointer">
                 </div>
             </div>
         </div>
@@ -408,15 +408,15 @@
             <div class="grid grid-cols-3 gap-2">
                 <div>
                     <label class="text-[9px] text-slate-400 block mb-0.5">Pan X (<span id="p2XVal">50</span>%)</label>
-                    <input type="range" id="p2PanX" min="0" max="100" value="50" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
+                    <input type="range" id="p2PanX" min="0" max="100" value="50" oninput="renderMatchCanvas()" class="w-full accent-yellow-400 cursor-pointer">
                 </div>
                 <div>
                     <label class="text-[9px] text-slate-400 block mb-0.5">Pan Y (<span id="p2YVal">50</span>%)</label>
-                    <input type="range" id="p2PanY" min="0" max="100" value="50" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
+                    <input type="range" id="p2PanY" min="0" max="100" value="50" oninput="renderMatchCanvas()" class="w-full accent-yellow-400 cursor-pointer">
                 </div>
                 <div>
                     <label class="text-[9px] text-slate-400 block mb-0.5">Zoom (<span id="p2ZoomVal">100</span>%)</label>
-                    <input type="range" id="p2Zoom" min="100" max="250" value="100" oninput="updateThumbnailCanvas()" class="w-full accent-yellow-400 cursor-pointer">
+                    <input type="range" id="p2Zoom" min="100" max="300" value="100" oninput="renderMatchCanvas()" class="w-full accent-yellow-400 cursor-pointer">
                 </div>
             </div>
         </div>
@@ -426,84 +426,23 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950 p-3 rounded border border-slate-800">
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Team 1 Name</label>
-            <input type="text" id="inputTeam1Name" value="LIVERPOOL" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            <input type="text" id="inputTeam1Name" value="LIVERPOOL" oninput="renderMatchCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Team 2 Name</label>
-            <input type="text" id="inputTeam2Name" value="MANCHESTER CITY" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            <input type="text" id="inputTeam2Name" value="MANCHESTER CITY" oninput="renderMatchCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
         <div>
             <label class="text-[10px] text-slate-400 block mb-1">Match Date & Time</label>
-            <input type="text" id="inputMatchDateTime" value="MONDAY • 29.09.2026 • 21:00" oninput="updateThumbnailCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
+            <input type="text" id="inputMatchDateTime" value="MONDAY • 29.09.2026 • 21:00" oninput="renderMatchCanvas()" class="w-full bg-slate-900 text-xs text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 outline-none focus:border-yellow-400">
         </div>
     </div>
 
-    <!-- Live Visual Preview Area -->
+    <!-- LIVE RENDER PREVIEW CONTAINER (Using HTML5 Canvas) -->
     <div class="bg-slate-950 p-4 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden">
-        <div id="thumbCanvasWrapper" class="relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden">
-            
-            <!-- FULL HEIGHT SPLIT SECTION: Players + Overlays -->
-            <div class="grid grid-cols-2 w-full h-full relative overflow-hidden">
-                
-                <!-- Player 1 Side -->
-                <div id="side1Container" class="bg-slate-950 border-r-2 border-yellow-500/50 flex items-center justify-center relative overflow-hidden h-full z-10">
-                    <div class="absolute inset-0 overflow-hidden flex items-center justify-center pointer-events-none">
-                        <!-- Removed transform scale, relying purely on width/height/object-position for stable exports -->
-                        <img id="previewHomePlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80" class="max-w-none transition-all duration-75" alt="Player 1" style="width: 100%; height: 100%; flex-shrink: 0; object-fit: cover; object-position: 50% 50%;">
-                    </div>
-                    <div id="side1Gradient" class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/20 to-transparent pointer-events-none"></div>
-                    
-                    <div id="logo1Wrapper" class="absolute top-2 left-2 z-30 pointer-events-none flex items-center justify-center">
-                        <img id="previewHomeLogo" crossorigin="anonymous" src="" class="w-12 h-12 object-contain hidden" alt="Team 1 Logo">
-                        <span id="previewHomeLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 1</span>
-                    </div>
-
-                    <div id="name1Wrapper" class="absolute bottom-3 left-2 right-2 z-30 pointer-events-none text-center">
-                        <span id="previewTeam1Name" class="font-black text-white uppercase tracking-wider text-xs md:text-xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate">LIVERPOOL</span>
-                    </div>
-                </div>
-
-                <!-- Player 2 Side -->
-                <div id="side2Container" class="bg-slate-950 flex items-center justify-center relative overflow-hidden h-full z-10">
-                    <div class="absolute inset-0 overflow-hidden flex items-center justify-center pointer-events-none">
-                         <!-- Removed transform scale, relying purely on width/height/object-position for stable exports -->
-                        <img id="previewAwayPlayer" crossorigin="anonymous" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=600&q=80" class="max-w-none transition-all duration-75" alt="Player 2" style="width: 100%; height: 100%; flex-shrink: 0; object-fit: cover; object-position: 50% 50%;">
-                    </div>
-                    <div id="side2Gradient" class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/20 to-transparent pointer-events-none"></div>
-                    
-                    <div id="logo2Wrapper" class="absolute top-2 right-2 z-30 pointer-events-none flex items-center justify-center">
-                        <img id="previewAwayLogo" crossorigin="anonymous" src="" class="w-12 h-12 object-contain hidden" alt="Team 2 Logo">
-                        <span id="previewAwayLogoPlaceholder" class="text-[9px] text-slate-500 font-mono italic hidden">Logo 2</span>
-                    </div>
-
-                    <div id="name2Wrapper" class="absolute bottom-3 left-2 right-2 z-30 pointer-events-none text-center">
-                        <span id="previewTeam2Name" class="font-black text-white uppercase tracking-wider text-xs md:text-xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] block truncate">MANCHESTER CITY</span>
-                    </div>
-                </div>
-
-                <!-- Adaptive Center "VS" Badge -->
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-                    <div id="vsBadge" class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-sm md:text-lg rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12">
-                        VS
-                    </div>
-                </div>
-
-                <!-- Stacked Footer Container -->
-                <div class="absolute bottom-2 left-0 right-0 z-40 pointer-events-none px-2 text-center flex justify-center">
-                    <div id="stackedFooterContainer" class="flex flex-col items-center justify-center gap-1 w-full max-w-[90%]">
-                        <div id="stackedTeamNames" class="hidden items-center justify-center gap-1 font-black text-white uppercase tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-[9px]">
-                            <span id="previewStackedTeam1">LIVERPOOL</span>
-                            <span class="text-yellow-400 font-bold">VS</span>
-                            <span id="previewStackedTeam2">MANCHESTER CITY</span>
-                        </div>
-                        <div id="dateBadgeContainer" class="bg-slate-950/95 backdrop-blur-md px-3 py-1 rounded-full border border-yellow-500/60 shadow-2xl whitespace-nowrap inline-block">
-                            <p id="previewDateTime" class="font-mono uppercase tracking-widest font-black text-yellow-400 text-[8px] md:text-xs">MONDAY • 29.09.2026 • 21:00</p>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
+        <div id="canvasOutputWrapper" class="relative shadow-2xl transition-all duration-300 flex items-center justify-center max-w-full overflow-hidden rounded border border-slate-800">
+            <!-- The Master Interactive Canvas -->
+            <canvas id="matchPreviewCanvas" class="block max-w-full h-auto object-contain"></canvas>
         </div>
     </div>
 </div>
@@ -591,135 +530,289 @@
 
         animateGlobePipeline();
     }
-    //////////////////
-window.updateThumbnailCanvas = function() {
+window.renderMatchCanvas = function() {
+    const canvas = document.getElementById('matchPreviewCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
     const platform = document.getElementById('thumbPlatformSelect').value;
-    const wrapper = document.getElementById('thumbCanvasWrapper');
-    const vsBadge = document.getElementById('vsBadge');
-    const name1Wrapper = document.getElementById('name1Wrapper');
-    const name2Wrapper = document.getElementById('name2Wrapper');
-    const stackedTeamNames = document.getElementById('stackedTeamNames');
-    const dateTimeElem = document.getElementById('previewDateTime');
-    const logo1Img = document.getElementById('previewHomeLogo');
-    const logo2Img = document.getElementById('previewAwayLogo');
-
-    const t1NameVal = document.getElementById('inputTeam1Name').value || 'TEAM 1';
-    const t2NameVal = document.getElementById('inputTeam2Name').value || 'TEAM 2';
-
-    document.getElementById('previewTeam1Name').innerText = t1NameVal;
-    document.getElementById('previewTeam2Name').innerText = t2NameVal;
-    document.getElementById('previewStackedTeam1').innerText = t1NameVal;
-    document.getElementById('previewStackedTeam2').innerText = t2NameVal;
-    dateTimeElem.innerText = document.getElementById('inputMatchDateTime').value || '';
+    
+    // Set exact export resolutions based on platform
+    let width = 1080;
+    let height = 1920; // Default TikTok 9:16
 
     if (platform === 'youtube') {
-        wrapper.className = "relative w-full aspect-video bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
-        vsBadge.className = "w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-base md:text-lg rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(250,204,21,0.9)] border-4 border-slate-950 transform rotate-12";
-        name1Wrapper.classList.remove('hidden');
-        name2Wrapper.classList.remove('hidden');
-        stackedTeamNames.classList.add('hidden');
-        stackedTeamNames.classList.remove('flex');
-        logo1Img.className = "w-16 h-16 object-contain hidden";
-        logo2Img.className = "w-16 h-16 object-contain hidden";
-    } else if (platform === 'tiktok') {
-        wrapper.className = "relative w-48 mx-auto aspect-[9/16] bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
-        vsBadge.className = "w-9 h-9 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-xs rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(250,204,21,0.9)] border-2 border-slate-950 transform rotate-12";
-        name1Wrapper.classList.add('hidden');
-        name2Wrapper.classList.add('hidden');
-        stackedTeamNames.classList.remove('hidden');
-        stackedTeamNames.classList.add('flex');
-        dateTimeElem.className = "font-mono uppercase tracking-wider font-black text-yellow-400 text-[8px]";
-        logo1Img.className = "w-9 h-9 object-contain hidden";
-        logo2Img.className = "w-9 h-9 object-contain hidden";
-    } else {
-        wrapper.className = "relative w-64 mx-auto aspect-square bg-slate-950 rounded border border-slate-800 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden";
-        vsBadge.className = "w-11 h-11 bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black text-sm rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.9)] border-3 border-slate-950 transform rotate-12";
-        name1Wrapper.classList.add('hidden');
-        name2Wrapper.classList.add('hidden');
-        stackedTeamNames.classList.remove('hidden');
-        stackedTeamNames.classList.add('flex');
-        dateTimeElem.className = "font-mono uppercase tracking-widest font-black text-yellow-400 text-[9px]";
-        logo1Img.className = "w-10 h-10 object-contain hidden";
-        logo2Img.className = "w-10 h-10 object-contain hidden";
+        width = 1920;
+        height = 1080; // 16:9
+    } else if (platform === 'social') {
+        width = 1080;
+        height = 1080; // 1:1 Square
     }
 
-    // Player 1 URL & HTML2CANVAS-SAFE POSITIONING
-    const p1Url = document.getElementById('urlPlayer1').value.trim();
-    if (p1Url) { document.getElementById('previewHomePlayer').src = p1Url; }
-    
-    const p1X = document.getElementById('p1PanX').value;
-    const p1Y = document.getElementById('p1PanY').value;
-    const p1Zoom = document.getElementById('p1Zoom').value;
+    canvas.width = width;
+    canvas.height = height;
+
+    // Read input values
+    const t1Name = (document.getElementById('inputTeam1Name').value || 'TEAM 1').toUpperCase();
+    const t2Name = (document.getElementById('inputTeam2Name').value || 'TEAM 2').toUpperCase();
+    const dateTime = (document.getElementById('inputMatchDateTime').value || '').toUpperCase();
+
+    const p1X = parseInt(document.getElementById('p1PanX').value) || 50;
+    const p1Y = parseInt(document.getElementById('p1PanY').value) || 50;
+    const p1Zoom = parseInt(document.getElementById('p1Zoom').value) / 100;
+
+    const p2X = parseInt(document.getElementById('p2PanX').value) || 50;
+    const p2Y = parseInt(document.getElementById('p2PanY').value) || 50;
+    const p2Zoom = parseInt(document.getElementById('p2Zoom').value) / 100;
+
     document.getElementById('p1XVal').innerText = p1X;
     document.getElementById('p1YVal').innerText = p1Y;
-    document.getElementById('p1ZoomVal').innerText = p1Zoom;
-    
-    const p1Img = document.getElementById('previewHomePlayer');
-    p1Img.style.width = `${p1Zoom}%`;
-    p1Img.style.height = `${p1Zoom}%`;
-    p1Img.style.objectPosition = `${p1X}% ${p1Y}%`;
-
-    // Player 2 URL & HTML2CANVAS-SAFE POSITIONING
-    const p2Url = document.getElementById('urlPlayer2').value.trim();
-    if (p2Url) { document.getElementById('previewAwayPlayer').src = p2Url; }
-
-    const p2X = document.getElementById('p2PanX').value;
-    const p2Y = document.getElementById('p2PanY').value;
-    const p2Zoom = document.getElementById('p2Zoom').value;
+    document.getElementById('p1ZoomVal').innerText = document.getElementById('p1Zoom').value;
     document.getElementById('p2XVal').innerText = p2X;
     document.getElementById('p2YVal').innerText = p2Y;
-    document.getElementById('p2ZoomVal').innerText = p2Zoom;
+    document.getElementById('p2ZoomVal').innerText = document.getElementById('p2Zoom').value;
 
-    const p2Img = document.getElementById('previewAwayPlayer');
-    p2Img.style.width = `${p2Zoom}%`;
-    p2Img.style.height = `${p2Zoom}%`;
-    p2Img.style.objectPosition = `${p2X}% ${p2Y}%`;
+    const p1Url = document.getElementById('urlPlayer1').value.trim();
+    const p2Url = document.getElementById('urlPlayer2').value.trim();
+    const t1LogoUrl = document.getElementById('urlTeam1Logo').value.trim();
+    const t2LogoUrl = document.getElementById('urlTeam2Logo').value.trim();
 
-    // Logos
-    const t1Logo = document.getElementById('urlTeam1Logo').value.trim();
-    const t2Logo = document.getElementById('urlTeam2Logo').value.trim();
+    // Clear background
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(0, 0, width, height);
 
-    const logo1Placeholder = document.getElementById('previewHomeLogoPlaceholder');
-    if (t1Logo) {
-        logo1Img.src = t1Logo;
-        logo1Img.classList.remove('hidden');
-        logo1Placeholder.classList.add('hidden');
-    } else {
-        logo1Img.classList.add('hidden');
-        logo1Placeholder.classList.remove('hidden');
+    const halfW = width / 2;
+
+    // Helper function to draw fitted & panned images with zoom
+    function drawClippedImage(img, x, y, w, h, panX, panY, zoom) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x, y, w, h);
+        ctx.clip();
+
+        const imgRatio = img.width / img.height;
+        const boxRatio = w / h;
+
+        let drawW, drawH;
+        if (imgRatio > boxRatio) {
+            drawH = h * zoom;
+            drawW = drawH * imgRatio;
+        } else {
+            drawW = w * zoom;
+            drawH = drawW / imgRatio;
+        }
+
+        // Calculate pan offsets based on percentage sliders (0 to 100)
+        const maxOffsetX = drawW - w;
+        const maxOffsetY = drawH - h;
+        
+        const offsetX = x - (maxOffsetX * (panX / 100));
+        const offsetY = y - (maxOffsetY * (panY / 100));
+
+        ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+        ctx.restore();
     }
 
-    const logo2Placeholder = document.getElementById('previewAwayLogoPlaceholder');
-    if (t2Logo) {
-        logo2Img.src = t2Logo;
-        logo2Img.classList.remove('hidden');
-        logo2Placeholder.classList.add('hidden');
-    } else {
-        logo2Img.classList.add('hidden');
-        logo2Placeholder.classList.remove('hidden');
+    // Draw Side 1 Background/Image
+    const img1 = new Image();
+    img1.crossOrigin = "anonymous";
+    img1.onload = () => {
+        drawClippedImage(img1, 0, 0, halfW, height, p1X, p1Y, p1Zoom);
+        drawSide1Overlays();
+    };
+    img1.onerror = () => {
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, halfW, height);
+        drawSide1Overlays();
+    };
+    img1.src = p1Url || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80';
+
+    function drawSide1Overlays() {
+        // Gradient overlay for bottom readability
+        const grad1 = ctx.createLinearGradient(0, height * 0.6, 0, height);
+        grad1.addColorStop(0, 'rgba(2, 6, 23, 0)');
+        grad1.addColorStop(1, 'rgba(2, 6, 23, 0.95)');
+        ctx.fillStyle = grad1;
+        ctx.fillRect(0, 0, halfW, height);
+
+        // Center Split Border Divider
+        ctx.strokeStyle = 'rgba(234, 179, 8, 0.6)';
+        ctx.lineWidth = platform === 'youtube' ? 6 : 4;
+        ctx.beginPath();
+        ctx.moveTo(halfW, 0);
+        ctx.lineTo(halfW, height);
+        ctx.stroke();
+
+        // Load Side 2 Image
+        const img2 = new Image();
+        img2.crossOrigin = "anonymous";
+        img2.onload = () => {
+            drawClippedImage(img2, halfW, 0, halfW, height, p2X, p2Y, p2Zoom);
+            drawSide2Overlays();
+        };
+        img2.onerror = () => {
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(halfW, 0, halfW, height);
+            drawSide2Overlays();
+        };
+        img2.src = p2Url || 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=600&q=80';
+    }
+
+    function drawSide2Overlays() {
+        const grad2 = ctx.createLinearGradient(halfW, height * 0.6, width, height);
+        grad2.addColorStop(0, 'rgba(2, 6, 23, 0)');
+        grad2.addColorStop(1, 'rgba(2, 6, 23, 0.95)');
+        ctx.fillStyle = grad2;
+        ctx.fillRect(halfW, 0, halfW, height);
+
+        // Draw Logos if provided
+        loadLogosAndFinalize();
+    }
+
+    function loadLogosAndFinalize() {
+        let loadedCount = 0;
+        let logo1Obj = null;
+        let logo2Obj = null;
+
+        const checkFinished = () => {
+            loadedCount++;
+            if (loadedCount === 2) {
+                renderUIElements(logo1Obj, logo2Obj);
+            }
+        };
+
+        if (t1LogoUrl) {
+            logo1Obj = new Image();
+            logo1Obj.crossOrigin = "anonymous";
+            logo1Obj.onload = checkFinished;
+            logo1Obj.onerror = checkFinished;
+            logo1Obj.src = t1LogoUrl;
+        } else {
+            checkFinished();
+        }
+
+        if (t2LogoUrl) {
+            logo2Obj = new Image();
+            logo2Obj.crossOrigin = "anonymous";
+            logo2Obj.onload = checkFinished;
+            logo2Obj.onerror = checkFinished;
+            logo2Obj.src = t2LogoUrl;
+        } else {
+            checkFinished();
+        }
+    }
+
+    function renderUIElements(logo1, logo2) {
+        const scaleFactor = width / 1080; // Scale text & badges relative to resolution
+
+        // Draw Logos
+        if (logo1) {
+            const lSize = 100 * scaleFactor;
+            ctx.drawImage(logo1, 40 * scaleFactor, 40 * scaleFactor, lSize, lSize);
+        }
+        if (logo2) {
+            const lSize = 100 * scaleFactor;
+            ctx.drawImage(logo2, width - 40 * scaleFactor - lSize, 40 * scaleFactor, lSize, lSize);
+        }
+
+        // Names & Badges based on platform layout
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        if (platform === 'youtube') {
+            // YouTube 16:9 Bottom-Left/Right Team Names
+            ctx.font = `900 ${48 * scaleFactor}px sans-serif`;
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0,0,0,0.9)';
+            ctx.shadowBlur = 15;
+            
+            ctx.fillText(t1Name, halfW / 2, height - 80);
+            ctx.fillText(t2Name, halfW + (halfW / 2), height - 80);
+            ctx.shadowBlur = 0; // reset
+        } else {
+            // TikTok / Square Stacked Names
+            ctx.font = `900 ${32 * scaleFactor}px sans-serif`;
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0,0,0,0.9)';
+            ctx.shadowBlur = 10;
+            ctx.fillText(`${t1Name} VS ${t2Name}`, halfW, height - 160 * scaleFactor);
+            ctx.shadowBlur = 0;
+        }
+
+        // VS Badge in Center
+        ctx.save();
+        ctx.translate(halfW, height / 2);
+        ctx.rotate((15 * Math.PI) / 180); // Slight rotation like your UI
+        
+        const badgeRadius = 65 * scaleFactor;
+        
+        // Badge Glow/Shadow
+        ctx.shadowColor = 'rgba(250, 204, 21, 0.8)';
+        ctx.shadowBlur = 30 * scaleFactor;
+
+        // Gold Gradient Circle
+        const vsGrad = ctx.createLinearGradient(-badgeRadius, -badgeRadius, badgeRadius, badgeRadius);
+        vsGrad.addColorStop(0, '#fde047');
+        vsGrad.addColorStop(1, '#f59e0b');
+        ctx.fillStyle = vsGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, badgeRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Dark Border
+        ctx.lineWidth = 6 * scaleFactor;
+        ctx.strokeStyle = '#020617';
+        ctx.stroke();
+
+        // VS Text
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#020617';
+        ctx.font = `900 ${34 * scaleFactor}px sans-serif`;
+        ctx.fillText('VS', 0, 2);
+        ctx.restore();
+
+        // Date & Time Footer Badge
+        if (dateTime) {
+            ctx.save();
+            ctx.font = `900 ${22 * scaleFactor}px monospace`;
+            const textMetrics = ctx.measureText(dateTime);
+            const boxW = textMetrics.width + 60 * scaleFactor;
+            const boxH = 50 * scaleFactor;
+            const boxX = halfW - boxW / 2;
+            const boxY = height - 80 * scaleFactor;
+
+            // Background pill
+            ctx.fillStyle = 'rgba(2, 6, 23, 0.95)';
+            ctx.strokeStyle = 'rgba(234, 179, 8, 0.7)';
+            ctx.lineWidth = 2 * scaleFactor;
+
+            ctx.beginPath();
+            ctx.roundRect(boxX, boxY, boxW, boxH, boxH / 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Text
+            ctx.fillStyle = '#facc15';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(dateTime, halfW, boxY + boxH / 2);
+            ctx.restore();
+        }
     }
 };
 
-window.downloadThumbnailAsset = function() {
-    const wrapper = document.getElementById('thumbCanvasWrapper');
+window.downloadMatchCanvas = function() {
+    const canvas = document.getElementById('matchPreviewCanvas');
     const platform = document.getElementById('thumbPlatformSelect').value;
     
-    // Slight delay trick to ensure images are fully computed before export
-    setTimeout(() => {
-        html2canvas(wrapper, { useCORS: true, scale: 3, backgroundColor: '#020617' }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `match-clash-${platform}-${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }).catch(err => {
-            console.error("Export failed:", err);
-            alert("Export failed due to external image CORS restrictions. Try using direct image URLs.");
-        });
-    }, 100);
+    const link = document.createElement('a');
+    link.download = `match-clash-${platform}-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-    updateThumbnailCanvas();
+    renderMatchCanvas();
 });
     /////////////////////////////
     function animateGlobePipeline() {
