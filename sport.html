@@ -1536,7 +1536,7 @@ async function renderWithIsolatedPanels(data) {
  * @param {string} awayTeam - The away team name
  * @param {HTMLElement} buttonElement - The button element itself (used for loading state feedback)
  */
-window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kickoffTime, buttonElement) {
+window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kickoffTime, league, buttonElement) {
     buttonElement.dataset.originalHtml = buttonElement.innerHTML;
     
     try {
@@ -1552,11 +1552,11 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kick
             </span>
         `;
 
-       // const webhookUrl = window.CONFIG?.LINEUP_WEBHOOK_URL || CONFIG?.LINEUP_WEBHOOK_URL;
-      //  if (!webhookUrl) throw new Error("Webhook URL is not defined in config.js");
+        const webhookUrl = window.CONFIG?.LINEUP_WEBHOOK_URL || LINEUP_WEBHOOK_URL;
+        if (!webhookUrl) throw new Error("Webhook URL is not defined in config.js");
 
-        // Include match_date and kick_off_time in the payload sent to n8n
-        await fetch(LINEUP_WEBHOOK_URL, {
+        // Include league along with match details in the payload sent to n8n
+        await fetch(webhookUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1565,11 +1565,12 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kick
                 away_team: awayTeam,
                 match_date: matchDate,
                 kick_off_time: kickoffTime,
+                league: league, // 👈 Added league here
                 timestamp: new Date().toISOString()
             })
         });
 
-        console.log(`Webhook sent for ${homeTeam} vs ${awayTeam} (${matchDate} at ${kickoffTime}). Polling database...`);
+        console.log(`Webhook sent for ${homeTeam} vs ${awayTeam} in ${league} (${matchDate} at ${kickoffTime}). Polling database...`);
 
         pollForLineups(homeTeam, awayTeam, buttonElement);
 
