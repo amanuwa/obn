@@ -1514,6 +1514,11 @@ async function renderWithIsolatedPanels(data) {
                             class="bg-sky-600/90 hover:bg-sky-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
                         GET NEWS
                     </button>
+                    <span> </span><!-- NOTIFY LINEUP BUTTON -->
+                    <button onclick="triggerLineupWebhook('${homeTeam}', '${awayTeam}', this)" 
+                            class="bg-cyan-600/90 hover:bg-cyan-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
+                        NOTIFY
+                    </button>
                 </div>
             </div>
         `;
@@ -1522,6 +1527,69 @@ async function renderWithIsolatedPanels(data) {
     html += '</div>';
     container.innerHTML = html;
     console.log("Successfully rendered match list with dual actions into #matchListSubPanel.");
+}
+    /**
+ * Triggers an n8n webhook or automation to notify/fetch lineups for a specific fixture.
+ * @param {string} homeTeam - The home team name
+ * @param {string} awayTeam - The away team name
+ * @param {HTMLElement} buttonElement - The button element itself (used for loading state feedback)
+ */
+async function triggerLineupWebhook(homeTeam, awayTeam, buttonElement) {
+    const originalText = buttonElement.innerText;
+    
+    try {
+        // Visual feedback: Set button to loading/processing state
+        buttonElement.innerText = "SENDING...";
+        buttonElement.disabled = true;
+        buttonElement.classList.add("opacity-50", "cursor-not-allowed");
+
+        // Grab the webhook URL from your config.js file (adjust the object name if yours differs, e.g., CONFIG.webhookUrl)
+        const webhookUrl = window.CONFIG?.LINEUP_WEBHOOK_URL || CONFIG.LINEUP_WEBHOOK_URL;
+
+        if (!webhookUrl) {
+            throw new Error("Webhook URL is not defined in config.js");
+        }
+
+        const payload = {
+            action: "notify_lineup",
+            home_team: homeTeam,
+            away_team: awayTeam,
+            timestamp: new Date().toISOString()
+        };
+
+        const response = await fetch(webhookUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server returned status ${response.status}`);
+        }
+
+        // Success state feedback
+        buttonElement.innerText = "SENT!";
+        buttonElement.classList.remove("bg-cyan-600/90", "hover:bg-cyan-500");
+        buttonElement.classList.add("bg-emerald-600", "text-white");
+
+        console.log(`Successfully dispatched lineup notification for ${homeTeam} vs ${awayTeam}`);
+
+    } catch (error) {
+        console.error("Failed to trigger lineup webhook:", error);
+        buttonElement.innerText = "ERROR";
+        buttonElement.classList.remove("bg-cyan-600/90");
+        buttonElement.classList.add("bg-rose-600", "text-white");
+    } finally {
+        // Reset button state back to normal after 3 seconds
+        setTimeout(() => {
+            buttonElement.innerText = originalText;
+            buttonElement.disabled = false;
+            buttonElement.classList.remove("opacity-50", "cursor-not-allowed", "bg-emerald-600", "bg-rose-600", "text-white");
+            buttonElement.classList.add("bg-cyan-600/90", "hover:bg-cyan-500", "text-slate-950");
+        }, 3000);
+    }
 }
 
 </script>
