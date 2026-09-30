@@ -1552,11 +1552,11 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kick
             </span>
         `;
 
-        const webhookUrl = window.CONFIG?.LINEUP_WEBHOOK_URL || CONFIG?.LINEUP_WEBHOOK_URL;
-        if (!webhookUrl) throw new Error("Webhook URL is not defined in config.js");
+       // const webhookUrl = window.CONFIG?.LINEUP_WEBHOOK_URL || CONFIG?.LINEUP_WEBHOOK_URL;
+      //  if (!webhookUrl) throw new Error("Webhook URL is not defined in config.js");
 
         // Include match_date and kick_off_time in the payload sent to n8n
-        await fetch(webhookUrl, {
+        await fetch(LINEUP_WEBHOOK_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
