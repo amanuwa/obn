@@ -1515,10 +1515,10 @@ async function renderWithIsolatedPanels(data) {
                         GET NEWS
                     </button>
                     <span> </span><!-- NOTIFY LINEUP BUTTON -->
-                    <button onclick="triggerLineupWebhook('${homeTeam}', '${awayTeam}', this)" 
-                            class="bg-cyan-600/90 hover:bg-cyan-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
-                        NOTIFY
-                    </button>
+               <button onclick="triggerLineupWebhook('${homeTeam.replace(/'/g, "\\'")}', '${awayTeam.replace(/'/g, "\\'")}', this)" 
+        class="bg-cyan-600/90 hover:bg-cyan-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
+    NOTIFY Linups
+</button>
                 </div>
             </div>
         `;
@@ -1535,62 +1535,106 @@ async function renderWithIsolatedPanels(data) {
  * @param {HTMLElement} buttonElement - The button element itself (used for loading state feedback)
  */
 async function triggerLineupWebhook(homeTeam, awayTeam, buttonElement) {
-    const originalText = buttonElement.innerText;
+    buttonElement.dataset.originalHtml = buttonElement.innerHTML;
     
     try {
-        // Visual feedback: Set button to loading/processing state
-        buttonElement.innerText = "SENDING...";
+        // Lock button & show waiting state
         buttonElement.disabled = true;
-        buttonElement.classList.add("opacity-50", "cursor-not-allowed");
+        buttonElement.classList.add("opacity-60", "cursor-not-allowed", "animate-pulse");
+        buttonElement.innerHTML = `
+            <span class="flex items-center gap-1">
+                <svg class="animate-spin -ml-1 mr-1 h-3 w-3 text-slate-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                WAITING...
+            </span>
+        `;
 
-        // Grab the webhook URL from your config.js file (adjust the object name if yours differs, e.g., CONFIG.webhookUrl)
-        const webhookUrl = window.CONFIG?.LINEUP_WEBHOOK_URL || CONFIG.LINEUP_WEBHOOK_URL;
+        const webhookUrl = window.CONFIG?.LINEUP_WEBHOOK_URL || CONFIG?.LINEUP_WEBHOOK_URL;
+        if (!webhookUrl) throw new Error("Webhook URL is not defined in config.js");
 
-        if (!webhookUrl) {
-            throw new Error("Webhook URL is not defined in config.js");
-        }
-
-        const payload = {
-            action: "notify_lineup",
-            home_team: homeTeam,
-            away_team: awayTeam,
-            timestamp: new Date().toISOString()
-        };
-
-        const response = await fetch(webhookUrl, {
+        // 1. Trigger the n8n webhook
+        await fetch(webhookUrl, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                action: "notify_lineup",
+                home_team: homeTeam,
+                away_team: awayTeam,
+                timestamp: new Date().toISOString()
+            })
         });
 
-        if (!response.ok) {
-            throw new Error(`Server returned status ${response.status}`);
-        }
+        console.log(`Webhook sent for ${homeTeam} vs ${awayTeam}. Polling database for lineups...`);
 
-        // Success state feedback
-        buttonElement.innerText = "SENT!";
-        buttonElement.classList.remove("bg-cyan-600/90", "hover:bg-cyan-500");
-        buttonElement.classList.add("bg-emerald-600", "text-white");
-
-        console.log(`Successfully dispatched lineup notification for ${homeTeam} vs ${awayTeam}`);
+        // 2. Start polling Supabase to see when rows are populated
+        pollForLineups(homeTeam, awayTeam, buttonElement);
 
     } catch (error) {
-        console.error("Failed to trigger lineup webhook:", error);
-        buttonElement.innerText = "ERROR";
-        buttonElement.classList.remove("bg-cyan-600/90");
+        console.error("Failed to trigger lineup process:", error);
+        buttonElement.disabled = false;
+        buttonElement.classList.remove("opacity-60", "cursor-not-allowed", "animate-pulse");
+        buttonElement.innerHTML = "ERROR";
         buttonElement.classList.add("bg-rose-600", "text-white");
-    } finally {
-        // Reset button state back to normal after 3 seconds
+        
         setTimeout(() => {
-            buttonElement.innerText = originalText;
-            buttonElement.disabled = false;
-            buttonElement.classList.remove("opacity-50", "cursor-not-allowed", "bg-emerald-600", "bg-rose-600", "text-white");
-            buttonElement.classList.add("bg-cyan-600/90", "hover:bg-cyan-500", "text-slate-950");
+            buttonElement.innerHTML = buttonElement.dataset.originalHtml || "NOTIFY";
+            buttonElement.classList.remove("bg-rose-600", "text-white");
         }, 3000);
     }
 }
+    async function pollForLineups(homeTeam, awayTeam, buttonElement) {
+    const maxAttempts = 30; // Stop after 30 attempts (approx. 2.5 minutes if checking every 5 seconds)
+    let attempts = 0;
+
+    const interval = setInterval(async () => {
+        attempts++;
+
+        try {
+            // Assuming you have supabase client initialized globally as `supabase`
+            const { data, error, count } = await supabase
+                .from('match_lineups') // Replace with your actual Supabase table name
+                .select('*', { count: 'exact' })
+                .eq('home_team', homeTeam)
+                .eq('away_team', awayTeam);
+
+            if (!error && data && data.length > 0) {
+                // Lineups have arrived! Clear the interval
+                clearInterval(interval);
+
+                // Update button state to show ready with count
+                buttonElement.disabled = false;
+                buttonElement.classList.remove("opacity-60", "cursor-not-allowed", "animate-pulse", "bg-cyan-600/90");
+                buttonElement.classList.add("bg-emerald-500", "text-slate-950", "font-extrabold");
+                
+                buttonElement.innerHTML = `
+                    <span class="flex items-center gap-1">
+                        READY 
+                        <span class="bg-slate-950 text-emerald-400 px-1.5 py-0.5 rounded-full text-[10px]">
+                            ${data.length}
+                        </span>
+                    </span>
+                `;
+                
+                console.log(`Lineups found for ${homeTeam} vs ${awayTeam}:`, data);
+            }
+
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                buttonElement.disabled = false;
+                buttonElement.classList.remove("opacity-60", "cursor-not-allowed", "animate-pulse");
+                buttonElement.innerHTML = "TIMEOUT";
+                setTimeout(() => {
+                    buttonElement.innerHTML = buttonElement.dataset.originalHtml || "NOTIFY";
+                }, 3000);
+            }
+        } catch (err) {
+            console.error("Error polling Supabase for lineups:", err);
+        }
+    }, 5000); // Check every 5 seconds
+}
+    
 
 </script>
 </body>
