@@ -441,23 +441,21 @@
             </div>
 
             <!-- Platform Export Action Bar -->
-            <div class="pt-2 border-t border-slate-800 space-y-2">
-                <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wide block">📥 Export Preview for Platforms</span>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="exportPodcast('youtube')" class="flex items-center justify-center gap-1.5 bg-red-600/80 hover:bg-red-600 text-white rounded px-2 py-1.5 text-xs font-medium transition shadow">
-                        ▶️ YouTube (16:9)
-                    </button>
-                    <button onclick="exportPodcast('tiktok')" class="flex items-center justify-center gap-1.5 bg-cyan-600/80 hover:bg-cyan-600 text-white rounded px-2 py-1.5 text-xs font-medium transition shadow">
-                        📱 TikTok (9:16)
-                    </button>
-                    <button onclick="exportPodcast('twitter')" class="flex items-center justify-center gap-1.5 bg-sky-600/80 hover:bg-sky-600 text-white rounded px-2 py-1.5 text-xs font-medium transition shadow">
-                        🐦 Twitter (16:9)
-                    </button>
-                    <button onclick="exportPodcast('telegram')" class="flex items-center justify-center gap-1.5 bg-blue-600/80 hover:bg-blue-600 text-white rounded px-2 py-1.5 text-xs font-medium transition shadow">
-                        ✈️ Telegram
-                    </button>
-                </div>
-            </div>
+      <!-- Platform Selection & Dynamic Export Bar -->
+<div class="pt-2 border-t border-slate-800 space-y-2">
+    <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wide block">📥 Export Preview for Platforms</span>
+    <div class="flex items-center gap-2">
+        <select id="podcastPlatformSelect" onchange="updatePodcastAspect()" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 font-mono">
+            <option value="youtube">▶️ YouTube (16:9 Landscape)</option>
+            <option value="tiktok">📱 TikTok / Reels (9:16 Vertical)</option>
+            <option value="twitter">🐦 Twitter / Facebook (1:1 Square)</option>
+            <option value="telegram">✈️ Telegram (4:5 Portrait)</option>
+        </select>
+        <button onclick="exportPodcast()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold px-4 py-2 rounded text-xs transition shadow flex items-center gap-1.5 whitespace-nowrap">
+            📥 Download
+        </button>
+    </div>
+</div>
 
         </div>
 
@@ -1768,46 +1766,57 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kick
         }
     }, 5000); // Check every 5 seconds
 }
-    function exportPodcast(platform) {
+ // Live preview resizing when dropdown changes
+window.updatePodcastAspect = function() {
+    const select = document.getElementById('podcastPlatformSelect');
     const panel = document.getElementById('podcast-preview-panel');
+    if (!select || !panel) return;
+
+    const val = select.value;
+    
+    // Remove existing aspect ratio classes
+    panel.classList.remove('aspect-video', 'aspect-[9/16]', 'aspect-square', 'aspect-[4/5]');
+
+    // Apply the exact aspect ratio dynamically
+    if (val === 'youtube' || val === 'twitter') {
+        panel.classList.add('aspect-video'); // 16:9
+    } else if (val === 'tiktok') {
+        panel.classList.add('aspect-[9/16]'); // 9:16
+    } else if (val === 'telegram') {
+        panel.classList.add('aspect-[4/5]'); // 4:5
+    } else {
+        panel.classList.add('aspect-square'); // 1:1
+    }
+};
+
+// Global export function using html2canvas
+window.exportPodcast = function() {
+    const panel = document.getElementById('podcast-preview-panel');
+    const select = document.getElementById('podcastPlatformSelect');
     if (!panel) return;
 
-    const originalClass = panel.className;
-    if (platform === 'tiktok') {
-        panel.className = panel.className.replace('aspect-video', 'aspect-[9/16]');
-    } else {
-        panel.className = panel.className.replace('aspect-[9/16]', 'aspect-video');
+    const platform = select ? select.value : 'podcast';
+
+    // Ensure html2canvas is available
+    if (typeof html2canvas === 'undefined') {
+        alert("html2canvas library is required for downloading. Make sure it's loaded in your document.");
+        return;
     }
 
-    setTimeout(() => {
-        html2canvas(panel, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: false,
-            backgroundColor: null
-        }).then(canvas => {
-            panel.className = originalClass;
-            const link = document.createElement('a');
-            link.download = `podcast-studio-${platform}-${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }).catch(err => {
-            panel.className = originalClass;
-            console.error("Export failed:", err);
-            alert("Export failed. Ensure external images allow cross-origin requests.");
-        });
-    }, 200);
-}
- // Make sure these are globally exposed on window
-window.updateAsset = function(imgId, url) {
-    const imgElement = document.getElementById(imgId);
-    if (imgElement) {
-        const cleanUrl = url.trim();
-        if (cleanUrl !== "") {
-            imgElement.crossOrigin = "anonymous";
-            imgElement.src = cleanUrl;
-        }
-    }
+    html2canvas(panel, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: null
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `podcast-studio-${platform}-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }).catch(err => {
+        console.error("Export failed:", err);
+        alert("Export failed. Make sure all images allow cross-origin sharing (CORS).");
+    });
 };
 
 window.updateSponsorsFromInputs = function() {
