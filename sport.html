@@ -1798,7 +1798,8 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kick
         });
     }, 200);
 }
-  function updateAsset(imgId, url) {
+ // Make sure these are globally exposed on window
+window.updateAsset = function(imgId, url) {
     const imgElement = document.getElementById(imgId);
     if (imgElement) {
         const cleanUrl = url.trim();
@@ -1807,11 +1808,9 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kick
             imgElement.src = cleanUrl;
         }
     }
-}
+};
 
-// Helper function to collect values from the 6 sponsor fields, filter out blanks, and render dynamically
-function updateSponsorsFromInputs() {
-    // Grab all inputs with the sponsor-url-input class
+window.updateSponsorsFromInputs = function() {
     const inputs = document.querySelectorAll('.sponsor-url-input');
     const validUrls = Array.from(inputs)
                            .map(input => input.value.trim())
@@ -1820,32 +1819,28 @@ function updateSponsorsFromInputs() {
     const container = document.getElementById('dynamic-sponsors-container');
     const countBadge = document.getElementById('sponsor-count-badge');
     
-    // Update active count badge if it exists
     if (countBadge) {
         countBadge.innerText = validUrls.length;
     }
 
     if (!container) return;
     
-    // Dynamically adjust grid columns depending on how many sponsors are active
     const colCount = validUrls.length === 0 ? 2 : Math.min(validUrls.length, 3);
     container.className = `grid gap-2 pt-3 border-t border-emerald-800/60 z-10 bg-emerald-950/80 backdrop-blur-sm px-2 py-2 rounded-lg items-center grid-cols-${colCount}`;
     container.innerHTML = "";
     
-    // If no sponsors are entered, show placeholder message
     if (validUrls.length === 0) {
         container.innerHTML = `<span class="text-xs text-slate-500 italic col-span-full text-center">No active sponsors entered</span>`;
         return;
     }
     
-    // Inject each valid sponsor logo into the container with CORS enabled
     validUrls.forEach((url, index) => {
         const div = document.createElement('div');
         div.className = "flex items-center justify-center p-1.5 bg-slate-900/60 rounded border border-emerald-800/40 h-9 overflow-hidden";
         div.innerHTML = `<img src="${url}" alt="Sponsor ${index + 1}" class="max-h-full max-w-full object-contain" crossorigin="anonymous">`;
         container.appendChild(div);
     });
-}
+};
 </script>
 </body>
 </html>
