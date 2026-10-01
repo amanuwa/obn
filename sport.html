@@ -344,96 +344,102 @@
         </div>
         <div class="w-full max-w-5xl mx-auto space-y-6 font-sans">
 
-    <!-- ================= LIVE PODCAST PREVIEW PANEL ================= -->
-    <div id="podcast-preview-panel" class="relative w-full aspect-video bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 border border-emerald-800/50 rounded-xl p-6 text-slate-100 shadow-2xl overflow-hidden flex flex-col justify-between">
+   <!-- ================= LIVE PODCAST PREVIEW PANEL ================= -->
+<div id="podcast-preview-panel" class="relative w-full aspect-video bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 border border-emerald-800/50 rounded-xl p-6 text-slate-100 shadow-2xl overflow-hidden flex flex-col justify-between">
 
-        <!-- Top Header Area -->
-        <div class="flex justify-between items-center z-10">
-            <div class="bg-emerald-900/60 border border-emerald-700/50 text-emerald-300 px-3 py-1 rounded-full text-xs font-mono tracking-widest uppercase">
-                🎙 VIDEO PODCAST STUDIO
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-xs font-mono text-emerald-400">DYNAMIC RENDER</span>
-            </div>
+    <!-- Top Header Area -->
+    <div class="flex justify-between items-center z-10">
+        <div class="bg-emerald-900/60 border border-emerald-700/50 text-emerald-300 px-3 py-1 rounded-full text-xs font-mono tracking-widest uppercase">
+            🎙 VIDEO PODCAST STUDIO
         </div>
-
-        <!-- 5 Person Image & Text Slots -->
-        <div class="grid grid-cols-5 gap-3 items-center z-10 my-auto py-4">
-            <!-- Person 1 -->
-            <div class="flex flex-col items-center text-center group">
-                <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
-                    <img id="render-img-1" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80" alt="Person 1" class="w-full h-full object-cover">
-                </div>
-                <input type="text" value="Guest One" class="mt-2 bg-transparent text-center text-xs md:text-sm font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
-            </div>
-            <!-- Person 2 -->
-            <div class="flex flex-col items-center text-center group -translate-y-2">
-                <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
-                    <img id="render-img-2" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80" alt="Person 2" class="w-full h-full object-cover">
-                </div>
-                <input type="text" value="Analyst Pro" class="mt-2 bg-transparent text-center text-xs md:text-sm font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
-            </div>
-            <!-- Person 3 (Center) -->
-            <div class="flex flex-col items-center text-center group -translate-y-4">
-                <div class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-amber-400 bg-slate-800 overflow-hidden shadow-2xl">
-                    <img id="render-img-3" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80" alt="Host" class="w-full h-full object-cover">
-                </div>
-                <input type="text" value="Main Host" class="mt-2 bg-transparent text-center text-xs md:text-sm font-extrabold text-amber-400 border-b border-transparent focus:border-amber-400 focus:outline-none w-full">
-            </div>
-            <!-- Person 4 -->
-            <div class="flex flex-col items-center text-center group -translate-y-2">
-                <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
-                    <img id="render-img-4" src="https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=300&auto=format&fit=crop&q=80" alt="Person 4" class="w-full h-full object-cover">
-                </div>
-                <input type="text" value="Guest Two" class="mt-2 bg-transparent text-center text-xs md:text-sm font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
-            </div>
-            <!-- Person 5 -->
-            <div class="flex flex-col items-center text-center group">
-                <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
-                    <img id="render-img-5" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80" alt="Person 5" class="w-full h-full object-cover">
-                </div>
-                <input type="text" value="Special Guest" class="mt-2 bg-transparent text-center text-xs md:text-sm font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
-            </div>
+        <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs font-mono text-emerald-400">DYNAMIC RENDER</span>
         </div>
-
-        <!-- ================= DYNAMIC SPONSOR BOTTOM ROW ================= -->
-        <div id="dynamic-sponsors-container" class="grid gap-2 pt-3 border-t border-emerald-800/60 z-10 bg-emerald-950/80 backdrop-blur-sm px-2 py-2 rounded-lg items-center grid-cols-2">
-            <!-- Dynamically injected via JavaScript depending on array length -->
-        </div>
-
     </div>
 
+    <!-- 5 Person Image & Text Slots -->
+    <div class="grid grid-cols-5 gap-3 items-center z-10 my-auto py-4">
+        <!-- Person 1 -->
+        <div class="flex flex-col items-center text-center group">
+            <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
+                <img id="render-img-1" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80" alt="Person 1" class="w-full h-full object-cover">
+            </div>
+            <input type="text" value="Guest One" class="mt-2 bg-transparent text-center text-xs md:text-sm font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
+        </div>
+        <!-- Person 2 -->
+        <div class="flex flex-col items-center text-center group -translate-y-2">
+            <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
+                <img id="render-img-2" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80" alt="Person 2" class="w-full h-full object-cover">
+            </div>
+            <input type="text" value="Analyst Pro" class="mt-2 bg-transparent text-center text-xs md:text-sm font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
+        </div>
+        <!-- Person 3 (Center) -->
+        <div class="flex flex-col items-center text-center group -translate-y-4">
+            <div class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-amber-400 bg-slate-800 overflow-hidden shadow-2xl">
+                <img id="render-img-3" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80" alt="Host" class="w-full h-full object-cover">
+            </div>
+            <input type="text" value="Main Host" class="mt-2 bg-transparent text-center text-xs md:text-sm font-extrabold text-amber-400 border-b border-transparent focus:border-amber-400 focus:outline-none w-full">
+        </div>
+        <!-- Person 4 -->
+        <div class="flex flex-col items-center text-center group -translate-y-2">
+            <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
+                <img id="render-img-4" src="https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=300&auto=format&fit=crop&q=80" alt="Person 4" class="w-full h-full object-cover">
+            </div>
+            <input type="text" value="Guest Two" class="mt-2 bg-transparent text-center text-xs md:text-sm font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
+        </div>
+        <!-- Person 5 -->
+        <div class="flex flex-col items-center text-center group">
+            <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
+                <img id="render-img-5" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80" alt="Person 5" class="w-full h-full object-cover">
+            </div>
+            <input type="text" value="Special Guest" class="mt-2 bg-transparent text-center text-xs md:text-sm font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
+        </div>
+    </div>
 
-    <!-- ================= ASSET & SPONSOR CONTROL CONSOLE ================= -->
-    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 text-slate-100 shadow-xl space-y-4">
-        <h3 class="text-xs font-mono tracking-widest text-emerald-400 uppercase">🔗 Asset Control Console</h3>
+    <!-- ================= DYNAMIC SPONSOR BOTTOM ROW ================= -->
+    <div id="dynamic-sponsors-container" class="grid gap-2 pt-3 border-t border-emerald-800/60 z-10 bg-emerald-950/80 backdrop-blur-sm px-2 py-2 rounded-lg items-center grid-cols-2">
+        <!-- Dynamically injected via JavaScript depending on filled sponsor boxes -->
+    </div>
+
+</div>
+
+
+<!-- ================= ASSET & SPONSOR CONTROL CONSOLE ================= -->
+<div class="bg-slate-900 border border-slate-800 rounded-xl p-5 text-slate-100 shadow-xl space-y-4">
+    <h3 class="text-xs font-mono tracking-widest text-emerald-400 uppercase">🔗 Asset Control Console</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            <!-- Person Avatars URLs (1 to 5) -->
-            <div class="space-y-2 bg-slate-950/50 p-3 rounded-lg border border-slate-800">
-                <span class="text-xs font-bold text-slate-300 block mb-2">👤 Person Image URLs (1 - 5)</span>
-                <input type="url" placeholder="Avatar 1 URL..." oninput="updateAsset('img-1', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
-                <input type="url" placeholder="Avatar 2 URL..." oninput="updateAsset('img-2', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
-                <input type="url" placeholder="Avatar 3 (Host) URL..." oninput="updateAsset('img-3', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
-                <input type="url" placeholder="Avatar 4 URL..." oninput="updateAsset('img-4', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
-                <input type="url" placeholder="Avatar 5 URL..." oninput="updateAsset('img-5', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
-            </div>
-
-            <!-- Dynamic Sponsor URLs Input -->
-            <div class="space-y-2 bg-slate-950/50 p-3 rounded-lg border border-slate-800 flex flex-col justify-between">
-                <div>
-                    <span class="text-xs font-bold text-slate-300 block mb-1">🏷️ Sponsor Logos (Dynamic List)</span>
-                    <p class="text-[10px] text-slate-400 mb-2">Paste image URLs separated by commas. The layout will automatically scale to render only the exact number of panels (e.g. 2 URLs = 2 panels, 3 URLs = 3 panels).</p>
-                    <textarea id="sponsor-urls-input" rows="5" placeholder="https://example.com/logo1.png, https://example.com/logo2.png" oninput="renderDynamicSponsors(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 font-mono"></textarea>
-                </div>
-                <div class="text-[10px] text-emerald-400 font-mono">Active Panels: <span id="sponsor-count-badge">2</span></div>
-            </div>
-
+        <!-- Person Avatars URLs (1 to 5) -->
+        <div class="space-y-2 bg-slate-950/50 p-3 rounded-lg border border-slate-800">
+            <span class="text-xs font-bold text-slate-300 block mb-2">👤 Person Image URLs (1 - 5)</span>
+            <input type="url" placeholder="Avatar 1 URL..." oninput="updateAsset('render-img-1', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+            <input type="url" placeholder="Avatar 2 URL..." oninput="updateAsset('render-img-2', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+            <input type="url" placeholder="Avatar 3 (Host) URL..." oninput="updateAsset('render-img-3', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+            <input type="url" placeholder="Avatar 4 URL..." oninput="updateAsset('render-img-4', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+            <input type="url" placeholder="Avatar 5 URL..." oninput="updateAsset('render-img-5', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
         </div>
-    </div>
 
+        <!-- Separate Sponsor Logos Inputs (1 to 6) -->
+        <div class="space-y-2 bg-slate-950/50 p-3 rounded-lg border border-slate-800 flex flex-col justify-between">
+            <div>
+                <span class="text-xs font-bold text-slate-300 block mb-1">🏷️ Sponsor Logos (6 Separate Slots)</span>
+                <p class="text-[10px] text-slate-400 mb-2">Paste a URL into any box. Empty boxes are automatically ignored, and layout scales dynamically.</p>
+                
+                <div class="space-y-1.5">
+                    <input type="url" placeholder="Sponsor 1 URL..." oninput="updateSponsorsFromInputs()" class="sponsor-url-input w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <input type="url" placeholder="Sponsor 2 URL..." oninput="updateSponsorsFromInputs()" class="sponsor-url-input w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <input type="url" placeholder="Sponsor 3 URL..." oninput="updateSponsorsFromInputs()" class="sponsor-url-input w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <input type="url" placeholder="Sponsor 4 URL..." oninput="updateSponsorsFromInputs()" class="sponsor-url-input w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <input type="url" placeholder="Sponsor 5 URL..." oninput="updateSponsorsFromInputs()" class="sponsor-url-input w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <input type="url" placeholder="Sponsor 6 URL..." oninput="updateSponsorsFromInputs()" class="sponsor-url-input w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+            <div class="text-[10px] text-emerald-400 font-mono mt-2">Active Panels: <span id="sponsor-count-badge">0</span></div>
+        </div>
+
+    </div>
 </div>
 <!-- // 4. THUMBNAIL & SOCIAL MEDIA ASSET DESIGNER (WITH REAL PNG EXPORT) -->
 <div id="thumbnail-designer-panel" class="bg-slate-900/70 p-5 rounded-lg border border-slate-800 space-y-6 mt-6">
@@ -1740,49 +1746,45 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kick
         }
     }, 5000); // Check every 5 seconds
 }
-    function updateAsset(idKey, urlValue) {
-    const imgElement = document.getElementById(`render-${idKey}`);
-    if (!imgElement) return;
-    if (urlValue.trim() !== "") {
-        imgElement.src = urlValue.trim();
-        imgElement.style.display = 'block';
+  function updateAsset(imgId, url) {
+    const imgElement = document.getElementById(imgId);
+    if (imgElement) {
+        if (url.trim() !== "") {
+            imgElement.src = url.trim();
+        }
     }
 }
 
-function renderDynamicSponsors(rawText) {
-    // Split by comma or newline and filter out empty items
-    const urls = rawText.split(/[\n,]+/).map(u => u.trim()).filter(u => u.length > 0);
+// Helper function to collect values from the 6 sponsor fields, filter out blanks, and render dynamically
+function updateSponsorsFromInputs() {
+    const inputs = document.querySelectorAll('.sponsor-url-input');
+    const validUrls = Array.from(inputs)
+                           .map(input => input.value.trim())
+                           .filter(url => url !== "");
+                           
     const container = document.getElementById('dynamic-sponsors-container');
     const badge = document.getElementById('sponsor-count-badge');
     
-    badge.innerText = urls.length;
+    if (badge) badge.innerText = validUrls.length;
+    if (!container) return;
     
-    // Fallback if empty
-    if (urls.length === 0) {
-        container.className = "grid gap-2 pt-3 border-t border-emerald-800/60 z-10 bg-emerald-950/80 backdrop-blur-sm px-2 py-2 rounded-lg items-center grid-cols-2";
-        container.innerHTML = `
-            <div class="bg-emerald-900/40 border border-emerald-700/40 rounded p-1.5 flex items-center justify-center h-10"><span class="text-[10px] font-bold text-white">HEINEKEN</span></div>
-            <div class="bg-emerald-900/40 border border-emerald-700/40 rounded p-1.5 flex items-center justify-center h-10"><span class="text-[10px] font-bold text-white">UCL</span></div>
-        `;
+    // Adjust CSS grid columns dynamically based on count (fallback to grid-cols-2 if empty)
+    container.className = `grid gap-2 pt-3 border-t border-emerald-800/60 z-10 bg-emerald-950/80 backdrop-blur-sm px-2 py-2 rounded-lg items-center grid-cols-${Math.max(validUrls.length, 1)}`;
+    
+    container.innerHTML = "";
+    
+    if (validUrls.length === 0) {
+        container.innerHTML = `<span class="text-xs text-slate-500 italic col-span-full text-center">No active sponsors entered</span>`;
         return;
     }
-
-    // Set grid columns dynamically based on count (capped or matching exact length up to 6)
-    const colCount = Math.min(Math.max(urls.length, 1), 6);
-    container.className = `grid gap-2 pt-3 border-t border-emerald-800/60 z-10 bg-emerald-950/80 backdrop-blur-sm px-2 py-2 rounded-lg items-center grid-cols-${colCount}`;
-
-    // Render individual panels
-    container.innerHTML = urls.map((url, index) => `
-        <div class="bg-emerald-900/40 border border-emerald-700/40 rounded p-1.5 flex items-center justify-center h-10 overflow-hidden shadow">
-            <img src="${url}" alt="Sponsor ${index + 1}" class="max-h-full max-w-full object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/80x30?text=Logo';">
-        </div>
-    `).join('');
-}
-
-// Initialize with 2 sample sponsors on load
-document.getElementById('sponsor-urls-input').value = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=60,\nhttps://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&auto=format&fit=crop&q=60";
-renderDynamicSponsors(document.getElementById('sponsor-urls-input').value);
     
+    validUrls.forEach((url, index) => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-center p-1 bg-slate-900/60 rounded border border-emerald-800/40 h-8";
+        div.innerHTML = `<img src="${url}" alt="Sponsor ${index + 1}" class="max-h-full max-w-full object-contain">`;
+        container.appendChild(div);
+    });
+}
 
 </script>
 </body>
