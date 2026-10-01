@@ -1767,58 +1767,19 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kick
     }, 5000); // Check every 5 seconds
 }
  // Live preview resizing when dropdown changes
-window.updatePodcastAspect = function() {
-    const select = document.getElementById('podcastPlatformSelect');
-    const panel = document.getElementById('podcast-preview-panel');
-    if (!select || !panel) return;
-
-    const val = select.value;
-    
-    // Remove existing aspect ratio classes
-    panel.classList.remove('aspect-video', 'aspect-[9/16]', 'aspect-square', 'aspect-[4/5]');
-
-    // Apply the exact aspect ratio dynamically
-    if (val === 'youtube' || val === 'twitter') {
-        panel.classList.add('aspect-video'); // 16:9
-    } else if (val === 'tiktok') {
-        panel.classList.add('aspect-[9/16]'); // 9:16
-    } else if (val === 'telegram') {
-        panel.classList.add('aspect-[4/5]'); // 4:5
-    } else {
-        panel.classList.add('aspect-square'); // 1:1
+// 1. Globally expose updateAsset for the 5 person avatars
+window.updateAsset = function(imgId, url) {
+    const imgElement = document.getElementById(imgId);
+    if (imgElement) {
+        const cleanUrl = url.trim();
+        if (cleanUrl !== "") {
+            imgElement.crossOrigin = "anonymous";
+            imgElement.src = cleanUrl;
+        }
     }
 };
 
-// Global export function using html2canvas
-window.exportPodcast = function() {
-    const panel = document.getElementById('podcast-preview-panel');
-    const select = document.getElementById('podcastPlatformSelect');
-    if (!panel) return;
-
-    const platform = select ? select.value : 'podcast';
-
-    // Ensure html2canvas is available
-    if (typeof html2canvas === 'undefined') {
-        alert("html2canvas library is required for downloading. Make sure it's loaded in your document.");
-        return;
-    }
-
-    html2canvas(panel, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: null
-    }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `podcast-studio-${platform}-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    }).catch(err => {
-        console.error("Export failed:", err);
-        alert("Export failed. Make sure all images allow cross-origin sharing (CORS).");
-    });
-};
-
+// 2. Globally expose updateSponsorsFromInputs for the 6 sponsor slots
 window.updateSponsorsFromInputs = function() {
     const inputs = document.querySelectorAll('.sponsor-url-input');
     const validUrls = Array.from(inputs)
@@ -1848,6 +1809,56 @@ window.updateSponsorsFromInputs = function() {
         div.className = "flex items-center justify-center p-1.5 bg-slate-900/60 rounded border border-emerald-800/40 h-9 overflow-hidden";
         div.innerHTML = `<img src="${url}" alt="Sponsor ${index + 1}" class="max-h-full max-w-full object-contain" crossorigin="anonymous">`;
         container.appendChild(div);
+    });
+};
+
+// 3. Live preview resizing when dropdown changes
+window.updatePodcastAspect = function() {
+    const select = document.getElementById('podcastPlatformSelect');
+    const panel = document.getElementById('podcast-preview-panel');
+    if (!select || !panel) return;
+
+    const val = select.value;
+    
+    panel.classList.remove('aspect-video', 'aspect-[9/16]', 'aspect-square', 'aspect-[4/5]');
+
+    if (val === 'youtube' || val === 'twitter') {
+        panel.classList.add('aspect-video'); // 16:9
+    } else if (val === 'tiktok') {
+        panel.classList.add('aspect-[9/16]'); // 9:16
+    } else if (val === 'telegram') {
+        panel.classList.add('aspect-[4/5]'); // 4:5
+    } else {
+        panel.classList.add('aspect-square'); // 1:1
+    }
+};
+
+// 4. Global export function using html2canvas
+window.exportPodcast = function() {
+    const panel = document.getElementById('podcast-preview-panel');
+    const select = document.getElementById('podcastPlatformSelect');
+    if (!panel) return;
+
+    const platform = select ? select.value : 'podcast';
+
+    if (typeof html2canvas === 'undefined') {
+        alert("html2canvas library is required for downloading.");
+        return;
+    }
+
+    html2canvas(panel, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: null
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `podcast-studio-${platform}-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }).catch(err => {
+        console.error("Export failed:", err);
+        alert("Export failed. Ensure images allow cross-origin sharing (CORS).");
     });
 };
 </script>
