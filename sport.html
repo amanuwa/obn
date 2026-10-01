@@ -346,7 +346,7 @@
 
    <!-- ================= LIVE PODCAST PREVIEW PANEL ================= -->
 <!-- ================= LIVE PODCAST PREVIEW PANEL ================= -->
-<div id="podcast-preview-panel" class="relative w-full aspect-video bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 border border-emerald-800/50 rounded-xl p-6 text-slate-100 shadow-2xl overflow-hidden flex flex-col justify-between">
+<div id="podcast-preview-panel" class="relative w-full aspect-video bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 border border-emerald-800/50 rounded-xl p-6 text-slate-100 shadow-2xl overflow-hidden flex flex-col justify-between transition-all duration-300">
 
     <!-- Top Header Area -->
     <div class="flex justify-between items-center z-10">
@@ -360,47 +360,52 @@
     </div>
 
     <!-- 5 Person Image & Text Slots -->
-    <div class="grid grid-cols-5 gap-3 items-center z-10 my-auto py-4">
+    <div class="grid grid-cols-5 gap-3 items-center z-10 my-auto py-2">
         <!-- Person 1 -->
         <div class="flex flex-col items-center text-center group">
-            <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
+            <div class="w-16 h-16 md:w-24 md:h-24 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
                 <img id="render-img-1" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80" alt="Person 1" class="w-full h-full object-cover" crossorigin="anonymous">
             </div>
-            <input type="text" value="Guest One" class="mt-2 bg-transparent text-center text-xs md:text-sm font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
+            <input type="text" value="Guest One" class="mt-1 bg-transparent text-center text-[10px] md:text-xs font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
         </div>
         <!-- Person 2 -->
         <div class="flex flex-col items-center text-center group -translate-y-2">
-            <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
+            <div class="w-16 h-16 md:w-24 md:h-24 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
                 <img id="render-img-2" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80" alt="Person 2" class="w-full h-full object-cover" crossorigin="anonymous">
             </div>
-            <input type="text" value="Analyst Pro" class="mt-2 bg-transparent text-center text-xs md:text-sm font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
+            <input type="text" value="Analyst Pro" class="mt-1 bg-transparent text-center text-[10px] md:text-xs font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
         </div>
-        <!-- Person 3 (Center) -->
+        <!-- Person 3 (Center Host) -->
         <div class="flex flex-col items-center text-center group -translate-y-4">
-            <div class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-amber-400 bg-slate-800 overflow-hidden shadow-2xl">
+            <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-4 border-amber-400 bg-slate-800 overflow-hidden shadow-2xl">
                 <img id="render-img-3" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80" alt="Host" class="w-full h-full object-cover" crossorigin="anonymous">
             </div>
-            <input type="text" value="Main Host" class="mt-2 bg-transparent text-center text-xs md:text-sm font-extrabold text-amber-400 border-b border-transparent focus:border-amber-400 focus:outline-none w-full">
+            <input type="text" value="Main Host" class="mt-1 bg-transparent text-center text-[10px] md:text-xs font-extrabold text-amber-400 border-b border-transparent focus:border-amber-400 focus:outline-none w-full">
         </div>
         <!-- Person 4 -->
         <div class="flex flex-col items-center text-center group -translate-y-2">
-            <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
+            <div class="w-16 h-16 md:w-24 md:h-24 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
                 <img id="render-img-4" src="https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=300&auto=format&fit=crop&q=80" alt="Person 4" class="w-full h-full object-cover" crossorigin="anonymous">
             </div>
-            <input type="text" value="Guest Two" class="mt-2 bg-transparent text-center text-xs md:text-sm font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
+            <input type="text" value="Guest Two" class="mt-1 bg-transparent text-center text-[10px] md:text-xs font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
         </div>
         <!-- Person 5 -->
         <div class="flex flex-col items-center text-center group">
-            <div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
+            <div class="w-16 h-16 md:w-24 md:h-24 rounded-full border-2 border-emerald-500/80 bg-slate-800 overflow-hidden shadow-lg">
                 <img id="render-img-5" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80" alt="Person 5" class="w-full h-full object-cover" crossorigin="anonymous">
             </div>
-            <input type="text" value="Special Guest" class="mt-2 bg-transparent text-center text-xs md:text-sm font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
+            <input type="text" value="Special Guest" class="mt-1 bg-transparent text-center text-[10px] md:text-xs font-bold text-slate-200 border-b border-transparent focus:border-emerald-500 focus:outline-none w-full">
         </div>
     </div>
 
+    <!-- ================= WIDE TEXT BOX (Between Avatars & Sponsors) ================= -->
+    <div class="z-15 my-1 px-4">
+        <input type="text" id="podcast-wide-title" placeholder="ENTER EPISODE TITLE OR SUBHEADING..." value="THE ULTIMATE TECH & AI DEBATE: LIVE SPECIAL" class="w-full bg-emerald-950/60 border border-emerald-700/60 rounded-lg py-1.5 px-3 text-center text-xs md:text-sm font-extrabold tracking-wider text-emerald-200 focus:outline-none focus:border-amber-400 uppercase shadow-inner">
+    </div>
+
     <!-- ================= DYNAMIC SPONSOR BOTTOM ROW ================= -->
-    <div id="dynamic-sponsors-container" class="grid gap-2 pt-3 border-t border-emerald-800/60 z-10 bg-emerald-950/80 backdrop-blur-sm px-2 py-2 rounded-lg items-center grid-cols-2">
-        <!-- Dynamically injected via JavaScript depending on filled sponsor boxes -->
+    <div id="dynamic-sponsors-container" class="grid gap-2 pt-2 border-t border-emerald-800/60 z-10 bg-emerald-950/80 backdrop-blur-sm px-2 py-2 rounded-lg items-center grid-cols-6">
+        <!-- Dynamically injected via JavaScript -->
     </div>
 
 </div>
@@ -428,7 +433,7 @@
         <div class="space-y-3 bg-slate-950/50 p-3 rounded-lg border border-slate-800 flex flex-col justify-between">
             <div>
                 <span class="text-xs font-bold text-slate-300 block mb-1">🏷️ Sponsor Logos (6 Separate Slots)</span>
-                <p class="text-[10px] text-slate-400 mb-2">Paste a URL into any box. Empty boxes are ignored automatically.</p>
+                <p class="text-[10px] text-slate-400 mb-2">Paste a URL into any box. YouTube displays all 6 in a row; other platforms use a 3-column grid.</p>
                 
                 <div class="space-y-1.5 mb-2">
                     <input type="url" placeholder="Sponsor 1 URL..." oninput="updateSponsorsFromInputs()" class="sponsor-url-input w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
@@ -440,23 +445,27 @@
                 </div>
             </div>
 
-            <!-- Platform Export Action Bar -->
-      <!-- Platform Selection & Dynamic Export Bar -->
-<div class="pt-2 border-t border-slate-800 space-y-2">
-    <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wide block">📥 Export Preview for Platforms</span>
-    <div class="flex items-center gap-2">
-        <select id="podcastPlatformSelect" onchange="updatePodcastAspect()" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 font-mono">
-            <option value="youtube">▶️ YouTube (16:9 Landscape)</option>
-            <option value="tiktok">📱 TikTok / Reels (9:16 Vertical)</option>
-            <option value="twitter">🐦 Twitter / Facebook (1:1 Square)</option>
-            <option value="telegram">✈️ Telegram (4:5 Portrait)</option>
-        </select>
-        <button onclick="exportPodcast()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold px-4 py-2 rounded text-xs transition shadow flex items-center gap-1.5 whitespace-nowrap">
-            📥 Download
-        </button>
+            <!-- Platform Selection & Download Action Bar -->
+            <div class="pt-2 border-t border-slate-800 space-y-2">
+                <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wide block">📥 Export Preview for Platforms</span>
+                <div class="flex items-center gap-2">
+                    <select id="podcastPlatformSelect" onchange="updatePodcastAspect()" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 font-mono">
+                        <option value="youtube">▶️ YouTube (16:9 Landscape - 6 Row)</option>
+                        <option value="tiktok">📱 TikTok / Reels (9:16 Vertical - 3 Col)</option>
+                        <option value="twitter">🐦 Twitter / Facebook (1:1 Square - 3 Col)</option>
+                        <option value="telegram">✈️ Telegram (4:5 Portrait - 3 Col)</option>
+                    </select>
+                    <button onclick="exportPodcast()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold px-4 py-2 rounded text-xs transition shadow flex items-center gap-1.5 whitespace-nowrap">
+                        📥 Download
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 </div>
-
+//////////////////
         </div>
 
     </div>
@@ -1779,7 +1788,6 @@ window.updateAsset = function(imgId, url) {
     }
 };
 
-// 2. Globally expose updateSponsorsFromInputs for the 6 sponsor slots
 window.updateSponsorsFromInputs = function() {
     const inputs = document.querySelectorAll('.sponsor-url-input');
     const validUrls = Array.from(inputs)
@@ -1788,6 +1796,8 @@ window.updateSponsorsFromInputs = function() {
                            
     const container = document.getElementById('dynamic-sponsors-container');
     const countBadge = document.getElementById('sponsor-count-badge');
+    const select = document.getElementById('podcastPlatformSelect');
+    const platform = select ? select.value : 'youtube';
     
     if (countBadge) {
         countBadge.innerText = validUrls.length;
@@ -1795,8 +1805,15 @@ window.updateSponsorsFromInputs = function() {
 
     if (!container) return;
     
-    const colCount = validUrls.length === 0 ? 2 : Math.min(validUrls.length, 3);
-    container.className = `grid gap-2 pt-3 border-t border-emerald-800/60 z-10 bg-emerald-950/80 backdrop-blur-sm px-2 py-2 rounded-lg items-center grid-cols-${colCount}`;
+    // Determine layout: YouTube = all in one horizontal row (up to 6 columns), others = 3-column grid
+    let cols = 3;
+    if (platform === 'youtube') {
+        cols = Math.max(validUrls.length, 1); // Single row spanning up to 6 columns
+    } else {
+        cols = 3; // 3 columns for TikTok, Twitter, Telegram
+    }
+
+    container.className = `grid gap-2 pt-2 border-t border-emerald-800/60 z-10 bg-emerald-950/80 backdrop-blur-sm px-2 py-2 rounded-lg items-center grid-cols-${cols}`;
     container.innerHTML = "";
     
     if (validUrls.length === 0) {
@@ -1806,13 +1823,12 @@ window.updateSponsorsFromInputs = function() {
     
     validUrls.forEach((url, index) => {
         const div = document.createElement('div');
-        div.className = "flex items-center justify-center p-1.5 bg-slate-900/60 rounded border border-emerald-800/40 h-9 overflow-hidden";
+        div.className = "flex items-center justify-center p-1.5 bg-slate-900/60 rounded border border-emerald-800/40 h-8 md:h-9 overflow-hidden";
         div.innerHTML = `<img src="${url}" alt="Sponsor ${index + 1}" class="max-h-full max-w-full object-contain" crossorigin="anonymous">`;
         container.appendChild(div);
     });
 };
 
-// 3. Live preview resizing when dropdown changes
 window.updatePodcastAspect = function() {
     const select = document.getElementById('podcastPlatformSelect');
     const panel = document.getElementById('podcast-preview-panel');
@@ -1831,9 +1847,11 @@ window.updatePodcastAspect = function() {
     } else {
         panel.classList.add('aspect-square'); // 1:1
     }
+
+    // Refresh sponsor layout formatting based on the newly selected platform
+    window.updateSponsorsFromInputs();
 };
 
-// 4. Global export function using html2canvas
 window.exportPodcast = function() {
     const panel = document.getElementById('podcast-preview-panel');
     const select = document.getElementById('podcastPlatformSelect');
