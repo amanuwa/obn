@@ -1452,24 +1452,25 @@ async function fetchSupabaseTeamAssets(teamName, prefix) {
     }
 
     try {
-        console.log(`🔍 Searching Supabase for Team: "${teamName}" (${prefix})`);
+        let cleanTeam = (teamName || "").trim();
+        console.log(`🔍 [${prefix}] Searching Supabase for Team: "${cleanTeam}"`);
 
         // 1. Fetch Manager from 'Managers' table
         const { data: managerData, error: mgrError } = await window.supabaseClient
             .from('Managers')
             .select('*')
-            .or(`current_team.ilike.%${teamName}%,Managers_name.ilike.%${teamName}%`)
+            .ilike('current_team', `%${cleanTeam}%`)
             .maybeSingle();
 
         if (mgrError) {
-            console.error(`❌ Manager fetch error for ${teamName}:`, mgrError);
+            console.error(`❌ Manager fetch error for ${cleanTeam}:`, mgrError);
         }
 
         if (managerData) {
-            console.log(`✅ Found Manager for ${teamName}:`, managerData);
+            console.log(`✅ Found Manager for ${cleanTeam}:`, managerData);
             
             // Set Manager Name
-            const mgrName = managerData.Managers_name || teamName + " Manager";
+            const mgrName = managerData.Managers_name || cleanTeam + " Manager";
             safeSetText(`${prefix}ManagerName`, mgrName);
 
             // Set Manager Photo
@@ -1478,30 +1479,43 @@ async function fetchSupabaseTeamAssets(teamName, prefix) {
                 console.log(`🖼️ Setting Manager Photo URL:`, managerData.Manager_photo);
                 imgEl.src = managerData.Manager_photo;
             } else {
-                console.warn(`⚠️ Manager photo URL missing or img element not found for ${teamName}`);
+                console.warn(`⚠️ Manager_photo field is empty or img element not found.`);
             }
         } else {
-            console.warn(`⚠️ No manager found in Supabase for: "${teamName}"`);
-            safeSetText(`${prefix}ManagerName`, teamName + " Manager");
+            console.warn(`⚠️ No manager row matched current_team like "%${cleanTeam}%"`);
+            safeSetText(`${prefix}ManagerName`, cleanTeam + " Manager");
         }
 
-        // 2. Fetch Logo from 'team logos' table
+        // 2. Fetch Logo from 'team logos' table (handling table with space)
         const { data: logoData, error: logoError } = await window.supabaseClient
             .from('team logos')
             .select('*')
-            .ilike('team_name', `%${teamName}%`)
+            .ilike('team_name', `%${cleanTeam}%`)
             .maybeSingle();
 
         if (logoError) {
-            console.error(`❌ Logo fetch error for ${teamName}:`, logoError);
+            console.error(`❌ Logo fetch error for ${cleanTeam}:`, logoError);
         }
 
         if (logoData && logoData.logo_url) {
-            console.log(`✅ Found Logo for ${teamName}:`, logoData.logo_url);
+            console.log(`✅ Found Logo URL for ${cleanTeam}:`, logoData.logo_url);
             const logoEl = document.getElementById(`${prefix}ClubLogo`);
             if (logoEl) logoEl.src = logoData.logo_url;
         } else {
-            console.warn(`⚠️ No logo found in Supabase for: "${teamName}"`);
+            console.warn(`⚠️ No logo found in 'team logos' for "${cleanTeam}". Trying broader search...`);
+            
+            // Fallback: fetch all and match loosely in JavaScript if ilike fails
+            const { data: allLogos } = await window.supabaseClient.from('team logos').select('*');
+            if (allLogos) {
+                const matchedLogo = allLogos.find(l => 
+                    l.team_name && (l.team_name.toLowerCase().includes(cleanTeam.toLowerCase()) || cleanTeam.toLowerCase().includes(l.team_name.toLowerCase()))
+                );
+                if (matchedLogo && matchedLogo.logo_url) {
+                    console.log(`✅ Found Logo via Fallback for ${cleanTeam}:`, matchedLogo.logo_url);
+                    const logoEl = document.getElementById(`${prefix}ClubLogo`);
+                    if (logoEl) logoEl.src = matchedLogo.logo_url;
+                }
+            }
         }
     } catch (e) {
         console.error(`❌ Failed fetching Supabase assets for ${teamName}:`, e);
