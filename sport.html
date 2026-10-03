@@ -1452,34 +1452,56 @@ async function fetchSupabaseTeamAssets(teamName, prefix) {
     }
 
     try {
-        // 1. Fetch Manager from 'Managers' table (matching your exact column names)
+        console.log(`🔍 Searching Supabase for Team: "${teamName}" (${prefix})`);
+
+        // 1. Fetch Manager from 'Managers' table
         const { data: managerData, error: mgrError } = await window.supabaseClient
             .from('Managers')
             .select('*')
-            .ilike('current_team', `%${teamName}%`)
+            .or(`current_team.ilike.%${teamName}%,Managers_name.ilike.%${teamName}%`)
             .maybeSingle();
 
+        if (mgrError) {
+            console.error(`❌ Manager fetch error for ${teamName}:`, mgrError);
+        }
+
         if (managerData) {
-            // Using your exact column: Managers_name & Manager_photo
-            safeSetText(`${prefix}ManagerName`, managerData.Managers_name || teamName + " Manager");
+            console.log(`✅ Found Manager for ${teamName}:`, managerData);
+            
+            // Set Manager Name
+            const mgrName = managerData.Managers_name || teamName + " Manager";
+            safeSetText(`${prefix}ManagerName`, mgrName);
+
+            // Set Manager Photo
             const imgEl = document.getElementById(`${prefix}ManagerImg`);
             if (imgEl && managerData.Manager_photo) {
+                console.log(`🖼️ Setting Manager Photo URL:`, managerData.Manager_photo);
                 imgEl.src = managerData.Manager_photo;
+            } else {
+                console.warn(`⚠️ Manager photo URL missing or img element not found for ${teamName}`);
             }
         } else {
+            console.warn(`⚠️ No manager found in Supabase for: "${teamName}"`);
             safeSetText(`${prefix}ManagerName`, teamName + " Manager");
         }
 
-        // 2. Fetch Logo from 'team logos' table (matching your exact table and columns)
+        // 2. Fetch Logo from 'team logos' table
         const { data: logoData, error: logoError } = await window.supabaseClient
             .from('team logos')
             .select('*')
             .ilike('team_name', `%${teamName}%`)
             .maybeSingle();
 
+        if (logoError) {
+            console.error(`❌ Logo fetch error for ${teamName}:`, logoError);
+        }
+
         if (logoData && logoData.logo_url) {
+            console.log(`✅ Found Logo for ${teamName}:`, logoData.logo_url);
             const logoEl = document.getElementById(`${prefix}ClubLogo`);
             if (logoEl) logoEl.src = logoData.logo_url;
+        } else {
+            console.warn(`⚠️ No logo found in Supabase for: "${teamName}"`);
         }
     } catch (e) {
         console.error(`❌ Failed fetching Supabase assets for ${teamName}:`, e);
