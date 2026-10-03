@@ -2298,18 +2298,18 @@ window.exportPodcast = function() {
         });
     }
 
-    function updateAllLineupAspects() {
-        const platform = document.getElementById('masterPlatformSelect').value;
-        const wrappers = [document.getElementById('homeLineupWrapper'), document.getElementById('awayLineupWrapper')];
+    // function updateAllLineupAspects() {
+    //     const platform = document.getElementById('masterPlatformSelect').value;
+    //     const wrappers = [document.getElementById('homeLineupWrapper'), document.getElementById('awayLineupWrapper')];
         
-        wrappers.forEach(wrapper => {
-            wrapper.classList.remove('aspect-video', 'aspect-[9/16]', 'aspect-square', 'aspect-[4/5]');
-            if (platform === 'youtube') wrapper.classList.add('aspect-video');
-            else if (platform === 'tiktok') wrapper.classList.add('aspect-[9/16]');
-            else if (platform === 'twitter') wrapper.classList.add('aspect-square');
-            else if (platform === 'telegram') wrapper.classList.add('aspect-[4/5]');
-        });
-    }
+    //     wrappers.forEach(wrapper => {
+    //         wrapper.classList.remove('aspect-video', 'aspect-[9/16]', 'aspect-square', 'aspect-[4/5]');
+    //         if (platform === 'youtube') wrapper.classList.add('aspect-video');
+    //         else if (platform === 'tiktok') wrapper.classList.add('aspect-[9/16]');
+    //         else if (platform === 'twitter') wrapper.classList.add('aspect-square');
+    //         else if (platform === 'telegram') wrapper.classList.add('aspect-[4/5]');
+    //     });
+    // }
 
     function exportSingleLineup(team) {
         alert(`Generating high-resolution PNG asset for the ${team.toUpperCase()} team lineup...`);
