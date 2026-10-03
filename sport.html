@@ -616,9 +616,9 @@
                 </button>
             </div>
 
-            <!-- Home Aspect Wrapper (Enlarged max-w-[720px] for a bigger card look) -->
+            <!-- Home Aspect Wrapper (Taller & Bigger Panel) -->
             <div class="flex justify-center w-full overflow-x-auto py-2">
-                <div id="homeLineupWrapper" class="relative w-full max-w-[720px] aspect-video bg-blue-950 rounded-2xl border border-blue-900/60 overflow-hidden shadow-2xl flex flex-col justify-between p-6 transition-all duration-300">
+                <div id="homeLineupWrapper" class="relative w-full max-w-[760px] min-h-[520px] aspect-video bg-blue-950 rounded-2xl border border-blue-900/60 overflow-hidden shadow-2xl flex flex-col justify-between p-7 transition-all duration-300">
                     
                     <!-- Header -->
                     <div class="flex justify-between items-center z-10">
@@ -627,25 +627,25 @@
                         </div>
                         <div class="flex items-center gap-2.5">
                             <div id="homePostStats" class="bg-white/10 px-2.5 py-1 rounded text-white font-mono text-xs font-bold">0</div>
-                            <img id="homeClubLogo" src="" class="w-8 h-8 rounded-full border border-white/40 object-cover bg-slate-800" crossorigin="anonymous">
+                            <img id="homeClubLogo" src="" class="w-9 h-9 rounded-full border border-white/40 object-cover bg-slate-800 shadow" crossorigin="anonymous">
                         </div>
                     </div>
 
                     <!-- Split Grid Content -->
-                    <div class="grid grid-cols-2 gap-6 items-center my-auto z-10">
+                    <div class="grid grid-cols-2 gap-6 items-center my-auto z-10 py-2">
                         <!-- Left Side: Supabase Manager Photo & Name -->
-                        <div class="relative h-full min-h-[240px] flex flex-col justify-end rounded-xl overflow-hidden border border-blue-800/40 bg-gradient-to-t from-blue-900/80 to-transparent">
-                            <img id="homeManagerImg" src="" class="absolute inset-0 w-full h-full object-cover object-top opacity-90" crossorigin="anonymous">
-                            <div class="relative z-10 w-full bg-blue-950/95 backdrop-blur-md px-3 py-2 border-t border-blue-800/60 flex flex-col">
+                        <div class="relative h-full min-h-[300px] flex flex-col justify-end rounded-xl overflow-hidden border border-blue-800/40 bg-gradient-to-t from-blue-900/80 to-transparent">
+                            <img id="homeManagerImg" src="" class="absolute inset-0 w-full h-full object-cover object-top opacity-95" crossorigin="anonymous">
+                            <div class="relative z-10 w-full bg-blue-950/95 backdrop-blur-md px-3 py-2.5 border-t border-blue-800/60 flex flex-col">
                                 <span class="text-[9px] font-mono tracking-widest text-emerald-400 uppercase font-semibold">Manager (Supabase)</span>
                                 <span id="homeManagerName" class="text-white font-extrabold text-xs truncate">Awaiting Supabase Data...</span>
                             </div>
                         </div>
 
-                        <!-- Right Side: n8n Starting XI (Bigger, Bolder Text) -->
-                        <div class="flex flex-col justify-center space-y-1 text-right font-mono pr-1">
+                        <!-- Right Side: n8n Starting XI (No Scroll, Big & Bold) -->
+                        <div class="flex flex-col justify-center space-y-1.5 text-right font-mono pr-1">
                             <h3 id="homeFixtureTitle" class="text-xs font-extrabold text-amber-400 tracking-wider mb-2">// HOME XI</h3>
-                            <div id="homeStartingXiContainer" class="space-y-1 text-xs text-white max-h-[220px] overflow-y-auto pr-1">
+                            <div id="homeStartingXiContainer" class="space-y-1 text-xs text-white">
                                 <div class="text-slate-400 text-xs italic py-6 text-center">Waiting for n8n webhook payload...</div>
                             </div>
                         </div>
@@ -655,7 +655,7 @@
                     <div class="z-10 pt-3 border-t border-blue-900/50 flex flex-col gap-1.5">
                         <div class="flex justify-between items-center text-[10px] font-mono">
                             <span class="text-red-400 font-bold uppercase tracking-wide">Subs:</span>
-                            <span id="homeSubsContainer" class="text-slate-300 font-medium truncate max-w-[480px] text-right italic">Awaiting n8n response...</span>
+                            <span id="homeSubsContainer" class="text-slate-300 font-medium truncate max-w-[500px] text-right italic">Awaiting n8n response...</span>
                         </div>
                         <div class="flex justify-between items-center text-[9px] font-mono text-blue-400">
                             <span>n8n x SUPABASE PIPELINE</span>
@@ -678,9 +678,9 @@
                 </button>
             </div>
 
-            <!-- Away Aspect Wrapper (Enlarged max-w-[720px]) -->
+            <!-- Away Aspect Wrapper (Taller & Bigger Panel) -->
             <div class="flex justify-center w-full overflow-x-auto py-2">
-                <div id="awayLineupWrapper" class="relative w-full max-w-[720px] aspect-video bg-slate-950 rounded-2xl border border-indigo-900/60 overflow-hidden shadow-2xl flex flex-col justify-between p-6 transition-all duration-300">
+                <div id="awayLineupWrapper" class="relative w-full max-w-[760px] min-h-[520px] aspect-video bg-slate-950 rounded-2xl border border-indigo-900/60 overflow-hidden shadow-2xl flex flex-col justify-between p-7 transition-all duration-300">
                     
                     <!-- Header -->
                     <div class="flex justify-between items-center z-10">
@@ -689,25 +689,25 @@
                         </div>
                         <div class="flex items-center gap-2.5">
                             <div id="awayPostStats" class="bg-white/10 px-2.5 py-1 rounded text-white font-mono text-xs font-bold">0</div>
-                            <img id="awayClubLogo" src="" class="w-8 h-8 rounded-full border border-white/40 object-cover bg-slate-800" crossorigin="anonymous">
+                            <img id="awayClubLogo" src="" class="w-9 h-9 rounded-full border border-white/40 object-cover bg-slate-800 shadow" crossorigin="anonymous">
                         </div>
                     </div>
 
                     <!-- Split Grid Content -->
-                    <div class="grid grid-cols-2 gap-6 items-center my-auto z-10">
+                    <div class="grid grid-cols-2 gap-6 items-center my-auto z-10 py-2">
                         <!-- Left Side: Supabase Manager Photo & Name -->
-                        <div class="relative h-full min-h-[240px] flex flex-col justify-end rounded-xl overflow-hidden border border-indigo-800/40 bg-gradient-to-t from-indigo-900/80 to-transparent">
-                            <img id="awayManagerImg" src="" class="absolute inset-0 w-full h-full object-cover object-top opacity-90" crossorigin="anonymous">
-                            <div class="relative z-10 w-full bg-slate-950/95 backdrop-blur-md px-3 py-2 border-t border-indigo-800/60 flex flex-col">
+                        <div class="relative h-full min-h-[300px] flex flex-col justify-end rounded-xl overflow-hidden border border-indigo-800/40 bg-gradient-to-t from-indigo-900/80 to-transparent">
+                            <img id="awayManagerImg" src="" class="absolute inset-0 w-full h-full object-cover object-top opacity-95" crossorigin="anonymous">
+                            <div class="relative z-10 w-full bg-slate-950/95 backdrop-blur-md px-3 py-2.5 border-t border-indigo-800/60 flex flex-col">
                                 <span class="text-[9px] font-mono tracking-widest text-indigo-400 uppercase font-semibold">Manager (Supabase)</span>
                                 <span id="awayManagerName" class="text-white font-extrabold text-xs truncate">Awaiting Supabase Data...</span>
                             </div>
                         </div>
 
-                        <!-- Right Side: n8n Starting XI (Bigger, Bolder Text) -->
-                        <div class="flex flex-col justify-center space-y-1 text-right font-mono pr-1">
+                        <!-- Right Side: n8n Starting XI (No Scroll, Big & Bold) -->
+                        <div class="flex flex-col justify-center space-y-1.5 text-right font-mono pr-1">
                             <h3 id="awayFixtureTitle" class="text-xs font-extrabold text-amber-400 tracking-wider mb-2">// AWAY XI</h3>
-                            <div id="awayStartingXiContainer" class="space-y-1 text-xs text-white max-h-[220px] overflow-y-auto pr-1">
+                            <div id="awayStartingXiContainer" class="space-y-1 text-xs text-white">
                                 <div class="text-slate-400 text-xs italic py-6 text-center">Waiting for n8n webhook payload...</div>
                             </div>
                         </div>
@@ -717,7 +717,7 @@
                     <div class="z-10 pt-3 border-t border-indigo-900/50 flex flex-col gap-1.5">
                         <div class="flex justify-between items-center text-[10px] font-mono">
                             <span class="text-red-400 font-bold uppercase tracking-wide">Subs:</span>
-                            <span id="awaySubsContainer" class="text-slate-300 font-medium truncate max-w-[480px] text-right italic">Awaiting n8n response...</span>
+                            <span id="awaySubsContainer" class="text-slate-300 font-medium truncate max-w-[500px] text-right italic">Awaiting n8n response...</span>
                         </div>
                         <div class="flex justify-between items-center text-[9px] font-mono text-indigo-300">
                             <span>n8n x SUPABASE PIPELINE</span>
@@ -731,7 +731,7 @@
 
     </div>
 </div>
-    //////////////////////
+    ////////////////////////
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1442,87 +1442,151 @@ function safeSetImage(id, url) {
         console.warn(`⚠️ Target image element with ID '${id}' not found for image assignment.`);
     }
 }
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 // --- Dedicated Lineup Renderer for your n8n Output Structure ---
-function renderLineupPanelsFromWorkflow(lineupArray) {
-    console.group("🎨 renderLineupPanelsFromWorkflow Execution");
-    console.log("📥 Raw Input Received:", lineupArray);
-
-    if (!Array.isArray(lineupArray)) {
-        console.error("❌ ERROR: Expected an array of team objects, but got:", typeof lineupArray, lineupArray);
-        console.groupEnd();
+// 1. Fetch Supabase Data for Manager and Team Logo
+async function fetchSupabaseTeamAssets(teamName, prefix) {
+    if (!window.supabaseClient) {
+        console.warn("⚠️ Supabase client not found on window.");
         return;
     }
 
-    if (lineupArray.length === 0) {
-        console.warn("⚠️ WARNING: lineupArray is empty (length 0). No panels to render.");
-    }
+    try {
+        // Fetch Manager from 'Managers' table
+        const { data: managerData, error: mgrError } = await window.supabaseClient
+            .from('Managers')
+            .select('*')
+            .ilike('team', `%${teamName}%`)
+            .maybeSingle();
 
-    lineupArray.forEach((teamData, index) => {
-        console.group(`🔍 Processing Item [${index}]`);
-        console.log("📦 Team Data Object:", teamData);
-
-        if (!teamData) {
-            console.error(`❌ Team data at index ${index} is null or undefined.`);
-            console.groupEnd();
-            return;
-        }
-
-        const isHome = teamData.lineupteam === "homeTeamLineup";
-        const prefix = isHome ? "home" : "away";
-        console.log(`🏷️ Classified as: ${prefix.toUpperCase()} team (lineupteam: "${teamData.lineupteam}")`);
-        console.log(`🏟️ Match Name: "${teamData.match}"`);
-
-        // Set Title & Match Header safely
-        const titleId = `${prefix}FixtureTitle`;
-        const titleText = `// ${teamData.match ? teamData.match.toUpperCase() : (prefix + ' xi').toUpperCase()}`;
-        console.log(`📝 Setting title element #${titleId} to: "${titleText}"`);
-        safeSetText(titleId, titleText);
-
-        // Populate Starting XI safely
-        const xiContainerId = `${prefix}StartingXiContainer`;
-        const xiContainer = document.getElementById(xiContainerId);
-        console.log(`👥 Looking for Starting XI container #${xiContainerId}:`, xiContainer ? "✅ Found" : "❌ Not Found");
-
-        if (xiContainer) {
-            if (Array.isArray(teamData.lineups)) {
-                console.log(`⚽ Starting XI players count: ${teamData.lineups.length}`, teamData.lineups);
-                xiContainer.innerHTML = '';
-                teamData.lineups.forEach(player => {
-                    let num = "-";
-                    let name = player;
-                    if (player.includes('.')) {
-                        const parts = player.split('.');
-                        num = parts[0].trim();
-                        name = parts.slice(1).join('.').trim();
-                    }
-                    xiContainer.innerHTML += `
-                        <div class="flex justify-between items-center border-b border-${isHome ? 'blue' : 'indigo'}-900/40 py-0.5">
-                            <span class="text-slate-400 text-[9px] font-mono">${num}</span>
-                            <span class="font-bold tracking-wider uppercase">${name}</span>
-                        </div>`;
-                });
-            } else {
-                console.warn(`⚠️ teamData.lineups is not an array for ${prefix} team:`, teamData.lineups);
+        if (managerData) {
+            safeSetText(`${prefix}ManagerName`, managerData.name || managerData.manager_name || teamName + " Manager");
+            const imgEl = document.getElementById(`${prefix}ManagerImg`);
+            if (imgEl && (managerData.photo_url || managerData.image_url)) {
+                imgEl.src = managerData.photo_url || managerData.image_url;
             }
-        }
-
-        // Populate Substitutes safely
-        const subsContainerId = `${prefix}SubsContainer`;
-        console.log(`🔄 Looking for Substitutes container/element #${subsContainerId}`);
-        if (Array.isArray(teamData.substitutes)) {
-            console.log(`🔄 Substitutes count: ${teamData.substitutes.length}`, teamData.substitutes);
-            safeSetText(subsContainerId, teamData.substitutes.join(', '));
         } else {
-            console.warn(`⚠️ teamData.substitutes is not an array for ${prefix} team:`, teamData.substitutes);
+            safeSetText(`${prefix}ManagerName`, teamName + " Manager");
         }
 
-        console.groupEnd(); // End of individual team processing
-    });
+        // Fetch Logo from 'teamlogo' table
+        const { data: logoData, error: logoError } = await window.supabaseClient
+            .from('teamlogo')
+            .select('*')
+            .ilike('team_name', `%${teamName}%`)
+            .maybeSingle();
 
-    console.groupEnd(); // End of main function group
+        if (logoData && (logoData.logo_url || logoData.url)) {
+            const logoEl = document.getElementById(`${prefix}ClubLogo`);
+            if (logoEl) logoEl.src = logoData.logo_url || logoData.url;
+        }
+    } catch (e) {
+        console.error(`❌ Failed fetching Supabase assets for ${teamName}:`, e);
+    }
 }
 
+// 2. Render Lineups & Trigger Supabase Lookups
+function renderLineupPanelsFromWorkflow(lineupArray) {
+    if (!Array.isArray(lineupArray)) return;
+
+    lineupArray.forEach((teamData, index) => {
+        const isHome = teamData.lineupteam === "homeTeamLineup";
+        const prefix = isHome ? "home" : "away";
+
+        // Set Title & Match Header
+        const titleId = `${prefix}FixtureTitle`;
+        safeSetText(titleId, `// ${teamData.match ? teamData.match.toUpperCase() : (prefix + ' xi').toUpperCase()}`);
+
+        // Extract Team Name for Supabase Queries (e.g. from match string)
+        const matchTeams = teamData.match ? teamData.match.split(/vs/i) : [];
+        const currentTeamName = matchTeams.length === 2 ? matchTeams[isHome ? 0 : 1].trim() : (teamData.match || "");
+
+        // Fetch from Supabase tables ('Managers' & 'teamlogo')
+        if (currentTeamName) {
+            fetchSupabaseTeamAssets(currentTeamName, prefix);
+        }
+
+        // Populate Starting XI (No Scroll - renders all cleanly)
+        const xiContainerId = `${prefix}StartingXiContainer`;
+        const xiContainer = document.getElementById(xiContainerId);
+
+        if (xiContainer && Array.isArray(teamData.lineups)) {
+            xiContainer.innerHTML = '';
+            teamData.lineups.forEach(player => {
+                let num = "-";
+                let name = player;
+                if (player.includes('.')) {
+                    const parts = player.split('.');
+                    num = parts[0].trim();
+                    name = parts.slice(1).join('.').trim();
+                }
+                
+                xiContainer.innerHTML += `
+                    <div class="flex justify-between items-center border-b border-${isHome ? 'blue' : 'indigo'}-800/50 py-1 px-1">
+                        <span class="text-cyan-400 text-xs font-mono font-bold w-6">${num}</span>
+                        <span class="font-extrabold text-white text-xs tracking-wider uppercase flex-1 text-right">${name}</span>
+                    </div>`;
+            });
+        }
+
+        // Populate Substitutes
+        const subsContainerId = `${prefix}SubsContainer`;
+        if (Array.isArray(teamData.substitutes)) {
+            safeSetText(subsContainerId, teamData.substitutes.join(', '));
+        }
+    });
+}
+
+// 3. Aspect Ratio & Download Export Functionality
+function updateAllLineupAspects() {
+    const platform = document.getElementById('masterPlatformSelect').value;
+    const homeWrapper = document.getElementById('homeLineupWrapper');
+    const awayWrapper = document.getElementById('awayLineupWrapper');
+    
+    const sizeClasses = ['aspect-video', 'w-full', 'max-w-[760px]', 'min-h-[520px]', 'w-[420px]', 'h-[746px]', 'w-[540px]', 'h-[540px]', 'w-[500px]', 'h-[625px]'];
+
+    [homeWrapper, awayWrapper].forEach(wrapper => {
+        if (!wrapper) return;
+        wrapper.classList.remove(...sizeClasses);
+
+        if (platform === 'tiktok') {
+            wrapper.classList.add('w-[420px]', 'h-[746px]');
+        } else if (platform === 'twitter') {
+            wrapper.classList.add('w-[540px]', 'h-[540px]');
+        } else if (platform === 'telegram') {
+            wrapper.classList.add('w-[500px]', 'h-[625px]');
+        } else { // youtube default 16:9
+            wrapper.classList.add('w-full', 'max-w-[760px]', 'min-h-[520px]', 'aspect-video');
+        }
+    });
+}
+
+async function exportSingleLineup(prefix) {
+    const wrapper = document.getElementById(`${prefix}LineupWrapper`);
+    const platform = document.getElementById('masterPlatformSelect').value;
+    if (!wrapper) return;
+
+    try {
+        const canvas = await html2canvas(wrapper, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: null
+        });
+        const image = canvas.toDataURL("image/png");
+        const link = document.createElement('a');
+        link.href = image;
+        link.download = `${prefix}-lineup-${platform}.png`;
+        link.click();
+    } catch (err) {
+        console.error("❌ Export failed:", err);
+    }
+}
+
+function exportBothLineups() {
+    exportSingleLineup('home');
+    setTimeout(() => exportSingleLineup('away'), 600);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Helper function for default panel rendering fallback
 function renderDefaultDetails(result) {
     const detailPanel = document.getElementById('matchDetailSubPanel') || document.getElementById('bottomPanel');
