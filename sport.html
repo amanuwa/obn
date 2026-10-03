@@ -1921,19 +1921,31 @@ window.triggerLineupWebhook = async function(homeTeam, awayTeam, matchDate, kick
        // const webhookUrl = window.CONFIG?.LINEUP_WEBHOOK_URL || LINEUP_WEBHOOK_URL;
       //  if (!webhookUrl) throw new Error("Webhook URL is not defined in config.js");
 
-        await fetch(LINEUP_WEBHOOK_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                action: "notify_lineup",
-                home_team: homeTeam,
-                away_team: awayTeam,
-                match_date: matchDate,
-                kick_off_time: kickoffTime,
-                league: league,
-                timestamp: new Date().toISOString()
-            })
-        });
+    const response = await fetch(LINEUP_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            action: "notify_lineup",
+            home_team: homeTeam,
+            away_team: awayTeam,
+            match_date: matchDate,
+            kick_off_time: kickoffTime,
+            league: league,
+            timestamp: new Date().toISOString()
+        })
+    });
+
+    // 1. Parse the JSON response coming back from n8n
+    const result = await response.json();
+    console.log("Lineup data received from webhook:", result);
+
+    // 2. Immediately render the lineups on your frontend UI panels
+    if (typeof renderLineupPanelsFromWorkflow === 'function') {
+        renderLineupPanelsFromWorkflow(result);
+    }
+
+ //   console.log(`Webhook sent for ${homeTeam} vs ${awayTeam}...`);
+ //   pollForLineups(homeTeam, awayTeam, btn);
 
         console.log(`Webhook sent for ${homeTeam} vs ${awayTeam} in ${league} (${matchDate} at ${kickoffTime}). Polling database...`);
 
