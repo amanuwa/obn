@@ -576,22 +576,28 @@
 </div>
 <!-- Side-by-Side Lineup Display Container -->
 <!-- // DUAL SIDE-BY-SIDE HOME & AWAY N8N LINEUP GENERATOR PANELS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- // DYNAMIC n8n WEBHOOK LISTENER & SUPABASE STUDIO -->
 <div class="space-y-6 mt-6">
 
-    <!-- Top Master Controller Bar -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900/90 p-4 rounded-xl border border-slate-800 shadow-xl gap-3">
-        <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// Dual Matchup Squad Studio (Home & Away n8n Feed)</span>
+    <!-- Top Master Controller & Webhook Status Bar -->
+    <div class="flex flex-col sm:flex-row justify-between items-center bg-slate-900/90 p-4 rounded-xl border border-slate-800 shadow-xl gap-3">
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// n8n Webhook Squad Studio</span>
+            <span id="webhookStatusBadge" class="bg-amber-500/10 text-amber-400 text-[10px] font-mono px-2 py-0.5 rounded border border-amber-500/30 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Waiting for n8n Webhook Payload...
+            </span>
         </div>
-        <div class="flex items-center gap-2 w-full sm:w-auto">
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
             <select id="masterPlatformSelect" onchange="updateAllLineupAspects()" class="bg-slate-950 text-slate-300 text-xs font-mono border border-slate-700 rounded px-3 py-1.5 focus:outline-none focus:border-emerald-500">
-                <option value="youtube">All Frames: YouTube (16:9)</option>
-                <option value="tiktok">All Frames: TikTok / Reels (9:16)</option>
-                <option value="twitter">All Frames: Twitter Card (1:1)</option>
-                <option value="telegram">All Frames: Telegram Post (4:5)</option>
+                <option value="youtube">Format: YouTube (16:9)</option>
+                <option value="tiktok">Format: TikTok / Reels (9:16)</option>
+                <option value="twitter">Format: Twitter Card (1:1)</option>
+                <option value="telegram">Format: Telegram Post (4:5)</option>
             </select>
             <button onclick="exportBothLineups()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
-                📥 Download Both Assets
+                📥 Download Both
             </button>
         </div>
     </div>
@@ -600,123 +606,132 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         <!---------------------------------------------------->
-        <!-- 1. HOME TEAM LINEUP PANEL (n8n Payload Powered) -->
+        <!-- 1. HOME TEAM LINEUP PANEL -->
         <!------------------------------------------------------>
         <div class="bg-slate-900/80 p-5 rounded-xl border border-emerald-900/50 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <span class="text-xs font-bold text-emerald-400 font-mono">🏠 HOME SQUAD CARD</span>
-                <button onclick="exportSingleLineup('home')" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono text-[11px] px-2.5 py-1 rounded border border-emerald-700/40 transition">
+                <span class="text-xs font-bold text-emerald-400 font-mono">🏠 HOME CARD (Supabase Manager + n8n XI)</span>
+                <button onclick="exportSingleLineup('home')" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono text-[11px] px-2.5 py-1 rounded border border-emerald-700/40 transition cursor-pointer">
                     Export Home PNG
                 </button>
             </div>
 
             <!-- Home Aspect Wrapper -->
-            <div id="homeLineupWrapper" class="relative w-full aspect-video bg-blue-950 rounded-xl border border-blue-900/60 overflow-hidden shadow-2xl flex items-center justify-center p-4 transition-all duration-300">
-                <div class="absolute inset-0 bg-gradient-to-br from-blue-950 via-blue-900 to-slate-950 flex flex-col justify-between p-5">
+            <div class="flex justify-center w-full overflow-x-auto py-2">
+                <div id="homeLineupWrapper" class="relative w-full max-w-[540px] aspect-video bg-blue-950 rounded-xl border border-blue-900/60 overflow-hidden shadow-2xl flex flex-col justify-between p-5 transition-all duration-300">
                     
                     <!-- Header -->
                     <div class="flex justify-between items-center z-10">
                         <div class="bg-blue-900/40 px-2.5 py-0.5 rounded-full border border-blue-700/40">
-                            <span id="homeSourceTag" class="text-[10px] font-mono text-blue-200">from manutd.com</span>
+                            <span id="homeSourceTag" class="text-[10px] font-mono text-blue-200">from source</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div id="homePostStats" class="bg-white/10 px-2 py-0.5 rounded text-white font-mono text-[10px] font-bold">4,368</div>
-                            <img id="homeClubLogo" src="https://images.unsplash.com/photo-1551958219-acbc608c6377?w=100&auto=format&fit=crop" class="w-7 h-7 rounded-full border border-white/40 object-cover" crossorigin="anonymous">
+                            <div id="homePostStats" class="bg-white/10 px-2 py-0.5 rounded text-white font-mono text-[10px] font-bold">0</div>
+                            <img id="homeClubLogo" src="" class="w-7 h-7 rounded-full border border-white/40 object-cover bg-slate-800" crossorigin="anonymous">
                         </div>
                     </div>
 
                     <!-- Split Grid Content -->
                     <div class="grid grid-cols-2 gap-4 items-center my-auto z-10">
-                        <!-- Left Image -->
-                        <div class="relative h-full min-h-[220px] flex items-end justify-center rounded-lg overflow-hidden border border-blue-800/40 bg-gradient-to-t from-blue-900/60 to-transparent">
-                            <img id="homePlayerImg" src="https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=600&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover object-top opacity-80" crossorigin="anonymous">
-                            <div class="relative z-10 w-full bg-blue-950/80 backdrop-blur-md px-2.5 py-1.5 border-t border-blue-800/60 flex items-center justify-between">
-                                <span class="text-[8px] font-mono tracking-widest text-blue-300 uppercase">Partner</span>
-                                <span id="homeSponsorName" class="text-white font-bold text-[10px]">Snapdragon</span>
+                        <!-- Left Side: Supabase Manager Photo & Name -->
+                        <div class="relative h-full min-h-[200px] flex flex-col justify-end rounded-lg overflow-hidden border border-blue-800/40 bg-gradient-to-t from-blue-900/80 to-transparent">
+                            <img id="homeManagerImg" src="" class="absolute inset-0 w-full h-full object-cover object-top opacity-85" crossorigin="anonymous">
+                            <div class="relative z-10 w-full bg-blue-950/90 backdrop-blur-md px-2.5 py-1.5 border-t border-blue-800/60 flex flex-col">
+                                <span class="text-[7px] font-mono tracking-widest text-emerald-400 uppercase">Manager (Supabase)</span>
+                                <span id="homeManagerName" class="text-white font-bold text-[10px] truncate">Awaiting Supabase Data...</span>
                             </div>
                         </div>
 
-                        <!-- Right Lineup List -->
+                        <!-- Right Side: n8n Starting XI -->
                         <div class="flex flex-col justify-center space-y-0.5 text-right font-mono pr-1">
-                            <h3 id="homeFixtureTitle" class="text-[11px] font-bold text-amber-400 tracking-wider mb-1.5">// UNITED XI (HOME)</h3>
-                            <div id="homeStartingXiContainer" class="space-y-0.5 text-[11px] text-white">
-                                <!-- Injected via JS -->
-                            </div>
-                            <div class="pt-1.5 mt-1.5 border-t border-blue-800/60 text-right">
-                                <span class="text-[9px] font-bold text-red-400 uppercase tracking-widest block">Subs</span>
-                                <p id="homeSubsContainer" class="text-[9px] text-slate-300 leading-tight">DARLOW, DORGU, YORO, MOUNT</p>
+                            <h3 id="homeFixtureTitle" class="text-[11px] font-bold text-amber-400 tracking-wider mb-1">// HOME XI</h3>
+                            <div id="homeStartingXiContainer" class="space-y-0.5 text-[10px] text-white">
+                                <div class="text-slate-500 text-[10px] italic py-4 text-center">Waiting for n8n webhook payload...</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Footer -->
-                    <div class="text-center z-10 pt-1 border-t border-blue-900/50">
-                        <span class="text-[9px] font-mono text-blue-400">HOME MATCHDAY ENGINE</span>
+                    <!-- Footer Subs & Brand -->
+                    <div class="z-10 pt-2 border-t border-blue-900/50 flex flex-col gap-1">
+                        <div class="flex justify-between items-center text-[9px] font-mono">
+                            <span class="text-red-400 font-bold uppercase">Subs:</span>
+                            <span id="homeSubsContainer" class="text-slate-400 truncate max-w-[380px] text-right italic">Awaiting n8n response...</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[8px] font-mono text-blue-400">
+                            <span>n8n x SUPABASE PIPELINE</span>
+                            <span id="homeSponsorName" class="text-white font-bold">-</span>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>
 
         <!---------------------------------------------------->
-        <!-- 2. AWAY TEAM LINEUP PANEL (n8n Payload Powered) -->
+        <!-- 2. AWAY TEAM LINEUP PANEL -->
         <!------------------------------------------------------>
         <div class="bg-slate-900/80 p-5 rounded-xl border border-blue-900/50 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <span class="text-xs font-bold text-blue-400 font-mono">✈️ AWAY SQUAD CARD</span>
-                <button onclick="exportSingleLineup('away')" class="bg-slate-800 hover:bg-slate-700 text-blue-300 font-mono text-[11px] px-2.5 py-1 rounded border border-blue-700/40 transition">
+                <span class="text-xs font-bold text-blue-400 font-mono">✈️ AWAY CARD (Supabase Manager + n8n XI)</span>
+                <button onclick="exportSingleLineup('away')" class="bg-slate-800 hover:bg-slate-700 text-blue-300 font-mono text-[11px] px-2.5 py-1 rounded border border-blue-700/40 transition cursor-pointer">
                     Export Away PNG
                 </button>
             </div>
 
             <!-- Away Aspect Wrapper -->
-            <div id="awayLineupWrapper" class="relative w-full aspect-video bg-slate-950 rounded-xl border border-indigo-900/60 overflow-hidden shadow-2xl flex items-center justify-center p-4 transition-all duration-300">
-                <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950 to-blue-950 flex flex-col justify-between p-5">
+            <div class="flex justify-center w-full overflow-x-auto py-2">
+                <div id="awayLineupWrapper" class="relative w-full max-w-[540px] aspect-video bg-slate-950 rounded-xl border border-indigo-900/60 overflow-hidden shadow-2xl flex flex-col justify-between p-5 transition-all duration-300">
                     
                     <!-- Header -->
                     <div class="flex justify-between items-center z-10">
                         <div class="bg-indigo-900/40 px-2.5 py-0.5 rounded-full border border-indigo-700/40">
-                            <span id="awaySourceTag" class="text-[10px] font-mono text-indigo-200">from fulhamfc.com</span>
+                            <span id="awaySourceTag" class="text-[10px] font-mono text-indigo-200">from source</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div id="awayPostStats" class="bg-white/10 px-2 py-0.5 rounded text-white font-mono text-[10px] font-bold">2,190</div>
-                            <img id="awayClubLogo" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=100&auto=format&fit=crop" class="w-7 h-7 rounded-full border border-white/40 object-cover" crossorigin="anonymous">
+                            <div id="awayPostStats" class="bg-white/10 px-2 py-0.5 rounded text-white font-mono text-[10px] font-bold">0</div>
+                            <img id="awayClubLogo" src="" class="w-7 h-7 rounded-full border border-white/40 object-cover bg-slate-800" crossorigin="anonymous">
                         </div>
                     </div>
 
                     <!-- Split Grid Content -->
                     <div class="grid grid-cols-2 gap-4 items-center my-auto z-10">
-                        <!-- Left Image -->
-                        <div class="relative h-full min-h-[220px] flex items-end justify-center rounded-lg overflow-hidden border border-indigo-800/40 bg-gradient-to-t from-indigo-900/60 to-transparent">
-                            <img id="awayPlayerImg" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover object-top opacity-80" crossorigin="anonymous">
-                            <div class="relative z-10 w-full bg-slate-950/80 backdrop-blur-md px-2.5 py-1.5 border-t border-indigo-800/60 flex items-center justify-between">
-                                <span class="text-[8px] font-mono tracking-widest text-indigo-300 uppercase">Partner</span>
-                                <span id="awaySponsorName" class="text-white font-bold text-[10px]">SkyBet</span>
+                        <!-- Left Side: Supabase Manager Photo & Name -->
+                        <div class="relative h-full min-h-[200px] flex flex-col justify-end rounded-lg overflow-hidden border border-indigo-800/40 bg-gradient-to-t from-indigo-900/80 to-transparent">
+                            <img id="awayManagerImg" src="" class="absolute inset-0 w-full h-full object-cover object-top opacity-85" crossorigin="anonymous">
+                            <div class="relative z-10 w-full bg-slate-950/90 backdrop-blur-md px-2.5 py-1.5 border-t border-indigo-800/60 flex flex-col">
+                                <span class="text-[7px] font-mono tracking-widest text-indigo-400 uppercase">Manager (Supabase)</span>
+                                <span id="awayManagerName" class="text-white font-bold text-[10px] truncate">Awaiting Supabase Data...</span>
                             </div>
                         </div>
 
-                        <!-- Right Lineup List -->
+                        <!-- Right Side: n8n Starting XI -->
                         <div class="flex flex-col justify-center space-y-0.5 text-right font-mono pr-1">
-                            <h3 id="awayFixtureTitle" class="text-[11px] font-bold text-amber-400 tracking-wider mb-1.5">// FULHAM XI (AWAY)</h3>
-                            <div id="awayStartingXiContainer" class="space-y-0.5 text-[11px] text-white">
-                                <!-- Injected via JS -->
-                            </div>
-                            <div class="pt-1.5 mt-1.5 border-t border-indigo-800/60 text-right">
-                                <span class="text-[9px] font-bold text-red-400 uppercase tracking-widest block">Subs</span>
-                                <p id="awaySubsContainer" class="text-[9px] text-slate-300 leading-tight">LENO, TRAORE, MUNIZ, CAIRNEY</p>
+                            <h3 id="awayFixtureTitle" class="text-[11px] font-bold text-amber-400 tracking-wider mb-1">// AWAY XI</h3>
+                            <div id="awayStartingXiContainer" class="space-y-0.5 text-[10px] text-white">
+                                <div class="text-slate-500 text-[10px] italic py-4 text-center">Waiting for n8n webhook payload...</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Footer -->
-                    <div class="text-center z-10 pt-1 border-t border-indigo-900/50">
-                        <span class="text-[9px] font-mono text-indigo-300">AWAY MATCHDAY ENGINE</span>
+                    <!-- Footer Subs & Brand -->
+                    <div class="z-10 pt-2 border-t border-indigo-900/50 flex flex-col gap-1">
+                        <div class="flex justify-between items-center text-[9px] font-mono">
+                            <span class="text-red-400 font-bold uppercase">Subs:</span>
+                            <span id="awaySubsContainer" class="text-slate-400 truncate max-w-[380px] text-right italic">Awaiting n8n response...</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[8px] font-mono text-indigo-300">
+                            <span>n8n x SUPABASE PIPELINE</span>
+                            <span id="awaySponsorName" class="text-white font-bold">-</span>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>
 
     </div>
 </div>
+    //////////////////////
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -2020,6 +2035,7 @@ window.exportPodcast = function() {
         alert("Export failed. Ensure images allow cross-origin sharing (CORS).");
     });
 };
+    ///////////////////lineup code/////////////
     const dualLineupData = {
         home: {
             sourceUrl: "manutd.com",
@@ -2123,6 +2139,7 @@ window.exportPodcast = function() {
     window.addEventListener('DOMContentLoaded', () => {
         renderDualLineups();
     });
+    //////////////////////////////
 </script>
 </body>
 </html>
