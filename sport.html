@@ -1327,7 +1327,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-   window.executeScraperWorkflow = async function(payload) {
+  window.executeScraperWorkflow = async function(payload) {
     console.log("1. Workflow triggered with payload:", payload);
     
     const loader = document.getElementById('fullPageLoader');
@@ -1357,14 +1357,19 @@ document.addEventListener("DOMContentLoaded", () => {
             loader.classList.add('hidden');
         }
 
-        // Normalize raw data to check structure
+        // Normalize raw data to handle arrays or wrapped objects
         const rawData = Array.isArray(result) ? result[0] : result;
         let dataArray = Array.isArray(result) ? result : (result.data || result.json || Object.values(result).find(val => Array.isArray(val)));
 
-        // --- PRIMARY ROUTER CHECK: Match Details vs Lists/News ---
+        // --- PRIMARY ROUTER CHECK: Array of Lineup Teams vs Match Details vs Lists/News ---
+        const isLineupArray = Array.isArray(result) && result.some(item => item.lineupteam && (item.lineups || item.substitutes));
         const isMatchDetail = rawData && typeof rawData === 'object' && (rawData.matchResult !== undefined || rawData.value !== undefined || rawData.matchStatus !== undefined);
 
-        if (isMatchDetail) {
+        if (isLineupArray) {
+            console.log("==========================================");
+            console.log("⚽ LINEUP ARRAY ROUTE MATCHED: Parsing Home & Away squads.");
+            renderLineupPanelsFromWorkflow(result);
+        } else if (isMatchDetail) {
             console.log("==========================================");
             console.log("🔍 MATCH DETAIL ROUTER DEBUGGER ACTIVATED");
             console.log("Raw Match Data Object:", rawData);
@@ -1415,6 +1420,56 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 };
+
+// --- Dedicated Lineup Renderer for your n8n Output Structure ---
+function renderLineupPanelsFromWorkflow(lineupArray) {
+    console.log("🎨 Rendering Lineup Panels from Array:", lineupArray);
+
+    lineupArray.forEach(teamData => {
+        const isHome = teamData.lineupteam === "homeTeamLineup";
+        const prefix = isHome ? "home" : "away";
+
+        console.log(`Processing ${prefix.toUpperCase()} team for match:`, teamData.match);
+
+        // Set Title & Match Header
+        safeSetText(`${prefix}FixtureTitle`, `// ${teamData.match ? teamData.match.toUpperCase() : (prefix + ' xi').toUpperCase()}`);
+
+        // Populate Starting XI (Splitting number and name if possible, or mapping strings directly)
+        const xiContainer = document.getElementById(`${prefix}StartingXiContainer`);
+        if (xiContainer && Array.isArray(teamData.lineups)) {
+            xiContainer.innerHTML = '';
+            teamData.lineups.forEach(player => {
+                // If player string contains a number like "1. Verbruggen", parse it; otherwise display whole string
+                let num = "-";
+                let name = player;
+                if (player.includes('.')) {
+                    const parts = player.split('.');
+                    num = parts[0].trim();
+                    name = parts.slice(1).join('.').trim();
+                }
+                xiContainer.innerHTML += `
+                    <div class="flex justify-between items-center border-b border-${isHome ? 'blue' : 'indigo'}-900/40 py-0.5">
+                        <span class="text-slate-400 text-[9px] font-mono">${num}</span>
+                        <span class="font-bold tracking-wider uppercase">${name}</span>
+                    </div>`;
+            });
+        }
+
+        // Populate Substitutes (Joining array items into a comma-separated string)
+        if (Array.isArray(teamData.substitutes)) {
+            safeSetText(`${prefix}SubsContainer`, teamData.substitutes.join(', '));
+        }
+    });
+}
+
+function safeSetText(id, text) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.innerText = text;
+    } else {
+        console.warn(`⚠️ Target DOM element with ID '${id}' not found.`);
+    }
+}
 
 // Helper function for default panel rendering fallback
 function renderDefaultDetails(result) {
