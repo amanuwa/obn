@@ -1445,47 +1445,82 @@ function safeSetImage(id, url) {
 
 // --- Dedicated Lineup Renderer for your n8n Output Structure ---
 function renderLineupPanelsFromWorkflow(lineupArray) {
-    console.log("🎨 Rendering Lineup Panels from Array:", lineupArray);
+    console.group("🎨 renderLineupPanelsFromWorkflow Execution");
+    console.log("📥 Raw Input Received:", lineupArray);
 
     if (!Array.isArray(lineupArray)) {
-        console.error("❌ renderLineupPanelsFromWorkflow expected an array, got:", lineupArray);
+        console.error("❌ ERROR: Expected an array of team objects, but got:", typeof lineupArray, lineupArray);
+        console.groupEnd();
         return;
     }
 
-    lineupArray.forEach(teamData => {
+    if (lineupArray.length === 0) {
+        console.warn("⚠️ WARNING: lineupArray is empty (length 0). No panels to render.");
+    }
+
+    lineupArray.forEach((teamData, index) => {
+        console.group(`🔍 Processing Item [${index}]`);
+        console.log("📦 Team Data Object:", teamData);
+
+        if (!teamData) {
+            console.error(`❌ Team data at index ${index} is null or undefined.`);
+            console.groupEnd();
+            return;
+        }
+
         const isHome = teamData.lineupteam === "homeTeamLineup";
         const prefix = isHome ? "home" : "away";
-
-        console.log(`Processing ${prefix.toUpperCase()} team for match:`, teamData.match);
+        console.log(`🏷️ Classified as: ${prefix.toUpperCase()} team (lineupteam: "${teamData.lineupteam}")`);
+        console.log(`🏟️ Match Name: "${teamData.match}"`);
 
         // Set Title & Match Header safely
-        safeSetText(`${prefix}FixtureTitle`, `// ${teamData.match ? teamData.match.toUpperCase() : (prefix + ' xi').toUpperCase()}`);
+        const titleId = `${prefix}FixtureTitle`;
+        const titleText = `// ${teamData.match ? teamData.match.toUpperCase() : (prefix + ' xi').toUpperCase()}`;
+        console.log(`📝 Setting title element #${titleId} to: "${titleText}"`);
+        safeSetText(titleId, titleText);
 
         // Populate Starting XI safely
-        const xiContainer = document.getElementById(`${prefix}StartingXiContainer`);
-        if (xiContainer && Array.isArray(teamData.lineups)) {
-            xiContainer.innerHTML = '';
-            teamData.lineups.forEach(player => {
-                let num = "-";
-                let name = player;
-                if (player.includes('.')) {
-                    const parts = player.split('.');
-                    num = parts[0].trim();
-                    name = parts.slice(1).join('.').trim();
-                }
-                xiContainer.innerHTML += `
-                    <div class="flex justify-between items-center border-b border-${isHome ? 'blue' : 'indigo'}-900/40 py-0.5">
-                        <span class="text-slate-400 text-[9px] font-mono">${num}</span>
-                        <span class="font-bold tracking-wider uppercase">${name}</span>
-                    </div>`;
-            });
+        const xiContainerId = `${prefix}StartingXiContainer`;
+        const xiContainer = document.getElementById(xiContainerId);
+        console.log(`👥 Looking for Starting XI container #${xiContainerId}:`, xiContainer ? "✅ Found" : "❌ Not Found");
+
+        if (xiContainer) {
+            if (Array.isArray(teamData.lineups)) {
+                console.log(`⚽ Starting XI players count: ${teamData.lineups.length}`, teamData.lineups);
+                xiContainer.innerHTML = '';
+                teamData.lineups.forEach(player => {
+                    let num = "-";
+                    let name = player;
+                    if (player.includes('.')) {
+                        const parts = player.split('.');
+                        num = parts[0].trim();
+                        name = parts.slice(1).join('.').trim();
+                    }
+                    xiContainer.innerHTML += `
+                        <div class="flex justify-between items-center border-b border-${isHome ? 'blue' : 'indigo'}-900/40 py-0.5">
+                            <span class="text-slate-400 text-[9px] font-mono">${num}</span>
+                            <span class="font-bold tracking-wider uppercase">${name}</span>
+                        </div>`;
+                });
+            } else {
+                console.warn(`⚠️ teamData.lineups is not an array for ${prefix} team:`, teamData.lineups);
+            }
         }
 
         // Populate Substitutes safely
+        const subsContainerId = `${prefix}SubsContainer`;
+        console.log(`🔄 Looking for Substitutes container/element #${subsContainerId}`);
         if (Array.isArray(teamData.substitutes)) {
-            safeSetText(`${prefix}SubsContainer`, teamData.substitutes.join(', '));
+            console.log(`🔄 Substitutes count: ${teamData.substitutes.length}`, teamData.substitutes);
+            safeSetText(subsContainerId, teamData.substitutes.join(', '));
+        } else {
+            console.warn(`⚠️ teamData.substitutes is not an array for ${prefix} team:`, teamData.substitutes);
         }
+
+        console.groupEnd(); // End of individual team processing
     });
+
+    console.groupEnd(); // End of main function group
 }
 
 // Helper function for default panel rendering fallback
