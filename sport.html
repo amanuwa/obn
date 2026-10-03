@@ -1422,8 +1422,35 @@ document.addEventListener("DOMContentLoaded", () => {
 };
 
 // --- Dedicated Lineup Renderer for your n8n Output Structure ---
+// --- Safe Helper Wrappers to Eliminate Null Property Errors ---
+function safeSetText(id, text) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.innerText = text;
+    } else {
+        console.warn(`⚠️ Target DOM element with ID '${id}' not found for text assignment.`);
+    }
+}
+
+function safeSetImage(id, url) {
+    const el = document.getElementById(id);
+    if (el) {
+        if (url) {
+            el.src = url;
+        }
+    } else {
+        console.warn(`⚠️ Target image element with ID '${id}' not found for image assignment.`);
+    }
+}
+
+// --- Dedicated Lineup Renderer for your n8n Output Structure ---
 function renderLineupPanelsFromWorkflow(lineupArray) {
     console.log("🎨 Rendering Lineup Panels from Array:", lineupArray);
+
+    if (!Array.isArray(lineupArray)) {
+        console.error("❌ renderLineupPanelsFromWorkflow expected an array, got:", lineupArray);
+        return;
+    }
 
     lineupArray.forEach(teamData => {
         const isHome = teamData.lineupteam === "homeTeamLineup";
@@ -1431,15 +1458,14 @@ function renderLineupPanelsFromWorkflow(lineupArray) {
 
         console.log(`Processing ${prefix.toUpperCase()} team for match:`, teamData.match);
 
-        // Set Title & Match Header
+        // Set Title & Match Header safely
         safeSetText(`${prefix}FixtureTitle`, `// ${teamData.match ? teamData.match.toUpperCase() : (prefix + ' xi').toUpperCase()}`);
 
-        // Populate Starting XI (Splitting number and name if possible, or mapping strings directly)
+        // Populate Starting XI safely
         const xiContainer = document.getElementById(`${prefix}StartingXiContainer`);
         if (xiContainer && Array.isArray(teamData.lineups)) {
             xiContainer.innerHTML = '';
             teamData.lineups.forEach(player => {
-                // If player string contains a number like "1. Verbruggen", parse it; otherwise display whole string
                 let num = "-";
                 let name = player;
                 if (player.includes('.')) {
@@ -1455,20 +1481,11 @@ function renderLineupPanelsFromWorkflow(lineupArray) {
             });
         }
 
-        // Populate Substitutes (Joining array items into a comma-separated string)
+        // Populate Substitutes safely
         if (Array.isArray(teamData.substitutes)) {
             safeSetText(`${prefix}SubsContainer`, teamData.substitutes.join(', '));
         }
     });
-}
-
-function safeSetText(id, text) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.innerText = text;
-    } else {
-        console.warn(`⚠️ Target DOM element with ID '${id}' not found.`);
-    }
 }
 
 // Helper function for default panel rendering fallback
