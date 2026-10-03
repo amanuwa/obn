@@ -579,85 +579,85 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <!-- // DYNAMIC n8n WEBHOOK LISTENER & SUPABASE STUDIO -->
-<div class="space-y-6 mt-6">
+<div class="space-y-8 mt-6">
 
     <!-- Top Master Controller & Webhook Status Bar -->
-    <div class="flex flex-col sm:flex-row justify-between items-center bg-slate-900/90 p-4 rounded-xl border border-slate-800 shadow-xl gap-3">
+    <div class="flex flex-col sm:flex-row justify-between items-center bg-slate-900/95 p-5 rounded-2xl border border-slate-800 shadow-2xl gap-4">
         <div class="flex items-center gap-3">
             <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">// n8n Webhook Squad Studio</span>
-            <span id="webhookStatusBadge" class="bg-amber-500/10 text-amber-400 text-[10px] font-mono px-2 py-0.5 rounded border border-amber-500/30 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Waiting for n8n Webhook Payload...
+            <span id="webhookStatusBadge" class="bg-amber-500/10 text-amber-400 text-xs font-mono px-2.5 py-1 rounded border border-amber-500/30 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Waiting for n8n Webhook Payload...
             </span>
         </div>
-        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <select id="masterPlatformSelect" onchange="updateAllLineupAspects()" class="bg-slate-950 text-slate-300 text-xs font-mono border border-slate-700 rounded px-3 py-1.5 focus:outline-none focus:border-emerald-500">
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <select id="masterPlatformSelect" onchange="updateAllLineupAspects()" class="bg-slate-950 text-slate-200 text-xs font-mono border border-slate-700 rounded-lg px-3.5 py-2 focus:outline-none focus:border-emerald-500">
                 <option value="youtube">Format: YouTube (16:9)</option>
                 <option value="tiktok">Format: TikTok / Reels (9:16)</option>
                 <option value="twitter">Format: Twitter Card (1:1)</option>
                 <option value="telegram">Format: Telegram Post (4:5)</option>
             </select>
-            <button onclick="exportBothLineups()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+            <button onclick="exportBothLineups()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-lg text-xs transition shadow-lg flex items-center gap-1.5 cursor-pointer">
                 📥 Download Both
             </button>
         </div>
     </div>
 
-    <!-- Side-by-Side Grid Container -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Side-by-Side Grid Container (Enlarged Panels Layout) -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
         <!---------------------------------------------------->
         <!-- 1. HOME TEAM LINEUP PANEL -->
-        <!------------------------------------------------------>
-        <div class="bg-slate-900/80 p-5 rounded-xl border border-emerald-900/50 space-y-4 shadow-2xl">
+        <!-------------------------------------------------->
+        <div class="bg-slate-900/90 p-6 rounded-2xl border border-emerald-900/50 space-y-5 shadow-2xl">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <span class="text-xs font-bold text-emerald-400 font-mono">🏠 HOME CARD (Supabase Manager + n8n XI)</span>
-                <button onclick="exportSingleLineup('home')" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono text-[11px] px-2.5 py-1 rounded border border-emerald-700/40 transition cursor-pointer">
+                <button onclick="exportSingleLineup('home')" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono text-xs px-3 py-1.5 rounded-lg border border-emerald-700/40 transition cursor-pointer">
                     Export Home PNG
                 </button>
             </div>
 
-            <!-- Home Aspect Wrapper -->
+            <!-- Home Aspect Wrapper (Enlarged max-w-[720px] for a bigger card look) -->
             <div class="flex justify-center w-full overflow-x-auto py-2">
-                <div id="homeLineupWrapper" class="relative w-full max-w-[540px] aspect-video bg-blue-950 rounded-xl border border-blue-900/60 overflow-hidden shadow-2xl flex flex-col justify-between p-5 transition-all duration-300">
+                <div id="homeLineupWrapper" class="relative w-full max-w-[720px] aspect-video bg-blue-950 rounded-2xl border border-blue-900/60 overflow-hidden shadow-2xl flex flex-col justify-between p-6 transition-all duration-300">
                     
                     <!-- Header -->
                     <div class="flex justify-between items-center z-10">
-                        <div class="bg-blue-900/40 px-2.5 py-0.5 rounded-full border border-blue-700/40">
-                            <span id="homeSourceTag" class="text-[10px] font-mono text-blue-200">from source</span>
+                        <div class="bg-blue-900/40 px-3 py-1 rounded-full border border-blue-700/40">
+                            <span id="homeSourceTag" class="text-xs font-mono text-blue-200">from source</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <div id="homePostStats" class="bg-white/10 px-2 py-0.5 rounded text-white font-mono text-[10px] font-bold">0</div>
-                            <img id="homeClubLogo" src="" class="w-7 h-7 rounded-full border border-white/40 object-cover bg-slate-800" crossorigin="anonymous">
+                        <div class="flex items-center gap-2.5">
+                            <div id="homePostStats" class="bg-white/10 px-2.5 py-1 rounded text-white font-mono text-xs font-bold">0</div>
+                            <img id="homeClubLogo" src="" class="w-8 h-8 rounded-full border border-white/40 object-cover bg-slate-800" crossorigin="anonymous">
                         </div>
                     </div>
 
                     <!-- Split Grid Content -->
-                    <div class="grid grid-cols-2 gap-4 items-center my-auto z-10">
+                    <div class="grid grid-cols-2 gap-6 items-center my-auto z-10">
                         <!-- Left Side: Supabase Manager Photo & Name -->
-                        <div class="relative h-full min-h-[200px] flex flex-col justify-end rounded-lg overflow-hidden border border-blue-800/40 bg-gradient-to-t from-blue-900/80 to-transparent">
-                            <img id="homeManagerImg" src="" class="absolute inset-0 w-full h-full object-cover object-top opacity-85" crossorigin="anonymous">
-                            <div class="relative z-10 w-full bg-blue-950/90 backdrop-blur-md px-2.5 py-1.5 border-t border-blue-800/60 flex flex-col">
-                                <span class="text-[7px] font-mono tracking-widest text-emerald-400 uppercase">Manager (Supabase)</span>
-                                <span id="homeManagerName" class="text-white font-bold text-[10px] truncate">Awaiting Supabase Data...</span>
+                        <div class="relative h-full min-h-[240px] flex flex-col justify-end rounded-xl overflow-hidden border border-blue-800/40 bg-gradient-to-t from-blue-900/80 to-transparent">
+                            <img id="homeManagerImg" src="" class="absolute inset-0 w-full h-full object-cover object-top opacity-90" crossorigin="anonymous">
+                            <div class="relative z-10 w-full bg-blue-950/95 backdrop-blur-md px-3 py-2 border-t border-blue-800/60 flex flex-col">
+                                <span class="text-[9px] font-mono tracking-widest text-emerald-400 uppercase font-semibold">Manager (Supabase)</span>
+                                <span id="homeManagerName" class="text-white font-extrabold text-xs truncate">Awaiting Supabase Data...</span>
                             </div>
                         </div>
 
-                        <!-- Right Side: n8n Starting XI -->
-                        <div class="flex flex-col justify-center space-y-0.5 text-right font-mono pr-1">
-                            <h3 id="homeFixtureTitle" class="text-[11px] font-bold text-amber-400 tracking-wider mb-1">// HOME XI</h3>
-                            <div id="homeStartingXiContainer" class="space-y-0.5 text-[10px] text-white">
-                                <div class="text-slate-500 text-[10px] italic py-4 text-center">Waiting for n8n webhook payload...</div>
+                        <!-- Right Side: n8n Starting XI (Bigger, Bolder Text) -->
+                        <div class="flex flex-col justify-center space-y-1 text-right font-mono pr-1">
+                            <h3 id="homeFixtureTitle" class="text-xs font-extrabold text-amber-400 tracking-wider mb-2">// HOME XI</h3>
+                            <div id="homeStartingXiContainer" class="space-y-1 text-xs text-white max-h-[220px] overflow-y-auto pr-1">
+                                <div class="text-slate-400 text-xs italic py-6 text-center">Waiting for n8n webhook payload...</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Footer Subs & Brand -->
-                    <div class="z-10 pt-2 border-t border-blue-900/50 flex flex-col gap-1">
-                        <div class="flex justify-between items-center text-[9px] font-mono">
-                            <span class="text-red-400 font-bold uppercase">Subs:</span>
-                            <span id="homeSubsContainer" class="text-slate-400 truncate max-w-[380px] text-right italic">Awaiting n8n response...</span>
+                    <div class="z-10 pt-3 border-t border-blue-900/50 flex flex-col gap-1.5">
+                        <div class="flex justify-between items-center text-[10px] font-mono">
+                            <span class="text-red-400 font-bold uppercase tracking-wide">Subs:</span>
+                            <span id="homeSubsContainer" class="text-slate-300 font-medium truncate max-w-[480px] text-right italic">Awaiting n8n response...</span>
                         </div>
-                        <div class="flex justify-between items-center text-[8px] font-mono text-blue-400">
+                        <div class="flex justify-between items-center text-[9px] font-mono text-blue-400">
                             <span>n8n x SUPABASE PIPELINE</span>
                             <span id="homeSponsorName" class="text-white font-bold">-</span>
                         </div>
@@ -669,57 +669,57 @@
 
         <!---------------------------------------------------->
         <!-- 2. AWAY TEAM LINEUP PANEL -->
-        <!------------------------------------------------------>
-        <div class="bg-slate-900/80 p-5 rounded-xl border border-blue-900/50 space-y-4 shadow-2xl">
+        <!-------------------------------------------------->
+        <div class="bg-slate-900/90 p-6 rounded-2xl border border-blue-900/50 space-y-5 shadow-2xl">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <span class="text-xs font-bold text-blue-400 font-mono">✈️ AWAY CARD (Supabase Manager + n8n XI)</span>
-                <button onclick="exportSingleLineup('away')" class="bg-slate-800 hover:bg-slate-700 text-blue-300 font-mono text-[11px] px-2.5 py-1 rounded border border-blue-700/40 transition cursor-pointer">
+                <button onclick="exportSingleLineup('away')" class="bg-slate-800 hover:bg-slate-700 text-blue-300 font-mono text-xs px-3 py-1.5 rounded-lg border border-blue-700/40 transition cursor-pointer">
                     Export Away PNG
                 </button>
             </div>
 
-            <!-- Away Aspect Wrapper -->
+            <!-- Away Aspect Wrapper (Enlarged max-w-[720px]) -->
             <div class="flex justify-center w-full overflow-x-auto py-2">
-                <div id="awayLineupWrapper" class="relative w-full max-w-[540px] aspect-video bg-slate-950 rounded-xl border border-indigo-900/60 overflow-hidden shadow-2xl flex flex-col justify-between p-5 transition-all duration-300">
+                <div id="awayLineupWrapper" class="relative w-full max-w-[720px] aspect-video bg-slate-950 rounded-2xl border border-indigo-900/60 overflow-hidden shadow-2xl flex flex-col justify-between p-6 transition-all duration-300">
                     
                     <!-- Header -->
                     <div class="flex justify-between items-center z-10">
-                        <div class="bg-indigo-900/40 px-2.5 py-0.5 rounded-full border border-indigo-700/40">
-                            <span id="awaySourceTag" class="text-[10px] font-mono text-indigo-200">from source</span>
+                        <div class="bg-indigo-900/40 px-3 py-1 rounded-full border border-indigo-700/40">
+                            <span id="awaySourceTag" class="text-xs font-mono text-indigo-200">from source</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <div id="awayPostStats" class="bg-white/10 px-2 py-0.5 rounded text-white font-mono text-[10px] font-bold">0</div>
-                            <img id="awayClubLogo" src="" class="w-7 h-7 rounded-full border border-white/40 object-cover bg-slate-800" crossorigin="anonymous">
+                        <div class="flex items-center gap-2.5">
+                            <div id="awayPostStats" class="bg-white/10 px-2.5 py-1 rounded text-white font-mono text-xs font-bold">0</div>
+                            <img id="awayClubLogo" src="" class="w-8 h-8 rounded-full border border-white/40 object-cover bg-slate-800" crossorigin="anonymous">
                         </div>
                     </div>
 
                     <!-- Split Grid Content -->
-                    <div class="grid grid-cols-2 gap-4 items-center my-auto z-10">
+                    <div class="grid grid-cols-2 gap-6 items-center my-auto z-10">
                         <!-- Left Side: Supabase Manager Photo & Name -->
-                        <div class="relative h-full min-h-[200px] flex flex-col justify-end rounded-lg overflow-hidden border border-indigo-800/40 bg-gradient-to-t from-indigo-900/80 to-transparent">
-                            <img id="awayManagerImg" src="" class="absolute inset-0 w-full h-full object-cover object-top opacity-85" crossorigin="anonymous">
-                            <div class="relative z-10 w-full bg-slate-950/90 backdrop-blur-md px-2.5 py-1.5 border-t border-indigo-800/60 flex flex-col">
-                                <span class="text-[7px] font-mono tracking-widest text-indigo-400 uppercase">Manager (Supabase)</span>
-                                <span id="awayManagerName" class="text-white font-bold text-[10px] truncate">Awaiting Supabase Data...</span>
+                        <div class="relative h-full min-h-[240px] flex flex-col justify-end rounded-xl overflow-hidden border border-indigo-800/40 bg-gradient-to-t from-indigo-900/80 to-transparent">
+                            <img id="awayManagerImg" src="" class="absolute inset-0 w-full h-full object-cover object-top opacity-90" crossorigin="anonymous">
+                            <div class="relative z-10 w-full bg-slate-950/95 backdrop-blur-md px-3 py-2 border-t border-indigo-800/60 flex flex-col">
+                                <span class="text-[9px] font-mono tracking-widest text-indigo-400 uppercase font-semibold">Manager (Supabase)</span>
+                                <span id="awayManagerName" class="text-white font-extrabold text-xs truncate">Awaiting Supabase Data...</span>
                             </div>
                         </div>
 
-                        <!-- Right Side: n8n Starting XI -->
-                        <div class="flex flex-col justify-center space-y-0.5 text-right font-mono pr-1">
-                            <h3 id="awayFixtureTitle" class="text-[11px] font-bold text-amber-400 tracking-wider mb-1">// AWAY XI</h3>
-                            <div id="awayStartingXiContainer" class="space-y-0.5 text-[10px] text-white">
-                                <div class="text-slate-500 text-[10px] italic py-4 text-center">Waiting for n8n webhook payload...</div>
+                        <!-- Right Side: n8n Starting XI (Bigger, Bolder Text) -->
+                        <div class="flex flex-col justify-center space-y-1 text-right font-mono pr-1">
+                            <h3 id="awayFixtureTitle" class="text-xs font-extrabold text-amber-400 tracking-wider mb-2">// AWAY XI</h3>
+                            <div id="awayStartingXiContainer" class="space-y-1 text-xs text-white max-h-[220px] overflow-y-auto pr-1">
+                                <div class="text-slate-400 text-xs italic py-6 text-center">Waiting for n8n webhook payload...</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Footer Subs & Brand -->
-                    <div class="z-10 pt-2 border-t border-indigo-900/50 flex flex-col gap-1">
-                        <div class="flex justify-between items-center text-[9px] font-mono">
-                            <span class="text-red-400 font-bold uppercase">Subs:</span>
-                            <span id="awaySubsContainer" class="text-slate-400 truncate max-w-[380px] text-right italic">Awaiting n8n response...</span>
+                    <div class="z-10 pt-3 border-t border-indigo-900/50 flex flex-col gap-1.5">
+                        <div class="flex justify-between items-center text-[10px] font-mono">
+                            <span class="text-red-400 font-bold uppercase tracking-wide">Subs:</span>
+                            <span id="awaySubsContainer" class="text-slate-300 font-medium truncate max-w-[480px] text-right italic">Awaiting n8n response...</span>
                         </div>
-                        <div class="flex justify-between items-center text-[8px] font-mono text-indigo-300">
+                        <div class="flex justify-between items-center text-[9px] font-mono text-indigo-300">
                             <span>n8n x SUPABASE PIPELINE</span>
                             <span id="awaySponsorName" class="text-white font-bold">-</span>
                         </div>
