@@ -1452,33 +1452,34 @@ async function fetchSupabaseTeamAssets(teamName, prefix) {
     }
 
     try {
-        // Fetch Manager from 'Managers' table
+        // 1. Fetch Manager from 'Managers' table (matching your exact column names)
         const { data: managerData, error: mgrError } = await window.supabaseClient
             .from('Managers')
             .select('*')
-            .ilike('team', `%${teamName}%`)
+            .ilike('current_team', `%${teamName}%`)
             .maybeSingle();
 
         if (managerData) {
-            safeSetText(`${prefix}ManagerName`, managerData.name || managerData.manager_name || teamName + " Manager");
+            // Using your exact column: Managers_name & Manager_photo
+            safeSetText(`${prefix}ManagerName`, managerData.Managers_name || teamName + " Manager");
             const imgEl = document.getElementById(`${prefix}ManagerImg`);
-            if (imgEl && (managerData.photo_url || managerData.image_url)) {
-                imgEl.src = managerData.photo_url || managerData.image_url;
+            if (imgEl && managerData.Manager_photo) {
+                imgEl.src = managerData.Manager_photo;
             }
         } else {
             safeSetText(`${prefix}ManagerName`, teamName + " Manager");
         }
 
-        // Fetch Logo from 'teamlogo' table
+        // 2. Fetch Logo from 'team logos' table (matching your exact table and columns)
         const { data: logoData, error: logoError } = await window.supabaseClient
-            .from('teamlogo')
+            .from('team logos')
             .select('*')
             .ilike('team_name', `%${teamName}%`)
             .maybeSingle();
 
-        if (logoData && (logoData.logo_url || logoData.url)) {
+        if (logoData && logoData.logo_url) {
             const logoEl = document.getElementById(`${prefix}ClubLogo`);
-            if (logoEl) logoEl.src = logoData.logo_url || logoData.url;
+            if (logoEl) logoEl.src = logoData.logo_url;
         }
     } catch (e) {
         console.error(`❌ Failed fetching Supabase assets for ${teamName}:`, e);
