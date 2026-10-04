@@ -1574,44 +1574,48 @@ window.updateAllLineupAspects = function() {
     if (!selectEl) return;
 
     const format = selectEl.value;
-    console.log(`📐 Resizing lineup wrappers for format: "${format}"`);
+    console.log(`📐 Resizing lineup wrappers and scaling content for: "${format}"`);
 
-    // Target your exact HTML wrapper IDs
     const wrappers = [
         document.getElementById('homeLineupWrapper'),
         document.getElementById('awayLineupWrapper')
     ].filter(Boolean);
 
-    if (wrappers.length === 0) {
-        console.warn("⚠️️ Lineup wrappers not found!");
-        return;
-    }
+    if (wrappers.length === 0) return;
 
     wrappers.forEach((wrapper) => {
+        // Reset inline styles first
+        wrapper.style.aspectRatio = '';
+        wrapper.style.maxWidth = '';
+        wrapper.style.minHeight = '';
+        wrapper.style.padding = '';
+
+        // Find internal elements inside this wrapper for dynamic scaling
+        const subsEl = wrapper.querySelector('[id*="Subs"], .text-xs, span:has-text("SUBS")') || wrapper.querySelector('div:last-child');
+        const rows = wrapper.querySelectorAll('.grid-cols-2 > div, .space-y-5');
+
         if (format === 'youtube') {
-            // 16:9 Landscape
+            // 16:9 Landscape (Default roomy layout)
             wrapper.style.aspectRatio = '16 / 9';
             wrapper.style.maxWidth = '760px';
             wrapper.style.minHeight = '428px';
-        } else if (format === 'tiktok') {
-            // 9:16 Vertical Story / Reel
-            wrapper.style.aspectRatio = '9 / 16';
-            wrapper.style.maxWidth = '360px'; // Restricts width for vertical reels
-            wrapper.style.minHeight = '640px';
-        } else if (format === 'twitter') {
-            // 1:1 Square
-            wrapper.style.aspectRatio = '1 / 1';
-            wrapper.style.maxWidth = '520px'; // Perfect square layout
-            wrapper.style.minHeight = '520px';
-        } else if (format === 'telegram') {
-            // 4:5 Portrait post
-            wrapper.style.aspectRatio = '4 / 5';
-            wrapper.style.maxWidth = '460px'; 
-            wrapper.style.minHeight = '575px';
+            wrapper.style.padding = '1.5rem'; // p-6
+        } else {
+            // Portrait / Square formats (TikTok, Telegram, Twitter) need compact spacing
+            wrapper.style.maxWidth = format === 'tiktok' ? '360px' : (format === 'twitter' ? '520px' : '460px');
+            wrapper.style.aspectRatio = format === 'tiktok' ? '9 / 16' : (format === 'twitter' ? '1 / 1' : '4 / 5');
+            wrapper.style.minHeight = format === 'tiktok' ? '640px' : '520px';
+            wrapper.style.padding = '0.85rem'; // Compact padding so text never gets cut off!
+
+            // Compact internal gaps and text sizes for vertical view
+            wrapper.querySelectorAll('.space-y-5').forEach(el => el.classList.replace('space-y-5', 'space-y-2'));
+            wrapper.querySelectorAll('li, .text-sm, .text-xs').forEach(el => {
+                el.style.fontSize = '10px'; // Scales down player names and subs slightly
+            });
         }
     });
 
-    console.log(`✨ Successfully resized lineup panels to ${format}`);
+    console.log(`✨ Successfully adjusted layout and scaling for ${format}`);
 };
 
 
