@@ -1605,26 +1605,41 @@ window.updateAllLineupAspects = function() {
     console.log(`✨ Successfully applied dimensions for ${format}`);
 };
 
-async function exportSingleLineup(prefix) {
-    const wrapper = document.getElementById(`${prefix}LineupWrapper`);
-    const platform = document.getElementById('masterPlatformSelect').value;
-    if (!wrapper) return;
-
-    try {
-        const canvas = await html2canvas(wrapper, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: null
-        });
-        const image = canvas.toDataURL("image/png");
-        const link = document.createElement('a');
-        link.href = image;
-        link.download = `${prefix}-lineup-${platform}.png`;
-        link.click();
-    } catch (err) {
-        console.error("❌ Export failed:", err);
+window.exportLineupCard = async function(prefix) {
+    const formatSelect = document.getElementById('masterPlatformSelect');
+    const format = formatSelect ? formatSelect.value : 'youtube';
+    
+    // Select the card container you want to export (e.g., home or away card)
+    const cardElement = document.getElementById(`${prefix}CardContainer`) || document.querySelector(`.${prefix}-card`);
+    
+    if (!cardElement) {
+        console.error(`❌ Card element not found for export.`);
+        return;
     }
-}
+
+    console.log(`📥 Exporting ${prefix} card in "${format}" format...`);
+
+    // Use html2canvas (or your current export library)
+    try {
+        const canvas = await html2canvas(cardElement, {
+            scale: 2, // High resolution export
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: null // Preserves your dark background/rounded corners
+        });
+
+        // Trigger download
+        const image = canvas.toDataURL("image/png");
+        const a = document.createElement('a');
+        a.href = image;
+        a.download = `${prefix}-lineup-${format}.png`;
+        a.click();
+        
+        console.log(`✅ Successfully exported ${prefix} lineup as PNG!`);
+    } catch (err) {
+        console.error(`❌ Export failed:`, err);
+    }
+};
 
 function exportBothLineups() {
     exportSingleLineup('home');
