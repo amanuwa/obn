@@ -1570,28 +1570,40 @@ function renderLineupPanelsFromWorkflow(lineupArray) {
 }
 
 // 3. Aspect Ratio & Download Export Functionality
-function updateAllLineupAspects() {
-    const platform = document.getElementById('masterPlatformSelect').value;
-    const homeWrapper = document.getElementById('homeLineupWrapper');
-    const awayWrapper = document.getElementById('awayLineupWrapper');
-    
-    const sizeClasses = ['aspect-video', 'w-full', 'max-w-[760px]', 'min-h-[520px]', 'w-[420px]', 'h-[746px]', 'w-[540px]', 'h-[540px]', 'w-[500px]', 'h-[625px]'];
+window.updateAllLineupAspects = function() {
+    const selectEl = document.getElementById('masterPlatformSelect');
+    if (!selectEl) return;
 
-    [homeWrapper, awayWrapper].forEach(wrapper => {
-        if (!wrapper) return;
-        wrapper.classList.remove(...sizeClasses);
+    const format = selectEl.value;
+    console.log(`📐 Updating lineup panel dimensions for format: "${format}"`);
 
-        if (platform === 'tiktok') {
-            wrapper.classList.add('w-[420px]', 'h-[746px]');
-        } else if (platform === 'twitter') {
-            wrapper.classList.add('w-[540px]', 'h-[540px]');
-        } else if (platform === 'telegram') {
-            wrapper.classList.add('w-[500px]', 'h-[625px]');
-        } else { // youtube default 16:9
-            wrapper.classList.add('w-full', 'max-w-[760px]', 'min-h-[520px]', 'aspect-video');
+    // Target your lineup card wrappers/containers 
+    // (Adjust the selector if your card wrapper classes or IDs are different)
+    const cardContainers = document.querySelectorAll('.lineup-card, [id*="Card"], .bg-slate-900');
+
+    cardContainers.forEach(card => {
+        // Reset previous sizing rules
+        card.style.aspectRatio = '';
+        card.style.maxWidth = '';
+        card.style.height = '';
+
+        if (format === 'youtube') {
+            // 16:9 Landscape
+            card.style.aspectRatio = '16 / 9';
+        } else if (format === 'tiktok') {
+            // 9:16 Vertical Story / Reel
+            card.style.aspectRatio = '9 / 16';
+        } else if (format === 'twitter') {
+            // 1:1 Square
+            card.style.aspectRatio = '1 / 1';
+        } else if (format === 'telegram') {
+            // 4:5 Portrait post
+            card.style.aspectRatio = '4 / 5';
         }
     });
-}
+
+    console.log(`✨ Successfully applied dimensions for ${format}`);
+};
 
 async function exportSingleLineup(prefix) {
     const wrapper = document.getElementById(`${prefix}LineupWrapper`);
