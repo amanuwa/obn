@@ -1574,33 +1574,44 @@ window.updateAllLineupAspects = function() {
     if (!selectEl) return;
 
     const format = selectEl.value;
-    console.log(`📐 Updating lineup panel dimensions for format: "${format}"`);
+    console.log(`📐 Resizing lineup wrappers for format: "${format}"`);
 
-    // Target the main card wrappers (Look for elements with 'card' in their class or ID, or update these selectors to match your HTML)
-    const cards = document.querySelectorAll('.bg-slate-900, [id*="Card"], .lineup-card-wrapper');
+    // Target your exact HTML wrapper IDs
+    const wrappers = [
+        document.getElementById('homeLineupWrapper'),
+        document.getElementById('awayLineupWrapper')
+    ].filter(Boolean);
 
-    cards.forEach(card => {
-        // Reset previous inline dimensions
-        card.style.aspectRatio = '';
-        card.style.height = '';
-        card.style.maxHeight = '';
+    if (wrappers.length === 0) {
+        console.warn("⚠️️ Lineup wrappers not found!");
+        return;
+    }
 
+    wrappers.forEach((wrapper) => {
         if (format === 'youtube') {
             // 16:9 Landscape
-            card.style.aspectRatio = '16 / 9';
+            wrapper.style.aspectRatio = '16 / 9';
+            wrapper.style.maxWidth = '760px';
+            wrapper.style.minHeight = '428px';
         } else if (format === 'tiktok') {
             // 9:16 Vertical Story / Reel
-            card.style.aspectRatio = '9 / 16';
+            wrapper.style.aspectRatio = '9 / 16';
+            wrapper.style.maxWidth = '360px'; // Restricts width for vertical reels
+            wrapper.style.minHeight = '640px';
         } else if (format === 'twitter') {
             // 1:1 Square
-            card.style.aspectRatio = '1 / 1';
+            wrapper.style.aspectRatio = '1 / 1';
+            wrapper.style.maxWidth = '520px'; // Perfect square layout
+            wrapper.style.minHeight = '520px';
         } else if (format === 'telegram') {
             // 4:5 Portrait post
-            card.style.aspectRatio = '4 / 5';
+            wrapper.style.aspectRatio = '4 / 5';
+            wrapper.style.maxWidth = '460px'; 
+            wrapper.style.minHeight = '575px';
         }
     });
 
-    console.log(`✨ Successfully applied ${format} dimensions to cards.`);
+    console.log(`✨ Successfully resized lineup panels to ${format}`);
 };
 
 
