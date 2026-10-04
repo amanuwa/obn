@@ -1423,23 +1423,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- Dedicated Lineup Renderer for your n8n Output Structure ---
 // --- Safe Helper Wrappers to Eliminate Null Property Errors ---
+// --- Safe Helper Wrappers (With Auto-CORS Proxy for Team Logos) ---
 function safeSetText(id, text) {
     const el = document.getElementById(id);
-    if (el) {
-        el.innerText = text;
-    } else {
-        console.warn(`⚠️ Target DOM element with ID '${id}' not found for text assignment.`);
-    }
+    if (el) el.innerText = text;
 }
 
 function safeSetImage(id, url) {
     const el = document.getElementById(id);
-    if (el) {
-        if (url) {
-            el.src = url;
+    if (el && url) {
+        let finalUrl = url;
+        
+        // If the image is coming from premierleague.com (or any non-CORS host), 
+        // wrap it in a free public image proxy to instantly bypass the browser block!
+        if (url.includes('premierleague.com') && !url.includes('images.weserv.nl')) {
+            const cleanUrl = url.replace(/^https?:\/\//, '');
+            finalUrl = `https://images.weserv.nl/?url=${cleanUrl}`;
+            console.log(`🛡️ Proxied CORS-blocked image via weserv:`, finalUrl);
         }
-    } else {
-        console.warn(`⚠️ Target image element with ID '${id}' not found for image assignment.`);
+
+        el.src = finalUrl;
+    } else if (!el) {
+        console.warn(`⚠️ DOM Element not found for ID: #${id}`);
     }
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
