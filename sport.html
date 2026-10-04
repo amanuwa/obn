@@ -1446,135 +1446,95 @@ function safeSetImage(id, url) {
 // --- Dedicated Lineup Renderer for your n8n Output Structure ---
 // 1. Fetch Supabase Data for Manager and Team Logo
 async function fetchSupabaseTeamAssets(teamName, prefix) {
-    console.log(`🚀 [Line 1] Starting fetchSupabaseTeamAssets for team: "${teamName}" with prefix: "${prefix}"`);
+    console.log(`🚀 Starting fetchSupabaseTeamAssets for team: "${teamName}" with prefix: "${prefix}"`);
 
     if (!window.supabaseClient) {
-        console.error(`❌ [Line 5] Supabase client ('window.supabaseClient') is missing or not initialized!`);
+        console.error(`❌ Supabase client ('window.supabaseClient') is missing!`);
         return;
     }
-    console.log(`✅ [Line 9] Supabase client instance found.`);
 
     let cleanTeam = (teamName || "").trim();
-    console.log(`🧹 [Line 12] Cleaned team name string: "${cleanTeam}"`);
 
     // ==========================================
     // 1. FETCH MANAGER FROM 'Managers' TABLE
     // ==========================================
     try {
-        console.log(`🔍 [Line 18] Querying Supabase table 'Managers' where current_team ilike "%${cleanTeam}%"...`);
-        
-        const managerQuery = await window.supabaseClient
+        const { data: managerData, error: mgrError } = await window.supabaseClient
             .from('Managers')
             .select('*')
-            .ilike('current_team', `%${cleanTeam}%`);
+            .ilike('current_team', `%${cleanTeam}%`)
+            .maybeSingle();
 
-        console.log(`📋 [Line 25] Manager query full response object:`, managerQuery);
-
-        if (managerQuery.error) {
-            console.error(`❌ [Line 28] Supabase error returned from 'Managers' table:`, managerQuery.error.message);
+        if (mgrError) {
+            console.error(`❌ Supabase Manager Error (Check RLS Policies!):`, mgrError.message);
         }
 
-        const managerData = managerQuery.data?.[0];
         if (managerData) {
-            console.log(`✅ [Line 33] Found manager record:`, managerData);
-
-            // Extract Name & Photo based on your exact schema columns
-            const mgrName = managerData.Managers_name;
-            const photoUrl = managerData.Manager_photo;
-
-            console.log(`👤 [Line 38] Extracted Manager Name: "${mgrName}", Photo URL: "${photoUrl}"`);
-
-            // Update Manager Name text element
-            const nameElId = `${prefix}ManagerName`;
-            const nameEl = document.getElementById(nameElId);
-            if (nameEl) {
-                nameEl.innerText = mgrName || `${cleanTeam} Manager`;
-                console.log(`✅ [Line 45] Successfully updated element #${nameElId}`);
-            } else {
-                console.warn(`⚠️ [Line 47] DOM element not found: #${nameElId}`);
-            }
-
-            // Update Manager Photo image element
-            const imgElId = `${prefix}ManagerImg`;
-            const imgEl = document.getElementById(imgElId);
-            if (imgEl) {
-                if (photoUrl) {
-                    imgEl.src = photoUrl;
-                    console.log(`🖼️ [Line 56] Successfully set image src for #${imgElId}`);
-                } else {
-                    console.warn(`⚠️ [Line 58] Manager record found, but 'Manager_photo' field is empty/null.`);
-                }
-            } else {
-                console.warn(`⚠️ [Line 61] DOM image element not found: #${imgElId}`);
-            }
-
+            console.log(`✅ Found Manager for ${cleanTeam}:`, managerData);
+            
+            safeSetText(`${prefix}ManagerName`, managerData.Managers_name || `${cleanTeam} Manager`);
+            safeSetImage(`${prefix}ManagerImg`, managerData.Manager_photo);
         } else {
-            console.warn(`⚠️ [Line 65] No rows matched 'current_team' ilike "%${cleanTeam}%" in 'Managers' table.`);
+            console.warn(`⚠️ No manager found for "${cleanTeam}". Check if RLS policy allows public SELECT on 'Managers'.`);
             safeSetText(`${prefix}ManagerName`, `${cleanTeam} Manager`);
         }
-
-    } catch (managerErr) {
-        console.error(`💥 [Line 70] Exception caught during Manager fetch process:`, managerErr);
+    } catch (e) {
+        console.error(`💥 Manager fetch exception:`, e);
     }
 
     // ==========================================
     // 2. FETCH LOGO FROM 'team logos' TABLE
     // ==========================================
     try {
-        console.log(`🔍 [Line 77] Querying Supabase table 'team logos' where team_name ilike "%${cleanTeam}%"...`);
-
-        const logoQuery = await window.supabaseClient
+        const { data: logoData, error: logoError } = await window.supabaseClient
             .from('team logos')
             .select('*')
-            .ilike('team_name', `%${cleanTeam}%`);
+            .ilike('team_name', `%${cleanTeam}%`)
+            .maybeSingle();
 
-        console.log(`📋 [Line 84] Logo query full response object:`, logoQuery);
-
-        if (logoQuery.error) {
-            console.error(`❌ [Line 87] Supabase error returned from 'team logos' table:`, logoQuery.error.message);
+        if (logoError) {
+            console.error(`❌ Supabase Logo Error:`, logoError.message);
         }
 
-        const logoData = logoQuery.data?.[0];
-        const logoElId = `${prefix}ClubLogo`;
-        const logoEl = document.getElementById(logoElId);
+        let logoUrl = logoData?.logo_url;
 
-        if (!logoEl) {
-            console.error(`❌ [Line 95] Club logo image element not found in DOM: #${logoElId}`);
-            return;
-        }
-
-        if (logoData && logoData.logo_url) {
-            console.log(`✅ [Line 100] Found logo via ilike search:`, logoData.logo_url);
-            logoEl.src = logoData.logo_url;
-        } else {
-            console.warn(`⚠️ [Line 103] Direct ilike match failed for team "${cleanTeam}". Running fallback scan on all rows...`);
-            
-            const allLogosQuery = await window.supabaseClient.from('team logos').select('*');
-            console.log(`📋 [Line 106] Full 'team logos' table fallback response:`, allLogosQuery);
-
-            if (allLogosQuery.data) {
-                const matchedLogoRow = allLogosQuery.data.find(row => {
-                    const dbTeamName = (row.team_name || "").toLowerCase().trim();
-                    const targetName = cleanTeam.toLowerCase().trim();
-                    return dbTeamName.includes(targetName) || targetName.includes(dbTeamName);
+        // Fallback scan if direct ilike fails
+        if (!logoUrl) {
+            const { data: allLogos } = await window.supabaseClient.from('team logos').select('*');
+            if (allLogos) {
+                const match = allLogos.find(l => {
+                    const dbName = (l.team_name || "").toLowerCase();
+                    return dbName.includes(cleanTeam.toLowerCase()) || cleanTeam.toLowerCase().includes(dbName);
                 });
-
-                if (matchedLogoRow && matchedLogoRow.logo_url) {
-                    console.log(`✅ [Line 116] Found logo via fallback match ("${matchedLogoRow.team_name}"):`, matchedLogoRow.logo_url);
-                    logoEl.src = matchedLogoRow.logo_url;
-                } else {
-                    console.error(`❌ [Line 119] Completely failed to find matching logo for "${cleanTeam}" even after fallback.`);
-                }
-            } else {
-                console.error(`❌ [Line 122] Could not read records from 'team logos' table during fallback.`);
+                logoUrl = match?.logo_url;
             }
         }
 
-    } catch (logoErr) {
-        console.error(`💥 [Line 127] Exception caught during Logo fetch process:`, logoErr);
-    }
+        if (logoUrl) {
+            console.log(`✅ Setting Club Logo URL for ${prefix}:`, logoUrl);
+            safeSetImage(`${prefix}ClubLogo`, logoUrl);
+        } else {
+            console.warn(`⚠️ No logo found for "${cleanTeam}" in 'team logos' table.`);
+        }
 
-    console.log(`🏁 [Line 130] Finished fetchSupabaseTeamAssets execution for "${cleanTeam}".`);
+    } catch (e) {
+        console.error(`💥 Logo fetch exception:`, e);
+    }
+}
+
+// --- Safe Helper Wrappers (Prevents null crashes) ---
+function safeSetText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = text;
+}
+
+function safeSetImage(id, url) {
+    const el = document.getElementById(id);
+    if (el && url) {
+        el.src = url;
+    } else if (!el) {
+        console.warn(`⚠️ DOM Element not found for ID: #${id}`);
+    }
 }
 
 // Helper safety wrapper
