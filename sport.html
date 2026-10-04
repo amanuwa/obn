@@ -1568,6 +1568,7 @@ function renderLineupPanelsFromWorkflow(lineupArray) {
 }
 
 // 3. Aspect Ratio & Download Export Functionality
+// --- 1. Dynamic Format Resizer ---
 window.updateAllLineupAspects = function() {
     const selectEl = document.getElementById('masterPlatformSelect');
     if (!selectEl) return;
@@ -1575,15 +1576,14 @@ window.updateAllLineupAspects = function() {
     const format = selectEl.value;
     console.log(`📐 Updating lineup panel dimensions for format: "${format}"`);
 
-    // Target your lineup card wrappers/containers 
-    // (Adjust the selector if your card wrapper classes or IDs are different)
-    const cardContainers = document.querySelectorAll('.lineup-card, [id*="Card"], .bg-slate-900');
+    // Target the main card wrappers (Look for elements with 'card' in their class or ID, or update these selectors to match your HTML)
+    const cards = document.querySelectorAll('.bg-slate-900, [id*="Card"], .lineup-card-wrapper');
 
-    cardContainers.forEach(card => {
-        // Reset previous sizing rules
+    cards.forEach(card => {
+        // Reset previous inline dimensions
         card.style.aspectRatio = '';
-        card.style.maxWidth = '';
         card.style.height = '';
+        card.style.maxHeight = '';
 
         if (format === 'youtube') {
             // 16:9 Landscape
@@ -1600,42 +1600,53 @@ window.updateAllLineupAspects = function() {
         }
     });
 
-    console.log(`✨ Successfully applied dimensions for ${format}`);
+    console.log(`✨ Successfully applied ${format} dimensions to cards.`);
 };
 
-window.exportLineupCard = async function(prefix) {
+
+// --- 2. Working Download Both Function ---
+window.exportBothLineups = async function() {
     const formatSelect = document.getElementById('masterPlatformSelect');
     const format = formatSelect ? formatSelect.value : 'youtube';
     
-    // Select the card container you want to export (e.g., home or away card)
-    const cardElement = document.getElementById(`${prefix}CardContainer`) || document.querySelector(`.${prefix}-card`);
-    
-    if (!cardElement) {
-        console.error(`❌ Card element not found for export.`);
+    console.log(`📥 Exporting lineup cards in "${format}" format...`);
+
+    // Find the card elements on your page (Adjust selectors if your container classes differ)
+    // Looking for the two main card containers in your grid
+    const cardElements = document.querySelectorAll('.bg-slate-900, [id*="Card"]');
+
+    if (cardElements.length === 0) {
+        alert("⚠️ No card containers found to export!");
         return;
     }
 
-    console.log(`📥 Exporting ${prefix} card in "${format}" format...`);
+    // Check if html2canvas is loaded
+    if (typeof html2canvas === 'undefined') {
+        alert("⚠️ html2canvas library is not loaded on this page!");
+        return;
+    }
 
-    // Use html2canvas (or your current export library)
-    try {
-        const canvas = await html2canvas(cardElement, {
-            scale: 2, // High resolution export
-            useCORS: true,
-            allowTaint: false,
-            backgroundColor: null // Preserves your dark background/rounded corners
-        });
+    // Loop through the cards found and download them
+    for (let i = 0; i < cardElements.length; i++) {
+        const card = cardElements[i];
+        try {
+            console.log(`📸 Rendering card ${i + 1} to canvas...`);
+            const canvas = await html2canvas(card, {
+                scale: 2, // High resolution
+                useCORS: true,
+                allowTaint: false,
+                backgroundColor: null
+            });
 
-        // Trigger download
-        const image = canvas.toDataURL("image/png");
-        const a = document.createElement('a');
-        a.href = image;
-        a.download = `${prefix}-lineup-${format}.png`;
-        a.click();
-        
-        console.log(`✅ Successfully exported ${prefix} lineup as PNG!`);
-    } catch (err) {
-        console.error(`❌ Export failed:`, err);
+            const image = canvas.toDataURL("image/png");
+            const a = document.createElement('a');
+            a.href = image;
+            a.download = `lineup-card-${i + 1}-${format}.png`;
+            a.click();
+            console.log(`✅ Downloaded card ${i + 1}`);
+        } catch (err) {
+            console.error(`❌ Failed to export card ${i + 1}:`, err);
+        }
     }
 };
 
