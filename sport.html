@@ -1446,7 +1446,7 @@ function safeSetImage(id, url) {
 // --- Dedicated Lineup Renderer for your n8n Output Structure ---
 // 1. Fetch Supabase Data for Manager and Team Logo
 async function fetchSupabaseTeamAssets(teamName, prefix) {
-    console.log(`🚀 Starting fetchSupabaseTeamAssets for team: "${teamName}" with prefix: "${prefix}"`);
+    console.log(`🚀 [${prefix.toUpperCase()}] Fetching assets for team: "${teamName}"`);
 
     if (!window.supabaseClient) {
         console.error(`❌ Supabase client ('window.supabaseClient') is missing!`);
@@ -1455,70 +1455,43 @@ async function fetchSupabaseTeamAssets(teamName, prefix) {
 
     let cleanTeam = (teamName || "").trim();
 
-    // ==========================================
-    // 1. FETCH MANAGER FROM 'Managers' TABLE
-    // ==========================================
     try {
-        const { data: managerData, error: mgrError } = await window.supabaseClient
+        // Query the 'Managers' table for both manager & logo data in one go
+        const { data: teamData, error } = await window.supabaseClient
             .from('Managers')
             .select('*')
             .ilike('current_team', `%${cleanTeam}%`)
             .maybeSingle();
 
-        if (mgrError) {
-            console.error(`❌ Supabase Manager Error (Check RLS Policies!):`, mgrError.message);
+        if (error) {
+            console.error(`❌ Supabase Error:`, error.message);
         }
 
-        if (managerData) {
-            console.log(`✅ Found Manager for ${cleanTeam}:`, managerData);
+        if (teamData) {
+            console.log(`✅ Found record in Managers table for ${cleanTeam}:`, teamData);
             
-            safeSetText(`${prefix}ManagerName`, managerData.Managers_name || `${cleanTeam} Manager`);
-            safeSetImage(`${prefix}ManagerImg`, managerData.Manager_photo);
+            // 1. Set Manager Name
+            safeSetText(`${prefix}ManagerName`, teamData.Managers_name || `${cleanTeam} Manager`);
+
+            // 2. Set Manager Photo
+            safeSetImage(`${prefix}ManagerImg`, teamData.Manager_photo);
+
+            // 3. Set Team Logo (matches the column name you created in the Managers table)
+            const logoUrl = teamData.team_logo || teamData.logo_url;
+            if (logoUrl) {
+                console.log(`🖼️ Setting Club Logo URL:`, logoUrl);
+                safeSetImage(`${prefix}ClubLogo`, logoUrl);
+            } else {
+                console.warn(`⚠️ 'team_logo' column is empty for ${cleanTeam}`);
+            }
+
         } else {
-            console.warn(`⚠️ No manager found for "${cleanTeam}". Check if RLS policy allows public SELECT on 'Managers'.`);
+            console.warn(`⚠️ No record matched "%${cleanTeam}%" in Managers table.`);
             safeSetText(`${prefix}ManagerName`, `${cleanTeam} Manager`);
         }
-    } catch (e) {
-        console.error(`💥 Manager fetch exception:`, e);
-    }
-
-    // ==========================================
-    // 2. FETCH LOGO FROM 'team logos' TABLE
-    // ==========================================
-    try {
-        const { data: logoData, error: logoError } = await window.supabaseClient
-            .from('team logos')
-            .select('*')
-            .ilike('team_name', `%${cleanTeam}%`)
-            .maybeSingle();
-
-        if (logoError) {
-            console.error(`❌ Supabase Logo Error:`, logoError.message);
-        }
-
-        let logoUrl = logoData?.logo_url;
-
-        // Fallback scan if direct ilike fails
-        if (!logoUrl) {
-            const { data: allLogos } = await window.supabaseClient.from('team logos').select('*');
-            if (allLogos) {
-                const match = allLogos.find(l => {
-                    const dbName = (l.team_name || "").toLowerCase();
-                    return dbName.includes(cleanTeam.toLowerCase()) || cleanTeam.toLowerCase().includes(dbName);
-                });
-                logoUrl = match?.logo_url;
-            }
-        }
-
-        if (logoUrl) {
-            console.log(`✅ Setting Club Logo URL for ${prefix}:`, logoUrl);
-            safeSetImage(`${prefix}ClubLogo`, logoUrl);
-        } else {
-            console.warn(`⚠️ No logo found for "${cleanTeam}" in 'team logos' table.`);
-        }
 
     } catch (e) {
-        console.error(`💥 Logo fetch exception:`, e);
+        console.error(`💥 Exception during asset fetch:`, e);
     }
 }
 
