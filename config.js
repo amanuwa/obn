@@ -25,6 +25,8 @@ export const N8N_Preparepage_GATEWAY_WEBHOOK = 'https://unreached-oboe-evade.ngr
 
 export const N8N_sport_GATEWAY_WEBHOOK='https://unreached-oboe-evade.ngrok-free.dev/webhook/sport';
 export const LINEUP_WEBHOOK_URL='https://unreached-oboe-evade.ngrok-free.dev/webhook/Linups';
+export const fast_hot_news='http://localhost:5678/webhook/sporthotnews';
+
 
 // ========================================================
 // 🚧 DEVELOPMENT ROUTER OVERRIDE
