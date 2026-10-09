@@ -218,8 +218,9 @@
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Fast Hot News
                         </h3>
                         <div class="flex gap-2">
-                            <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white focus:border-rose-500 outline-none">
-                            <button id="hotNewsBtn" type="button" onclick="triggerHotNewsWebhook(event)" class="bg-rose-600 border border-rose-400 px-4 py-2 rounded-lg font-bold text-xs uppercase text-white hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>                    </div>
+                            <input type="text" id="sporthotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white focus:border-rose-500 outline-none">
+                            <button id="hotNewsBtn" type="button" onclick="triggerHotNewsWebhook()" class="bg-rose-600 border border-rose-400 px-4 py-2 rounded-lg font-bold text-xs uppercase text-white hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>       
+                        </div>
                     
                     <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-xl w-full flex justify-between items-center flex-wrap gap-2">
                         <div class="flex gap-2 flex-wrap">
@@ -1204,21 +1205,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const selectAllLang = document.getElementById('selectAllLangBtn');
         if (selectAllLang) selectAllLang.addEventListener('click', () => toggleAll('.lang-check', true));
 
-        const hotNewsBtn = document.getElementById('hotNewsBtn');
-        if (hotNewsBtn) {
-            hotNewsBtn.addEventListener('click', () => {
-                const topic = document.getElementById('hotNewsInput').value;
-                if (!topic) return;
-                const selectedLangs = Array.from(document.querySelectorAll('.lang-check:checked')).map(c => c.value);
-                window.executeScraperWorkflow({
-                    page: "sports",
-                    targetMatrix: "hot_news",
-                    query: topic,
-                    languages: selectedLangs,
-                    timestamp: new Date().toISOString()
-                });
-            });
-        }
+       
 
         const downloadBtn = document.getElementById('downloadBtn');
         if (downloadBtn) downloadBtn.addEventListener('click', () => window.print());
