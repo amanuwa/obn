@@ -2360,12 +2360,8 @@ window.exportPodcast = function() {
     window.addEventListener('DOMContentLoaded', () => {
         renderDualLineups();
     });
-async function triggerHotNewsWebhook(e) {
-    // Stop the click from bubbling up to any other parent listeners or scraper workflows
-    if (e) {
-        e.stopPropagation();
-        e.preventDefault();
-    }
+async function triggerHotNewsWebhook() {
+  
 
     const inputElement = document.getElementById('hotNewsInput');
     const buttonElement = document.getElementById('hotNewsBtn');
@@ -2400,6 +2396,7 @@ async function triggerHotNewsWebhook(e) {
                 timestamp: new Date().toISOString()
             })
         });
+        console.error("response"response);
 
         if (response.ok) {
             console.log("✅ Webhook triggered successfully!");
@@ -2418,21 +2415,7 @@ async function triggerHotNewsWebhook(e) {
 }
 
     // Attach Event Listeners on DOM load
-    document.addEventListener('DOMContentLoaded', () => {
-        const hotNewsBtn = document.getElementById('hotNewsBtn');
-        if (hotNewsBtn) {
-            hotNewsBtn.addEventListener('click', triggerHotNewsWebhook);
-        }
-        
-        const hotNewsInput = document.getElementById('hotNewsInput');
-        if (hotNewsInput) {
-            hotNewsInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    triggerHotNewsWebhook();
-                }
-            });
-        }
-    });
+  
 
     
 </script>
