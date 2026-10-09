@@ -2383,11 +2383,14 @@ async function triggerHotNewsWebhook() {
             })
         });
 
+    
         if (response.ok) {
+            const resultData = await response.json();
+              console.log(resultData);// <-- ADD IT HERE
             console.log("✅ Webhook triggered successfully!");
             const newsPanel = document.getElementById('matchNewsSubPanel');
             if (newsPanel) {
-                // Format and display the incoming data (adjust based on your n8n output structure)
+                // Format and display the incoming data
                 newsPanel.innerHTML = `
                     <div class="news-card">
                         <div class="news-card-content">
