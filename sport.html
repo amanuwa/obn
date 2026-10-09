@@ -217,10 +217,10 @@
                         <h3 class="text-[10px] font-bold text-rose-500 uppercase mb-1.5 flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Fast Hot News
                         </h3>
-                        <div class="flex gap-2">
-                            <input type="text" id="sporthotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white focus:border-rose-500 outline-none">
-                            <button id="hotNewsBtn" type="button" onclick="triggerHotNewsWebhook()" class="bg-rose-600 border border-rose-400 px-4 py-2 rounded-lg font-bold text-xs uppercase text-white hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>       
-                        </div>
+                       <div class="flex gap-2">
+    <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white focus:border-rose-500 outline-none">
+    <button id="hotNewsBtn" type="button" class="bg-rose-600 border border-rose-400 px-4 py-2 rounded-lg font-bold text-xs uppercase text-white hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>       
+</div>
                     
                     <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-xl w-full flex justify-between items-center flex-wrap gap-2">
                         <div class="flex gap-2 flex-wrap">
@@ -2347,9 +2347,8 @@ window.exportPodcast = function() {
     window.addEventListener('DOMContentLoaded', () => {
         renderDualLineups();
     });
+// Define the function globally
 async function triggerHotNewsWebhook() {
-  
-
     const inputElement = document.getElementById('hotNewsInput');
     const buttonElement = document.getElementById('hotNewsBtn');
     
@@ -2370,7 +2369,7 @@ async function triggerHotNewsWebhook() {
             buttonElement.disabled = true;
         }
 
-        console.log(`🚀 Sending text to n8n webhook (${fast_hot_news}): "${textPayload}"`);
+        console.log(`🚀 Sending text to n8n webhook: "${textPayload}"`);
 
         const response = await fetch(fast_hot_news, {
             method: 'POST',
@@ -2383,11 +2382,10 @@ async function triggerHotNewsWebhook() {
                 timestamp: new Date().toISOString()
             })
         });
-        console.error(response);
 
         if (response.ok) {
             console.log("✅ Webhook triggered successfully!");
-            inputElement.value = ''; // Clear input field on success
+            inputElement.value = '';
         } else {
             console.error("❌ Webhook responded with status:", response.status);
         }
@@ -2400,6 +2398,38 @@ async function triggerHotNewsWebhook() {
         }
     }
 }
+
+// Bind it safely inside DOMContentLoaded so it never throws a ReferenceError
+window.addEventListener('DOMContentLoaded', () => {
+    initGlobeSystem();
+    
+    const stage = document.getElementById('backdropStage');
+    const appFrame = document.getElementById('mainAppFrame');
+
+    setTimeout(() => {
+        if (stage) stage.classList.add('dashboard-active');
+        if (appFrame) appFrame.classList.add('visible');
+    }, 3500);
+
+    document.querySelectorAll('.cat-check').forEach(cb => {
+        cb.addEventListener('change', (e) => handleCategoryTrigger(e.target));
+    });
+
+    const selectAllCat = document.getElementById('selectAllCatBtn');
+    if (selectAllCat) selectAllCat.addEventListener('click', () => toggleAll('.cat-check', true));
+
+    const selectAllLang = document.getElementById('selectAllLangBtn');
+    if (selectAllLang) selectAllLang.addEventListener('click', () => toggleAll('.lang-check', true));
+
+    // Exclusively hook up hotNewsBtn to your webhook function (no scraper workflow fallback!)
+    const hotNewsBtn = document.getElementById('hotNewsBtn');
+    if (hotNewsBtn) {
+        hotNewsBtn.addEventListener('click', triggerHotNewsWebhook);
+    }
+
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) downloadBtn.addEventListener('click', () => window.print());
+});
 
     // Attach Event Listeners on DOM load
   
