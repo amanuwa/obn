@@ -219,8 +219,7 @@
                         </h3>
                         <div class="flex gap-2">
                             <input type="text" id="hotNewsInput" placeholder="Enter topic..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white focus:border-rose-500 outline-none">
-<button id="hotNewsBtn" type="button" onclick="triggerHotNewsWebhook()" class="bg-rose-600 border border-rose-400 px-4 py-2 rounded-lg font-bold text-xs uppercase text-white hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>                        </div>
-                    </div>
+                            <button id="hotNewsBtn" type="button" onclick="triggerHotNewsWebhook(event)" class="bg-rose-600 border border-rose-400 px-4 py-2 rounded-lg font-bold text-xs uppercase text-white hover:bg-rose-500 cursor-pointer transition-colors tracking-wider">Go</button>                    </div>
                     
                     <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-xl w-full flex justify-between items-center flex-wrap gap-2">
                         <div class="flex gap-2 flex-wrap">
@@ -2406,7 +2405,13 @@ window.exportPodcast = function() {
     window.addEventListener('DOMContentLoaded', () => {
         renderDualLineups();
     });
- async function triggerHotNewsWebhook() {
+async function triggerHotNewsWebhook(e) {
+    // Stop the click from bubbling up to any other parent listeners or scraper workflows
+    if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
     const inputElement = document.getElementById('hotNewsInput');
     const buttonElement = document.getElementById('hotNewsBtn');
     
@@ -2433,7 +2438,7 @@ window.exportPodcast = function() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true' // <--- Essential for free Ngrok tunnels
+                'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify({
                 text: textPayload,
