@@ -733,6 +733,7 @@
     import { N8N_sport_GATEWAY_WEBHOOK } from './config.js';
     import { supabase } from './config.js';
         import { LINEUP_WEBHOOK_URL } from './config.js';
+  //  import { fast_hot_news } from './config.js';
     import { fast_hot_news } from './config.js';
 
     window.fullMatchList = [];
@@ -2406,55 +2407,56 @@ window.exportPodcast = function() {
     window.addEventListener('DOMContentLoaded', () => {
         renderDualLineups();
     });
-    async function triggerHotNewsWebhook() {
-        const inputElement = document.getElementById('hotNewsInput');
-        const buttonElement = document.getElementById('hotNewsBtn');
-        
-        if (!inputElement) {
-            console.error("❌ 'hotNewsInput' element not found.");
-            return;
+ async function triggerHotNewsWebhook() {
+    const inputElement = document.getElementById('hotNewsInput');
+    const buttonElement = document.getElementById('hotNewsBtn');
+    
+    if (!inputElement) {
+        console.error("❌ 'hotNewsInput' element not found.");
+        return;
+    }
+
+    const textPayload = inputElement.value.trim();
+    if (!textPayload) {
+        alert("Please enter a topic or text first!");
+        return;
+    }
+
+    try {
+        if (buttonElement) {
+            buttonElement.textContent = "SENDING...";
+            buttonElement.disabled = true;
         }
 
-        const textPayload = inputElement.value.trim();
-        if (!textPayload) {
-            alert("Please enter a topic or text first!");
-            return;
+        console.log(`🚀 Sending text to n8n webhook (${fast_hot_news}): "${textPayload}"`);
+
+        const response = await fetch(fast_hot_news, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true' // <--- Essential for free Ngrok tunnels
+            },
+            body: JSON.stringify({
+                text: textPayload,
+                timestamp: new Date().toISOString()
+            })
+        });
+
+        if (response.ok) {
+            console.log("✅ Webhook triggered successfully!");
+            inputElement.value = ''; // Clear input field on success
+        } else {
+            console.error("❌ Webhook responded with status:", response.status);
         }
-
-        try {
-            if (buttonElement) {
-                buttonElement.textContent = "SENDING...";
-                buttonElement.disabled = true;
-            }
-
-            console.log(`🚀 Sending text to n8n webhook (${fast_hot_news}): "${textPayload}"`);
-
-            const response = await fetch(fast_hot_news, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    text: textPayload,
-                    timestamp: new Date().toISOString()
-                })
-            });
-
-            if (response.ok) {
-                console.log("✅ Webhook triggered successfully!");
-                inputElement.value = ''; // Clear input field on success
-            } else {
-                console.error("❌ Webhook responded with status:", response.status);
-            }
-        } catch (error) {
-            console.error("❌ Network or fetch error triggering webhook:", error);
-        } finally {
-            if (buttonElement) {
-                buttonElement.textContent = "GO";
-                buttonElement.disabled = false;
-            }
+    } catch (error) {
+        console.error("❌ Network or fetch error triggering webhook:", error);
+    } finally {
+        if (buttonElement) {
+            buttonElement.textContent = "GO";
+            buttonElement.disabled = false;
         }
     }
+}
 
     // Attach Event Listeners on DOM load
     document.addEventListener('DOMContentLoaded', () => {
