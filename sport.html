@@ -2349,11 +2349,19 @@ window.exportPodcast = function() {
     });
 // Define the function globally
 async function triggerHotNewsWebhook() {
-   const inputElement = document.getElementById('hotNewsInput'); // <-- MATCHES YOUR HTML ID
+    const inputElement = document.getElementById('hotNewsInput');
+    const buttonElement = document.getElementById('hotNewsBtn'); // Reference to your Go button
     const textPayload = inputElement ? inputElement.value : '';
     
-    // 1. Show loading state immediately when GO is clicked
-   // Show loading state immediately when GO is clicked with a white page background
+    console.log("📤 Sending text to n8n webhook:", textPayload);
+
+    // 1. Disable button, change text to "Wait...", and show white loading state on the news panel
+    if (buttonElement) {
+        buttonElement.disabled = true;
+        buttonElement.innerText = "Wait...";
+        buttonElement.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+
     const newsPanel = document.getElementById('matchNewsSubPanel');
     if (newsPanel) {
         newsPanel.innerHTML = `
@@ -2365,7 +2373,6 @@ async function triggerHotNewsWebhook() {
     }
 
     try {
-        // Replace with your actual webhook URL/variable
         const response = await fetch(fast_hot_news, {
             method: 'POST',
             headers: {
@@ -2383,7 +2390,6 @@ async function triggerHotNewsWebhook() {
             console.log("✅ Data received from n8n:", resultData);
             
             if (newsPanel) {
-                // Ensure we are working with an array of articles
                 const articles = Array.isArray(resultData) ? resultData : (resultData.data || [resultData]);
                 
                 if (articles.length === 0) {
@@ -2391,34 +2397,34 @@ async function triggerHotNewsWebhook() {
                     return;
                 }
 
-                // Build full-width grid layout for the news cards
-                let htmlContent = '<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 w-full">';
+                // Render cards in order: Source -> Headline -> Image -> Details
+                let htmlContent = '<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full">';
                 
                 articles.forEach(article => {
                     htmlContent += `
                         <div class="bg-slate-900/95 border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-xl w-full hover:border-amber-500/50 transition-all">
-                            <div>
-                                <!-- Source & Date Header -->
-                                <div class="flex items-center justify-between text-[11px] font-mono text-amber-400 mb-2 pb-1 border-b border-slate-800">
-                                    <span class="font-bold uppercase tracking-wider">${article.source_website || 'LIVE NEWS FEED'}</span>
-                                    <span class="text-slate-500">${article.date_posted || ''}</span>
+                            <div class="flex flex-col">
+                                <!-- 1. Source Website -->
+                                <div class="text-[11px] font-mono text-amber-400 font-bold uppercase tracking-wider mb-2">
+                                    ${article.source_website || 'LIVE NEWS FEED'}
+                                    <span class="text-slate-500 font-normal ml-2">${article.date_posted || ''}</span>
                                 </div>
                                 
-                                <!-- Headline in Bold -->
+                                <!-- 2. Headline in Bold -->
                                 <h3 class="text-sm font-bold text-slate-100 mb-3 leading-snug">
                                     <a href="${article.url || '#'}" target="_blank" class="hover:text-amber-400 transition-colors">
                                         ${article.headline || 'Untitled Article'}
                                     </a>
                                 </h3>
                                 
-                                <!-- Render Image -->
+                                <!-- 3. Render Image -->
                                 ${article.image_url ? `
-                                    <div class="w-full h-44 overflow-hidden rounded-md mb-3 bg-slate-950 border border-slate-800">
+                                    <div class="w-full h-48 overflow-hidden rounded-md mb-3 bg-slate-950 border border-slate-800">
                                         <img src="${article.image_url}" alt="News thumbnail" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400?text=Image+Not+Available';" />
                                     </div>
                                 ` : ''}
                                 
-                                <!-- Detail / Summary Text -->
+                                <!-- 4. Detail / Summary Text -->
                                 <p class="text-xs text-slate-300 leading-relaxed line-clamp-3 mb-4 font-sans">
                                     ${article.detail_data || ''}
                                 </p>
@@ -2449,6 +2455,13 @@ async function triggerHotNewsWebhook() {
         console.error(err);
         if (newsPanel) {
             newsPanel.innerHTML = `<div class="w-full p-6 text-rose-400 text-center font-mono bg-slate-900 border border-rose-900/50 rounded-lg">Connection Failure: ${err.message}</div>`;
+        }
+    } finally {
+        // 2. Re-enable button and change text back to "Go" once complete (success or error)
+        if (buttonElement) {
+            buttonElement.disabled = false;
+            buttonElement.innerText = "Go";
+            buttonElement.classList.remove('opacity-50', 'cursor-not-allowed');
         }
     }
 }
