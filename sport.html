@@ -319,8 +319,8 @@
         </main>
 
         <!-- EDGE-TO-EDGE A4 PROPORTIONAL SCROLLABLE MATCH NEWS PANEL -->
-        <div class="a4-news-container mt-8 shadow-2xl">
-            <div class="max-w-7xl mx-auto flex flex-col h-full">
+        <div class="a4-news-container mt-8 shadow-2xl w-full px-4">
+    <div class="w-full flex flex-col h-full">
                 <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
                     <span class="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span> // SCROLLABLE PANEL: MATCH NEWS & HEADLINES (A4 FULL-BLEED MATRIX)
@@ -2349,28 +2349,22 @@ window.exportPodcast = function() {
     });
 // Define the function globally
 async function triggerHotNewsWebhook() {
-    const inputElement = document.getElementById('hotNewsInput');
-    const buttonElement = document.getElementById('hotNewsBtn');
+    const inputElement = document.getElementById('fastHotNewsInput'); // adjust ID if your input has a different ID
+    const textPayload = inputElement ? inputElement.value : '';
     
-    if (!inputElement) {
-        console.error("❌ 'hotNewsInput' element not found.");
-        return;
-    }
-
-    const textPayload = inputElement.value.trim();
-    if (!textPayload) {
-        alert("Please enter a topic or text first!");
-        return;
+    // 1. Show loading state immediately when GO is clicked
+    const newsPanel = document.getElementById('matchNewsSubPanel');
+    if (newsPanel) {
+        newsPanel.innerHTML = `
+            <div class="w-full py-12 px-6 text-center bg-slate-900/90 border border-slate-800 rounded-lg text-amber-400 font-mono animate-pulse shadow-2xl flex flex-col items-center justify-center gap-3">
+                <span class="inline-block w-3 h-3 rounded-full bg-amber-400 animate-ping"></span>
+                <span class="text-sm tracking-wider uppercase font-bold">Wait until the news arrived...</span>
+            </div>
+        `;
     }
 
     try {
-        if (buttonElement) {
-            buttonElement.textContent = "SENDING...";
-            buttonElement.disabled = true;
-        }
-
-        console.log(`🚀 Sending text to n8n webhook: "${textPayload}"`);
-
+        // Replace with your actual webhook URL/variable
         const response = await fetch(fast_hot_news, {
             method: 'POST',
             headers: {
@@ -2383,36 +2377,77 @@ async function triggerHotNewsWebhook() {
             })
         });
 
-    
         if (response.ok) {
             const resultData = await response.json();
-              console.log(resultData);// <-- ADD IT HERE
-            console.log("✅ Webhook triggered successfully!");
-            const newsPanel = document.getElementById('matchNewsSubPanel');
+            console.log("✅ Data received from n8n:", resultData);
+            
             if (newsPanel) {
-                // Format and display the incoming data
-                newsPanel.innerHTML = `
-                    <div class="news-card">
-                        <div class="news-card-content">
-                            <div class="flex justify-between items-start gap-2 mb-1">
-                                <span class="text-[11px] font-bold text-emerald-400 uppercase tracking-wide">Live Feed Active</span>
-                                <span class="text-[9px] font-mono text-slate-500">${new Date().toLocaleTimeString()}</span>
+                // Ensure we are working with an array of articles
+                const articles = Array.isArray(resultData) ? resultData : (resultData.data || [resultData]);
+                
+                if (articles.length === 0) {
+                    newsPanel.innerHTML = `<div class="w-full p-6 text-slate-400 text-center font-mono">No news articles found.</div>`;
+                    return;
+                }
+
+                // Build full-width grid layout for the news cards
+                let htmlContent = '<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 w-full">';
+                
+                articles.forEach(article => {
+                    htmlContent += `
+                        <div class="bg-slate-900/95 border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-xl w-full hover:border-amber-500/50 transition-all">
+                            <div>
+                                <!-- Source & Date Header -->
+                                <div class="flex items-center justify-between text-[11px] font-mono text-amber-400 mb-2 pb-1 border-b border-slate-800">
+                                    <span class="font-bold uppercase tracking-wider">${article.source_website || 'LIVE NEWS FEED'}</span>
+                                    <span class="text-slate-500">${article.date_posted || ''}</span>
+                                </div>
+                                
+                                <!-- Headline in Bold -->
+                                <h3 class="text-sm font-bold text-slate-100 mb-3 leading-snug">
+                                    <a href="${article.url || '#'}" target="_blank" class="hover:text-amber-400 transition-colors">
+                                        ${article.headline || 'Untitled Article'}
+                                    </a>
+                                </h3>
+                                
+                                <!-- Render Image -->
+                                ${article.image_url ? `
+                                    <div class="w-full h-44 overflow-hidden rounded-md mb-3 bg-slate-950 border border-slate-800">
+                                        <img src="${article.image_url}" alt="News thumbnail" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400?text=Image+Not+Available';" />
+                                    </div>
+                                ` : ''}
+                                
+                                <!-- Detail / Summary Text -->
+                                <p class="text-xs text-slate-300 leading-relaxed line-clamp-3 mb-4 font-sans">
+                                    ${article.detail_data || ''}
+                                </p>
                             </div>
-                            <p class="text-xs text-slate-300 leading-relaxed font-sans">${typeof resultData === 'object' ? JSON.stringify(resultData, null, 2) : resultData}</p>
+                            
+                            <!-- Read More Link -->
+                            <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px] font-mono">
+                                <span class="text-slate-500">Verified Payload</span>
+                                <a href="${article.url || '#'}" target="_blank" class="text-amber-400 font-bold hover:underline">
+                                    Full Article &rarr;
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                });
+                
+                htmlContent += '</div>';
+                newsPanel.innerHTML = htmlContent;
             }
-            inputElement.value = '';
+
+            if (inputElement) inputElement.value = '';
         } else {
-            console.error("❌ Webhook responded with status:", response.status);
+            if (newsPanel) {
+                newsPanel.innerHTML = `<div class="w-full p-6 text-rose-400 text-center font-mono bg-slate-900 border border-rose-900/50 rounded-lg">Webhook Error: HTTP Status ${response.status}</div>`;
+            }
         }
-    } catch (error) {
-        console.error("❌ Network or fetch error triggering webhook:", error);
-    } finally {
-        if (buttonElement) {
-            buttonElement.textContent = "GO";
-            buttonElement.disabled = false;
+    } catch (err) {
+        console.error(err);
+        if (newsPanel) {
+            newsPanel.innerHTML = `<div class="w-full p-6 text-rose-400 text-center font-mono bg-slate-900 border border-rose-900/50 rounded-lg">Connection Failure: ${err.message}</div>`;
         }
     }
 }
