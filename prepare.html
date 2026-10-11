@@ -647,6 +647,316 @@
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
         }
+
+        //////////////////////////
+        // Function to dynamically display the logged-in user's name
+// Automatically load and display the logged-in user's name on both panels
+function loadLoggedUserName() {
+    const sessionData = localStorage.getItem('userSession');
+    if (!sessionData) return;
+
+    try {
+        const user = JSON.parse(sessionData);
+        // Extracts name using your app's common property keys
+        const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name;
+
+        if (loggedInName) {
+            // Update panel 1
+            const nameEl1 = document.getElementById('activeOperatorName1');
+            if (nameEl1) nameEl1.innerText = loggedInName;
+
+            // Update panel 2 (Revision mode panel)
+            const nameEl2 = document.getElementById('activeOperatorName2');
+            if (nameEl2) nameEl2.innerText = loggedInName;
+        }
+    } catch (e) {
+        console.error("Error parsing user session for display:", e);
+    }
+}
+
+// Call it immediately when the script runs
+loadLoggedUserName();
+
+        
+
+        // RENDER STREAM PANEL
+        window.renderLeftStreamPanel = function(rawData) {
+            const container = document.getElementById('streamDataContainer');
+            if (!container) return;
+
+            let streamItems = [];
+
+            if (Array.isArray(rawData)) {
+                if (rawData[0] && Array.isArray(rawData[0].news)) {
+                    streamItems = rawData[0].news;
+                } else {
+                    streamItems = rawData;
+                }
+            } else if (rawData && Array.isArray(rawData.news)) {
+                streamItems = rawData.news;
+            } else if (rawData) {
+                streamItems = [rawData];
+            }
+
+            if (!streamItems || streamItems.length === 0) {
+                container.innerHTML = `<div class="text-slate-500 font-mono text-xs p-3">// No scraped data available in stream.</div>`;
+                return;
+            }
+
+            window.activeStreamItems = streamItems;
+
+            let cardsHtml = '';
+ // Ensure your stream rendering loop uses this exact code:
+streamItems.forEach((row, idx) => {
+    const item = row.json || row;
+    const sourceName = item.sourceName || item.source || 'LIVE STREAM';
+    const title = item.title || item.newsTitle || item.name || 'Untitled Stream Entry';
+    const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+    const imageUrl = item.imageUrl || item.image || item.media || null;
+    const url = item.url || item.link || null;
+
+    cardsHtml += `
+        <div class="p-3 bg-slate-900/90 border border-slate-800 hover:border-cyan-500/70 rounded-lg transition-all cursor-pointer group shadow-sm mb-3"
+             onclick="window.transferToEditor(${idx})">
+            
+            <!-- Header Source Tag -->
+            <div class="flex items-center justify-between text-[10px] font-mono mb-2 pb-1 border-b border-slate-800/60">
+                <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase font-bold tracking-wider">
+                    ${sourceName}
+                </span>
+                <span class="text-slate-500 group-hover:text-cyan-400 text-[10px] uppercase tracking-wider transition-colors">
+                    Append ➔
+                </span>
+            </div>
+
+            <!-- GUARANTEED SIDE-BY-SIDE CONTAINER -->
+            <div style="display: flex !important; flex-direction: row !important; align-items: flex-start !important; gap: 14px !important;">
+                
+                ${imageUrl ? `
+                    <!-- LEFT COLUMN: Fixed Image Box (100% Uncropped Image) -->
+                    <div style="width: 200px !important; min-width: 200px !important; height: 130px !important; flex-shrink: 0 !important; background-color: #000; border: 1px solid #1e293b; border-radius: 4px; overflow: hidden; display: flex !important; align-items: center !important; justify-content: center !important; padding: 2px;">
+                        <img src="${imageUrl}" 
+                             style="max-width: 100% !important; max-height: 100% !important; width: auto !important; height: auto !important; object-fit: contain !important; display: block !important;" 
+                             onerror="this.parentElement.style.display='none'">
+                    </div>
+                ` : ''}
+
+                <!-- RIGHT COLUMN: Title, Detail Text, and Hyperlink -->
+                <div style="flex: 1 !important; min-width: 0 !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; min-height: 130px !important;">
+                    <div>
+                        <h4 class="text-cyan-300 font-sans font-bold text-xs md:text-sm leading-snug mb-1 group-hover:text-cyan-200 break-words">
+                            ${title}
+                        </h4>
+                        <p class="text-slate-300 font-sans text-[11px] leading-relaxed line-clamp-3 break-words mb-2">
+                            ${content}
+                        </p>
+                    </div>
+
+                    ${url ? `
+                        <div style="margin-top: auto; padding-top: 4px;">
+                            <a href="${url}" 
+                               target="_blank" 
+                               onclick="event.stopPropagation();" 
+                               class="text-[10px] font-mono text-cyan-400/80 hover:text-cyan-300 hover:underline truncate block">
+                                🔗 Source Link: ${url}
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+
+            </div>
+        </div>
+    `;
+});
+
+            container.innerHTML = cardsHtml;
+        };
+
+        window.transferToEditor = async function(index) {
+            if (!window.activeStreamItems || !window.activeStreamItems[index]) return;
+
+            const row = window.activeStreamItems[index];
+            const item = row.json || row;
+
+            const title = item.title || item.newsTitle || 'Scraped Segment';
+            const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+            const imageUrl = item.imageUrl || item.image || item.media || null;
+
+            const canvas = document.getElementById('editorialCanvas');
+            if (!canvas) return;
+
+            let pages = canvas.querySelectorAll('.a4-page');
+            let targetPage = pages[pages.length - 1];
+            if (!targetPage) {
+                targetPage = window.createNewPage();
+            }
+
+            let contentArea = targetPage.querySelector('.page-content') || targetPage;
+
+            const segmentNode = document.createElement('div');
+            segmentNode.className = 'mt-4 pt-3 border-t border-slate-200';
+            segmentNode.innerHTML = `
+                <h3 class="text-base font-bold text-slate-900 mb-2">${title}</h3>
+                ${imageUrl ? `
+                    <div class="my-2 max-h-64 overflow-hidden rounded border border-slate-200">
+                        <img src="${imageUrl}" class="w-full h-auto object-cover">
+                    </div>
+                ` : ''}
+                <p class="text-slate-700 text-sm leading-relaxed">${content}</p>
+            `;
+            contentArea.appendChild(segmentNode);
+        };
+
+     
+        // 1. Function to instantly grab data sent from customepage.html
+function loadIncomingScrapedStream() {
+    const rawData = localStorage.getItem('scrapedStreamData') || localStorage.getItem('selectedEditorialContent');
+    if (!rawData) {
+        console.log("No incoming data found in localStorage.");
+        return;
+    }
+
+    try {
+        const parsedItems = JSON.parse(rawData);
+        console.log("Successfully intercepted incoming stream data:", parsedItems);
+        
+        // Render it into your left stream panel automatically
+        if (typeof window.renderLeftStreamPanel === 'function') {
+            window.renderLeftStreamPanel(parsedItems);
+        }
+    } catch (err) {
+        console.error("Failed to parse incoming scraped stream:", err);
+    }
+}
+
+        
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('fileUploadInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileType = file.type;
+            const fileName = file.name;
+            let extractedContent = '';
+
+            try {
+                if (fileType.includes('image/')) {
+                    const base64Data = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.onerror = (err) => reject(err);
+                        reader.readAsDataURL(file);
+                    });
+
+                    const contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Attachment: ${fileName}</p><img src="${base64Data}" class="max-w-full rounded border border-slate-300"/></div>`;
+                    window.appendContentToA4Page(contentHtml);
+
+                } else if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    let fullText = '';
+
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map(item => item.str).join(' ');
+                        fullText += pageText + '\n\n';
+                    }
+                    extractedContent = fullText.trim();
+
+                    const contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 Extracted PDF Text: ${fileName}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${extractedContent}</p></div>`;
+                    window.appendContentToA4Page(contentHtml);
+
+                } else if (fileType.includes('text/') || fileName.endsWith('.txt')) {
+                    extractedContent = await file.text();
+                    const contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 Text File: ${fileName}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${extractedContent}</p></div>`;
+                    window.appendContentToA4Page(contentHtml);
+                }
+
+            } catch (err) {
+                console.error("Error processing file:", err);
+                alert("Failed to parse the selected file.");
+            } finally {
+                event.target.value = '';
+            }
+        });
+    }
+});
+window.createNewA4Page = function() {
+    const canvas = document.getElementById('editorialCanvas');
+    if (!canvas) return null;
+
+    const pageCount = canvas.querySelectorAll('.a4-page').length + 1;
+
+    const pageNode = document.createElement('div');
+    pageNode.className = 'a4-page bg-white p-12 relative text-slate-900 flex flex-col mb-6';
+    
+    pageNode.innerHTML = `
+        <button onclick="this.closest('.a4-page').remove()" class="delete-page-btn absolute top-4 right-4 text-xs text-red-500 hover:text-red-700 font-mono">
+            ✕ Delete Page
+        </button>
+        <div class="page-content flex-1 outline-none" contenteditable="true" spellcheck="true"></div>
+        <div class="absolute bottom-4 left-0 right-0 text-center text-[10px] font-mono text-slate-400 select-none">
+            Page ${pageCount}
+        </div>
+    `;
+    
+    canvas.appendChild(pageNode);
+    return pageNode;
+};
+
+window.appendContentToA4Page = function(htmlContent) {
+    const canvas = document.getElementById('editorialCanvas');
+    if (!canvas) return;
+
+    let targetPage = canvas.querySelector('.a4-page:last-of-type');
+    
+    if (!targetPage) {
+        targetPage = window.createNewA4Page();
+    }
+
+    let targetBody = targetPage.querySelector('.page-content');
+    
+    if (targetBody && targetBody.innerHTML.includes('Start typing or insert files here...')) {
+        targetBody.innerHTML = '';
+    }
+
+    if (targetBody) {
+        targetBody.innerHTML += htmlContent;
+    }
+};
+        // Automatically create a new A4 page when typing overflows the current page
+document.addEventListener('input', (event) => {
+    const pageContent = event.target.closest('.page-content');
+    if (!pageContent) return;
+
+    const targetPage = pageContent.closest('.a4-page');
+    if (!targetPage) return;
+
+    // Check if the current page content height has reached the A4 page limit (~1050px)
+    if (pageContent.scrollHeight > 1050) {
+        // Check if the next sibling is already an A4 page; if not, create a new one
+        let nextPage = targetPage.nextElementSibling;
+        if (!nextPage || !nextPage.classList.contains('a4-page')) {
+            nextPage = window.createNewA4Page();
+        }
+    }
+});
+
+
+
+
+
+// 2. Call it immediately when prepare.html loads
+loadIncomingScrapedStream();
+
+        // Initial fetch and poll every 10 seconds
+        fetchPrepareSubmissions();
+        setInterval(fetchPrepareSubmissions, 10000);
+
+        ////////////////////////////
     </script>
 </body>
 </html>
