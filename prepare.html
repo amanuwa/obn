@@ -1131,6 +1131,23 @@ window.appendContentToA4Page = function(htmlContent) {
         targetBody.innerHTML += htmlContent;
     }
 };
+        // Automatically create a new A4 page when typing overflows the current page
+document.addEventListener('input', (event) => {
+    const pageContent = event.target.closest('.page-content');
+    if (!pageContent) return;
+
+    const targetPage = pageContent.closest('.a4-page');
+    if (!targetPage) return;
+
+    // Check if the current page content height has reached the A4 page limit (~1050px)
+    if (pageContent.scrollHeight > 1050) {
+        // Check if the next sibling is already an A4 page; if not, create a new one
+        let nextPage = targetPage.nextElementSibling;
+        if (!nextPage || !nextPage.classList.contains('a4-page')) {
+            nextPage = window.createNewA4Page();
+        }
+    }
+});
 
 // Helper function to smartly fill the existing page or create a new one only when full
 // function appendContentToPage(htmlContent) {
