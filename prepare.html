@@ -305,7 +305,7 @@
                     class="w-full flex flex-col items-center gap-6"
                 >
                     <div class="a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col">
-                        <div class="page-content flex-1 outline-none" contenteditable="true">
+                         <div class="page-content flex-1 outline-none" contenteditable="true" spellcheck="true">            
                             <p class="text-slate-400">Start typing or insert files here...</p>
                         </div>
                     </div>
@@ -1000,10 +1000,10 @@ function loadIncomingScrapedStream() {
         console.error("Failed to parse incoming scraped stream:", err);
     }
 }
+
+        
 document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('fileUploadInput');
-    console.log("code 1 (Active - Local Only)");
-
     if (fileInput) {
         fileInput.addEventListener('change', async (event) => {
             const file = event.target.files[0];
@@ -1056,6 +1056,56 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+window.createNewA4Page = function() {
+    const canvas = document.getElementById('editorialCanvas');
+    if (!canvas) return null;
+
+    const pageCount = canvas.querySelectorAll('.a4-page').length + 1;
+
+    const pageNode = document.createElement('div');
+    pageNode.className = 'a4-page bg-white p-10 pb-16 rounded-md shadow-2xl relative text-slate-900 flex flex-col mb-6';
+    
+    pageNode.innerHTML = `
+        <button onclick="this.closest('.a4-page').remove()" class="delete-page-btn">
+            ✕ Delete Page
+        </button>
+        <div class="page-content flex-1 outline-none" contenteditable="true" spellcheck="true"></div>
+        <div class="absolute bottom-4 left-0 right-0 text-center text-[10px] font-mono text-slate-400 select-none page-number-footer">
+            Page ${pageCount}
+        </div>
+    `;
+    
+    canvas.appendChild(pageNode);
+    return pageNode;
+};
+
+// Your helper function to append content and handle auto-pagination
+window.appendContentToA4Page = function(htmlContent) {
+    const canvas = document.getElementById('editorialCanvas');
+    if (!canvas) return;
+
+    let targetPage = canvas.querySelector('.a4-page:last-of-type');
+    
+    if (!targetPage) {
+        targetPage = window.createNewA4Page();
+    }
+
+    let targetBody = targetPage.querySelector('.page-content');
+    
+    if (targetBody && targetBody.innerHTML.includes('Start typing or insert files here...')) {
+        targetBody.innerHTML = '';
+    }
+
+    // Automatically create a new page if the current one exceeds height
+    if (targetPage.offsetHeight > 1000) {
+        targetPage = window.createNewA4Page();
+        targetBody = targetPage.querySelector('.page-content');
+    }
+
+    if (targetBody) {
+        targetBody.innerHTML += htmlContent;
+    }
+}
 
 // Helper function attached to window to insert content at cursor position or active page
 window.appendContentToA4Page = function(htmlContent) {
