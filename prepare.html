@@ -878,7 +878,7 @@ loadLoggedUserName();
             window.activeStreamItems = streamItems;
 
             let cardsHtml = '';
-           streamItems.forEach((row, idx) => {
+   streamItems.forEach((row, idx) => {
     const item = row.json || row;
     const sourceName = item.sourceName || item.source || 'LIVE STREAM';
     const title = item.title || item.newsTitle || item.name || 'Untitled Stream Entry';
@@ -890,7 +890,7 @@ loadLoggedUserName();
         <div class="p-3 bg-slate-900/90 border border-slate-800 hover:border-cyan-500/70 rounded-lg transition-all cursor-pointer group shadow-sm mb-3"
              onclick="window.transferToEditor(${idx})">
             
-            <!-- Header Tag & Action -->
+            <!-- Header Source Tag -->
             <div class="flex items-center justify-between text-[10px] font-mono mb-2 pb-1 border-b border-slate-800/60">
                 <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase font-bold tracking-wider">
                     ${sourceName}
@@ -900,19 +900,20 @@ loadLoggedUserName();
                 </span>
             </div>
 
-            <!-- Horizontal Side-by-Side Body -->
-            <div class="flex gap-3 items-start">
+            <!-- GUARANTEED SIDE-BY-SIDE CONTAINER -->
+            <div style="display: flex !important; flex-direction: row !important; align-items: flex-start !important; gap: 14px !important;">
+                
                 ${imageUrl ? `
-                    <!-- Full Image Container (Uncropped) -->
-                    <div class="w-36 md:w-44 h-28 shrink-0 overflow-hidden rounded border border-slate-700/80 bg-black/80 flex items-center justify-center p-1">
+                    <!-- LEFT COLUMN: Fixed Image Box (100% Uncropped Image) -->
+                    <div style="width: 220px !important; min-width: 220px !important; height: 140px !important; flex-shrink: 0 !important; background-color: #000; border: 1px solid #1e293b; border-radius: 4px; overflow: hidden; display: flex !important; align-items: center !important; justify-content: center !important; padding: 2px;">
                         <img src="${imageUrl}" 
-                             class="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" 
+                             style="max-width: 100% !important; max-height: 100% !important; width: auto !important; height: auto !important; object-fit: contain !important; display: block !important;" 
                              onerror="this.parentElement.style.display='none'">
                     </div>
                 ` : ''}
 
-                <!-- Text & Link Details -->
-                <div class="flex-1 min-w-0 flex flex-col justify-between h-full">
+                <!-- RIGHT COLUMN: Title, Detail Text, and Hyperlink -->
+                <div style="flex: 1 !important; min-width: 0 !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; min-height: 140px !important;">
                     <div>
                         <h4 class="text-cyan-300 font-sans font-bold text-xs md:text-sm leading-snug mb-1 group-hover:text-cyan-200 break-words">
                             ${title}
@@ -923,7 +924,7 @@ loadLoggedUserName();
                     </div>
 
                     ${url ? `
-                        <div class="mt-auto pt-1">
+                        <div style="margin-top: auto; padding-top: 4px;">
                             <a href="${url}" 
                                target="_blank" 
                                onclick="event.stopPropagation();" 
@@ -933,6 +934,7 @@ loadLoggedUserName();
                         </div>
                     ` : ''}
                 </div>
+
             </div>
         </div>
     `;
