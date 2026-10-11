@@ -878,43 +878,65 @@ loadLoggedUserName();
             window.activeStreamItems = streamItems;
 
             let cardsHtml = '';
-            streamItems.forEach((row, idx) => {
-                const item = row.json || row;
-                const sourceName = item.sourceName || item.source || 'LIVE STREAM';
-                const title = item.title || item.newsTitle || item.name || 'Untitled Stream Entry';
-                const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
-                const imageUrl = item.imageUrl || item.image || item.media || null;
-                const url = item.url || item.link || null;
+           streamItems.forEach((row, idx) => {
+    const item = row.json || row;
+    const sourceName = item.sourceName || item.source || 'LIVE STREAM';
+    const title = item.title || item.newsTitle || item.name || 'Untitled Stream Entry';
+    const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+    const imageUrl = item.imageUrl || item.image || item.media || null;
+    const url = item.url || item.link || null;
 
-                cardsHtml += `
-                    <div class="p-3 bg-slate-900/90 border border-slate-800 hover:border-cyan-500/70 rounded-lg transition-all cursor-pointer group shadow-sm mb-2"
-                         onclick="window.transferToEditor(${idx})">
-                        <div class="flex items-center justify-between text-[10px] font-mono mb-2 pb-1 border-b border-slate-800/60">
-                            <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase font-bold tracking-wider">
-                                ${sourceName}
-                            </span>
-                            <span class="text-slate-500 group-hover:text-cyan-400 text-[10px] uppercase tracking-wider transition-colors">
-                                Append ➔
-                            </span>
-                        </div>
-                        <div class="flex gap-3 items-start">
-                            ${imageUrl ? `
-                                <div class="w-12 h-12 shrink-0 overflow-hidden rounded border border-slate-700/80 bg-black/50">
-                                    <img src="${imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" onerror="this.parentElement.style.display='none'">
-                                </div>
-                            ` : ''}
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-cyan-300 font-sans font-bold text-xs leading-snug mb-1 group-hover:text-cyan-200 break-words">
-                                    ${title}
-                                </h4>
-                                <p class="text-slate-300 font-sans text-[11px] leading-relaxed line-clamp-3 break-words">
-                                    ${content}
-                                </p>
-                            </div>
-                        </div>
+    cardsHtml += `
+        <div class="p-3 bg-slate-900/90 border border-slate-800 hover:border-cyan-500/70 rounded-lg transition-all cursor-pointer group shadow-sm mb-3"
+             onclick="window.transferToEditor(${idx})">
+            
+            <!-- Header Tag & Action -->
+            <div class="flex items-center justify-between text-[10px] font-mono mb-2 pb-1 border-b border-slate-800/60">
+                <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase font-bold tracking-wider">
+                    ${sourceName}
+                </span>
+                <span class="text-slate-500 group-hover:text-cyan-400 text-[10px] uppercase tracking-wider transition-colors">
+                    Append ➔
+                </span>
+            </div>
+
+            <!-- Horizontal Side-by-Side Body -->
+            <div class="flex gap-3 items-start">
+                ${imageUrl ? `
+                    <!-- Full Image Container (Uncropped) -->
+                    <div class="w-36 md:w-44 h-28 shrink-0 overflow-hidden rounded border border-slate-700/80 bg-black/80 flex items-center justify-center p-1">
+                        <img src="${imageUrl}" 
+                             class="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" 
+                             onerror="this.parentElement.style.display='none'">
                     </div>
-                `;
-            });
+                ` : ''}
+
+                <!-- Text & Link Details -->
+                <div class="flex-1 min-w-0 flex flex-col justify-between h-full">
+                    <div>
+                        <h4 class="text-cyan-300 font-sans font-bold text-xs md:text-sm leading-snug mb-1 group-hover:text-cyan-200 break-words">
+                            ${title}
+                        </h4>
+                        <p class="text-slate-300 font-sans text-[11px] leading-relaxed line-clamp-3 break-words mb-2">
+                            ${content}
+                        </p>
+                    </div>
+
+                    ${url ? `
+                        <div class="mt-auto pt-1">
+                            <a href="${url}" 
+                               target="_blank" 
+                               onclick="event.stopPropagation();" 
+                               class="text-[10px] font-mono text-cyan-400/80 hover:text-cyan-300 hover:underline truncate block">
+                                🔗 Source Link: ${url}
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+});
 
             container.innerHTML = cardsHtml;
         };
