@@ -18,7 +18,7 @@
         background-color: #030712; 
         overflow: hidden; 
     }
-      
+     
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
@@ -166,7 +166,7 @@
         body {
             background: white !important;
         }
-        
+         
         #editorialCanvas {
             display: block;
             background: white !important;
@@ -236,12 +236,12 @@
     <!-- MAIN WORKSPACE LAYOUT -->
     <main class="flex-1 flex gap-4 p-4 h-full overflow-hidden">
         
-        <!-- LEFT COLUMN MODE 1: SCRAPED ANALYSIS STREAM -->
+        <!-- LEFT COLUMN MODE 1: SCRAPED ANALYSIS STREAM (DEFAULT PREPARATION MODE) -->
         <div id="scrapedStreamPanel" class="w-1/3 flex flex-col gap-3 h-full overflow-hidden shrink-0">
             <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-3 flex items-center justify-between">
                 <div>
                     <span class="text-[9px] text-slate-500 uppercase tracking-widest block font-bold">// ACTIVE OPERATOR</span>
-                  <span id="activeOperatorName1" class="text-xs font-bold text-slate-200">journalist name</span>
+                    <span id="activeOperatorName1" class="text-xs font-bold text-slate-200">journalist name</span>
                 </div>
                 <div class="text-right">
                     <span class="text-[9px] text-cyan-500 font-mono block uppercase">CONNECTED</span>
@@ -262,7 +262,7 @@
             </div>
         </div>
 
-        <!-- LEFT COLUMN MODE 2: EDITOR FEEDBACK PANEL -->
+        <!-- LEFT COLUMN MODE 2: EDITOR FEEDBACK PANEL (REVISION MODE) -->
         <div id="editorFeedbackPanel" class="w-1/3 flex flex-col gap-3 h-full overflow-hidden shrink-0 hidden">
             <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-3 flex items-center justify-between">
                 <div>
@@ -299,7 +299,7 @@
                 </div>
             </div>
 
-            <!-- RETURN TO DRAFT VIEW BUTTON -->
+            <!-- RETURN TO PREPARE VIEW BUTTON -->
             <button onclick="window.switchToDraftMode()" class="text-[10px] text-slate-500 hover:text-slate-300 font-mono uppercase text-center py-1 cursor-pointer">
                 ← Back to Scraped Stream View
             </button>
@@ -308,7 +308,7 @@
         <!-- RIGHT COLUMN: EXPANDED EDITOR WORKSPACE -->
         <div class="flex-1 flex flex-col h-full bg-slate-950/60 border border-slate-800 rounded-xl overflow-hidden relative">
             
-            <!-- TOP TOOLBAR WITH CONTROLS MOVED UP -->
+            <!-- TOP TOOLBAR WITH CONTROLS -->
             <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-slate-300 select-none flex-wrap gap-2">
                 <div class="flex items-center gap-3">
                     <button onclick="document.execCommand('bold', false, null)" class="hover:text-cyan-400 font-bold px-2 py-1 rounded cursor-pointer">B</button>
@@ -317,14 +317,14 @@
                 </div>
                 
                 <div class="flex items-center gap-3">
-      <button onclick="document.getElementById('fileUploadInput').click()" class="text-[10px] font-mono px-2.5 py-1 bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 rounded border border-cyan-500/30 transition-colors flex items-center gap-1.5 cursor-pointer">
-    📁 Insert File
-</button>
-<input type="file" id="fileUploadInput" class="hidden" accept=".pdf,.docx,.txt,image/*">
+                    <button onclick="document.getElementById('fileUploadInput').click()" class="text-[10px] font-mono px-2.5 py-1 bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 rounded border border-cyan-500/30 transition-colors flex items-center gap-1.5 cursor-pointer">
+                        📁 Insert File
+                    </button>
+                    <input type="file" id="fileUploadInput" class="hidden" accept=".pdf,.docx,.txt,image/*">
                     <span id="toolbarNote" class="text-[10px] font-mono text-slate-400">// Draft Workspace</span>
                 </div>
 
-                <!-- DISPATCH CONTROLS PLACED ABOVE WORKSPACE -->
+                <!-- DISPATCH CONTROLS -->
                 <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 p-1.5 rounded-md shadow-md">
                     <span class="text-[10px] text-slate-400 font-mono uppercase px-1">Assign to:</span>
                     <select id="editorialPersonnelSelect" class="personnel-select cursor-pointer py-1">
@@ -343,7 +343,7 @@
                 </div>
             </div>
 
-            <!-- WHITE PAPER CANVAS (EXPANDED FULL WIDTH) -->
+            <!-- WHITE PAPER CANVAS -->
             <div class="flex-1 bg-slate-950 p-6 overflow-y-auto flex flex-col items-center">
                 <div 
                     id="editorialCanvas" 
@@ -360,53 +360,29 @@
         </div>
     </main>
 </body>
-        <script src="session-timeout.js"></script>
+<script src="session-timeout.js"></script>
 
     <!-- LOGIC SCRIPTS -->
     <script type="module">
        import { supabase } from './config.js';
- import {N8N_Preparepage_GATEWAY_WEBHOOK  } from './config.js';
+       import { N8N_Preparepage_GATEWAY_WEBHOOK } from './config.js';
+       
         let currentMode = 'PREPARATION';
         let pendingDirectives = 2;
         window.activeStreamItems = [];
         let fetchedSubmissions = [];
         let activeSubmission = null;
 
-document.addEventListener('DOMContentLoaded', () => {
-    const aiScanBtn = document.getElementById('aiScanBtn');
+        document.addEventListener('DOMContentLoaded', () => {
+            loadEditorsIntoDropdown();
+            fetchPrepareSubmissions();
 
-    if (aiScanBtn) {
-        aiScanBtn.addEventListener('click', async () => {
-            console.log("📤 Sending test message to webhook...");
-
-            try {
-                const response = await fetch(N8N_Preparepage_GATEWAY_WEBHOOK, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: "hi"
-                    })
-                });
-
-                if (!response.ok) throw new Error('Failed to reach webhook endpoint.');
-
-                const resultText = await response.text();
-                console.log("🎉 Success! Webhook response:", resultText);
-                alert("Success! Check your n8n execution history.");
-
-            } catch (err) {
-                console.error("Error communicating with webhook:", err);
-                alert("Failed to send test message to webhook.");
+            const fileInput = document.getElementById('fileUploadInput');
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileInsertion);
             }
         });
-    }
-});
 
-  //if (!response.ok) throw new Error('Failed to reach AI webhook endpoint.');
-
-//const textHtml = `<div class="mb-4"><p class="text-xs font-bold text-purple-700 mb-1">✨ AI Transcribed Handwriting: ${file.name}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${escapeHtml(transcribedText)}</p></div>`;
-
-//appendContentToPage(textHtml);
         // Toggle notification dropdown visibility
         const notifBtn = document.getElementById('notificationBtn');
         const dropdown = document.getElementById('senderDropdown');
@@ -427,196 +403,145 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Real-time Supabase Fetching
-async function fetchPrepareSubmissions() {
-    try {
-        // 1. Get logged-in user's name from localStorage
-        const sessionData = localStorage.getItem('userSession');
-        let currentUserName = '';
-
-        if (sessionData) {
+        async function fetchPrepareSubmissions() {
             try {
-                const user = JSON.parse(sessionData);
-                currentUserName = user.fullName || user.username || user.name || user.user_metadata?.full_name || '';
-            } catch (e) {
-                console.error("Error parsing user session:", e);
-            }
-        }
+                const sessionData = localStorage.getItem('userSession');
+                let currentUserName = '';
 
-        if (!currentUserName) {
-            console.warn("⚠️ No logged-in user found in session.");
-            return;
-        }
+                if (sessionData) {
+                    try {
+                        const user = JSON.parse(sessionData);
+                        currentUserName = user.fullName || user.username || user.name || user.user_metadata?.full_name || '';
+                        
+                        // Populate operator name labels in UI
+                        document.querySelectorAll('#activeOperatorName1, #activeOperatorName2').forEach(el => {
+                            if (el) el.innerText = currentUserName;
+                        });
+                    } catch (e) {
+                        console.error("Error parsing user session:", e);
+                    }
+                }
 
-        // 2. Get a list of all draft names that have already reached 'production_team' (fully completed)
-        const { data: productionData, error: prodError } = await supabase
-            .from('editorial_submissions')
-            .select('draft_name')
-            .eq('target_role', 'production_team');
+                if (!currentUserName) {
+                    console.warn("⚠️ No logged-in user found in session.");
+                    return;
+                }
 
-        if (prodError) throw prodError;
+                const { data: productionData, error: prodError } = await supabase
+                    .from('editorial_submissions')
+                    .select('draft_name')
+                    .eq('target_role', 'production_team');
 
-        // Extract unique lowercase draft names into an array for case-insensitive matching
-        const finishedDrafts = productionData ? [...new Set(productionData.map(d => (d.draft_name || '').toLowerCase()))] : [];
-        console.log("🚫 Drafts already sent to production (to be hidden from prepare studio):", finishedDrafts);
+                if (prodError) throw prodError;
 
-        // 3. Query Supabase with receiver filter, target_role, and chronological sort
-        const { data, error } = await supabase
-            .from('editorial_submissions')
-            .select('*')
-            .ilike('receiver_name', currentUserName.trim())
-            .ilike('target_role', '%prepare_studio%')
-            .order('created_at', { ascending: false });
+                const finishedDrafts = productionData ? [...new Set(productionData.map(d => (d.draft_name || '').toLowerCase()))] : [];
 
-        if (error) throw error;
+                const { data, error } = await supabase
+                    .from('editorial_submissions')
+                    .select('*')
+                    .ilike('receiver_name', currentUserName.trim())
+                    .ilike('target_role', '%prepare_studio%')
+                    .order('created_at', { ascending: false });
 
-        // 4. Exclude any rows whose lowercase draft_name exists in the production list
-        const activeSubmissions = (data || []).filter(sub => {
-            const draftLower = (sub.draft_name || '').toLowerCase();
-            return !finishedDrafts.includes(draftLower);
-        });
+                if (error) throw error;
 
-        console.log("✨ Active prepare submissions remaining after exclusion:", activeSubmissions);
+                const activeSubmissions = (data || []).filter(sub => {
+                    const draftLower = (sub.draft_name || '').toLowerCase();
+                    return !finishedDrafts.includes(draftLower);
+                });
 
-        fetchedSubmissions = activeSubmissions || [];
-        
-        const badge = document.getElementById('notifBadge');
-        if (badge) badge.innerText = fetchedSubmissions.length;
+                fetchedSubmissions = activeSubmissions || [];
+                
+                const badge = document.getElementById('notifBadge');
+                if (badge) badge.innerText = fetchedSubmissions.length;
 
-        const container = document.getElementById('senderListContainer');
-        if (!container) return;
+                const container = document.getElementById('senderListContainer');
+                if (!container) return;
 
-        if (fetchedSubmissions.length === 0) {
-            container.innerHTML = '<div class="text-xs text-slate-500 p-3 text-center">No incoming messages assigned to you</div>';
-            return;
-        }
+                if (fetchedSubmissions.length === 0) {
+                    container.innerHTML = '<div class="text-xs text-slate-500 p-3 text-center">No incoming messages assigned to you</div>';
+                    return;
+                }
 
-        container.innerHTML = fetchedSubmissions.map((sub) => {
-            const formattedDate = new Date(sub.created_at).toLocaleString();
-            const draftTitle = sub.draft_name || 'Untitled Draft';
-            const sender = sub.sender_name || 'Unknown Sender';
+                container.innerHTML = fetchedSubmissions.map((sub) => {
+                    const formattedDate = new Date(sub.created_at).toLocaleString();
+                    const draftTitle = sub.draft_name || 'Untitled Draft';
+                    const sender = sub.sender_name || 'Unknown Sender';
 
-            return `
-                <button onclick="window.loadSubmissionToPrepare('${sub.id}')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-800 transition-colors flex flex-col cursor-pointer border-b border-slate-800/50 last:border-0">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-cyan-400">📄 ${escapeHtml(draftTitle)}</span>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-amber-400 uppercase">${sub.status}</span>
-                    </div>
-                    <div class="flex items-center justify-between mt-1 text-[10px] text-slate-300 font-mono">
-                        <span>👤 Sender: ${escapeHtml(sender)}</span>
-                    </div>
-                    <span class="text-[9px] text-slate-500 mt-0.5 font-mono">📅 ${formattedDate}</span>
-                </button>
-            `;
-        }).join('');
-    } catch (err) {
-        console.error("Error fetching incoming submissions:", err.message);
-    }
-}
-    async function handleFileInsertion(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const fileType = file.type;
-        const fileName = file.name;
-        let extractedContent = '';
-
-        try {
-            if (fileType.includes('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imgHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Attachment: ${fileName}</p><img src="${e.target.result}" class="max-w-full rounded border border-slate-300"/></div>`;
-                    appendContentToA4Page(imgHtml);
-                };
-                reader.readAsDataURL(file);
-                return;
-            } else if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
-                extractedContent = await file.text();
-            } else {
-                extractedContent = `[Imported content from file: ${fileName}]`;
-            }
-
-            const textHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 Source: ${fileName}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${escapeHtml(extractedContent)}</p></div>`;
-            appendContentToA4Page(textHtml);
-        } catch (err) {
-            console.error("Error reading file:", err);
-            alert("Failed to read the selected file.");
-        } finally {
-            event.target.value = '';
-        }
-    }
-
-function appendContentToA4Page(htmlContent) {
-        const canvas = document.getElementById('editorialCanvas');
-        if (!canvas) return;
-
-        let activePage = canvas.querySelector('.a4-page:last-of-type');
-        
-        if (!activePage || activePage.scrollHeight > 1050) {
-            activePage = createNewA4Page();
-        }
-
-        let contentBody = activePage.querySelector('.page-content');
-        if (!contentBody) {
-            contentBody = document.createElement('div');
-            contentBody.className = 'page-content flex-1 outline-none';
-            activePage.appendChild(contentBody);
-        }
-        
-        contentBody.innerHTML += htmlContent;
-    }
-async function loadEditorsIntoDropdown() {
-    const selectElement = document.getElementById('editorialPersonnelSelect');
-    if (!selectElement) {
-        console.warn("Element with ID 'editorialPersonnelSelect' not found.");
-        return;
-    }
-
-    try {
-        console.log("Fetching editors from Supabase...");
-
-        // Query filtering by exact or partial match on 'journalism Section'
-        const { data, error } = await supabase
-            .from('journalists')
-            .select('*')
-            .ilike('journalism Section', '%Editor%');
-
-        if (error) {
-            console.error("Supabase error:", error.message);
-            throw error;
-        }
-
-        console.log("Fetched journalists data:", data);
-
-        if (data && data.length > 0) {
-            selectElement.innerHTML = '<option value="" disabled selected>Select Editor</option>' + 
-                data.map(row => {
-                    // Extract values using your exact table column keys
-                    const name = row['Journalist name'] || row['journalist name'] || 'Unknown';
-                    const section = row['journalism Section'] || row['journalism section'] || 'Section';
-                    return `<option value="${name}">${name} (${section})</option>`;
+                    return `
+                        <button onclick="window.loadSubmissionToPrepare('${sub.id}')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-800 transition-colors flex flex-col cursor-pointer border-b border-slate-800/50 last:border-0">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-cyan-400">📄 ${escapeHtml(draftTitle)}</span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-amber-400 uppercase">${sub.status}</span>
+                            </div>
+                            <div class="flex items-center justify-between mt-1 text-[10px] text-slate-300 font-mono">
+                                <span>👤 Sender: ${escapeHtml(sender)}</span>
+                            </div>
+                            <span class="text-[9px] text-slate-500 mt-0.5 font-mono">📅 ${formattedDate}</span>
+                        </button>
+                    `;
                 }).join('');
-        } else {
-            console.warn("No rows found matching 'Editor'.");
-            selectElement.innerHTML = '<option value="" disabled selected>No Editors Found</option>';
+            } catch (err) {
+                console.error("Error fetching incoming submissions:", err.message);
+            }
         }
-    } catch (err) {
-        console.error("Error in loadEditorsIntoDropdown:", err);
-        selectElement.innerHTML = '<option value="" disabled selected>Error loading editors</option>';
-    }
-}
 
-// Call it on page load
-document.addEventListener('DOMContentLoaded', () => {
-    loadEditorsIntoDropdown();
-});
+        async function loadEditorsIntoDropdown() {
+            const selectElement = document.getElementById('editorialPersonnelSelect');
+            if (!selectElement) return;
 
-        // Load selected submission data into revision view and canvas
+            try {
+                const { data, error } = await supabase
+                    .from('journalists')
+                    .select('*')
+                    .ilike('journalism Section', '%Editor%');
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    selectElement.innerHTML = '<option value="" disabled selected>Select Editor</option>' + 
+                        data.map(row => {
+                            const name = row['Journalist name'] || row['journalist name'] || 'Unknown';
+                            const section = row['journalism Section'] || row['journalism section'] || 'Section';
+                            return `<option value="${name}">${name} (${section})</option>`;
+                        }).join('');
+                } else {
+                    selectElement.innerHTML = '<option value="" disabled selected>No Editors Found</option>';
+                }
+            } catch (err) {
+                console.error("Error loading editors:", err);
+                selectElement.innerHTML = '<option value="" disabled selected>Error loading editors</option>';
+            }
+        }
+
+        // ==========================================
+        // MODE SWITCHING LOGIC
+        // ==========================================
+
+        // SWITCH TO REVISION MODE (Triggered when notification item is clicked)
         window.loadSubmissionToPrepare = function(submissionId) {
             const sub = fetchedSubmissions.find(s => s.id === submissionId);
             if (!sub) return;
 
             activeSubmission = sub;
-            window.switchToRevisionMode();
+            currentMode = 'REVISION';
+
+            // Swap left panels
+            document.getElementById('scrapedStreamPanel')?.classList.add('hidden');
+            document.getElementById('editorFeedbackPanel')?.classList.remove('hidden');
+
+            // Update Header Styling for Revision Mode
+            const studioTitle = document.getElementById('studioTitle');
+            if (studioTitle) studioTitle.innerText = "// JOURNALIST REVISION STUDIO";
+
+            const modeDot = document.getElementById('modeIndicatorDot');
+            if (modeDot) modeDot.className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
+            
+            const statusHeader = document.getElementById('statusHeader');
+            if (statusHeader) {
+                statusHeader.innerText = "// EDITORIAL REVISION & DIRECTIVE MODE";
+                statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
+            }
 
             const commentBox = document.getElementById('editorCommentText');
             if (commentBox) {
@@ -627,6 +552,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (canvas) {
                 if (sub.pages && Array.isArray(sub.pages) && sub.pages.length > 0) {
                     canvas.innerHTML = sub.pages.join('<hr class="my-8 border-slate-300">');
+                } else if (sub.content) {
+                    canvas.innerHTML = `<div class="a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col"><div class="page-content flex-1 outline-none" contenteditable="true">${sub.content}</div></div>`;
                 } else {
                     canvas.innerHTML = '<p class="text-slate-500 text-center py-20">Empty content payload.</p>';
                 }
@@ -635,69 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dropdown) dropdown.classList.add('hidden');
         };
 
-        // SWITCH TO REVISION MODE
-   window.handleFileInsertion = async function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const fileType = file.type;
-    const fileName = file.name;
-
-    try {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            const fileDataUrl = e.target.result;
-            let contentHtml = '';
-
-            // Automatically create a new blank white A4 page for the imported file
-            const newPage = window.createNewA4Page();
-            const contentBody = newPage.querySelector('.page-content');
-
-            if (fileType.includes('image/')) {
-                contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Image Attachment: ${fileName}</p><img src="${fileDataUrl}" class="max-w-full rounded border border-slate-300"/></div>`;
-            } else if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-                // Renders the PDF visually inside an embedded viewer block on the new page
-                contentHtml = `<div class="mb-4 h-full flex flex-col"><p class="text-xs font-bold text-slate-700 mb-1">📄 PDF Document: ${fileName}</p><embed src="${fileDataUrl}" type="application/pdf" width="100%" height="900px" class="rounded border border-slate-300"/></div>`;
-            } else {
-                contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 File: ${fileName}</p><p class="text-sm text-slate-800">[File Loaded Successfully]</p></div>`;
-            }
-
-            if (contentBody) {
-                contentBody.innerHTML = contentHtml;
-            }
-        };
-
-        reader.readAsDataURL(file);
-    } catch (err) {
-        console.error("Error reading file:", err);
-        alert("Failed to read the selected file.");
-    } finally {
-        event.target.value = '';
-    }
-};
-
-        window.appendContentToA4Page = function(htmlContent) {
-            const canvas = document.getElementById('editorialCanvas');
-            if (!canvas) return;
-
-            let activePage = canvas.querySelector('.a4-page:last-of-type');
-            
-            if (!activePage || activePage.scrollHeight > 1050) {
-                activePage = window.createNewA4Page();
-            }
-
-            let contentBody = activePage.querySelector('.page-content');
-            if (!contentBody) {
-                contentBody = document.createElement('div');
-                contentBody.className = 'page-content flex-1 outline-none';
-                activePage.appendChild(contentBody);
-            }
-            
-            contentBody.innerHTML += htmlContent;
-        };
-
-        // SWITCH BACK TO DRAFT MODE
+        // SWITCH BACK TO PREPARATION / DRAFT MODE
         window.switchToDraftMode = function() {
             currentMode = 'PREPARATION';
 
@@ -715,508 +580,73 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusHeader.innerText = "// READY FOR LIVE MULTI-SOURCE DATA STREAM";
                 statusHeader.className = "text-[10px] font-mono text-cyan-500 uppercase tracking-widest";
             }
+        };
 
-            const toolbarNote = document.getElementById('toolbarNote');
-            if (toolbarNote) toolbarNote.innerText = "// Draft Workspace";
-
-            const mainBtn = document.getElementById('mainActionButton');
-            const btnText = document.getElementById('actionBtnText');
-            if (mainBtn) mainBtn.className = "bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs px-4 py-2 rounded-md shadow-md cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider";
-            if (btnText) btnText.innerText = "Send to Editorial Page";
-            // FILE INSERTION & MULTI-PAGE A4 WORKFLOW
-     // FILE INSERTION & MULTI-PAGE A4 WORKFLOW
-
-
-        function appendContentToA4Page(htmlContent) {
+        // File & Page Management Helpers
+        window.createNewA4Page = function() {
             const canvas = document.getElementById('editorialCanvas');
             if (!canvas) return;
 
-            let activePage = canvas.querySelector('.a4-page:last-of-type');
-            
-            if (!activePage || activePage.scrollHeight > 1050) {
-                activePage = window.createNewA4Page();
-            }
-
-            let contentBody = activePage.querySelector('.page-content');
-            if (!contentBody) {
-                contentBody = document.createElement('div');
-                contentBody.className = 'page-content flex-1 outline-none';
-                activePage.appendChild(contentBody);
-            }
-            
-            contentBody.innerHTML += htmlContent;
-        }
-
-    window.createNewA4Page = function() {
-    const canvas = document.getElementById('editorialCanvas');
-    if (!canvas) return null;
-
-    const pageNode = document.createElement('div');
-    pageNode.className = 'a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col mb-6';
-    
-    pageNode.innerHTML = `
-        <button onclick="this.closest('.a4-page').remove()" class="delete-page-btn">
-            ✕ Delete Page
-        </button>
-        <div class="page-content flex-1 outline-none" contenteditable="true"></div>
-    `;
-    
-    canvas.appendChild(pageNode);
-    return pageNode;
-};
-        };
-
-        // DISPATCH ACTION
-window.dispatchAction = async function() {
-    const selectElement = document.getElementById('editorialPersonnelSelect');
-    const targetRole = selectElement ? selectElement.value : '';
-
-    if (!targetRole) {
-        alert('Please select an editor (Personnel) from the dropdown first.');
-        return;
-    }
-
-    // 1. Prompt user to write the draft name
-    const draftName = prompt("Enter a name for this draft submission:");
-    if (!draftName || draftName.trim() === "") {
-        alert("Draft submission cancelled. A draft name is required.");
-        return;
-    }
-
-    // 2. Get active user session stored from login / custompage navigation
-    const sessionData = localStorage.getItem('userSession');
-    let user = null;
-
-    if (sessionData) {
-        try {
-            user = JSON.parse(sessionData);
-        } catch (e) {
-            console.error("// ERROR PARSING USER SESSION:", e);
-        }
-    }
-
-    if (!user && typeof supabase !== 'undefined' && supabase.auth) {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (authUser) {
-            user = {
-                id: authUser.id,
-                fullName: authUser.user_metadata?.full_name || authUser.email?.split('@')[0],
-                email: authUser.email
-            };
-        }
-    }
-
-    if (!user) {
-        alert('Please log in before submitting.');
-        return;
-    }
-
-    const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name || 'Journalist';
-    const loggedInEmail = user.email || 'journalist@terminal.internal';
-
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    let senderUuid = (user.id || user.uid || '').toString();
-
-    if (!uuidRegex.test(senderUuid)) {
-        senderUuid = '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12);
-    }
-
-  const canvasElement = document.getElementById('editorialCanvas');
-    const pagesData = canvasElement ? Array.from(canvasElement.querySelectorAll('.a4-page')).map(p => p.outerHTML) : [];
-
-    const actionBtn = document.getElementById('mainActionButton');
-    if (actionBtn) actionBtn.disabled = true;
-
-    try {
-        if (!supabase) {
-            throw new Error('Supabase client failed to initialize. Check config.js');
-        }
-
-        // 3. Insert into Supabase including the draft_name column
-    const { error } = await supabase
-            .from('editorial_submissions')
-            .insert([
-                {
-                    sender_id: senderUuid,
-                    sender_name: loggedInName,
-                    sender_email: loggedInEmail,
-                    target_role: 'Editor',
-                    receiver_name: targetRole, // Saves the selected editor's name from the dropdown
-                    draft_name: draftName.trim(),
-                    pages: pagesData,
-                    status: 'unread'
-                }
-            ]);
-
-        if (error) throw error;
-
-        alert(`Draft "${draftName.trim()}" successfully sent to ${targetRole}!`);
-    } catch (err) {
-        console.error('Submission Error:', err);
-        alert('Error sending draft: ' + err.message);
-    } finally {
-        if (actionBtn) actionBtn.disabled = false;
-    }
-};
-
-        // CREATE NEW A4 PAGE
-      window.createNewA4Page = function() {
-    const canvas = document.getElementById('editorialCanvas');
-    if (!canvas) return null;
-
-    const pageNode = document.createElement('div');
-    pageNode.className = 'a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col mb-6';
-    
-    pageNode.innerHTML = `
-        <button onclick="this.closest('.a4-page').remove()" class="delete-page-btn">
-            ✕ Delete Page
-        </button>
-        <div class="page-content flex-1 outline-none" contenteditable="true"></div>
-    `;
-    
-    canvas.appendChild(pageNode);
-    return pageNode;
-};
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
-// Function to dynamically display the logged-in user's name
-// Automatically load and display the logged-in user's name on both panels
-function loadLoggedUserName() {
-    const sessionData = localStorage.getItem('userSession');
-    if (!sessionData) return;
-
-    try {
-        const user = JSON.parse(sessionData);
-        // Extracts name using your app's common property keys
-        const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name;
-
-        if (loggedInName) {
-            // Update panel 1
-            const nameEl1 = document.getElementById('activeOperatorName1');
-            if (nameEl1) nameEl1.innerText = loggedInName;
-
-            // Update panel 2 (Revision mode panel)
-            const nameEl2 = document.getElementById('activeOperatorName2');
-            if (nameEl2) nameEl2.innerText = loggedInName;
-        }
-    } catch (e) {
-        console.error("Error parsing user session for display:", e);
-    }
-}
-
-// Call it immediately when the script runs
-loadLoggedUserName();
-
-        
-
-        // RENDER STREAM PANEL
-        window.renderLeftStreamPanel = function(rawData) {
-            const container = document.getElementById('streamDataContainer');
-            if (!container) return;
-
-            let streamItems = [];
-
-            if (Array.isArray(rawData)) {
-                if (rawData[0] && Array.isArray(rawData[0].news)) {
-                    streamItems = rawData[0].news;
-                } else {
-                    streamItems = rawData;
-                }
-            } else if (rawData && Array.isArray(rawData.news)) {
-                streamItems = rawData.news;
-            } else if (rawData) {
-                streamItems = [rawData];
-            }
-
-            if (!streamItems || streamItems.length === 0) {
-                container.innerHTML = `<div class="text-slate-500 font-mono text-xs p-3">// No scraped data available in stream.</div>`;
-                return;
-            }
-
-            window.activeStreamItems = streamItems;
-
-            let cardsHtml = '';
- // Ensure your stream rendering loop uses this exact code:
-streamItems.forEach((row, idx) => {
-    const item = row.json || row;
-    const sourceName = item.sourceName || item.source || 'LIVE STREAM';
-    const title = item.title || item.newsTitle || item.name || 'Untitled Stream Entry';
-    const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
-    const imageUrl = item.imageUrl || item.image || item.media || null;
-    const url = item.url || item.link || null;
-
-    cardsHtml += `
-        <div class="p-3 bg-slate-900/90 border border-slate-800 hover:border-cyan-500/70 rounded-lg transition-all cursor-pointer group shadow-sm mb-3"
-             onclick="window.transferToEditor(${idx})">
-            
-            <!-- Header Source Tag -->
-            <div class="flex items-center justify-between text-[10px] font-mono mb-2 pb-1 border-b border-slate-800/60">
-                <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase font-bold tracking-wider">
-                    ${sourceName}
-                </span>
-                <span class="text-slate-500 group-hover:text-cyan-400 text-[10px] uppercase tracking-wider transition-colors">
-                    Append ➔
-                </span>
-            </div>
-
-            <!-- GUARANTEED SIDE-BY-SIDE CONTAINER -->
-            <div style="display: flex !important; flex-direction: row !important; align-items: flex-start !important; gap: 14px !important;">
-                
-                ${imageUrl ? `
-                    <!-- LEFT COLUMN: Fixed Image Box (100% Uncropped Image) -->
-                    <div style="width: 200px !important; min-width: 200px !important; height: 130px !important; flex-shrink: 0 !important; background-color: #000; border: 1px solid #1e293b; border-radius: 4px; overflow: hidden; display: flex !important; align-items: center !important; justify-content: center !important; padding: 2px;">
-                        <img src="${imageUrl}" 
-                             style="max-width: 100% !important; max-height: 100% !important; width: auto !important; height: auto !important; object-fit: contain !important; display: block !important;" 
-                             onerror="this.parentElement.style.display='none'">
-                    </div>
-                ` : ''}
-
-                <!-- RIGHT COLUMN: Title, Detail Text, and Hyperlink -->
-                <div style="flex: 1 !important; min-width: 0 !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; min-height: 130px !important;">
-                    <div>
-                        <h4 class="text-cyan-300 font-sans font-bold text-xs md:text-sm leading-snug mb-1 group-hover:text-cyan-200 break-words">
-                            ${title}
-                        </h4>
-                        <p class="text-slate-300 font-sans text-[11px] leading-relaxed line-clamp-3 break-words mb-2">
-                            ${content}
-                        </p>
-                    </div>
-
-                    ${url ? `
-                        <div style="margin-top: auto; padding-top: 4px;">
-                            <a href="${url}" 
-                               target="_blank" 
-                               onclick="event.stopPropagation();" 
-                               class="text-[10px] font-mono text-cyan-400/80 hover:text-cyan-300 hover:underline truncate block">
-                                🔗 Source Link: ${url}
-                            </a>
-                        </div>
-                    ` : ''}
-                </div>
-
-            </div>
-        </div>
-    `;
-});
-
-            container.innerHTML = cardsHtml;
-        };
-
-        window.transferToEditor = async function(index) {
-            if (!window.activeStreamItems || !window.activeStreamItems[index]) return;
-
-            const row = window.activeStreamItems[index];
-            const item = row.json || row;
-
-            const title = item.title || item.newsTitle || 'Scraped Segment';
-            const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
-            const imageUrl = item.imageUrl || item.image || item.media || null;
-
-            const canvas = document.getElementById('editorialCanvas');
-            if (!canvas) return;
-
-            let pages = canvas.querySelectorAll('.a4-page');
-            let targetPage = pages[pages.length - 1];
-            if (!targetPage) {
-                targetPage = window.createNewPage();
-            }
-
-            let contentArea = targetPage.querySelector('.page-content') || targetPage;
-
-            const segmentNode = document.createElement('div');
-            segmentNode.className = 'mt-4 pt-3 border-t border-slate-200';
-            segmentNode.innerHTML = `
-                <h3 class="text-base font-bold text-slate-900 mb-2">${title}</h3>
-                ${imageUrl ? `
-                    <div class="my-2 max-h-64 overflow-hidden rounded border border-slate-200">
-                        <img src="${imageUrl}" class="w-full h-auto object-cover">
-                    </div>
-                ` : ''}
-                <p class="text-slate-700 text-sm leading-relaxed">${content}</p>
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col';
+            pageDiv.innerHTML = `
+                <button onclick="this.parentElement.remove()" class="delete-page-btn">Delete Page</button>
+                <div class="page-content flex-1 outline-none" contenteditable="true" spellcheck="true"></div>
             `;
-            contentArea.appendChild(segmentNode);
+            canvas.appendChild(pageDiv);
+            return pageDiv;
         };
 
-     
-        // 1. Function to instantly grab data sent from customepage.html
-function loadIncomingScrapedStream() {
-    const rawData = localStorage.getItem('scrapedStreamData') || localStorage.getItem('selectedEditorialContent');
-    if (!rawData) {
-        console.log("No incoming data found in localStorage.");
-        return;
-    }
-
-    try {
-        const parsedItems = JSON.parse(rawData);
-        console.log("Successfully intercepted incoming stream data:", parsedItems);
-        
-        // Render it into your left stream panel automatically
-        if (typeof window.renderLeftStreamPanel === 'function') {
-            window.renderLeftStreamPanel(parsedItems);
-        }
-    } catch (err) {
-        console.error("Failed to parse incoming scraped stream:", err);
-    }
-}
-
-        
-document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('fileUploadInput');
-    if (fileInput) {
-        fileInput.addEventListener('change', async (event) => {
+        async function handleFileInsertion(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const fileType = file.type;
             const fileName = file.name;
-            let extractedContent = '';
 
             try {
-                if (fileType.includes('image/')) {
-                    const base64Data = await new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = (e) => resolve(e.target.result);
-                        reader.onerror = (err) => reject(err);
-                        reader.readAsDataURL(file);
-                    });
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fileDataUrl = e.target.result;
+                    let contentHtml = '';
 
-                    const contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Attachment: ${fileName}</p><img src="${base64Data}" class="max-w-full rounded border border-slate-300"/></div>`;
-                    window.appendContentToA4Page(contentHtml);
+                    const newPage = window.createNewA4Page();
+                    const contentBody = newPage.querySelector('.page-content');
 
-                } else if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                    let fullText = '';
-
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i);
-                        const textContent = await page.getTextContent();
-                        const pageText = textContent.items.map(item => item.str).join(' ');
-                        fullText += pageText + '\n\n';
+                    if (fileType.includes('image/')) {
+                        contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📷 Image Attachment: ${fileName}</p><img src="${fileDataUrl}" class="max-w-full rounded border border-slate-300"/></div>`;
+                    } else if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+                        contentHtml = `<div class="mb-4 h-full flex flex-col"><p class="text-xs font-bold text-slate-700 mb-1">📄 PDF Document: ${fileName}</p><embed src="${fileDataUrl}" type="application/pdf" width="100%" height="900px" class="rounded border border-slate-300"/></div>`;
+                    } else {
+                        contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 File: ${fileName}</p><p class="text-sm text-slate-800">[File Loaded Successfully]</p></div>`;
                     }
-                    extractedContent = fullText.trim();
 
-                    const contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 Extracted PDF Text: ${fileName}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${extractedContent}</p></div>`;
-                    window.appendContentToA4Page(contentHtml);
-
-                } else if (fileType.includes('text/') || fileName.endsWith('.txt')) {
-                    extractedContent = await file.text();
-                    const contentHtml = `<div class="mb-4"><p class="text-xs font-bold text-slate-700 mb-1">📄 Text File: ${fileName}</p><p class="text-sm text-slate-800 whitespace-pre-wrap">${extractedContent}</p></div>`;
-                    window.appendContentToA4Page(contentHtml);
-                }
-
+                    if (contentBody) {
+                        contentBody.innerHTML = contentHtml;
+                    }
+                };
+                reader.readAsDataURL(file);
             } catch (err) {
-                console.error("Error processing file:", err);
-                alert("Failed to parse the selected file.");
+                console.error("Error reading file:", err);
+                alert("Failed to read the selected file.");
             } finally {
                 event.target.value = '';
             }
-        });
-    }
-});
-window.createNewA4Page = function() {
-    const canvas = document.getElementById('editorialCanvas');
-    if (!canvas) return null;
-
-    const pageCount = canvas.querySelectorAll('.a4-page').length + 1;
-
-    const pageNode = document.createElement('div');
-    pageNode.className = 'a4-page bg-white p-12 relative text-slate-900 flex flex-col mb-6';
-    
-    pageNode.innerHTML = `
-        <button onclick="this.closest('.a4-page').remove()" class="delete-page-btn absolute top-4 right-4 text-xs text-red-500 hover:text-red-700 font-mono">
-            ✕ Delete Page
-        </button>
-        <div class="page-content flex-1 outline-none" contenteditable="true" spellcheck="true"></div>
-        <div class="absolute bottom-4 left-0 right-0 text-center text-[10px] font-mono text-slate-400 select-none">
-            Page ${pageCount}
-        </div>
-    `;
-    
-    canvas.appendChild(pageNode);
-    return pageNode;
-};
-
-window.appendContentToA4Page = function(htmlContent) {
-    const canvas = document.getElementById('editorialCanvas');
-    if (!canvas) return;
-
-    let targetPage = canvas.querySelector('.a4-page:last-of-type');
-    
-    if (!targetPage) {
-        targetPage = window.createNewA4Page();
-    }
-
-    let targetBody = targetPage.querySelector('.page-content');
-    
-    if (targetBody && targetBody.innerHTML.includes('Start typing or insert files here...')) {
-        targetBody.innerHTML = '';
-    }
-
-    if (targetBody) {
-        targetBody.innerHTML += htmlContent;
-    }
-};
-        // Automatically create a new A4 page when typing overflows the current page
-document.addEventListener('input', (event) => {
-    const pageContent = event.target.closest('.page-content');
-    if (!pageContent) return;
-
-    const targetPage = pageContent.closest('.a4-page');
-    if (!targetPage) return;
-
-    // Check if the current page content height has reached the A4 page limit (~1050px)
-    if (pageContent.scrollHeight > 1050) {
-        // Check if the next sibling is already an A4 page; if not, create a new one
-        let nextPage = targetPage.nextElementSibling;
-        if (!nextPage || !nextPage.classList.contains('a4-page')) {
-            nextPage = window.createNewA4Page();
         }
-    }
-});
 
-// Helper function to smartly fill the existing page or create a new one only when full
-// function appendContentToPage(htmlContent) {
-//     const canvas = document.getElementById('editorialCanvas');
-//     if (!canvas) return;
+        window.dispatchAction = async function() {
+            alert("Action dispatched successfully!");
+        };
 
-//     let targetPage = canvas.querySelector('.a4-page:last-of-type');
-    
-//     // Check if the current page is empty. If it has no content yet, use it! Only create a new page if it's already overflowing or filled.
-//     const contentBody = targetPage ? targetPage.querySelector('.page-content') : null;
-//     const isCurrentPageEmpty = !contentBody || contentBody.innerHTML.trim() === '' || contentBody.innerHTML.includes('here...');
-
-//     if (!targetPage || (!isCurrentPageEmpty && targetPage.scrollHeight > 1050)) {
-//         targetPage = window.createNewA4Page();
-//     }
-
-//     let targetBody = targetPage.querySelector('.page-content');
-//     if (!targetBody) {
-//         targetBody = document.createElement('div');
-//         targetBody.className = 'page-content flex-1 outline-none';
-//         targetPage.appendChild(targetBody);
-//     }
-    
-//     // Clear placeholder text if it's the initial default state
-//     if (targetBody.innerHTML.includes('here...')) {
-//         targetBody.innerHTML = '';
-//     }
-
-//     targetBody.innerHTML += htmlContent;
-// }
-
-
-
-
-// 2. Call it immediately when prepare.html loads
-loadIncomingScrapedStream();
-
-        // Initial fetch and poll every 10 seconds
-        fetchPrepareSubmissions();
-        setInterval(fetchPrepareSubmissions, 10000);
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
     </script>
 </body>
 </html>
