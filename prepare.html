@@ -564,35 +564,51 @@ function appendContentToA4Page(htmlContent) {
         
         contentBody.innerHTML += htmlContent;
     }
- async function loadEditorsIntoDropdown() {
+async function loadEditorsIntoDropdown() {
     const selectElement = document.getElementById('editorialPersonnelSelect');
-    if (!selectElement) return;
+    if (!selectElement) {
+        console.warn("Element with ID 'editorialPersonnelSelect' not found.");
+        return;
+    }
 
     try {
-        // Queries your actual 'journalists' table and checks the 'journalism Section' column
+        console.log("Fetching editors from Supabase...");
+
+        // Query filtering by exact or partial match on 'journalism Section'
         const { data, error } = await supabase
             .from('journalists')
             .select('*')
             .ilike('journalism Section', '%Editor%');
 
-        if (error) throw error;
+        if (error) {
+            console.error("Supabase error:", error.message);
+            throw error;
+        }
+
+        console.log("Fetched journalists data:", data);
 
         if (data && data.length > 0) {
             selectElement.innerHTML = '<option value="" disabled selected>Select Editor</option>' + 
-                data.map(row => `
-                    <option value="${row['Journalist name']}">
-                        ${row['Journalist name']} (${row['journalism Section']})
-                    </option>
-                `).join('');
+                data.map(row => {
+                    // Extract values using your exact table column keys
+                    const name = row['Journalist name'] || row['journalist name'] || 'Unknown';
+                    const section = row['journalism Section'] || row['journalism section'] || 'Section';
+                    return `<option value="${name}">${name} (${section})</option>`;
+                }).join('');
         } else {
+            console.warn("No rows found matching 'Editor'.");
             selectElement.innerHTML = '<option value="" disabled selected>No Editors Found</option>';
         }
     } catch (err) {
-        console.error("Error loading editors list:", err.message);
+        console.error("Error in loadEditorsIntoDropdown:", err);
         selectElement.innerHTML = '<option value="" disabled selected>Error loading editors</option>';
     }
 }
-        loadEditorsIntoDropdown();
+
+// Call it on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadEditorsIntoDropdown();
+});
 
         // Load selected submission data into revision view and canvas
         window.loadSubmissionToPrepare = function(submissionId) {
