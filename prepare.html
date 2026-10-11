@@ -878,7 +878,8 @@ loadLoggedUserName();
             window.activeStreamItems = streamItems;
 
             let cardsHtml = '';
-   streamItems.forEach((row, idx) => {
+ // Ensure your stream rendering loop uses this exact code:
+streamItems.forEach((row, idx) => {
     const item = row.json || row;
     const sourceName = item.sourceName || item.source || 'LIVE STREAM';
     const title = item.title || item.newsTitle || item.name || 'Untitled Stream Entry';
@@ -905,7 +906,7 @@ loadLoggedUserName();
                 
                 ${imageUrl ? `
                     <!-- LEFT COLUMN: Fixed Image Box (100% Uncropped Image) -->
-                    <div style="width: 220px !important; min-width: 220px !important; height: 140px !important; flex-shrink: 0 !important; background-color: #000; border: 1px solid #1e293b; border-radius: 4px; overflow: hidden; display: flex !important; align-items: center !important; justify-content: center !important; padding: 2px;">
+                    <div style="width: 200px !important; min-width: 200px !important; height: 130px !important; flex-shrink: 0 !important; background-color: #000; border: 1px solid #1e293b; border-radius: 4px; overflow: hidden; display: flex !important; align-items: center !important; justify-content: center !important; padding: 2px;">
                         <img src="${imageUrl}" 
                              style="max-width: 100% !important; max-height: 100% !important; width: auto !important; height: auto !important; object-fit: contain !important; display: block !important;" 
                              onerror="this.parentElement.style.display='none'">
@@ -913,7 +914,7 @@ loadLoggedUserName();
                 ` : ''}
 
                 <!-- RIGHT COLUMN: Title, Detail Text, and Hyperlink -->
-                <div style="flex: 1 !important; min-width: 0 !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; min-height: 140px !important;">
+                <div style="flex: 1 !important; min-width: 0 !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; min-height: 130px !important;">
                     <div>
                         <h4 class="text-cyan-300 font-sans font-bold text-xs md:text-sm leading-snug mb-1 group-hover:text-cyan-200 break-words">
                             ${title}
