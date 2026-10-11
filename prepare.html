@@ -8,16 +8,16 @@
     </script>
     <!-- Add Tailwind CSS Here -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { 
-            margin: 0; 
-            color: #f1f5f9; 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            background-color: #030712; 
-            overflow: hidden; 
-        }
+   <style>
+    body { 
+        margin: 0; 
+        color: #f1f5f9; 
+        height: 100vh; 
+        display: flex; 
+        flex-direction: column; 
+        background-color: #030712; 
+        overflow: hidden; 
+    }
       
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
@@ -82,35 +82,6 @@
         outline: none;
     }
 
-    /* Document container holding all pages stacked vertically */
-    #editorialCanvas {
-        background-color: transparent !important;
-        box-shadow: none !important;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 24px;
-        padding: 24px 0;
-        overflow-y: auto;
-    }
-
-    /* Individual A4 Page styling */
-    .a4-page {
-        position: relative;
-        width: 794px;
-        min-height: 1122px;
-        box-sizing: border-box;
-        background-color: #ffffff;
-        padding: 40px;
-        margin-bottom: 30px;
-    }
-
-    .a4-page .page-content {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
     .a4-page img {
         max-width: 100% !important;
         height: auto !important;
@@ -140,9 +111,70 @@
         opacity: 1;
     }
 
+    /* Screen View: Continuous workspace style */
+    @media screen {
+        #editorialCanvas {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            padding: 24px 0;
+            overflow-y: auto;
+        }
+
+        .a4-page {
+            position: relative;
+            width: 794px;
+            min-height: 1122px;
+            box-sizing: border-box;
+            background: #ffffff;
+            padding: 60px;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3);
+            border-radius: 8px;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 30px;
+        }
+
+        .a4-page .page-content {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            outline: none;
+        }
+    }
+
+    /* Print / PDF Export View: Automatic page breaks */
     @media print {
-        .delete-page-btn { display: none; }
-        .a4-page { box-shadow: none; margin: 0; page-break-after: always; }
+        body {
+            background: white !important;
+        }
+        
+        #editorialCanvas {
+            display: block;
+            background: white !important;
+            padding: 0 !important;
+        }
+
+        .a4-page {
+            width: 100% !important;
+            min-height: auto !important;
+            height: auto !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 20mm !important;
+            page-break-after: always;
+            break-after: page;
+        }
+
+        /* Hide UI controls like delete buttons when printing */
+        .delete-page-btn, button, nav {
+            display: none !important;
+        }
     }
 </style>
 </head>
@@ -1063,14 +1095,14 @@ window.createNewA4Page = function() {
     const pageCount = canvas.querySelectorAll('.a4-page').length + 1;
 
     const pageNode = document.createElement('div');
-    pageNode.className = 'a4-page bg-white p-10 pb-16 rounded-md shadow-2xl relative text-slate-900 flex flex-col mb-6';
+    pageNode.className = 'a4-page bg-white p-12 relative text-slate-900 flex flex-col mb-6';
     
     pageNode.innerHTML = `
-        <button onclick="this.closest('.a4-page').remove()" class="delete-page-btn">
+        <button onclick="this.closest('.a4-page').remove()" class="delete-page-btn absolute top-4 right-4 text-xs text-red-500 hover:text-red-700 font-mono">
             ✕ Delete Page
         </button>
         <div class="page-content flex-1 outline-none" contenteditable="true" spellcheck="true"></div>
-        <div class="absolute bottom-4 left-0 right-0 text-center text-[10px] font-mono text-slate-400 select-none page-number-footer">
+        <div class="absolute bottom-4 left-0 right-0 text-center text-[10px] font-mono text-slate-400 select-none">
             Page ${pageCount}
         </div>
     `;
@@ -1079,7 +1111,6 @@ window.createNewA4Page = function() {
     return pageNode;
 };
 
-// Your helper function to append content and handle auto-pagination
 window.appendContentToA4Page = function(htmlContent) {
     const canvas = document.getElementById('editorialCanvas');
     if (!canvas) return;
@@ -1094,40 +1125,6 @@ window.appendContentToA4Page = function(htmlContent) {
     
     if (targetBody && targetBody.innerHTML.includes('Start typing or insert files here...')) {
         targetBody.innerHTML = '';
-    }
-
-    // Automatically create a new page if the current one exceeds height
-    if (targetPage.offsetHeight > 1000) {
-        targetPage = window.createNewA4Page();
-        targetBody = targetPage.querySelector('.page-content');
-    }
-
-    if (targetBody) {
-        targetBody.innerHTML += htmlContent;
-    }
-}
-
-// Helper function attached to window to insert content at cursor position or active page
-window.appendContentToA4Page = function(htmlContent) {
-    const canvas = document.getElementById('editorialCanvas');
-    if (!canvas) return;
-
-    let targetPage = canvas.querySelector('.a4-page:last-of-type');
-    
-    if (!targetPage) {
-        targetPage = window.createNewA4Page();
-    }
-
-    let targetBody = targetPage.querySelector('.page-content');
-    
-    if (targetBody && targetBody.innerHTML.includes('Start typing or insert files here...')) {
-        targetBody.innerHTML = '';
-    }
-
-    // Check if the current page content height has exceeded the A4 limit (approx 1050px)
-    if (targetBody && targetBody.scrollHeight > 1050) {
-        targetPage = window.createNewA4Page();
-        targetBody = targetPage.querySelector('.page-content');
     }
 
     if (targetBody) {
