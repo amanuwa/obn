@@ -1112,67 +1112,28 @@ window.appendContentToA4Page = function(htmlContent) {
     const canvas = document.getElementById('editorialCanvas');
     if (!canvas) return;
 
-    // 1. Check if the user currently has an active selection/cursor inside any contenteditable page
-    const selection = window.getSelection();
-    let targetBody = null;
-
-    if (selection && selection.rangeCount > 0) {
-        let node = selection.anchorNode;
-        // Traverse up to find if the selection is inside a .page-content element
-        while (node && node !== canvas) {
-            if (node.classList && node.classList.contains('page-content')) {
-                targetBody = node;
-                break;
-            }
-            node = node.parentNode;
-        }
+    let targetPage = canvas.querySelector('.a4-page:last-of-type');
+    
+    if (!targetPage) {
+        targetPage = window.createNewA4Page();
     }
 
-    // 2. If no cursor position is active, fall back to the last page or create one
-    if (!targetBody) {
-        let targetPage = canvas.querySelector('.a4-page:last-of-type');
-        const contentBody = targetPage ? targetPage.querySelector('.page-content') : null;
-        const isCurrentPageEmpty = !contentBody || contentBody.innerHTML.trim() === '' || contentBody.innerHTML.includes('here...');
-
-        if (!targetPage || (!isCurrentPageEmpty && targetPage.scrollHeight > 1050)) {
-            targetPage = window.createNewA4Page();
-        }
-        targetBody = targetPage.querySelector('.page-content');
-    }
-
-    if (!targetBody) return;
-
-    // 3. Clear placeholder text if it's the initial default state
-    if (targetBody.innerHTML.includes('Start typing or insert files here...')) {
+    let targetBody = targetPage.querySelector('.page-content');
+    
+    if (targetBody && targetBody.innerHTML.includes('Start typing or insert files here...')) {
         targetBody.innerHTML = '';
     }
 
-    // 4. If there is an active selection range, insert at cursor; otherwise append to the body
-    if (selection && selection.rangeCount > 0 && targetBody.contains(selection.anchorNode)) {
-        const range = selection.getRangeAt(0);
-        range.deleteContents();
-        
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlContent;
-        const frag = document.createDocumentFragment();
-        let node, lastNode;
-        while ((node = tempDiv.firstChild)) {
-            lastNode = frag.appendChild(node);
-        }
-        range.insertNode(frag);
-        
-        // Move cursor after the inserted content
-        if (lastNode) {
-            range.setStartAfter(lastNode);
-            range.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        }
-    } else {
-        // Fallback to appending at the end of the target page content
+    // Check if the current page content height has exceeded the A4 limit (approx 1050px)
+    if (targetBody && targetBody.scrollHeight > 1050) {
+        targetPage = window.createNewA4Page();
+        targetBody = targetPage.querySelector('.page-content');
+    }
+
+    if (targetBody) {
         targetBody.innerHTML += htmlContent;
     }
-}
+};
 
 // Helper function to smartly fill the existing page or create a new one only when full
 // function appendContentToPage(htmlContent) {
