@@ -1002,6 +1002,8 @@ function loadIncomingScrapedStream() {
 }
 document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('fileUploadInput');
+              console.log("code 1");
+
 
     if (fileInput) {
         fileInput.addEventListener('change', async (event) => {
@@ -1110,6 +1112,7 @@ function appendContentToPage(htmlContent) {
 
       document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('fileUploadInput');
+          console.log("code 2");
     if (fileInput) {
         fileInput.addEventListener('change', async (event) => {
             const file = event.target.files[0];
