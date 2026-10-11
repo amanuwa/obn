@@ -8,7 +8,7 @@
     </script>
     <!-- Add Tailwind CSS Here -->
     <script src="https://cdn.tailwindcss.com"></script>
-   <style>
+<style>
     body { 
         margin: 0; 
         color: #f1f5f9; 
@@ -82,13 +82,24 @@
         outline: none;
     }
 
+    /* Enhanced image styles for select, cut, copy, and paste */
     .a4-page img {
         max-width: 100% !important;
         height: auto !important;
         max-height: 320px !important;
         object-fit: cover;
         border-radius: 4px;
-        display: block;
+        display: inline-block;
+        cursor: pointer;
+        user-select: all;
+        transition: outline 0.15s ease;
+    }
+
+    /* Focus or selection border outline for images inside editor */
+    .a4-page img:focus,
+    .a4-page img::selection {
+        outline: 2px solid #0284c7;
+        outline-offset: 2px;
     }
 
     .delete-page-btn {
@@ -145,6 +156,8 @@
             flex-direction: column;
             flex: 1;
             outline: none;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
     }
 
