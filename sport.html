@@ -1720,10 +1720,10 @@ function renderPastMatchDetails(match) {
         </div>
     `;
 }
-    window.renderNewsMatrix = function(newsArray) {
-    console.log("🎨 Rendering news matrix into #matchNewsSubPanel:", newsArray);
+window.renderNewsMatrix = function(newsArray) {
+    console.log("🎨 Rendering news matrix in Terminal Stream style:", newsArray);
     
-    // Target the exact container ID from line 331
+    // Target the specific container ID for the news sub-panel
     const newsContainer = document.getElementById('matchNewsSubPanel');
     
     if (!newsContainer) {
@@ -1733,38 +1733,111 @@ function renderPastMatchDetails(match) {
 
     if (!Array.isArray(newsArray) || newsArray.length === 0) {
         newsContainer.innerHTML = `
-            <div class="news-card w-full">
-                <div class="news-card-content p-4 text-center">
-                    <p class="text-xs text-slate-500 font-mono">No news articles or updates found.</p>
-                </div>
+            <div class="news-card-content p-10 text-center select-none opacity-60">
+                <p class="text-[11px] text-slate-500 font-mono tracking-wider">// NO INBOUND PAYLOADS / TERMINAL STANDBY</p>
             </div>
         `;
         return;
     }
 
-    // Render cards directly into #matchNewsSubPanel
-    newsContainer.innerHTML = newsArray.map(item => {
-        const handle = item.handle || item.username || 'News Feed';
-        const dateTime = item.dateTime || item.datePosted || 'Real-Time';
-        const text = item.text || item.summary || item.headline || 'No text content available.';
-        const mediaUrl = item.image || item.video || '';
+    // Map through the news array and build full-bleed list blocks
+    newsContainer.innerHTML = newsArray.map((item, index) => {
+        // Data Normalization (adjust based on your actual data schema)
+        const dateStr = item.dateTime || item.datePosted || new Date().toLocaleString();
+        const mainText = item.text || item.summary || 'Payload corrupted or empty.';
+        const headline = item.headline || item.news_title || 'INBOUND DATA_SEGMENT';
+        const sourceUrl = item.source_url || item.url || item.link || '#';
+        const imageUrl = item.image || item.video_thumbnail || item.video || '';
+        const sourceLabel = item.handle || item.source_name || item.domain || 'TERMINAL.INTERNAL';
+        const subHeadline = item.sub_headline || headline; // Often same as main headline or slightly different in UI
+        const subDescription = item.sub_description || mainText;
+
+        // Visual design mapping to image_8.png:
+        // Main block text starts with `Oct 6 (Reuters) - Most Gulf stock markets closed lower...`
+        const displayText = `${dateStr} (${sourceLabel}) - ${mainText}`;
 
         return `
-            <div class="news-card bg-slate-900 border border-slate-800 rounded-lg p-3.5 mb-3 text-xs text-slate-300 font-mono shadow-md hover:border-slate-700 transition-all">
-                <div class="flex items-center justify-between text-amber-400 mb-2">
-                    <span class="font-bold text-[11px] tracking-wide">@${escapeHtml(handle)}</span>
-                    <span class="text-[9px] text-slate-500 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${escapeHtml(dateTime)}</span>
+            <!-- TERMINAL NEWS LISTING BLOCK [${index}] -->
+            <div class="w-full border-b border-slate-800/50 pb-8 mb-8 last:border-b-0 last:pb-0 last:mb-0 font-mono text-slate-300">
+                
+                <!-- 1. MAIN TEXT SNIPPET -->
+                <p class="text-[12px] leading-relaxed text-slate-200 mb-5 font-sans">
+                    ${escapeHtml(displayText)}
+                </p>
+
+                <!-- 2. PRIMARY SOURCE LINK -->
+                <div class="flex items-center gap-2 mb-6 text-[10px] text-cyan-500 tracking-wide">
+                    <svg class="w-3 h-3 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                    </svg>
+                    <span>Source Link:</span>
+                    <a href="${escapeHtml(sourceUrl)}" target="_blank" class="text-cyan-400 hover:text-cyan-300 truncate">
+                        ${escapeHtml(sourceUrl)}
+                    </a>
                 </div>
-                <p class="text-slate-200 font-sans leading-relaxed text-[12px] mb-2">${escapeHtml(text)}</p>
-                ${mediaUrl ? `
-                    <div class="mt-2.5 rounded-md overflow-hidden max-h-52 bg-slate-950 border border-slate-800 flex justify-center items-center">
-                        <img src="${escapeHtml(mediaUrl)}" class="object-cover w-full h-auto" loading="lazy" onerror="this.style.display='none'" />
+
+                <!-- 3. ENCLOSED BLUE-OUTLINED MEDIA PANEL -->
+                <div class="w-full bg-slate-950/60 border border-cyan-800/70 rounded-md p-4 space-y-4">
+                    
+                    <!-- Top Source Badge/Label -->
+                    <div class="flex items-center justify-between gap-3 text-[9px] uppercase tracking-widest text-cyan-400">
+                        <span class="font-bold">${escapeHtml(sourceLabel)}</span>
+                        <button class="text-slate-600 hover:text-cyan-400">✕</button>
                     </div>
-                ` : ''}
+
+                    <!-- Large Full-Width Image -->
+                    ${imageUrl ? `
+                        <div class="w-full h-auto max-h-[400px] overflow-hidden rounded bg-slate-900 border border-slate-800 flex justify-center items-center">
+                            <img src="${escapeHtml(imageUrl)}" alt="News Media" class="w-full h-auto object-cover" loading="lazy" />
+                        </div>
+                    ` : `
+                        <div class="w-full h-40 bg-slate-900/50 rounded border border-slate-800 flex justify-center items-center select-none">
+                            <p class="text-[9px] text-slate-600 tracking-wider">// MEDIA_ELEMENT NULL</p>
+                        </div>
+                    `}
+
+                    <!-- Nested Content Block -->
+                    <div class="space-y-3 font-sans text-slate-300 p-1">
+                        <!-- Sub-Headline -->
+                        <h4 class="text-[13px] font-bold text-cyan-300 leading-tight">
+                            ${escapeHtml(subHeadline)}
+                        </h4>
+                        <!-- Sub-Description -->
+                        <p class="text-[12px] leading-relaxed text-slate-400">
+                            ${escapeHtml(subDescription)}
+                        </p>
+                    </div>
+
+                    <!-- Second Source Link (Inside Panel) -->
+                    <div class="flex items-center gap-2 pt-2 text-[10px] text-cyan-600 font-mono tracking-wide">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                        </svg>
+                        <span>Source Link:</span>
+                        <a href="${escapeHtml(sourceUrl)}" target="_blank" class="text-cyan-500 hover:text-cyan-400 truncate">
+                            ${escapeHtml(sourceUrl)}
+                        </a>
+                    </div>
+
+                </div>
+
             </div>
         `;
     }).join('');
 };
+
+/**
+ * Helper to escape HTML and prevent injection attacks.
+ */
+function escapeHtml(str) {
+    if (typeof str !== 'string') return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 
 // Helper function to safely escape HTML characters
 function escapeHtml(str) {
