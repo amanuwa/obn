@@ -652,7 +652,7 @@ window.approveArticle = async function() {
     try {
         // 3. Insert production record
         const { error: insertError } = await client.from('editorial_submissions').insert([{
-            sender_id: activeSubmission.sender_id || 'manual-approval',
+            sender_id: activeSubmission.sender_id || '00000000-0000-0000-0000-000000000000',  
             sender_name: currentEditorName,
             sender_email: activeSubmission.sender_email || 'editor@terminal.internal',
             target_role: 'production_team',
