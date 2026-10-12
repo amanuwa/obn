@@ -2039,10 +2039,17 @@ async function renderWithIsolatedPanels(data) {
                     </button>
                     
                     <!-- GET NEWS Button -->
-                    <button onclick="executeScraperWorkflow({ action: 'get_news', query: '${matchQuery}' })" 
-                            class="bg-sky-600/90 hover:bg-sky-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
-                        GET NEWS
-                    </button>
+                     <!-- GET NEWS Button -->
+<button onclick="executeScraperWorkflow({ 
+    action: 'get_news', 
+    homeTeam: '${homeTeam}', 
+    awayTeam: '${awayTeam}', 
+    date: '${match.match_date || 'TBD'}', 
+    time: '${match.kick_off_time || '00:00'}' 
+})" class="bg-sky-600/90 hover:bg-sky-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
+    GET NEWS
+</button>
+                  
                     <span> </span><!-- NOTIFY LINEUP BUTTON -->
              <button onclick="triggerLineupWebhook('${homeTeam}', '${awayTeam}', '${match.match_date}', '${match.Kick_off_time}', '${match.league}', this)"
         class="bg-cyan-600/90 hover:bg-cyan-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
@@ -2058,6 +2065,10 @@ async function renderWithIsolatedPanels(data) {
     console.log("Successfully rendered match list with dual actions into #matchListSubPanel.");
 }
     /**
+      <button onclick="executeScraperWorkflow({ action: 'get_news', query: '${matchQuery}' })" 
+                            class="bg-sky-600/90 hover:bg-sky-500 text-slate-950 font-bold px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all shadow-sm">
+                        GET NEWS
+                    </button>
  * Triggers an n8n webhook or automation to notify/fetch lineups for a specific fixture.
  * @param {string} homeTeam - The home team name
  * @param {string} awayTeam - The away team name
