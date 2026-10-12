@@ -1341,7 +1341,18 @@ document.addEventListener("DOMContentLoaded", () => {
         // Normalize raw data to handle arrays or wrapped objects
         const rawData = Array.isArray(result) ? result[0] : result;
         let dataArray = Array.isArray(result) ? result : (result.data || result.json || Object.values(result).find(val => Array.isArray(val)));
-
+        ////////////////////
+if (rawData && rawData.output) {
+    try {
+        const parsedOutput = typeof rawData.output === 'string' ? JSON.parse(rawData.output) : rawData.output;
+        if (Array.isArray(parsedOutput)) {
+            dataArray = parsedOutput;
+        }
+    } catch (e) {
+        console.warn("Failed to parse stringified rawData.output:", e);
+    }
+}
+        //////////////////////
         // --- PRIMARY ROUTER CHECK: Array of Lineup Teams vs Match Details vs Lists/News ---
         const isLineupArray = Array.isArray(result) && result.some(item => item.lineupteam && (item.lineups || item.substitutes));
         const isMatchDetail = rawData && typeof rawData === 'object' && (rawData.matchResult !== undefined || rawData.value !== undefined || rawData.matchStatus !== undefined);
@@ -1381,17 +1392,42 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-        } else if (Array.isArray(dataArray)) {
-            if (payload.targetMatrix === 'hot_news' || dataArray[0]?.headline || dataArray[0]?.news_title) {
-                console.log("Routing to News Matrix renderer...");
-                if (typeof renderNewsMatrix === 'function') renderNewsMatrix(dataArray);
-            } else {
-                console.log("Routing to Match List renderer...");
-                if (typeof renderMatchList === 'function') renderMatchList(dataArray);
-            }
-        } else {
-            console.warn("Received empty or unrecognized data structure:", result);
+        } else if (Array.isArray(dataArray))
+            {
+    // Fix 2: Check for 'text', 'handle', 'content', 'headline', or 'news_title'
+    const firstItem = dataArray[0] || {};
+    const isNews = payload.action === 'get_news' || 
+                   payload.targetMatrix === 'hot_news' || 
+                   firstItem.headline || 
+                   firstItem.news_title || 
+                   firstItem.text || 
+                   firstItem.handle;
+
+    if (isNews) {
+        console.log(" Routing to News Matrix renderer...");
+        if (typeof renderNewsMatrix === 'function') {
+            renderNewsMatrix(dataArray);
+        } else if (typeof renderNewsList === 'function') {
+            renderNewsList(dataArray);
         }
+    } else {
+        console.log(" Routing to Match List renderer...");
+        if (typeof renderMatchList === 'function') renderMatchList(dataArray);
+    }
+} else {
+    console.warn("Received empty or unrecognized data structure:", result);
+}
+        // {
+        //     if (payload.targetMatrix === 'hot_news' || dataArray[0]?.headline || dataArray[0]?.news_title) {
+        //         console.log("Routing to News Matrix renderer...");
+        //         if (typeof renderNewsMatrix === 'function') renderNewsMatrix(dataArray);
+        //     } else {
+        //         console.log("Routing to Match List renderer...");
+        //         if (typeof renderMatchList === 'function') renderMatchList(dataArray);
+        //     }
+        // } else {
+        //     console.warn("Received empty or unrecognized data structure:", result);
+        // }
 
     } catch (err) {
         console.error("Workflow error caught:", err);
