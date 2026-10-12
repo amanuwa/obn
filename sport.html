@@ -1720,6 +1720,62 @@ function renderPastMatchDetails(match) {
         </div>
     `;
 }
+    window.renderNewsMatrix = function(newsArray) {
+    console.log("🎨 Rendering news matrix into #matchNewsSubPanel:", newsArray);
+    
+    // Target the exact container ID from line 331
+    const newsContainer = document.getElementById('matchNewsSubPanel');
+    
+    if (!newsContainer) {
+        console.warn("⚠️ Element #matchNewsSubPanel not found in the DOM!");
+        return;
+    }
+
+    if (!Array.isArray(newsArray) || newsArray.length === 0) {
+        newsContainer.innerHTML = `
+            <div class="news-card w-full">
+                <div class="news-card-content p-4 text-center">
+                    <p class="text-xs text-slate-500 font-mono">No news articles or updates found.</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    // Render cards directly into #matchNewsSubPanel
+    newsContainer.innerHTML = newsArray.map(item => {
+        const handle = item.handle || item.username || 'News Feed';
+        const dateTime = item.dateTime || item.datePosted || 'Real-Time';
+        const text = item.text || item.summary || item.headline || 'No text content available.';
+        const mediaUrl = item.image || item.video || '';
+
+        return `
+            <div class="news-card bg-slate-900 border border-slate-800 rounded-lg p-3.5 mb-3 text-xs text-slate-300 font-mono shadow-md hover:border-slate-700 transition-all">
+                <div class="flex items-center justify-between text-amber-400 mb-2">
+                    <span class="font-bold text-[11px] tracking-wide">@${escapeHtml(handle)}</span>
+                    <span class="text-[9px] text-slate-500 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${escapeHtml(dateTime)}</span>
+                </div>
+                <p class="text-slate-200 font-sans leading-relaxed text-[12px] mb-2">${escapeHtml(text)}</p>
+                ${mediaUrl ? `
+                    <div class="mt-2.5 rounded-md overflow-hidden max-h-52 bg-slate-950 border border-slate-800 flex justify-center items-center">
+                        <img src="${escapeHtml(mediaUrl)}" class="object-cover w-full h-auto" loading="lazy" onerror="this.style.display='none'" />
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+};
+
+// Helper function to safely escape HTML characters
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 
 // ==========================================
 // 1. SAFE TEXT UTILITY
