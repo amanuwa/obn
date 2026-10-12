@@ -1402,15 +1402,21 @@ if (rawData && rawData.output) {
                    firstItem.news_title || 
                    firstItem.text || 
                    firstItem.handle;
-
-    if (isNews) {
-        console.log(" Routing to News Matrix renderer...");
-        if (typeof renderNewsMatrix === 'function') {
-            renderNewsMatrix(dataArray);
-        } else if (typeof renderNewsList === 'function') {
-            renderNewsList(dataArray);
+if (isNews) {
+        console.log("Routing to News Matrix renderer...");
+        try {
+            if (typeof renderNewsMatrix === 'function') {
+                renderNewsMatrix(dataArray);
+            } else if (typeof renderNewsList === 'function') {
+                renderNewsList(dataArray);
+            } else {
+                console.error("❌ Error: Neither renderNewsMatrix nor renderNewsList functions are defined!");
+            }
+        } catch (renderErr) {
+            console.error("❌ Error inside news renderer function:", renderErr);
         }
-    } else {
+    }
+    else {
         console.log(" Routing to Match List renderer...");
         if (typeof renderMatchList === 'function') renderMatchList(dataArray);
     }
