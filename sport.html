@@ -327,18 +327,11 @@
                     </span>
                     <span class="text-[10px] font-mono text-slate-500 uppercase">Real-Time Ingestion Feed</span>
                 </div>
-
-                <div id="matchNewsSubPanel" class="news-panel-grid flex-1">
-                    <div class="news-card">
-                        <div class="news-card-content">
-                            <div class="flex justify-between items-start gap-2 mb-1">
-                                <span class="text-[11px] font-bold text-amber-300 uppercase tracking-wide">Terminal System Online</span>
-                                <span class="text-[9px] font-mono text-slate-500">LIVE FEED</span>
-                            </div>
-                            <p class="text-xs text-slate-300 leading-relaxed font-sans">Awaiting inbound sports news payloads, transfer updates, and matchday reports from active scraping routes...</p>
-                        </div>
-                    </div>
-                </div>
+//////////////////////////////////
+                <div id="matchNewsSubPanel" class="w-full flex-1 overflow-y-auto">
+    <!-- Dynamic articles will render here automatically -->
+</div>
+        //////////////////////
             </div>
         </div>
         <div class="w-full max-w-5xl mx-auto space-y-6 font-sans">
@@ -2528,7 +2521,7 @@ async function triggerHotNewsWebhook() {
     
     console.log("📤 Sending text to n8n webhook:", textPayload);
 
-    // 1. Disable button, change text to "Wait...", and show white loading state on the news panel
+    // 1. Disable button, change text to "Wait...", and show loading state on the news panel
     if (buttonElement) {
         buttonElement.disabled = true;
         buttonElement.innerText = "Wait...";
@@ -2563,50 +2556,60 @@ async function triggerHotNewsWebhook() {
             console.log("✅ Data received from n8n:", resultData);
             
             if (newsPanel) {
-                const articles = Array.isArray(resultData) ? resultData : (resultData.data || [resultData]);
+                // Robust check to extract the articles array regardless of n8n payload structure
+                const articles = Array.isArray(resultData) 
+                    ? resultData 
+                    : (resultData.data || resultData.json || [resultData]);
                 
                 if (articles.length === 0) {
                     newsPanel.innerHTML = `<div class="w-full p-6 text-slate-400 text-center font-mono">No news articles found.</div>`;
                     return;
                 }
 
-                // Render cards in order: Source -> Headline -> Image -> Details
-                let htmlContent = '<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full">';
+                // Render cards grid cleanly
+                let htmlContent = '<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full p-4">';
                 
                 articles.forEach(article => {
+                    const sourceText = article.source_website || article.source || 'LIVE NEWS FEED';
+                    const dateText = article.date_posted || article.date || '';
+                    const headlineText = article.headline || article.title || 'Untitled Article';
+                    const imageUrl = article.image_url || article.imageUrl || article.image || null;
+                    const detailText = article.detail_data || article.content || article.description || '';
+                    const articleUrl = article.url || article.link || '#';
+
                     htmlContent += `
                         <div class="bg-slate-900/95 border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-xl w-full hover:border-amber-500/50 transition-all">
                             <div class="flex flex-col">
                                 <!-- 1. Source Website -->
                                 <div class="text-[11px] font-mono text-amber-400 font-bold uppercase tracking-wider mb-2">
-                                    ${article.source_website || 'LIVE NEWS FEED'}
-                                    <span class="text-slate-500 font-normal ml-2">${article.date_posted || ''}</span>
+                                    ${sourceText}
+                                    <span class="text-slate-500 font-normal ml-2">${dateText}</span>
                                 </div>
                                 
                                 <!-- 2. Headline in Bold -->
                                 <h3 class="text-sm font-bold text-slate-100 mb-3 leading-snug">
-                                    <a href="${article.url || '#'}" target="_blank" class="hover:text-amber-400 transition-colors">
-                                        ${article.headline || 'Untitled Article'}
+                                    <a href="${articleUrl}" target="_blank" class="hover:text-amber-400 transition-colors">
+                                        ${headlineText}
                                     </a>
                                 </h3>
                                 
                                 <!-- 3. Render Image -->
-                                ${article.image_url ? `
+                                ${imageUrl ? `
                                     <div class="w-full h-48 overflow-hidden rounded-md mb-3 bg-slate-950 border border-slate-800">
-                                        <img src="${article.image_url}" alt="News thumbnail" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400?text=Image+Not+Available';" />
+                                        <img src="${imageUrl}" alt="News thumbnail" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400?text=Image+Not+Available';" />
                                     </div>
                                 ` : ''}
                                 
                                 <!-- 4. Detail / Summary Text -->
                                 <p class="text-xs text-slate-300 leading-relaxed line-clamp-3 mb-4 font-sans">
-                                    ${article.detail_data || ''}
+                                    ${detailText}
                                 </p>
                             </div>
                             
                             <!-- Read More Link -->
                             <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px] font-mono">
                                 <span class="text-slate-500">Verified Payload</span>
-                                <a href="${article.url || '#'}" target="_blank" class="text-amber-400 font-bold hover:underline">
+                                <a href="${articleUrl}" target="_blank" class="text-amber-400 font-bold hover:underline">
                                     Full Article &rarr;
                                 </a>
                             </div>
@@ -2630,7 +2633,7 @@ async function triggerHotNewsWebhook() {
             newsPanel.innerHTML = `<div class="w-full p-6 text-rose-400 text-center font-mono bg-slate-900 border border-rose-900/50 rounded-lg">Connection Failure: ${err.message}</div>`;
         }
     } finally {
-        // 2. Re-enable button and change text back to "Go" once complete (success or error)
+        // 2. Re-enable button and change text back to "Go" once complete
         if (buttonElement) {
             buttonElement.disabled = false;
             buttonElement.innerText = "Go";
