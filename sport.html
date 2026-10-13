@@ -2563,34 +2563,35 @@ async function triggerHotNewsWebhook() {
                 // Render cards grid cleanly
                 let htmlContent = '<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full p-4">';
                 
-                articles.forEach(article => {
-                    const sourceText = article.source_website || article.source || 'LIVE NEWS FEED';
-                    const dateText = article.date_posted || article.date || '';
-                    const headlineText = article.headline || article.title || 'Untitled Article';
-                    const imageUrl = article.image_url || article.imageUrl || article.image || null;
-                    const detailText = article.detail_data || article.content || article.description || '';
-                    const articleUrl = article.url || article.link || '#';
+                articles.forEach((article, idx) => {
+                    // Flexible fallbacks supporting both News Articles and Social Media Posts (Tweets/Instagram)
+                    const sourceText = article.source_website || article.twitter_source || article.posting_account || article.source || 'LIVE NEWS FEED';
+                    const dateText = article.date_posted || article.date_twitted || article.post_datetime || article.date || '';
+                    const headlineText = article.headline || article.tweet_text || article.posted_text || article.title || `Untitled Article #${idx + 1}`;
+                    const imageUrl = article.image_url || article.media_url || article.imageUrl || article.image || null;
+                    const detailText = article.detail_data || article.tweet_text || article.posted_text || article.content || article.description || '';
+                    const articleUrl = article.url || article.tweet_url || article.post_url || article.link || '#';
 
                     htmlContent += `
-                        <div class="bg-slate-900/95 border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-xl w-full hover:border-amber-500/50 transition-all">
+                        <div class="bg-slate-900/95 border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-xl w-full hover:border-amber-500/50 transition-all h-full">
                             <div class="flex flex-col">
-                                <!-- 1. Source Website -->
-                                <div class="text-[11px] font-mono text-amber-400 font-bold uppercase tracking-wider mb-2">
-                                    ${sourceText}
-                                    <span class="text-slate-500 font-normal ml-2">${dateText}</span>
+                                <!-- 1. Source Website / Account -->
+                                <div class="text-[11px] font-mono text-amber-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
+                                    <span>${sourceText}</span>
+                                    <span class="text-slate-500 font-normal text-[10px]">${dateText}</span>
                                 </div>
                                 
-                                <!-- 2. Headline in Bold -->
+                                <!-- 2. Headline / Post Text -->
                                 <h3 class="text-sm font-bold text-slate-100 mb-3 leading-snug">
                                     <a href="${articleUrl}" target="_blank" class="hover:text-amber-400 transition-colors">
                                         ${headlineText}
                                     </a>
                                 </h3>
                                 
-                                <!-- 3. Render Image -->
+                                <!-- 3. Render Image / Media -->
                                 ${imageUrl ? `
-                                    <div class="w-full h-48 overflow-hidden rounded-md mb-3 bg-slate-950 border border-slate-800">
-                                        <img src="${imageUrl}" alt="News thumbnail" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400?text=Image+Not+Available';" />
+                                    <div class="w-full h-44 overflow-hidden rounded-md mb-3 bg-slate-950 border border-slate-800 shrink-0">
+                                        <img src="${imageUrl}" alt="Thumbnail" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.parentElement.style.display='none';" />
                                     </div>
                                 ` : ''}
                                 
@@ -2601,8 +2602,8 @@ async function triggerHotNewsWebhook() {
                             </div>
                             
                             <!-- Read More Link -->
-                            <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px] font-mono">
-                                <span class="text-slate-500">Verified Payload</span>
+                            <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px] font-mono mt-auto">
+                                <span class="text-slate-500">Verified Payload #${idx + 1}</span>
                                 <a href="${articleUrl}" target="_blank" class="text-amber-400 font-bold hover:underline">
                                     Full Article &rarr;
                                 </a>
