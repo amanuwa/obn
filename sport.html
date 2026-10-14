@@ -2768,9 +2768,10 @@ window.downloadCardImage = function(imageUrl, event) {
     const filename = imageUrl.split('/').pop().split('?')[0] || 'news-image.jpg';
     
     // Fetch blob to trigger a secure browser download
+   // Fetch blob to trigger a secure browser download
     fetch(imageUrl)
         .then(response => response.blob())
-        .blob => {
+        .then(blob => {
             const blobUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = blobUrl;
