@@ -26,10 +26,12 @@ export const N8N_Preparepage_GATEWAY_WEBHOOK = 'https://unreached-oboe-evade.ngr
 export const N8N_sport_GATEWAY_WEBHOOK='https://unreached-oboe-evade.ngrok-free.dev/webhook/sport';
 export const LINEUP_WEBHOOK_URL='https://unreached-oboe-evade.ngrok-free.dev/webhook/Linups';
 export const fast_hot_news='https://unreached-oboe-evade.ngrok-free.dev/webhook/sporthotnews';
+export const international_hot_news='http://unreached-oboe-evade.ngrok-free.dev/webhook-test/international_hot_news';
+
 
 
 // ========================================================
-// 🚧 DEVELOPMENT ROUTER OVERRIDE
+// 🚧 DEVELOPMENT ROUTER OVERRIDE http://localhost:5678/webhook-test/international hot news
 // ========================================================
 // Set this to "DISABLED" for normal login flow.
 // Options: "DISABLED", "POLITICS", "SPORTS", "FINANCE", "HOT_NEWS"
