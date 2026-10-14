@@ -1015,7 +1015,7 @@ window.triggerHotNewsWebhook = async function() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 300000); // 300 seconds limit
 
-        const response = await fetch(fast_hot_news, {
+        const response = await fetch(international_hot_news, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
