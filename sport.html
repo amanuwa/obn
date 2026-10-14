@@ -2572,55 +2572,125 @@ async function triggerHotNewsWebhook() {
 
                 // Render cards grid cleanly
                 let htmlContent = '<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full p-4">';
-                
                 articles.forEach((article, idx) => {
-                    // Flexible fallbacks supporting both News Articles and Social Media Posts (Tweets/Instagram)
-                    const sourceText = article.source_website || article.twitter_source || article.posting_account || article.source || 'LIVE NEWS FEED';
-                    const dateText = article.date_posted || article.date_twitted || article.post_datetime || article.date || '';
-                    const headlineText = article.headline || article.tweet_text || article.posted_text || article.title || `Untitled Article #${idx + 1}`;
-                    const imageUrl = article.image_url || article.media_url || article.imageUrl || article.image || null;
-                    const detailText = article.detail_data || article.tweet_text || article.posted_text || article.content || article.description || '';
-                    const articleUrl = article.url || article.tweet_url || article.post_url || article.link || '#';
+    const sourceText = article.source_website || article.twitter_source || article.posting_account || article.source || 'LIVE NEWS FEED';
+    const dateText = article.date_posted || article.date_twitted || article.post_datetime || article.date || '';
+    const headlineText = article.headline || article.tweet_text || article.posted_text || article.title || `Untitled Article #${idx + 1}`;
+    const imageUrl = article.image_url || article.media_url || article.imageUrl || article.image || null;
+    const detailText = article.detail_data || article.tweet_text || article.posted_text || article.content || article.description || '';
+    const articleUrl = article.url || article.tweet_url || article.post_url || article.link || '#';
+    
+    const isSelected = selectedCards.has(idx);
 
-                    htmlContent += `
-                        <div class="bg-slate-900/95 border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-xl w-full hover:border-amber-500/50 transition-all h-full">
-                            <div class="flex flex-col">
-                                <!-- 1. Source Website / Account -->
-                                <div class="text-[11px] font-mono text-amber-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
-                                    <span>${sourceText}</span>
-                                    <span class="text-slate-500 font-normal text-[10px]">${dateText}</span>
-                                </div>
+    htmlContent += `
+        <div class="bg-slate-900/95 border ${isSelected ? 'border-cyan-400 ring-2 ring-cyan-500/40' : 'border-slate-800'} rounded-lg p-5 flex flex-col justify-between shadow-xl w-full hover:border-amber-500/50 transition-all h-full relative group/card">
+            
+            <!-- Selection Checkbox & Source Bar -->
+            <div class="flex items-center justify-between mb-2">
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" 
+                           ${isSelected ? 'checked' : ''} 
+                           onchange="window.toggleCardSelection(${idx}, event)"
+                           class="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-500 focus:ring-cyan-500 cursor-pointer">
+                    <span class="text-[11px] font-mono text-amber-400 font-bold uppercase tracking-wider">
+                        ${sourceText}
+                    </span>
+                </label>
+                <span class="text-slate-500 font-normal text-[10px] font-mono">${dateText}</span>
+            </div>
+            
+            <div class="flex flex-col">
+                <!-- Headline -->
+                <h3 class="text-sm font-bold text-slate-100 mb-3 leading-snug">
+                    <a href="${articleUrl}" target="_blank" class="hover:text-amber-400 transition-colors">
+                        ${headlineText}
+                    </a>
+                </h3>
+                
+                <!-- Image with Download Button Overlay -->
+                ${imageUrl ? `
+                    <div class="w-full h-44 overflow-hidden rounded-md mb-3 bg-slate-950 border border-slate-800 shrink-0 relative group">
+                        <img src="${imageUrl}" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.parentElement.style.display='none';" />
+                        
+                        <!-- Download Button on Top of Image -->
+                        <button onclick="window.downloadCardImage('${imageUrl}', event)" 
+                                title="Download Image"
+                                class="absolute top-2 right-2 bg-slate-950/80 hover:bg-cyan-600 text-cyan-400 hover:text-white p-1.5 rounded-md border border-slate-700 backdrop-blur-sm transition-all shadow-md cursor-pointer opacity-0 group-hover:opacity-100 flex items-center gap-1 text-[10px] font-mono">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            <span>Save</span>
+                        </button>
+                    </div>
+                ` : ''}
+                
+                <!-- Summary Text -->
+                <p class="text-xs text-slate-300 leading-relaxed line-clamp-3 mb-4 font-sans">
+                    ${detailText}
+                </p>
+            </div>
+            
+            <!-- Footer Link -->
+            <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px] font-mono mt-auto">
+                <span class="text-slate-500">Payload #${idx + 1}</span>
+                <a href="${articleUrl}" target="_blank" class="text-amber-400 font-bold hover:underline">
+                    Full Article &rarr;
+                </a>
+            </div>
+        </div>
+    `;
+});
+                /////
+                // articles.forEach((article, idx) => {
+                //     // Flexible fallbacks supporting both News Articles and Social Media Posts (Tweets/Instagram)
+                //     const sourceText = article.source_website || article.twitter_source || article.posting_account || article.source || 'LIVE NEWS FEED';
+                //     const dateText = article.date_posted || article.date_twitted || article.post_datetime || article.date || '';
+                //     const headlineText = article.headline || article.tweet_text || article.posted_text || article.title || `Untitled Article #${idx + 1}`;
+                //     const imageUrl = article.image_url || article.media_url || article.imageUrl || article.image || null;
+                //     const detailText = article.detail_data || article.tweet_text || article.posted_text || article.content || article.description || '';
+                //     const articleUrl = article.url || article.tweet_url || article.post_url || article.link || '#';
+
+                //     htmlContent += `
+                //         <div class="bg-slate-900/95 border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-xl w-full hover:border-amber-500/50 transition-all h-full">
+                //             <div class="flex flex-col">
+                //                 <!-- 1. Source Website / Account -->
+                //                 <div class="text-[11px] font-mono text-amber-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
+                //                     <span>${sourceText}</span>
+                //                     <span class="text-slate-500 font-normal text-[10px]">${dateText}</span>
+                //                 </div>
                                 
-                                <!-- 2. Headline / Post Text -->
-                                <h3 class="text-sm font-bold text-slate-100 mb-3 leading-snug">
-                                    <a href="${articleUrl}" target="_blank" class="hover:text-amber-400 transition-colors">
-                                        ${headlineText}
-                                    </a>
-                                </h3>
+                //                 <!-- 2. Headline / Post Text -->
+                //                 <h3 class="text-sm font-bold text-slate-100 mb-3 leading-snug">
+                //                     <a href="${articleUrl}" target="_blank" class="hover:text-amber-400 transition-colors">
+                //                         ${headlineText}
+                //                     </a>
+                //                 </h3>
                                 
-                                <!-- 3. Render Image / Media -->
-                                ${imageUrl ? `
-                                    <div class="w-full h-44 overflow-hidden rounded-md mb-3 bg-slate-950 border border-slate-800 shrink-0">
-                                        <img src="${imageUrl}" alt="Thumbnail" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.parentElement.style.display='none';" />
-                                    </div>
-                                ` : ''}
+                //                 <!-- 3. Render Image / Media -->
+                //                 ${imageUrl ? `
+                //                     <div class="w-full h-44 overflow-hidden rounded-md mb-3 bg-slate-950 border border-slate-800 shrink-0">
+                //                         <img src="${imageUrl}" alt="Thumbnail" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.parentElement.style.display='none';" />
+                //                     </div>
+                //                 ` : ''}
                                 
-                                <!-- 4. Detail / Summary Text -->
-                                <p class="text-xs text-slate-300 leading-relaxed line-clamp-3 mb-4 font-sans">
-                                    ${detailText}
-                                </p>
-                            </div>
+                //                 <!-- 4. Detail / Summary Text -->
+                //                 <p class="text-xs text-slate-300 leading-relaxed line-clamp-3 mb-4 font-sans">
+                //                     ${detailText}
+                //                 </p>
+                //             </div>
                             
-                            <!-- Read More Link -->
-                            <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px] font-mono mt-auto">
-                                <span class="text-slate-500">Verified Payload #${idx + 1}</span>
-                                <a href="${articleUrl}" target="_blank" class="text-amber-400 font-bold hover:underline">
-                                    Full Article &rarr;
-                                </a>
-                            </div>
-                        </div>
-                    `;
-                });
+                //             <!-- Read More Link -->
+                //             <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px] font-mono mt-auto">
+                //                 <span class="text-slate-500">Verified Payload #${idx + 1}</span>
+                //                 <a href="${articleUrl}" target="_blank" class="text-amber-400 font-bold hover:underline">
+                //                     Full Article &rarr;
+                //                 </a>
+                //             </div>
+                //         </div>
+                //     `;
+                // });
+                /////
+                
                 
                 htmlContent += '</div>';
                 newsPanel.innerHTML = htmlContent;
@@ -2646,7 +2716,76 @@ async function triggerHotNewsWebhook() {
         }
     }
 }
+    ///
+    let selectedCards = new Set(); // Stores indices or IDs of selected cards
 
+// Toggle card selection when clicking the checkbox
+window.toggleCardSelection = function(idx, event) {
+    event.stopPropagation(); // Prevents triggering any card click/transfer events
+    if (selectedCards.has(idx)) {
+        selectedCards.delete(idx);
+    } else {
+        selectedCards.add(idx);
+    }
+    updateSelectionBar();
+};
+
+// Update the dynamic floating action bar showing count and button
+function updateSelectionBar() {
+    let actionbar = document.getElementById('selectionActionBar');
+    
+    if (selectedCards.size > 0) {
+        if (!actionbar) {
+            actionbar = document.createElement('div');
+            actionbar.id = 'selectionActionBar';
+            actionbar.className = 'fixed bottom-6 right-6 z-50 bg-cyan-950 border border-cyan-500 text-slate-100 px-5 py-3 rounded-xl shadow-2xl flex items-center gap-4 animate-bounce';
+            document.body.appendChild(actionbar);
+        }
+        actionbar.innerHTML = `
+            <span class="text-xs font-mono font-bold text-cyan-300">📦 ${selectedCards.size} card(s) selected</span>
+            <button onclick="window.sendSelectedToPreparation()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded font-mono uppercase tracking-wider cursor-pointer transition-colors">
+                Send to Preparation ➔
+            </button>
+            <button onclick="selectedCards.clear(); updateSelectionBar(); renderCards();" class="text-slate-400 hover:text-white text-xs font-mono ml-2">
+                ✕
+            </button>
+        `;
+    } else if (actionbar) {
+        actionbar.remove();
+    }
+}
+
+// Handler for sending selected cards to your preparation workspace
+window.sendSelectedToPreparation = function() {
+    console.log("📤 Sending selected cards indices:", Array.from(selectedCards));
+    alert(`Successfully transferred ${selectedCards.size} card(s) to the Preparation Studio!`);
+    // Add your transfer/database injection logic here
+};
+
+// Image download handler
+window.downloadCardImage = function(imageUrl, event) {
+    event.stopPropagation();
+    const filename = imageUrl.split('/').pop().split('?')[0] || 'news-image.jpg';
+    
+    // Fetch blob to trigger a secure browser download
+    fetch(imageUrl)
+        .then(response => response.blob())
+        .blob => {
+            const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(blobUrl);
+        })
+        .catch(err => {
+            console.error("Download failed, opening image in new tab:", err);
+            window.open(imageUrl, '_blank');
+        });
+};
+   ////
 // Bind it safely inside DOMContentLoaded so it never throws a ReferenceError
 window.addEventListener('DOMContentLoaded', () => {
     initGlobeSystem();
