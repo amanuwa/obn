@@ -517,7 +517,7 @@
         // ==========================================
         // MODE SWITCHING LOGIC
         // ==========================================
-window.loadSubmissionToPrepare = function(submissionId) {
+        window.loadSubmissionToPrepare = function(submissionId) {
     const sub = fetchedSubmissions.find(s => s.id === submissionId);
     if (!sub) return;
 
@@ -553,13 +553,16 @@ window.loadSubmissionToPrepare = function(submissionId) {
         rawHtml = sub.content;
     }
 
-    // Use DOMParser to inspect the HTML and clean out embedded feedback boxes
+    // Use DOMParser to inspect the HTML and clean out embedded feedback boxes safely
     const parser = new DOMParser();
     const doc = parser.parseFromString(`<div>${rawHtml}</div>`, 'text/html');
 
-    // Find embedded feedback block inside the canvas HTML (e.g., // FEEDBACK FROM EDITOR)
-    const feedbackBlock = doc.querySelector('div[class*="FEEDBACK"], div:has(span:contains("FEEDBACK")), div.bg-slate-900\\/95, div.bg-slate-950') 
-        || Array.from(doc.querySelectorAll('div, p')).find(el => el.textContent.includes('FEEDBACK FROM EDITOR:'));
+    // Safe search for feedback block using standard JS array methods instead of invalid querySelector pseudo-classes
+    const allDivs = Array.from(doc.querySelectorAll('div'));
+    const feedbackBlock = allDivs.find(el => 
+        el.textContent.includes('FEEDBACK FROM EDITOR:') || 
+        (el.className && el.className.toUpperCase().includes('FEEDBACK'))
+    );
 
     if (feedbackBlock) {
         // Extract comment text if not already populated
@@ -583,13 +586,11 @@ window.loadSubmissionToPrepare = function(submissionId) {
     // 2. RENDER THE CLEANED, EDITABLE CANVAS
     const canvas = document.getElementById('editorialCanvas');
     if (canvas) {
-        // Ensure contenteditable="true" is set on page contents
         const pageContents = doc.body.firstChild.querySelectorAll('.page-content');
         if (pageContents.length > 0) {
             pageContents.forEach(el => el.setAttribute('contenteditable', 'true'));
             canvas.innerHTML = doc.body.firstChild.innerHTML;
         } else {
-            // Fallback wrapper if page structure is raw
             canvas.innerHTML = `
                 <div class="a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col">
                     <div class="page-content flex-1 outline-none" contenteditable="true" spellcheck="true">
@@ -602,6 +603,7 @@ window.loadSubmissionToPrepare = function(submissionId) {
 
     if (dropdown) dropdown.classList.add('hidden');
 };
+
         // SWITCH TO REVISION MODE (Triggered when notification item is clicked)
         // window.loadSubmissionToPrepare = function(submissionId) {
         //     const sub = fetchedSubmissions.find(s => s.id === submissionId);
