@@ -517,9 +517,7 @@
         // ==========================================
         // MODE SWITCHING LOGIC
         // ==========================================
-
-        // SWITCH TO REVISION MODE (Triggered when notification item is clicked)
-        window.loadSubmissionToPrepare = function(submissionId) {
+window.loadSubmissionToPrepare = function(submissionId) {
             const sub = fetchedSubmissions.find(s => s.id === submissionId);
             if (!sub) return;
 
@@ -543,24 +541,84 @@
                 statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
             }
 
+            // 1. PLACE THE EDITOR COMMENT CORRECTLY ON THE LEFT PANEL
             const commentBox = document.getElementById('editorCommentText');
             if (commentBox) {
-                commentBox.innerText = sub.comments || "Review and incorporate editor directives below.";
+                const editorName = sub.sender_name || sub.editor_name || 'Editor';
+                const actualComment = sub.comments || sub.feedback || sub.directive || "Review and incorporate editor directives below.";
+                commentBox.innerHTML = `<span class="text-cyan-400 font-bold block mb-1">From ${escapeHtml(editorName)}:</span> "${escapeHtml(actualComment)}"`;
             }
 
+            // 2. LOAD CANVAS WITH contenteditable="true" ENABLED ON ALL PAGES
             const canvas = document.getElementById('editorialCanvas');
             if (canvas) {
                 if (sub.pages && Array.isArray(sub.pages) && sub.pages.length > 0) {
-                    canvas.innerHTML = sub.pages.join('<hr class="my-8 border-slate-300">');
+                    canvas.innerHTML = sub.pages.map(pageHtml => {
+                        if (!pageHtml.includes('contenteditable="true"')) {
+                            return pageHtml.replace('class="page-content', 'contenteditable="true" class="page-content');
+                        }
+                        return pageHtml;
+                    }).join('<hr class="my-8 border-slate-300">');
                 } else if (sub.content) {
-                    canvas.innerHTML = `<div class="a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col"><div class="page-content flex-1 outline-none" contenteditable="true">${sub.content}</div></div>`;
+                    canvas.innerHTML = `
+                        <div class="a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col">
+                            <div class="page-content flex-1 outline-none" contenteditable="true" spellcheck="true">${sub.content}</div>
+                        </div>
+                    `;
                 } else {
-                    canvas.innerHTML = '<p class="text-slate-500 text-center py-20">Empty content payload.</p>';
+                    canvas.innerHTML = `
+                        <div class="a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col">
+                            <div class="page-content flex-1 outline-none" contenteditable="true" spellcheck="true"><p class="text-slate-400">Start editing your revision here...</p></div>
+                        </div>
+                    `;
                 }
             }
 
             if (dropdown) dropdown.classList.add('hidden');
         };
+        // SWITCH TO REVISION MODE (Triggered when notification item is clicked)
+        // window.loadSubmissionToPrepare = function(submissionId) {
+        //     const sub = fetchedSubmissions.find(s => s.id === submissionId);
+        //     if (!sub) return;
+
+        //     activeSubmission = sub;
+        //     currentMode = 'REVISION';
+
+        //     // Swap left panels
+        //     document.getElementById('scrapedStreamPanel')?.classList.add('hidden');
+        //     document.getElementById('editorFeedbackPanel')?.classList.remove('hidden');
+
+        //     // Update Header Styling for Revision Mode
+        //     const studioTitle = document.getElementById('studioTitle');
+        //     if (studioTitle) studioTitle.innerText = "// JOURNALIST REVISION STUDIO";
+
+        //     const modeDot = document.getElementById('modeIndicatorDot');
+        //     if (modeDot) modeDot.className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
+            
+        //     const statusHeader = document.getElementById('statusHeader');
+        //     if (statusHeader) {
+        //         statusHeader.innerText = "// EDITORIAL REVISION & DIRECTIVE MODE";
+        //         statusHeader.className = "text-[10px] font-mono text-red-400 uppercase tracking-widest";
+        //     }
+
+        //     const commentBox = document.getElementById('editorCommentText');
+        //     if (commentBox) {
+        //         commentBox.innerText = sub.comments || "Review and incorporate editor directives below.";
+        //     }
+
+        //     const canvas = document.getElementById('editorialCanvas');
+        //     if (canvas) {
+        //         if (sub.pages && Array.isArray(sub.pages) && sub.pages.length > 0) {
+        //             canvas.innerHTML = sub.pages.join('<hr class="my-8 border-slate-300">');
+        //         } else if (sub.content) {
+        //             canvas.innerHTML = `<div class="a4-page bg-white p-10 rounded-md shadow-2xl relative text-slate-900 flex flex-col"><div class="page-content flex-1 outline-none" contenteditable="true">${sub.content}</div></div>`;
+        //         } else {
+        //             canvas.innerHTML = '<p class="text-slate-500 text-center py-20">Empty content payload.</p>';
+        //         }
+        //     }
+
+        //     if (dropdown) dropdown.classList.add('hidden');
+        // };
 
         // SWITCH BACK TO PREPARATION / DRAFT MODE
         window.switchToDraftMode = function() {
