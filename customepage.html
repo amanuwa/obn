@@ -984,37 +984,28 @@
             selectAllBtn.addEventListener('click', handleSelectAllToggle);
         }
     });
+      window.triggerHotNewsWebhook = async function() {
+    const inputEl = document.getElementById('hotNewsInput');
+    const textPayload = inputEl ? inputEl.value.trim() : '';
 
-window.triggerHotNewsWebhook = async function() {
-    const inputElement = document.getElementById('hotNewsInput');
-    const buttonElement = document.getElementById('hotNewsBtn');
-    const textPayload = inputElement ? inputElement.value : '';
-    
-    console.log("📤 Sending text to n8n webhook and waiting for completion:", textPayload);
-
-    // 1. Disable button, show persistent loading spinner
-    if (buttonElement) {
-        buttonElement.disabled = true;
-        buttonElement.innerText = "Processing...";
-        buttonElement.classList.add('opacity-50', 'cursor-not-allowed');
+    if (!textPayload) {
+        alert("Please enter a topic, player, or news keyword.");
+        return;
     }
 
-    // Target your exact results panel ID: unifiedResultsConsole
-    const newsPanel = document.getElementById('unifiedResultsConsole');
-    if (newsPanel) {
-        newsPanel.innerHTML = `
-            <div class="w-full py-20 px-6 text-center bg-slate-900/90 border border-cyan-500/30 rounded-lg text-slate-100 font-mono shadow-2xl flex flex-col items-center justify-center gap-4">
-                <span class="inline-block w-4 h-4 rounded-full bg-cyan-400 animate-ping"></span>
-                <span class="text-sm tracking-wider uppercase font-bold text-cyan-300">Waiting for n8n pipeline to scrape & return all items...</span>
-                <span class="text-xs text-slate-400">Please keep this window open while scrapers fetch live sources.</span>
-            </div>
-        `;
-    }
+    currentActiveSector = "FAST HOT NEWS";
+
+    // Set processing UI loading state across terminal
+    window.setGlobalProcessingState(true);
+
+    const statusLog = document.getElementById('statusConsole');
+    const outputPanel = document.getElementById('unifiedResultsConsole');
+
+    if (statusLog) statusLog.innerText = `// TRIGGERING FAST HOT NEWS PIPELINE FOR: "${textPayload.toUpperCase()}"`;
+    if (outputPanel) outputPanel.innerHTML = `<div class="text-amber-500 animate-pulse">// Querying n8n Fast Hot News engine... Please wait for scraping & filtering execution</div>`;
 
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 300000); // 300 seconds limit
-
+        // Fetch using the international_hot_news endpoint defined in config.js
         const response = await fetch(international_hot_news, {
             method: 'POST',
             headers: {
@@ -1024,92 +1015,166 @@ window.triggerHotNewsWebhook = async function() {
             body: JSON.stringify({
                 text: textPayload,
                 timestamp: new Date().toISOString()
-            }),
-            signal: controller.signal
+            })
         });
 
-        clearTimeout(timeoutId);
-
-        if (response.ok) {
-            const resultData = await response.json();
-            console.log("✅ Full data successfully received from n8n:", resultData);
-            
-            // Cache data globally so sendToPreparation() can pick it up natively
-            window.cachedDataStream = Array.isArray(resultData) ? resultData : (resultData.data || resultData.json || [resultData]);
-
-            if (newsPanel) {
-                const articles = window.cachedDataStream;
-            
-                if (articles.length === 0) {
-                    newsPanel.innerHTML = `<div class="w-full p-6 text-slate-400 text-center font-mono">No news articles found.</div>`;
-                    return;
-                }
-
-                let htmlContent = '<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full p-4">';
-                
-                articles.forEach((article, idx) => {
-                    const row = article.json || article;
-                    const sourceText = row.source_website || row.twitter_source || row.posting_account || row.source || 'LIVE NEWS FEED';
-                    const dateText = row.date_posted || row.date_twitted || row.post_datetime || row.date || '';
-                    const headlineText = row.headline || row.tweet_text || row.posted_text || row.title || `Untitled Article #${idx + 1}`;
-                    const imageUrl = row.image_url || row.media_url || row.imageUrl || row.image || null;
-                    const detailText = row.detail_data || row.tweet_text || row.posted_text || row.content || row.description || '';
-                    const articleUrl = row.url || row.tweet_url || row.post_url || row.link || '#';
-
-                    htmlContent += `
-                        <div class="bg-slate-900/95 border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-xl w-full hover:border-amber-500/50 transition-all h-full">
-                            <div class="flex flex-col">
-                                <div class="text-[11px] font-mono text-amber-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
-                                    <span>${sourceText}</span>
-                                    <span class="text-slate-500 font-normal text-[10px]">${dateText}</span>
-                                </div>
-                                <h3 class="text-sm font-bold text-slate-100 mb-3 leading-snug">
-                                    <a href="${articleUrl}" target="_blank" class="hover:text-amber-400 transition-colors">
-                                        ${headlineText}
-                                    </a>
-                                </h3>
-                                ${imageUrl ? `
-                                    <div class="w-full h-44 overflow-hidden rounded-md mb-3 bg-slate-950 border border-slate-800 shrink-0">
-                                        <img src="${imageUrl}" alt="Thumbnail" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.parentElement.style.display='none';" />
-                                    </div>
-                                ` : ''}
-                                <p class="text-xs text-slate-300 leading-relaxed line-clamp-3 mb-4 font-sans">
-                                    ${detailText}
-                                </p>
-                            </div>
-                            <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px] font-mono mt-auto">
-                                <span class="text-slate-500">Payload #${idx + 1}</span>
-                                <a href="${articleUrl}" target="_blank" class="text-amber-400 font-bold hover:underline">
-                                    Full Article &rarr;
-                                </a>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                htmlContent += '</div>';
-                newsPanel.innerHTML = htmlContent;
-            }
-
-            if (inputElement) inputElement.value = '';
-        } else {
-            if (newsPanel) {
-                newsPanel.innerHTML = `<div class="w-full p-6 text-rose-400 text-center font-mono bg-slate-900 border border-rose-900/50 rounded-lg">Webhook Error: HTTP Status ${response.status}</div>`;
-            }
+        if (!response.ok) {
+            throw new Error(`Server returned status: ${response.status}`);
         }
+
+        const resultData = await response.json();
+        console.log("✔ Fast Hot News payload received from n8n:", resultData);
+
+        // Pass results directly into your existing render engine
+        window.renderN8nResults(resultData, "FAST HOT NEWS");
+
+        if (statusLog) statusLog.innerText = `// SUCCESS: RECEIVED FAST HOT NEWS RESULTS FOR [${textPayload.toUpperCase()}]`;
+
     } catch (err) {
-        console.error("Fetch error or timeout:", err);
-        if (newsPanel) {
-            newsPanel.innerHTML = `<div class="w-full p-6 text-rose-400 text-center font-mono bg-slate-900 border border-rose-900/50 rounded-lg">Connection Failure or Timeout: ${err.message}</div>`;
-        }
+        console.error("❌ Webhook Execution Error:", err);
+        if (outputPanel) outputPanel.innerHTML = `<div class="text-red-400">// FAST HOT NEWS WEBHOOK ERROR: ${err.message}</div>`;
+        if (statusLog) statusLog.innerText = `// ERROR: N8N HOT NEWS WEBHOOK FAILED`;
     } finally {
-        if (buttonElement) {
-            buttonElement.disabled = false;
-            buttonElement.innerText = "Go";
-            buttonElement.classList.remove('opacity-50', 'cursor-not-allowed');
-        }
+        window.setGlobalProcessingState(false);
     }
 };
+      document.addEventListener('DOMContentLoaded', () => {
+    const hotNewsInput = document.getElementById('hotNewsInput');
+    if (hotNewsInput) {
+        hotNewsInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                window.triggerHotNewsWebhook();
+            }
+        });
+    }
+});
+
+// window.triggerHotNewsWebhook = async function() {
+//     const inputElement = document.getElementById('hotNewsInput');
+//     const buttonElement = document.getElementById('hotNewsBtn');
+//     const textPayload = inputElement ? inputElement.value : '';
+    
+//     console.log("📤 Sending text to n8n webhook and waiting for completion:", textPayload);
+
+//     // 1. Disable button, show persistent loading spinner
+//     if (buttonElement) {
+//         buttonElement.disabled = true;
+//         buttonElement.innerText = "Processing...";
+//         buttonElement.classList.add('opacity-50', 'cursor-not-allowed');
+//     }
+
+//     // Target your exact results panel ID: unifiedResultsConsole
+//     const newsPanel = document.getElementById('unifiedResultsConsole');
+//     if (newsPanel) {
+//         newsPanel.innerHTML = `
+//             <div class="w-full py-20 px-6 text-center bg-slate-900/90 border border-cyan-500/30 rounded-lg text-slate-100 font-mono shadow-2xl flex flex-col items-center justify-center gap-4">
+//                 <span class="inline-block w-4 h-4 rounded-full bg-cyan-400 animate-ping"></span>
+//                 <span class="text-sm tracking-wider uppercase font-bold text-cyan-300">Waiting for n8n pipeline to scrape & return all items...</span>
+//                 <span class="text-xs text-slate-400">Please keep this window open while scrapers fetch live sources.</span>
+//             </div>
+//         `;
+//     }
+
+//     try {
+//         const controller = new AbortController();
+//         const timeoutId = setTimeout(() => controller.abort(), 300000); // 300 seconds limit
+
+//         const response = await fetch(international_hot_news, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//                 'ngrok-skip-browser-warning': 'true'
+//             },
+//             body: JSON.stringify({
+//                 text: textPayload,
+//                 timestamp: new Date().toISOString()
+//             }),
+//             signal: controller.signal
+//         });
+
+//         clearTimeout(timeoutId);
+
+//         if (response.ok) {
+//             const resultData = await response.json();
+//             console.log("✅ Full data successfully received from n8n:", resultData);
+            
+//             // Cache data globally so sendToPreparation() can pick it up natively
+//             window.cachedDataStream = Array.isArray(resultData) ? resultData : (resultData.data || resultData.json || [resultData]);
+
+//             if (newsPanel) {
+//                 const articles = window.cachedDataStream;
+            
+//                 if (articles.length === 0) {
+//                     newsPanel.innerHTML = `<div class="w-full p-6 text-slate-400 text-center font-mono">No news articles found.</div>`;
+//                     return;
+//                 }
+
+//                 let htmlContent = '<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full p-4">';
+                
+//                 articles.forEach((article, idx) => {
+//                     const row = article.json || article;
+//                     const sourceText = row.source_website || row.twitter_source || row.posting_account || row.source || 'LIVE NEWS FEED';
+//                     const dateText = row.date_posted || row.date_twitted || row.post_datetime || row.date || '';
+//                     const headlineText = row.headline || row.tweet_text || row.posted_text || row.title || `Untitled Article #${idx + 1}`;
+//                     const imageUrl = row.image_url || row.media_url || row.imageUrl || row.image || null;
+//                     const detailText = row.detail_data || row.tweet_text || row.posted_text || row.content || row.description || '';
+//                     const articleUrl = row.url || row.tweet_url || row.post_url || row.link || '#';
+
+//                     htmlContent += `
+//                         <div class="bg-slate-900/95 border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-xl w-full hover:border-amber-500/50 transition-all h-full">
+//                             <div class="flex flex-col">
+//                                 <div class="text-[11px] font-mono text-amber-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
+//                                     <span>${sourceText}</span>
+//                                     <span class="text-slate-500 font-normal text-[10px]">${dateText}</span>
+//                                 </div>
+//                                 <h3 class="text-sm font-bold text-slate-100 mb-3 leading-snug">
+//                                     <a href="${articleUrl}" target="_blank" class="hover:text-amber-400 transition-colors">
+//                                         ${headlineText}
+//                                     </a>
+//                                 </h3>
+//                                 ${imageUrl ? `
+//                                     <div class="w-full h-44 overflow-hidden rounded-md mb-3 bg-slate-950 border border-slate-800 shrink-0">
+//                                         <img src="${imageUrl}" alt="Thumbnail" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.parentElement.style.display='none';" />
+//                                     </div>
+//                                 ` : ''}
+//                                 <p class="text-xs text-slate-300 leading-relaxed line-clamp-3 mb-4 font-sans">
+//                                     ${detailText}
+//                                 </p>
+//                             </div>
+//                             <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px] font-mono mt-auto">
+//                                 <span class="text-slate-500">Payload #${idx + 1}</span>
+//                                 <a href="${articleUrl}" target="_blank" class="text-amber-400 font-bold hover:underline">
+//                                     Full Article &rarr;
+//                                 </a>
+//                             </div>
+//                         </div>
+//                     `;
+//                 });
+                
+//                 htmlContent += '</div>';
+//                 newsPanel.innerHTML = htmlContent;
+//             }
+
+//             if (inputElement) inputElement.value = '';
+//         } else {
+//             if (newsPanel) {
+//                 newsPanel.innerHTML = `<div class="w-full p-6 text-rose-400 text-center font-mono bg-slate-900 border border-rose-900/50 rounded-lg">Webhook Error: HTTP Status ${response.status}</div>`;
+//             }
+//         }
+//     } catch (err) {
+//         console.error("Fetch error or timeout:", err);
+//         if (newsPanel) {
+//             newsPanel.innerHTML = `<div class="w-full p-6 text-rose-400 text-center font-mono bg-slate-900 border border-rose-900/50 rounded-lg">Connection Failure or Timeout: ${err.message}</div>`;
+//         }
+//     } finally {
+//         if (buttonElement) {
+//             buttonElement.disabled = false;
+//             buttonElement.innerText = "Go";
+//             buttonElement.classList.remove('opacity-50', 'cursor-not-allowed');
+//         }
+//     }
+// };
 </script>
 </body>
 </html>
