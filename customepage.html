@@ -661,106 +661,212 @@
 
         window.renderN8nResults(window.cachedDataStream, currentActiveSector);
     };
+window.renderN8nResults = function(data, sectorContext = "STREAM") {
+    const outputPanel = document.getElementById('unifiedResultsConsole');
+    if (!outputPanel) {
+        console.error("CRITICAL: Could not find HTML element with id='unifiedResultsConsole'");
+        return;
+    }
 
-    // --- 5. RENDER RESULTS CONSOLE ---
-    window.renderN8nResults = function(data, sectorContext = "STREAM") {
-        const outputPanel = document.getElementById('unifiedResultsConsole');
-        if (!outputPanel) {
-            console.error("CRITICAL: Could not find HTML element with id='unifiedResultsConsole'");
-            return;
-        }
+    console.log("// DATA RECEIVED BY RENDERER:", data);
 
-        console.log("// DATA RECEIVED BY RENDERER:", data);
+    let resultsArray = [];
 
-        let resultsArray = [];
-
-        if (Array.isArray(data) && data.length > 0) {
-            const first = data[0];
-            if (first.news && Array.isArray(first.news)) {
-                resultsArray = first.news;
-            } else if (first.json && first.json.news && Array.isArray(first.json.news)) {
-                resultsArray = first.json.news;
-            } else if (first.body && first.body.news && Array.isArray(first.body.news)) {
-                resultsArray = first.body.news;
-            } else if (first.json && Array.isArray(first.json)) {
-                resultsArray = first.json;
-            } else {
-                resultsArray = data;
-            }
-        } else if (data && typeof data === 'object') {
-            if (Array.isArray(data.news)) {
-                resultsArray = data.news;
-            } else if (data.json && Array.isArray(data.json.news)) {
-                resultsArray = data.json.news;
-            } else if (Array.isArray(data.data)) {
-                resultsArray = data.data;
-            } else {
-                resultsArray = [data];
-            }
-        }
-
-        window.cachedDataStream = resultsArray;
-
-        let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
-
-        if (!resultsArray || resultsArray.length === 0) {
-            html += `<div class="text-slate-500 font-mono">// Webhook returned empty payload or unrecognized JSON layout. Check console logs.</div>`;
+    if (Array.isArray(data) && data.length > 0) {
+        const first = data[0];
+        if (first.news && Array.isArray(first.news)) {
+            resultsArray = first.news;
+        } else if (first.json && first.json.news && Array.isArray(first.json.news)) {
+            resultsArray = first.json.news;
+        } else if (first.body && first.body.news && Array.isArray(first.body.news)) {
+            resultsArray = first.body.news;
+        } else if (first.json && Array.isArray(first.json)) {
+            resultsArray = first.json;
         } else {
-            resultsArray.forEach((row, idx) => {
-                const item = row.json || row;
-                
-                const sourceName = item.sourceName || item.source || 'Scraped Source';
-                const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
-                
-                let title = item.title || item.newsTitle || '';
-                if (!title && content) {
-                    const firstPeriodIndex = content.indexOf('. ');
-                    if (firstPeriodIndex > 10 && firstPeriodIndex < 120) {
-                        title = content.substring(0, firstPeriodIndex + 1);
-                    } else {
-                        title = content.length > 90 ? content.substring(0, 90) + '...' : content;
-                    }
+            resultsArray = data;
+        }
+    } else if (data && typeof data === 'object') {
+        if (Array.isArray(data.news)) {
+            resultsArray = data.news;
+        } else if (data.json && Array.isArray(data.json.news)) {
+            resultsArray = data.json.news;
+        } else if (Array.isArray(data.data)) {
+            resultsArray = data.data;
+        } else {
+            resultsArray = [data];
+        }
+    }
+
+    window.cachedDataStream = resultsArray;
+
+    let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
+
+    if (!resultsArray || resultsArray.length === 0) {
+        html += `<div class="text-slate-500 font-mono">// Webhook returned empty payload or unrecognized JSON layout. Check console logs.</div>`;
+    } else {
+        resultsArray.forEach((row, idx) => {
+            const item = row.json || row;
+            
+            // Support both Twitter & Web scraper source keys
+            const sourceName = item.source || item.sourceName || 'Scraped Source';
+            
+            // Support detailedText (from your new node outputs), news, snippet, or content
+            const content = item.detailedText || item.news || item.paragraph || item.description || item.snippet || item.content || '';
+            
+            let title = item.title || item.newsTitle || '';
+            if (!title && content) {
+                const firstPeriodIndex = content.indexOf('. ');
+                if (firstPeriodIndex > 10 && firstPeriodIndex < 120) {
+                    title = content.substring(0, firstPeriodIndex + 1);
+                } else {
+                    title = content.length > 90 ? content.substring(0, 90) + '...' : content;
                 }
+            }
 
-                const imageUrl = item.imageUrl || item.image || item.media || null;
-                const url = item.url || item.link || null;
+            const imageUrl = item.imageUrl || item.image || item.media || null;
+            const url = item.url || item.link || null;
+            const dateStr = item.date || '';
 
-                html += `
-                    <div class="result-card flex flex-col bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 rounded-lg p-3.5 space-y-2.5 transition-all shadow-md" id="card-${idx}">
-                        <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1.5">
-                            <span class="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 font-bold uppercase tracking-wider">
-                                ${sourceName}
-                            </span>
+            const isTwitter = (url && (url.includes('twitter.com') || url.includes('x.com'))) || item.type === 'twitter';
+
+            html += `
+                <div class="result-card flex flex-col bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 rounded-lg p-3.5 space-y-2.5 transition-all shadow-md mb-3" id="card-${idx}">
+                    <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1.5">
+                        <span class="px-2 py-0.5 rounded ${isTwitter ? 'bg-sky-950/80 text-sky-400 border-sky-800/50' : 'bg-cyan-950/80 text-cyan-400 border-cyan-800/50'} font-bold uppercase tracking-wider">
+                            ${isTwitter ? '𝕏 ' : '🌐 '}${sourceName}
+                        </span>
+                        <div class="flex items-center gap-2">
+                            ${dateStr ? `<span class="text-slate-500">${dateStr}</span>` : ''}
                             <button onclick="window.deleteCard(${idx})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">
                                 ✕
                             </button>
                         </div>
-
-                        ${imageUrl ? `
-                            <div class="w-full max-h-48 overflow-hidden rounded-md border border-slate-800 bg-black/40">
-                                <img src="${imageUrl}" alt="News Media" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.parentElement.style.display='none'">
-                            </div>
-                        ` : ''}
-
-                        <div class="space-y-1">
-                            ${title ? `<div class="text-cyan-300 font-bold text-xs tracking-wide font-sans">${title}</div>` : ''}
-                            <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words line-clamp-4">${content}</p>
-                        </div>
-
-                        ${url ? `
-                            <div class="pt-1 border-t border-slate-800/40">
-                                <a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-200 hover:underline font-mono break-all">
-                                    🔗 Source Link: ${url}
-                                </a>
-                            </div>
-                        ` : ''}
                     </div>
-                `;
-            });
-        }
 
-        outputPanel.innerHTML = html;
-    };
+                    ${imageUrl ? `
+                        <div class="w-full max-h-72 overflow-hidden rounded-md border border-slate-800 bg-black/50 flex items-center justify-center">
+                            <img src="${imageUrl}" alt="News Media" class="w-full max-h-72 object-contain hover:scale-102 transition-transform duration-300" onerror="this.parentElement.style.display='none'">
+                        </div>
+                    ` : ''}
+
+                    <div class="space-y-1">
+                        ${title ? `<div class="text-cyan-300 font-bold text-xs tracking-wide font-sans">${title}</div>` : ''}
+                        <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words line-clamp-4">${content}</p>
+                    </div>
+
+                    ${url ? `
+                        <div class="pt-1 border-t border-slate-800/40">
+                            <a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-200 hover:underline font-mono break-all">
+                                🔗 Source Link: ${url}
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+    }
+
+    outputPanel.innerHTML = html;
+};
+    // // --- 5. RENDER RESULTS CONSOLE ---
+    // window.renderN8nResults = function(data, sectorContext = "STREAM") {
+    //     const outputPanel = document.getElementById('unifiedResultsConsole');
+    //     if (!outputPanel) {
+    //         console.error("CRITICAL: Could not find HTML element with id='unifiedResultsConsole'");
+    //         return;
+    //     }
+
+    //     console.log("// DATA RECEIVED BY RENDERER:", data);
+
+    //     let resultsArray = [];
+
+    //     if (Array.isArray(data) && data.length > 0) {
+    //         const first = data[0];
+    //         if (first.news && Array.isArray(first.news)) {
+    //             resultsArray = first.news;
+    //         } else if (first.json && first.json.news && Array.isArray(first.json.news)) {
+    //             resultsArray = first.json.news;
+    //         } else if (first.body && first.body.news && Array.isArray(first.body.news)) {
+    //             resultsArray = first.body.news;
+    //         } else if (first.json && Array.isArray(first.json)) {
+    //             resultsArray = first.json;
+    //         } else {
+    //             resultsArray = data;
+    //         }
+    //     } else if (data && typeof data === 'object') {
+    //         if (Array.isArray(data.news)) {
+    //             resultsArray = data.news;
+    //         } else if (data.json && Array.isArray(data.json.news)) {
+    //             resultsArray = data.json.news;
+    //         } else if (Array.isArray(data.data)) {
+    //             resultsArray = data.data;
+    //         } else {
+    //             resultsArray = [data];
+    //         }
+    //     }
+
+    //     window.cachedDataStream = resultsArray;
+
+    //     let html = `<div class="text-amber-400 border-b border-slate-900 pb-1.5 mb-3 font-mono font-bold">// RESPONSE FROM N8N GATEWAY: [${sectorContext.toUpperCase()}] (${resultsArray.length} ITEMS)</div>`;
+
+    //     if (!resultsArray || resultsArray.length === 0) {
+    //         html += `<div class="text-slate-500 font-mono">// Webhook returned empty payload or unrecognized JSON layout. Check console logs.</div>`;
+    //     } else {
+    //         resultsArray.forEach((row, idx) => {
+    //             const item = row.json || row;
+                
+    //             const sourceName = item.sourceName || item.source || 'Scraped Source';
+    //             const content = item.news || item.paragraph || item.description || item.snippet || item.content || '';
+                
+    //             let title = item.title || item.newsTitle || '';
+    //             if (!title && content) {
+    //                 const firstPeriodIndex = content.indexOf('. ');
+    //                 if (firstPeriodIndex > 10 && firstPeriodIndex < 120) {
+    //                     title = content.substring(0, firstPeriodIndex + 1);
+    //                 } else {
+    //                     title = content.length > 90 ? content.substring(0, 90) + '...' : content;
+    //                 }
+    //             }
+
+    //             const imageUrl = item.imageUrl || item.image || item.media || null;
+    //             const url = item.url || item.link || null;
+
+    //             html += `
+    //                 <div class="result-card flex flex-col bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 rounded-lg p-3.5 space-y-2.5 transition-all shadow-md" id="card-${idx}">
+    //                     <div class="flex items-center justify-between text-[10px] font-mono border-b border-slate-800/60 pb-1.5">
+    //                         <span class="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 font-bold uppercase tracking-wider">
+    //                             ${sourceName}
+    //                         </span>
+    //                         <button onclick="window.deleteCard(${idx})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5 border border-slate-800 hover:border-red-900 rounded bg-slate-950 transition-all cursor-pointer">
+    //                             ✕
+    //                         </button>
+    //                     </div>
+
+    //                     ${imageUrl ? `
+    //                         <div class="w-full max-h-48 overflow-hidden rounded-md border border-slate-800 bg-black/40">
+    //                             <img src="${imageUrl}" alt="News Media" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.parentElement.style.display='none'">
+    //                         </div>
+    //                     ` : ''}
+
+    //                     <div class="space-y-1">
+    //                         ${title ? `<div class="text-cyan-300 font-bold text-xs tracking-wide font-sans">${title}</div>` : ''}
+    //                         <p class="text-slate-300 text-[11px] font-sans leading-relaxed break-words line-clamp-4">${content}</p>
+    //                     </div>
+
+    //                     ${url ? `
+    //                         <div class="pt-1 border-t border-slate-800/40">
+    //                             <a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-200 hover:underline font-mono break-all">
+    //                                 🔗 Source Link: ${url}
+    //                             </a>
+    //                         </div>
+    //                     ` : ''}
+    //                 </div>
+    //             `;
+    //         });
+    //     }
+
+    //     outputPanel.innerHTML = html;
+    // };
 
     // --- 6. LANGUAGE ENSEMBLE & TRANSLATION HANDLERS ---
     function getSelectedLanguages() {
