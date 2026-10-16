@@ -1003,29 +1003,41 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
     }
 
 window.initUserHeader = function() {
-        const sessionData = localStorage.getItem('userSession');
-    console.error(sessionData);
-    
-        if (!sessionData) {
-            console.warn("// WARNING: No 'userSession' found in localStorage.");
-            return;
+    const sessionData = localStorage.getItem('userSession');
+    if (!sessionData) {
+        console.warn("// WARNING: No 'userSession' found in localStorage.");
+        return;
+    }
+
+    try {
+        // Handle both stringified JSON and already-parsed objects
+        const user = (typeof sessionData === 'string') ? JSON.parse(sessionData) : sessionData;
+        
+        const nameEl = document.getElementById('user-display-name');
+        const sectionEl = document.getElementById('user-display-section');
+
+        const fullName = user.fullName || user.username || user.name || 'User';
+        const section = user.journalismSection || user.role || 'PRODUCTION TEAM';
+
+        if (nameEl) {
+            nameEl.innerText = fullName;
+        }
+        if (sectionEl) {
+            sectionEl.innerText = `// ${section.toUpperCase()}`;
         }
 
-        try {
-            const user = JSON.parse(sessionData);
-            
-            const nameEl = document.getElementById('user-display-name');
-            const sectionEl = document.getElementById('user-display-section');
+        console.log("// User header initialized successfully for:", fullName);
+    } catch (e) {
+        console.error("// ERROR PARSING USER SESSION:", e.message);
+    }
+};
 
-            const fullName = user.fullName || user.username || user.name || 'User';
-            const section = user.journalismSection || user.role ;
-
-            if (nameEl) nameEl.innerText = fullName;
-            if (sectionEl) sectionEl.innerText = `// ${section.toUpperCase()}`;
-        } catch (e) {
-            console.error("// ERROR PARSING USER SESSION:", e);
-        }
-    };
+// Ensure it runs automatically as soon as DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.initUserHeader);
+} else {
+    window.initUserHeader();
+}
 // Make sure it runs on load
 
 
