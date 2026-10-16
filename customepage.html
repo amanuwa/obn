@@ -1002,36 +1002,69 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
         animationFrameId = requestAnimationFrame(runStaticGlitchField);
     }
 
-window.initUserHeader = function() {
-    const sessionData = localStorage.getItem('userSession');
-    if (!sessionData) {
-        console.warn("// WARNING: No 'userSession' found in localStorage.");
-        return;
-    }
+// window.initUserHeader = function() {
+//     const sessionData = localStorage.getItem('userSession');
+//     if (!sessionData) {
+//         console.warn("// WARNING: No 'userSession' found in localStorage.");
+//         return;
+//     }
 
-    try {
-        // Handle both stringified JSON and already-parsed objects
-        const user = (typeof sessionData === 'string') ? JSON.parse(sessionData) : sessionData;
+//     try {
+//         // Handle both stringified JSON and already-parsed objects
+//         const user = (typeof sessionData === 'string') ? JSON.parse(sessionData) : sessionData;
         
-        const nameEl = document.getElementById('user-display-name');
-        const sectionEl = document.getElementById('user-display-section');
+//         const nameEl = document.getElementById('user-display-name');
+//         const sectionEl = document.getElementById('user-display-section');
 
-        const fullName = user.fullName || user.username || user.name || 'User';
-        const section = user.journalismSection || user.role || 'PRODUCTION TEAM';
+//         const fullName = user.fullName || user.username || user.name || 'User';
+//         const section = user.journalismSection || user.role || 'PRODUCTION TEAM';
 
-        if (nameEl) {
-            nameEl.innerText = fullName;
+//         if (nameEl) {
+//             nameEl.innerText = fullName;
+//         }
+//         if (sectionEl) {
+//             sectionEl.innerText = `// ${section.toUpperCase()}`;
+//         }
+
+//         console.log("// User header initialized successfully for:", fullName);
+//     } catch (e) {
+//         console.error("// ERROR PARSING USER SESSION:", e.message);
+//     }
+// };
+document.addEventListener("DOMContentLoaded", () => {
+        const sessionData = localStorage.getItem('userSession');
+        if (!sessionData) return;
+
+        try {
+            const user = JSON.parse(sessionData);
+            const name = user.fullName || user.username || 'User';
+            const section = user.journalismSection || user.role || 'MEMBER';
+
+            // 1. Support all possible ID variations across your different HTML pages
+            const nameElements = [
+                document.getElementById('user-display-name'),
+                document.getElementById('loggedInUserDisplay'),
+                document.getElementById('activeUserName')
+            ];
+
+            const sectionElements = [
+                document.getElementById('user-display-section'),
+                document.getElementById('activeUserSection')
+            ];
+
+            // 2. Populate whichever elements exist on the current page
+            nameElements.forEach(el => {
+                if (el) el.innerText = name;
+            });
+
+            sectionElements.forEach(el => {
+                if (el) el.innerText = `// ${section.toUpperCase()}`;
+            });
+
+        } catch (e) {
+            console.error("Error loading user session into header:", e);
         }
-        if (sectionEl) {
-            sectionEl.innerText = `// ${section.toUpperCase()}`;
-        }
-
-        console.log("// User header initialized successfully for:", fullName);
-    } catch (e) {
-        console.error("// ERROR PARSING USER SESSION:", e.message);
-    }
-};
-
+    });
 // Ensure it runs automatically as soon as DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', window.initUserHeader);
