@@ -1031,6 +1031,46 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
 //         console.error("// ERROR PARSING USER SESSION:", e.message);
 //     }
 // };
+      // 1. Define the function globally so it can be called safely anywhere
+window.initUserHeader = function() {
+    const sessionData = localStorage.getItem('userSession');
+    if (!sessionData) return;
+
+    try {
+        const user = JSON.parse(sessionData);
+        const name = user.fullName || user.username || 'User';
+        const section = user.journalismSection || user.role || 'MEMBER';
+
+        const nameElements = [
+            document.getElementById('user-display-name'),
+            document.getElementById('loggedInUserDisplay'),
+            document.getElementById('activeUserName')
+        ];
+
+        const sectionElements = [
+            document.getElementById('user-display-section'),
+            document.getElementById('activeUserSection')
+        ];
+
+        nameElements.forEach(el => {
+            if (el) el.innerText = name;
+        });
+
+        sectionElements.forEach(el => {
+            if (el) el.innerText = `// ${section.toUpperCase()}`;
+        });
+
+    } catch (e) {
+        console.error("Error loading user session into header:", e);
+    }
+};
+
+// 2. Automatically execute when the DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.initUserHeader);
+} else {
+    window.initUserHeader();
+}
 document.addEventListener("DOMContentLoaded", () => {
         const sessionData = localStorage.getItem('userSession');
         if (!sessionData) return;
