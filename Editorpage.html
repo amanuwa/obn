@@ -658,7 +658,7 @@ window.approveArticle = async function() {
             receiver_name: 'none',
             draft_name: activeSubmission.draft_name || 'Untitled Draft',
             pages: [canvas.innerHTML],
-            status: 'notposted'
+            status: 'approved'
         }]);
         if (insertError) throw insertError;
 
