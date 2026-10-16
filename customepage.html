@@ -1016,7 +1016,7 @@ window.initUserHeader = function() {
             const sectionEl = document.getElementById('user-display-section');
 
             const fullName = user.fullName || user.username || user.name || 'User';
-            const section = user.journalismSection || user.role || 'PRODUCTION TEAM';
+            const section = user.journalismSection || user.role ;
 
             if (nameEl) nameEl.innerText = fullName;
             if (sectionEl) sectionEl.innerText = `// ${section.toUpperCase()}`;
