@@ -1003,27 +1003,27 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
     }
 
 window.initUserHeader = function() {
-    const sessionData = localStorage.getItem('userSession');
-    if (!sessionData) return;
-
-    try {
-        const user = JSON.parse(sessionData);
-        
-        const nameEl = document.getElementById('user-display-name');
-        const sectionEl = document.getElementById('user-display-section');
-
-        if (nameEl) nameEl.innerText = user.fullName || user.username || 'User';
-        
-        // Use journalismSection directly without forcing uppercase if you want exact casing
-        if (sectionEl) {
-            const sectionText = user.journalismSection || user.role || 'GENERAL';
-            sectionEl.innerText = `// ${sectionText.toUpperCase()}`; // Or leave as sectionText if you want exact case
+        const sessionData = localStorage.getItem('userSession');
+        if (!sessionData) {
+            console.warn("// WARNING: No 'userSession' found in localStorage.");
+            return;
         }
-    } catch (e) {
-        console.error("Error parsing user session:", e);
-    }
-};
 
+        try {
+            const user = JSON.parse(sessionData);
+            
+            const nameEl = document.getElementById('user-display-name');
+            const sectionEl = document.getElementById('user-display-section');
+
+            const fullName = user.fullName || user.username || user.name || 'User';
+            const section = user.journalismSection || user.role || 'PRODUCTION TEAM';
+
+            if (nameEl) nameEl.innerText = fullName;
+            if (sectionEl) sectionEl.innerText = `// ${section.toUpperCase()}`;
+        } catch (e) {
+            console.error("// ERROR PARSING USER SESSION:", e);
+        }
+    };
 // Make sure it runs on load
 
 
@@ -1032,11 +1032,7 @@ window.initUserHeader = function() {
         sessionStorage.clear();
         window.location.href = 'loginpage.html';
     };
-      document.addEventListener("DOMContentLoaded", () => {
-    if (typeof window.initUserHeader === 'function') {
-        window.initUserHeader();
-    }
-});
+      
 
     window.setGlobalProcessingState = function(isProcessing, processingType = "standard") {
         const overlay = document.getElementById('terminalLoader');
@@ -1284,6 +1280,12 @@ window.initUserHeader = function() {
 //         }
 //     }
 // };
+
+      document.addEventListener("DOMContentLoaded", () => {
+    if (typeof window.initUserHeader === 'function') {
+        window.initUserHeader();
+    }
+});
 </script>
 </body>
 </html>
