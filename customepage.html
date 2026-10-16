@@ -1034,6 +1034,11 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
         sessionStorage.clear();
         window.location.href = 'loginpage.html';
     };
+      document.addEventListener("DOMContentLoaded", () => {
+    if (typeof window.initUserHeader === 'function') {
+        window.initUserHeader();
+    }
+});
 
     window.setGlobalProcessingState = function(isProcessing, processingType = "standard") {
         const overlay = document.getElementById('terminalLoader');
