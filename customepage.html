@@ -1004,6 +1004,8 @@ window.renderN8nResults = function(data, sectorContext = "STREAM") {
 
 window.initUserHeader = function() {
         const sessionData = localStorage.getItem('userSession');
+    console.error(sessionData);
+    
         if (!sessionData) {
             console.warn("// WARNING: No 'userSession' found in localStorage.");
             return;
