@@ -637,7 +637,7 @@ async function fetchDraftsFromSupabase() {
                 .from('editorial_submissions')
                 .select('*')
                 .eq('receiver_name', currentLoggedInUser)
-                .eq('status', 'read');
+                .eq('status', 'unread');
 
             if (error) {
                 console.error('Supabase query error:', error.message);
