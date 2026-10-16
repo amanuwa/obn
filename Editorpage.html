@@ -658,7 +658,8 @@ window.approveArticle = async function() {
             receiver_name: 'none',
             draft_name: activeSubmission.draft_name || 'Untitled Draft',
             pages: [canvas.innerHTML],
-            status: 'read'
+            status: 'read',
+            condition:'notposted'
         }]);
         if (insertError) throw insertError;
 
