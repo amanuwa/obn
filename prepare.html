@@ -430,6 +430,7 @@
                 const { data: productionData, error: prodError } = await supabase
                     .from('editorial_submissions')
                     .select('draft_name')
+                    .eq('status', 'unread')
                     .eq('target_role', 'production_team');
 
                 if (prodError) throw prodError;
