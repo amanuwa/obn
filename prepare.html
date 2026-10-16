@@ -442,6 +442,7 @@
                     .select('*')
                     .ilike('receiver_name', currentUserName.trim())
                     .ilike('target_role', '%prepare_studio%')
+                    .eq('status', 'unread')
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
