@@ -498,9 +498,18 @@
                 console.error("Error fetching incoming submissions:", err.message);
             }
         }
-        window.markSubmissionAsRead = async function(submissionId) {
+window.markSubmissionAsRead = async function(submissionId) {
+    // 1. Prompt the user with a confirmation dialog box
+    const userConfirmed = window.confirm("Do you want this folder status to be changed to read?");
+    
+    // 2. If user clicks 'No' (Cancel), abort and exit
+    if (!userConfirmed) {
+        console.log("Status change aborted by user.");
+        return;
+    }
+
     try {
-        // Update the 'status' column to 'read' for this specific row in Supabase
+        // 3. If user clicks 'Yes' (OK), update the status column to 'read' in Supabase
         const { error } = await supabase
             .from('editorial_submissions')
             .update({ status: 'read' })
@@ -508,7 +517,7 @@
 
         if (error) throw error;
 
-        // Refresh the dropdown list and notification badge count instantly
+        // 4. Refresh the dropdown list and notification badge count instantly
         await fetchPrepareSubmissions();
     } catch (err) {
         console.error("Error updating status:", err.message);
