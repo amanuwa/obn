@@ -499,30 +499,58 @@
             }
         }
 window.markSubmissionAsRead = async function(submissionId) {
-    // 1. Prompt the user with a confirmation dialog box
-    const userConfirmed = window.confirm("Do you want this folder status to be changed to read?");
+    console.log("----------------------------------------");
+    console.log("🔍 [DEBUG] Clicked 'Change Status' for ID:", submissionId);
+
+    // 1. Find the specific folder/submission object from your local array using the ID
+    const targetFolder = fetchedSubmissions.find(s => s.id === submissionId);
+    console.log("📂 [DEBUG] Local Target Folder Object found:", targetFolder);
+
+    if (!targetFolder) {
+        console.error("❌ [DEBUG ERROR] Could not find folder in local array with ID:", submissionId);
+        alert("Error: Folder could not be found locally.");
+        return;
+    }
+
+    console.log("👤 [DEBUG] Details -> Sender:", targetFolder.sender_name, "| Receiver:", targetFolder.receiver_name, "| Current Status:", targetFolder.status);
+
+    // 2. Prompt confirmation dialog box
+    const userConfirmed = window.confirm(`Do you want folder status for "${targetFolder.draft_name || 'Untitled'}" to be changed to read?`);
     
-    // 2. If user clicks 'No' (Cancel), abort and exit
     if (!userConfirmed) {
-        console.log("Status change aborted by user.");
+        console.log("🚫 [DEBUG] Status change aborted by user choice.");
         return;
     }
 
     try {
-        // 3. If user clicks 'Yes' (OK), update the status column to 'read' in Supabase
-        const { error } = await supabase
+        console.log("📡 [DEBUG] Sending update request to Supabase for ID:", submissionId);
+
+        // 3. Update the status column to 'read' in Supabase
+        const { data, error, status } = await supabase
             .from('editorial_submissions')
             .update({ status: 'read' })
-            .eq('id', submissionId);
+            .eq('id', submissionId)
+            .select(); // .select() ensures Supabase returns the updated row back
 
-        if (error) throw error;
+        console.log("📊 [DEBUG] Supabase Response Status Code:", status);
+        console.log("📊 [DEBUG] Supabase Response Data:", data);
 
-        // 4. Refresh the dropdown list and notification badge count instantly
+        if (error) {
+            console.error("❌ [DEBUG SUPABASE ERROR]:", error.message, error.details, error.hint);
+            throw error;
+        }
+
+        console.log("✅ [DEBUG SUCCESS] Row successfully updated in Supabase!");
+
+        // 4. Refresh the dropdown notifications list
         await fetchPrepareSubmissions();
+        console.log("🔄 [DEBUG] Notification list successfully refreshed.");
+
     } catch (err) {
-        console.error("Error updating status:", err.message);
-        alert("Failed to update status: " + err.message);
+        console.error("❌ [DEBUG EXCEPTION CAUGHT]:", err);
+        alert("Failed to update status: " + (err.message || err));
     }
+    console.log("----------------------------------------");
 };
 
         async function loadEditorsIntoDropdown() {
