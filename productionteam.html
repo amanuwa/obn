@@ -1021,6 +1021,55 @@ function updateImageTransform() {
     }
 }
 
+// window.applyImageAdjustments = function() {
+//     const card = window.currentEditCard;
+//     if (!card) return;
+
+//     const targetImg = document.getElementById('modalFullImg');
+//     const aspectWrapper = document.getElementById('modalAspectWrapper');
+//     const cardImg = card.querySelector('#imagePreviewContainer img') || card.querySelector('.image-display-container img');
+
+//     if (targetImg && cardImg) {
+//         const canvas = document.createElement('canvas');
+//         const w = aspectWrapper.clientWidth;
+//         const h = aspectWrapper.clientHeight;
+//         canvas.width = w * 2;
+//         canvas.height = h * 2;
+//         const ctx = canvas.getContext('2d');
+
+//         ctx.fillStyle = '#000000';
+//         ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+//         const img = new Image();
+//         img.crossOrigin = 'anonymous';
+//         img.src = targetImg.src;
+
+//         img.onload = () => {
+//             ctx.save();
+//             ctx.translate(canvas.width / 2 + (window.imgOffsetX || 0) * 2, canvas.height / 2 + (window.imgOffsetY || 0) * 2);
+//             ctx.scale(window.imgZoomScale || 1.0, window.imgZoomScale || 1.0);
+//             ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+//             ctx.restore();
+
+//             const adjustedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+//             cardImg.src = adjustedDataUrl;
+
+//             // Update cache item
+//             if (window.cardImageCache) {
+//                 const data = window.cardImageCache.get(card);
+//                 const idx = window.cardImageIndices ? window.cardImageIndices.get(card) || 0 : 0;
+//                 if (data && data.images) {
+//                     data.images[idx] = adjustedDataUrl;
+//                     window.cardImageCache.set(card, data);
+//                 }
+//             }
+
+//             closeGlobalImageModal();
+//             alert('Frame alignment applied successfully!');
+//         };
+//     }
+// };
+///
 window.applyImageAdjustments = function() {
     const card = window.currentEditCard;
     if (!card) return;
@@ -1033,28 +1082,46 @@ window.applyImageAdjustments = function() {
         const canvas = document.createElement('canvas');
         const w = aspectWrapper.clientWidth;
         const h = aspectWrapper.clientHeight;
-        canvas.width = w * 2;
+        canvas.width = w * 2; // High-DPI scale (2x)
         canvas.height = h * 2;
         const ctx = canvas.getContext('2d');
-
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.src = targetImg.src;
 
         img.onload = () => {
+            // 1. Fill canvas with dark background padding
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Calculate "contain" aspect ratio scaling (Fits 100% of the image without cutting)
+            const imgRatio = img.naturalWidth / img.naturalHeight;
+            const targetRatio = canvas.width / canvas.height;
+            let baseWidth, baseHeight;
+
+            if (imgRatio > targetRatio) {
+                // Image is wider: fit full width, center vertically
+                baseWidth = canvas.width;
+                baseHeight = canvas.width / imgRatio;
+            } else {
+                // Image is taller: fit full height, center horizontally
+                baseHeight = canvas.height;
+                baseWidth = canvas.height * imgRatio;
+            }
+
+            // 3. Render image with position offsets (X/Y) and scale/zoom
             ctx.save();
             ctx.translate(canvas.width / 2 + (window.imgOffsetX || 0) * 2, canvas.height / 2 + (window.imgOffsetY || 0) * 2);
             ctx.scale(window.imgZoomScale || 1.0, window.imgZoomScale || 1.0);
-            ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+            ctx.drawImage(img, -baseWidth / 2, -baseHeight / 2, baseWidth, baseHeight);
             ctx.restore();
 
+            // 4. Export resized data URL and assign back to card
             const adjustedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
             cardImg.src = adjustedDataUrl;
 
-            // Update cache item
+            // 5. Update cache item
             if (window.cardImageCache) {
                 const data = window.cardImageCache.get(card);
                 const idx = window.cardImageIndices ? window.cardImageIndices.get(card) || 0 : 0;
@@ -1069,8 +1136,6 @@ window.applyImageAdjustments = function() {
         };
     }
 };
-///
-
 // Handle audio URL input, Google Drive conversion, and duration tracking
 window.handleAudioUrlInput = function(inputElement) {
     let rawUrl = inputElement.value.trim();
