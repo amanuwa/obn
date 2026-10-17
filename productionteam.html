@@ -638,6 +638,10 @@ async function fetchDraftsFromSupabase() {
                 .select('*')
                 .eq('receiver_name', currentLoggedInUser)
                 .eq('status', 'unread');
+                 .eq('condition', 'notposted');
+
+            //condition
+
 
             if (error) {
                 console.error('Supabase query error:', error.message);
