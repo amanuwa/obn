@@ -680,20 +680,28 @@ async function fetchDraftsFromSupabase() {
             notifListEl.innerHTML = '<div class="px-4 py-3 text-xs font-mono text-gray-500 text-center">No read drafts found.</div>';
         } else {
             // Build list items safely (consolidated rendering loop)
-            filteredDrafts.forEach(draft => {
-                const item = document.createElement('div');
-                item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition border-b border-gray-800/50";
-                item.onclick = () => selectDraft(draft);
-                
-                const displayTitle = draft.title || `Submission from ${draft.sender_name}`;
-                const displayTime = draft.created_at ? new Date(draft.created_at).toLocaleTimeString() : "Recent";
+            
+          // Build list items safely (consolidated rendering loop)
+        filteredDrafts.forEach(draft => {
+            const item = document.createElement('div');
+            item.className = "px-4 py-3 hover:bg-gray-800 cursor-pointer transition border-b border-gray-800/50 flex items-center justify-between";
+            item.onclick = () => selectDraft(draft);
+            
+            const displayTitle = draft.title || `Submission from ${draft.sender_name}`;
+            const displayTime = draft.created_at ? new Date(draft.created_at).toLocaleTimeString() : "Recent";
 
-                item.innerHTML = `
+            item.innerHTML = `
+                <div>
                     <p class="text-xs font-mono font-bold text-gray-200">${displayTitle}</p>
                     <p class="text-[10px] font-mono text-gray-400 mt-1">SENDER: ${draft.sender_name} | TIME: ${displayTime}</p>
-                `;
-                notifListEl.appendChild(item);
-            });
+                </div>
+                <button onclick="changeSubmissionStatus('${draft.id}', event)" class="bg-cyan-950 hover:bg-cyan-900 text-cyan-400 font-mono text-[10px] px-2 py-1 rounded border border-cyan-800 transition">
+                    Change Status
+                </button>
+            `;
+            notifListEl.appendChild(item);
+        });
+            
         }
     } catch (err) {
         console.error('Error fetching data:', err);
