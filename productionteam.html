@@ -886,7 +886,31 @@ window.slideCardImages = function(event, btn, direction) {
 };
 
 // 4. Modal Preview Handler
-window.openImageModalFromCard = function(container) {
+// window.openImageModalFromCard = function(container) {
+//     const card = container.closest('.bg-\\[\\#111827\\]') || container.closest('div');
+//     const data = window.cardImageCache.get(card);
+//     if (!data || !data.images || data.images.length === 0) return;
+
+//     let currentIndex = window.cardImageIndices.get(card) || 0;
+//     let url = data.images[currentIndex];
+    
+//     let modal = document.getElementById('globalImageModal');
+//     if (!modal) {
+//         modal = document.createElement('div');
+//         modal.id = 'globalImageModal';
+//         modal.className = 'fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4';
+//         modal.innerHTML = `
+//             <div class="relative max-w-4xl max-h-full flex items-center justify-center">
+//                 <button onclick="document.getElementById('globalImageModal').style.display='none'" class="absolute -top-10 right-0 text-white text-sm font-bold bg-gray-800 px-3 py-1 rounded hover:bg-gray-700">&times; Close</button>
+//                 <img id="modalFullImg" src="" class="max-w-full max-h-[85vh] object-contain rounded shadow-lg">
+//             </div>
+//         `;
+//         document.body.appendChild(modal);
+//     }
+//     document.getElementById('modalFullImg').src = url;
+//     modal.style.display = 'flex';
+// };
+      window.openImageModalFromCard = function(container) {
     const card = container.closest('.bg-\\[\\#111827\\]') || container.closest('div');
     const data = window.cardImageCache.get(card);
     if (!data || !data.images || data.images.length === 0) return;
@@ -894,23 +918,158 @@ window.openImageModalFromCard = function(container) {
     let currentIndex = window.cardImageIndices.get(card) || 0;
     let url = data.images[currentIndex];
     
+    const headerEl = card.querySelector('h3') || card.querySelector('h4');
+    const platformName = headerEl ? headerEl.textContent.trim() : 'Platform';
+
     let modal = document.getElementById('globalImageModal');
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'globalImageModal';
-        modal.className = 'fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4';
+        modal.className = 'fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-4';
         modal.innerHTML = `
-            <div class="relative max-w-4xl max-h-full flex items-center justify-center">
-                <button onclick="document.getElementById('globalImageModal').style.display='none'" class="absolute -top-10 right-0 text-white text-sm font-bold bg-gray-800 px-3 py-1 rounded hover:bg-gray-700">&times; Close</button>
-                <img id="modalFullImg" src="" class="max-w-full max-h-[85vh] object-contain rounded shadow-lg">
+            <div class="w-full max-w-2xl flex items-center justify-between bg-[#111827] px-4 py-2.5 rounded-t-lg border-t border-x border-gray-800">
+                <span id="modalPlatformTitle" class="text-xs font-mono text-cyan-400 font-bold uppercase">// PLATFORM FRAME EDITOR</span>
+                <button onclick="closeGlobalImageModal()" class="bg-red-950/60 hover:bg-red-900 text-red-400 border border-red-800/80 px-3 py-1 rounded text-xs font-mono transition">✕ Close</button>
+            </div>
+
+            <div class="relative w-full max-w-2xl bg-black border-x border-gray-800 flex items-center justify-center overflow-hidden p-6">
+                <div id="modalAspectWrapper" class="relative overflow-hidden bg-gray-900 border border-cyan-500/40 shadow-2xl flex items-center justify-center">
+                    <img id="modalFullImg" src="" class="absolute transition-transform duration-75 cursor-grab active:cursor-grabbing select-none" alt="Preview Image">
+                </div>
+            </div>
+
+            <div class="w-full max-w-2xl bg-[#111827] px-4 py-3 rounded-b-lg border-b border-x border-gray-800 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center space-x-1.5">
+                    <span class="text-[10px] font-mono text-gray-400 uppercase mr-1">Move:</span>
+                    <button onclick="adjustImagePos(-20, 0)" class="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-mono px-2.5 py-1 rounded border border-gray-700">← L</button>
+                    <button onclick="adjustImagePos(20, 0)" class="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-mono px-2.5 py-1 rounded border border-gray-700">R →</button>
+                    <button onclick="adjustImagePos(0, -20)" class="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-mono px-2.5 py-1 rounded border border-gray-700">↑ U</button>
+                    <button onclick="adjustImagePos(0, 20)" class="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-mono px-2.5 py-1 rounded border border-gray-700">↓ D</button>
+                </div>
+
+                <div class="flex items-center space-x-1.5">
+                    <span class="text-[10px] font-mono text-gray-400 uppercase mr-1">Zoom:</span>
+                    <button onclick="adjustImageZoom(0.1)" class="bg-gray-800 hover:bg-gray-700 text-cyan-400 text-xs font-mono px-2.5 py-1 rounded border border-gray-700">🔍+</button>
+                    <button onclick="adjustImageZoom(-0.1)" class="bg-gray-800 hover:bg-gray-700 text-cyan-400 text-xs font-mono px-2.5 py-1 rounded border border-gray-700">🔍-</button>
+                    <button onclick="resetImageTransform()" class="bg-gray-800 hover:bg-red-950/40 text-gray-300 hover:text-red-400 text-xs font-mono px-2.5 py-1 rounded border border-gray-700">Reset</button>
+                </div>
+
+                <button onclick="applyImageAdjustments()" class="bg-cyan-600 hover:bg-cyan-500 text-black font-mono text-xs font-bold px-3.5 py-1.5 rounded transition">✓ Apply</button>
             </div>
         `;
         document.body.appendChild(modal);
     }
+
+    // Attach reference data globally for the adjustment buttons
+    window.currentEditCard = card;
+    window.imgOffsetX = 0;
+    window.imgOffsetY = 0;
+    window.imgZoomScale = 1.0;
+
+    document.getElementById('modalPlatformTitle').textContent = `// EDITING FRAME: ${platformName.toUpperCase()}`;
     document.getElementById('modalFullImg').src = url;
+
+    // Dynamically adjust the modal's preview box shape based on the specific platform
+    const aspectWrapper = document.getElementById('modalAspectWrapper');
+    const lower = platformName.toLowerCase();
+    
+    if (lower.includes('tiktok')) {
+        aspectWrapper.style.width = '280px';
+        aspectWrapper.style.height = '498px'; // 9:16 Vertical
+    } else if (lower.includes('instagram')) {
+        aspectWrapper.style.width = '360px';
+        aspectWrapper.style.height = '360px'; // 1:1 Square
+    } else if (lower.includes('facebook')) {
+        aspectWrapper.style.width = '460px';
+        aspectWrapper.style.height = '240px'; // 1.91:1 Link preview
+    } else {
+        aspectWrapper.style.width = '460px';
+        aspectWrapper.style.height = '258px'; // 16:9 Landscape (Twitter/YouTube/Telegram)
+    }
+
+    updateImageTransform();
     modal.style.display = 'flex';
 };
 
+window.closeGlobalImageModal = function() {
+    const modal = document.getElementById('globalImageModal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.adjustImagePos = function(dx, dy) {
+    window.imgOffsetX = (window.imgOffsetX || 0) + dx;
+    window.imgOffsetY = (window.imgOffsetY || 0) + dy;
+    updateImageTransform();
+};
+
+window.adjustImageZoom = function(dScale) {
+    window.imgZoomScale = Math.max(0.5, Math.min(3.0, (window.imgZoomScale || 1.0) + dScale));
+    updateImageTransform();
+};
+
+window.resetImageTransform = function() {
+    window.imgOffsetX = 0;
+    window.imgOffsetY = 0;
+    window.imgZoomScale = 1.0;
+    updateImageTransform();
+};
+
+function updateImageTransform() {
+    const targetImg = document.getElementById('modalFullImg');
+    if (targetImg) {
+        targetImg.style.transform = `translate(${window.imgOffsetX || 0}px, ${window.imgOffsetY || 0}px) scale(${window.imgZoomScale || 1.0})`;
+    }
+}
+
+window.applyImageAdjustments = function() {
+    const card = window.currentEditCard;
+    if (!card) return;
+
+    const targetImg = document.getElementById('modalFullImg');
+    const aspectWrapper = document.getElementById('modalAspectWrapper');
+    const cardImg = card.querySelector('#imagePreviewContainer img') || card.querySelector('.image-display-container img');
+
+    if (targetImg && cardImg) {
+        const canvas = document.createElement('canvas');
+        const w = aspectWrapper.clientWidth;
+        const h = aspectWrapper.clientHeight;
+        canvas.width = w * 2;
+        canvas.height = h * 2;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = targetImg.src;
+
+        img.onload = () => {
+            ctx.save();
+            ctx.translate(canvas.width / 2 + (window.imgOffsetX || 0) * 2, canvas.height / 2 + (window.imgOffsetY || 0) * 2);
+            ctx.scale(window.imgZoomScale || 1.0, window.imgZoomScale || 1.0);
+            ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+            ctx.restore();
+
+            const adjustedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+            cardImg.src = adjustedDataUrl;
+
+            // Update cache item
+            if (window.cardImageCache) {
+                const data = window.cardImageCache.get(card);
+                const idx = window.cardImageIndices ? window.cardImageIndices.get(card) || 0 : 0;
+                if (data && data.images) {
+                    data.images[idx] = adjustedDataUrl;
+                    window.cardImageCache.set(card, data);
+                }
+            }
+
+            closeGlobalImageModal();
+            alert('Frame alignment applied successfully!');
+        };
+    }
+};
+///
 
 // Handle audio URL input, Google Drive conversion, and duration tracking
 window.handleAudioUrlInput = function(inputElement) {
