@@ -1376,8 +1376,7 @@ window.distributeContent = async function() {
                 if (mainUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
                     previewContainer.innerHTML = `<video src="${mainUrl}" controls class="w-full h-full object-cover rounded"></video>`;
                 } else {
-                    previewContainer.innerHTML = `<img src="${resizedImageDataUrl}" class="w-full h-full object-cover rounded" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-xs text-red-400 font-mono\'>Failed to load media preview</span>';">`;
-                }
+previewContainer.innerHTML = `<img src="${resizedImageDataUrl}" class="w-full h-full object-contain bg-black rounded" onerror="...">`;                }
             }
 
             // Adjust card height and aspect badge text according to platform
