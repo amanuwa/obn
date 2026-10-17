@@ -642,12 +642,13 @@ async function fetchDraftsFromSupabase() {
             const postedIdentifiers = postedData ? postedData.map(item => item.title || item.draft_name) : [];
 
             // 2. Fetch unread/read drafts assigned to the current user
+          // 2. Fetch drafts assigned to the current user (status 'read' and condition 'notposted')
             const { data, error } = await supabase
                 .from('editorial_submissions')
                 .select('*')
                 .eq('receiver_name', currentLoggedInUser)
-                .eq('status', 'unread')
-                 .eq('condition', 'notposted');
+                .eq('status', 'read')
+                .eq('condition', 'notposted'); // Fixed the stray semicolon here!
 
             //condition
 
