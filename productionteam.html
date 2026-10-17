@@ -646,7 +646,7 @@ async function fetchDraftsFromSupabase() {
                 .from('editorial_submissions')
                 .select('*')
                 .eq('receiver_name', currentLoggedInUser)
-                .eq('status', 'unread');
+                .eq('status', 'unread')
                  .eq('condition', 'notposted');
 
             //condition
