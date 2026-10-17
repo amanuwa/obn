@@ -616,12 +616,12 @@ function loadLoggedUserName() {
 
 // Call session loader immediately when the script runs
 loadLoggedUserName();
-      window.handleSignOut = function() {
+      
+     window.handleSignOut = function() {
     localStorage.removeItem('userSession');
     sessionStorage.clear();
     window.location.href = 'loginpage.html';
 };
-
 // Function to fetch and update drafts from Supabase database every 10 seconds
 // Function to fetch and update drafts from Supabase database every 10 seconds
 async function fetchDraftsFromSupabase() {
