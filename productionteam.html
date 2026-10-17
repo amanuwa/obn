@@ -1200,20 +1200,38 @@ async function processImageForPlatform(imageUrl, platformName) {
             const ctx = canvas.getContext('2d');
 
             // 3. Object-fit: cover aspect scaling calculation
+            // const imgRatio = img.naturalWidth / img.naturalHeight;
+            // const targetRatio = targetWidth / targetHeight;
+            // let renderWidth, renderHeight, offsetX, offsetY;
+
+            // if (imgRatio > targetRatio) {
+            //     renderHeight = targetHeight;
+            //     renderWidth = img.naturalWidth * (targetHeight / img.naturalHeight);
+            //     offsetX = (targetWidth - renderWidth) / 2;
+            //     offsetY = 0;
+            // } else {
+            //     renderWidth = targetWidth;
+            //     renderHeight = img.naturalHeight * (targetWidth / img.naturalWidth);
+            //     offsetX = 0;
+            //     offsetY = (targetHeight - renderHeight) / 2;
+            // }
+            // 3. Object-fit: contain scaling calculation (Fits full image without cutting)
             const imgRatio = img.naturalWidth / img.naturalHeight;
             const targetRatio = targetWidth / targetHeight;
             let renderWidth, renderHeight, offsetX, offsetY;
 
             if (imgRatio > targetRatio) {
-                renderHeight = targetHeight;
-                renderWidth = img.naturalWidth * (targetHeight / img.naturalHeight);
-                offsetX = (targetWidth - renderWidth) / 2;
-                offsetY = 0;
-            } else {
+                // Image is wider than the target frame -> fit by width, center vertically
                 renderWidth = targetWidth;
-                renderHeight = img.naturalHeight * (targetWidth / img.naturalWidth);
+                renderHeight = targetWidth / imgRatio;
                 offsetX = 0;
                 offsetY = (targetHeight - renderHeight) / 2;
+            } else {
+                // Image is taller than the target frame -> fit by height, center horizontally
+                renderHeight = targetHeight;
+                renderWidth = targetHeight * imgRatio;
+                offsetX = (targetWidth - renderWidth) / 2;
+                offsetY = 0;
             }
 
             // Background fill and cropped image rendering
