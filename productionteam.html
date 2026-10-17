@@ -597,7 +597,7 @@ function loadLoggedUserName() {
     try {
         const user = JSON.parse(sessionData);
         const loggedInName = user.fullName || user.username || user.name || user.user_metadata?.full_name;
-
+ console.log(loggedInName)
         if (loggedInName) {
             currentLoggedInUser = loggedInName;
 
