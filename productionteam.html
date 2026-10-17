@@ -1096,20 +1096,23 @@ window.applyImageAdjustments = function() {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // 2. Calculate "contain" aspect ratio scaling (Fits 100% of the image without cutting)
-            const imgRatio = img.naturalWidth / img.naturalHeight;
-            const targetRatio = canvas.width / canvas.height;
-            let baseWidth, baseHeight;
+           const imgRatio = img.naturalWidth / img.naturalHeight;
+            const targetRatio = targetWidth / targetHeight;
+            let renderWidth, renderHeight, offsetX, offsetY;
 
             if (imgRatio > targetRatio) {
-                // Image is wider: fit full width, center vertically
-                baseWidth = canvas.width;
-                baseHeight = canvas.width / imgRatio;
+                // Image is wider than the target frame -> fit by width, center vertically
+                renderWidth = targetWidth;
+                renderHeight = targetWidth / imgRatio;
+                offsetX = 0;
+                offsetY = (targetHeight - renderHeight) / 2;
             } else {
-                // Image is taller: fit full height, center horizontally
-                baseHeight = canvas.height;
-                baseWidth = canvas.height * imgRatio;
+                // Image is taller than the target frame -> fit by height, center horizontally
+                renderHeight = targetHeight;
+                renderWidth = targetHeight * imgRatio;
+                offsetX = (targetWidth - renderWidth) / 2;
+                offsetY = 0;
             }
-
             // 3. Render image with position offsets (X/Y) and scale/zoom
             ctx.save();
             ctx.translate(canvas.width / 2 + (window.imgOffsetX || 0) * 2, canvas.height / 2 + (window.imgOffsetY || 0) * 2);
