@@ -71,12 +71,16 @@
                     </div>
 
                     <!-- Logged In User Name Display Only -->
-                    <div class="flex items-center space-x-2 border-l border-gray-800 pl-6">
-                        <span class="text-xs font-mono text-gray-400">ACTIVE:</span>
-                        <span id="loggedInUserDisplay" class="text-sm font-mono font-bold text-cyan-400">kenenisa</span>
-                    </div>
-                </div>
-            </div>
+                   <!-- Logged In User Name Display & Sign Out -->
+    <div class="flex flex-col items-end border-l border-gray-800 pl-6 space-y-1">
+        <div class="flex items-center space-x-2">
+            <span class="text-xs font-mono text-gray-400">ACTIVE:</span>
+            <span id="loggedInUserDisplay" class="text-sm font-mono font-bold text-cyan-400">kenenisa</span>
+        </div>
+        <button onclick="handleSignOut()" class="bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-900/60 text-slate-400 hover:text-red-400 font-mono text-[10px] font-bold px-2 py-0.5 rounded cursor-pointer transition-all uppercase">
+            Sign Out
+        </button>
+    </div>
         </header>
 
         <!-- Main Workspace -->
@@ -612,6 +616,11 @@ function loadLoggedUserName() {
 
 // Call session loader immediately when the script runs
 loadLoggedUserName();
+      window.handleSignOut = function() {
+    localStorage.removeItem('userSession');
+    sessionStorage.clear();
+    window.location.href = 'loginpage.html';
+};
 
 // Function to fetch and update drafts from Supabase database every 10 seconds
 // Function to fetch and update drafts from Supabase database every 10 seconds
