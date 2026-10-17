@@ -707,6 +707,35 @@ async function fetchDraftsFromSupabase() {
         console.error('Error fetching data:', err);
     }
 }
+      window.changeSubmissionStatus = async function(draftId, event) {
+    if (event) event.stopPropagation(); // Prevents opening the draft when clicking the button
+
+    const confirmed = confirm("Do you want to change the status from notposted to posted?");
+    if (!confirmed) return;
+
+    const client = typeof supabaseClient !== 'undefined' ? supabaseClient : supabase;
+    if (!client) {
+        alert("Supabase client not initialized.");
+        return;
+    }
+
+    try {
+        const { error } = await client
+            .from('editorial_submissions')
+            .update({ condition: 'posted' })
+            .eq('id', draftId);
+
+        if (error) throw error;
+
+        alert("Status successfully changed to posted!");
+        if (typeof fetchDraftsFromSupabase === 'function') {
+            fetchDraftsFromSupabase();
+        }
+    } catch (err) {
+        console.error("Error updating status:", err);
+        alert("Failed to update status: " + err.message);
+    }
+};
 
 // Initialize Page on Load and set 10-second polling interval
 window.addEventListener('DOMContentLoaded', () => {
