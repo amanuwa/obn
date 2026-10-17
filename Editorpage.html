@@ -845,11 +845,38 @@ window.approveArticle = async function() {
 //         document.body.removeChild(a);
 //         URL.revokeObjectURL(url);
 //     }
+async function loadEditorsIntoDropdown() {
+            const selectElement = document.getElementById('editorialPersonnelSelect');
+            if (!selectElement) return;
 
+            try {
+                const client = typeof supabaseClient !== 'undefined' ? supabaseClient : supabase;
+                const { data, error } = await client
+                    .from('journalists')
+                    .select('*')
+                    .ilike('journalism Section', '%Production Team%'); // Changed to filter Production Team
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    selectElement.innerHTML = '<option value="" disabled selected>Select Production Team Member</option>' + 
+                        data.map(row => {
+                            const name = row['Journalist name'] || row['journalist name'] || 'Unknown';
+                            const section = row['journalism Section'] || row['journalism section'] || 'Section';
+                            return `<option value="${name}">${name} (${section})</option>`;
+                        }).join('');
+                } else {
+                    selectElement.innerHTML = '<option value="" disabled selected>No Production Team Found</option>';
+                }
+            } catch (err) {
+                console.error("Error loading production team:", err);
+                selectElement.innerHTML = '<option value="" disabled selected>Error loading production team</option>';
+            }
+        }
      function escapeHtml(str) {
         return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
-
+loadEditorsIntoDropdown()
         // Initial fetch on page load and automatic polling every 10 seconds
         fetchEditorSubmissions();
         setInterval(fetchEditorSubmissions, 10000);
