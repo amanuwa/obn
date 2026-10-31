@@ -126,13 +126,13 @@
             color: #000;
         }
 
-        /* Studio Canvas Frame */
+        /* Studio Canvas Frame - Uses 'contain' so the image is fully scaled without cutting */
         .studio-canvas {
             width: 1000px;
             height: 562px;
             position: relative;
-            background-color: #000;
-            background-size: cover;
+            background-color: #030712;
+            background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
@@ -145,25 +145,25 @@
         /* Dynamic Info Overlay inside Canvas */
         .canvas-overlay-content {
             position: absolute;
-            bottom: 60px;
-            left: 20px;
-            background: rgba(15, 23, 42, 0.8);
-            padding: 12px 18px;
+            bottom: 55px;
+            left: 15px;
+            background: rgba(15, 23, 42, 0.85);
+            padding: 10px 15px;
             border-radius: 6px;
             border-left: 4px solid var(--accent-blue);
             backdrop-filter: blur(6px);
-            max-width: 400px;
+            max-width: 350px;
         }
 
         .canvas-overlay-content h3 {
             margin: 0 0 3px 0;
-            font-size: 13px;
+            font-size: 12px;
             color: var(--accent-blue);
         }
 
         .canvas-overlay-content p {
             margin: 0;
-            font-size: 11px;
+            font-size: 10px;
             color: #cbd5e1;
         }
 
@@ -173,7 +173,7 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 40px;
+            height: 38px;
             background: rgba(3, 7, 18, 0.95);
             border-top: 2px solid var(--accent-gold);
             display: flex;
@@ -255,13 +255,16 @@
     <!-- Right Studio Stage Preview Area -->
     <div class="studio-stage-container">
         
-        <!-- Top Editing Toolbar -->
+        <!-- Top Editing Toolbar with Social Media Frame Sizes -->
         <div class="canvas-toolbar">
-            <label>Frame Size:</label>
+            <label>Platform / Frame Size:</label>
             <select id="frameSizeSelector" onchange="changeFrameSize()">
-                <option value="16:9">16:9 Landscape (Standard Broadcast)</option>
-                <option value="9:16">9:16 Vertical (TikTok / Reels / Shorts)</option>
-                <option value="1:1">1:1 Square (Instagram Post)</option>
+                <option value="16:9">YouTube / Standard Broadcast (16:9)</option>
+                <option value="fb-post">Facebook Post / Landscape (1.91:1)</option>
+                <option value="twitter-post">Twitter / X Post (16:9)</option>
+                <option value="telegram-post">Telegram Channel Media (4:3)</option>
+                <option value="instagram-square">Instagram Square Post (1:1)</option>
+                <option value="story-vertical">TikTok / Instagram Reels / YouTube Shorts (9:16)</option>
             </select>
 
             <button class="toolbar-btn" onclick="toggleInvert()">🔄 Invert / Mirror Image</button>
@@ -306,7 +309,6 @@
 
         function updateStudioSetup() {
             const selectedKey = document.getElementById('setupSelector').value;
-            const canvas = document.getElementById('studioCanvas');
             const titleElem = document.getElementById('displayTitle');
             const subtitleElem = document.getElementById('displaySubtitle');
             const summarySetup = document.getElementById('summarySetup');
@@ -335,15 +337,21 @@
             const frame = document.getElementById('frameSizeSelector').value;
             const canvas = document.getElementById('studioCanvas');
             
-            if (frame === '16:9') {
+            if (frame === '16:9' || frame === 'twitter-post') {
                 canvas.style.width = '1000px';
-                canvas.style.height = '562px';
-            } else if (frame === '9:16') {
-                canvas.style.width = '320px';
-                canvas.style.height = '568px';
-            } else if (frame === '1:1') {
+                canvas.style.height = '562px'; // 16:9 ratio
+            } else if (frame === 'fb-post') {
+                canvas.style.width = '1000px';
+                canvas.style.height = '523px'; // 1.91:1 ratio
+            } else if (frame === 'telegram-post') {
+                canvas.style.width = '800px';
+                canvas.style.height = '600px'; // 4:3 ratio
+            } else if (frame === 'instagram-square') {
                 canvas.style.width = '550px';
-                canvas.style.height = '550px';
+                canvas.style.height = '550px'; // 1:1 ratio
+            } else if (frame === 'story-vertical') {
+                canvas.style.width = '320px';
+                canvas.style.height = '568px'; // 9:16 ratio
             }
         }
 
@@ -362,7 +370,7 @@
         }
 
         function triggerBroadcast() {
-            alert("AI Studio Pipeline Initialized! Syncing voice, frame format, breaking news ticker, and live preview.");
+            alert("AI Studio Pipeline Initialized! Resizing frame parameters and syncing social media export pipeline.");
         }
     </script>
 </body>
