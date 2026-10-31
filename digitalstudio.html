@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI Digital Studio Template</title>
+    <title>AI Digital News Studio</title>
     <style>
         :root {
             --bg-dark: #07090e;
@@ -27,35 +27,35 @@
             background: var(--panel-bg);
             backdrop-filter: blur(16px);
             border-right: 1px solid rgba(56, 189, 248, 0.2);
-            padding: 24px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
             z-index: 10;
             box-sizing: border-box;
             overflow-y: auto;
         }
 
-        h2 { margin-top: 0; font-size: 20px; color: #fff; }
+        h2 { margin-top: 0; font-size: 18px; color: #fff; }
 
         .control-group label {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--accent-blue);
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             display: block;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .control-group select, .control-group textarea {
+        .control-group select, .control-group textarea, .control-group input {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             background: rgba(3, 7, 18, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 13px;
             box-sizing: border-box;
         }
 
@@ -63,87 +63,142 @@
             background: linear-gradient(135deg, #38bdf8, #2563eb);
             color: white;
             border: none;
-            padding: 14px;
+            padding: 12px;
             font-weight: bold;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+            font-size: 12px;
         }
 
         .generate-btn:hover {
             opacity: 0.9;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
         }
 
-        /* Right Studio Stage Preview */
+        /* Right Studio Stage Preview Area */
         .studio-stage-container {
             flex: 1;
             position: relative;
             background: radial-gradient(circle at center, #1e293b 0%, #07090e 100%);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             padding: 20px;
+            box-sizing: border-box;
         }
 
-        /* 16:9 Broadcast Format Canvas */
+        /* Top Editing Toolbar for Canvas */
+        .canvas-toolbar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 12px;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            align-items: center;
+        }
+
+        .canvas-toolbar label {
+            font-size: 11px;
+            color: var(--accent-blue);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .canvas-toolbar select, .toolbar-btn {
+            background: rgba(3, 7, 18, 0.8);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .toolbar-btn:hover {
+            background: var(--accent-blue);
+            color: #000;
+        }
+
+        /* Studio Canvas Frame */
         .studio-canvas {
-            width: 1100px;
-            height: 618px;
+            width: 1000px;
+            height: 562px;
             position: relative;
             background-color: #000;
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-            border-radius: 12px;
+            border-radius: 10px;
             overflow: hidden;
             border: 1px solid rgba(56, 189, 248, 0.3);
-            transition: background-image 0.4s ease-in-out;
+            transition: all 0.3s ease-in-out;
         }
 
-        /* Dynamic Info Overlay */
+        /* Dynamic Info Overlay inside Canvas */
         .canvas-overlay-content {
             position: absolute;
-            bottom: 65px;
-            left: 30px;
+            bottom: 60px;
+            left: 20px;
             background: rgba(15, 23, 42, 0.8);
-            padding: 15px 20px;
-            border-radius: 8px;
+            padding: 12px 18px;
+            border-radius: 6px;
             border-left: 4px solid var(--accent-blue);
-            backdrop-filter: blur(8px);
-            max-width: 450px;
+            backdrop-filter: blur(6px);
+            max-width: 400px;
         }
 
         .canvas-overlay-content h3 {
-            margin: 0 0 5px 0;
-            font-size: 15px;
+            margin: 0 0 3px 0;
+            font-size: 13px;
             color: var(--accent-blue);
         }
 
         .canvas-overlay-content p {
             margin: 0;
-            font-size: 12px;
+            font-size: 11px;
             color: #cbd5e1;
         }
 
-        /* Live News Ticker */
+        /* Live Breaking News Ticker */
         .broadcast-ticker {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 45px;
+            height: 40px;
             background: rgba(3, 7, 18, 0.95);
             border-top: 2px solid var(--accent-gold);
             display: flex;
             align-items: center;
-            padding: 0 20px;
+            padding: 0 15px;
             z-index: 5;
             box-sizing: border-box;
+        }
+
+        /* Metadata Summary Panel Beneath Image */
+        .selected-options-bar {
+            display: flex;
+            gap: 15px;
+            margin-top: 12px;
+            background: rgba(15, 23, 42, 0.7);
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .selected-options-bar span {
+            color: #fff;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -166,35 +221,53 @@
 
         <div class="control-group">
             <label>Select Anchor & Wardrobe</label>
-            <select id="anchorSelector">
-                <option value="dawit-suit">Dawit Kebede (Navy Blue Suit)</option>
-                <option value="hanna-blazer">Hanna Mamo (Royal Blue Blazer)</option>
-                <option value="custom-wardrobe">Custom Upload Clothing Layer</option>
+            <select id="anchorSelector" onchange="updateMetadata()">
+                <option value="Dawit Kebede (Navy Blue Suit)">Dawit Kebede (Navy Blue Suit)</option>
+                <option value="Hanna Mamo (Royal Blue Blazer)">Hanna Mamo (Royal Blue Blazer)</option>
+                <option value="Yared Tadesse (Charcoal Formal)">Yared Tadesse (Charcoal Formal)</option>
             </select>
         </div>
 
         <div class="control-group">
             <label>Voice & Language</label>
-            <select id="langSelector">
-                <option value="am">Amharic (አማርኛ)</option>
-                <option value="en">English</option>
-                <option value="om">Afaan Oromoo</option>
-                <option value="ti">Tigrinya (ትግርኛ)</option>
-                <option value="so">Somali</option>
+            <select id="langSelector" onchange="updateMetadata()">
+                <option value="Amharic (አማርኛ)">Amharic (አማርኛ)</option>
+                <option value="English">English</option>
+                <option value="Afaan Oromoo">Afaan Oromoo</option>
+                <option value="Tigrinya (ትግርኛ)">Tigrinya (ትግርኛ)</option>
+                <option value="Somali">Somali</option>
             </select>
         </div>
 
         <div class="control-group">
             <label>News Script Text</label>
-            <textarea id="scriptInput" rows="4" placeholder="Type or paste breaking news script here..."></textarea>
+            <textarea id="scriptInput" rows="3" placeholder="Type breaking news script here..."></textarea>
+        </div>
+
+        <div class="control-group">
+            <label>Breaking News Ticker Text</label>
+            <input type="text" id="breakingNewsInput" value="Addis Ababa hosts East African infrastructural summit — Economic cooperation agreements signed today." oninput="updateBreakingNews()" />
         </div>
 
         <button class="generate-btn" onclick="triggerBroadcast()">Generate & Sync Live Broadcast</button>
     </div>
 
-    <!-- Right Studio Stage Preview -->
+    <!-- Right Studio Stage Preview Area -->
     <div class="studio-stage-container">
-        <!-- Defaults to setup 1 image on load -->
+        
+        <!-- Top Editing Toolbar -->
+        <div class="canvas-toolbar">
+            <label>Frame Size:</label>
+            <select id="frameSizeSelector" onchange="changeFrameSize()">
+                <option value="16:9">16:9 Landscape (Standard Broadcast)</option>
+                <option value="9:16">9:16 Vertical (TikTok / Reels / Shorts)</option>
+                <option value="1:1">1:1 Square (Instagram Post)</option>
+            </select>
+
+            <button class="toolbar-btn" onclick="toggleInvert()">🔄 Invert / Mirror Image</button>
+        </div>
+
+        <!-- Studio Canvas -->
         <div class="studio-canvas" id="studioCanvas" style="background-image: url('setup 1.jpg');">
             
             <!-- Dynamic Info Overlay -->
@@ -205,60 +278,91 @@
 
             <!-- Live News Ticker -->
             <div class="broadcast-ticker">
-                <span style="color: var(--accent-gold); font-weight: bold; margin-right: 15px; font-size: 12px;">LIVE BREAKING:</span>
-                <marquee style="font-size: 13px;" scrollamount="5">Addis Ababa hosts East African infrastructural summit — Economic cooperation agreements signed today.</marquee>
+                <span style="color: var(--accent-gold); font-weight: bold; margin-right: 15px; font-size: 11px;">LIVE BREAKING:</span>
+                <marquee id="tickerMarquee" style="font-size: 12px;" scrollamount="5">Addis Ababa hosts East African infrastructural summit — Economic cooperation agreements signed today.</marquee>
             </div>
+        </div>
+
+        <!-- Selected Options Summary Bar Beneath Image -->
+        <div class="selected-options-bar">
+            <div>Setup: <span id="summarySetup">Setup 1: Close-Up Portrait Anchor</span></div>
+            <div>•</div>
+            <div>Anchor/Wardrobe: <span id="summaryAnchor">Dawit Kebede (Navy Blue Suit)</span></div>
+            <div>•</div>
+            <div>Language: <span id="summaryLang">Amharic (አማርኛ)</span></div>
         </div>
     </div>
 
     <script>
-        // Mapped dictionary matching your exact filenames with spaces in GitHub root
         const studioData = {
-            setup1: {
-                image: "setup 1.jpg",
-                title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT",
-                subtitle: "Studio setup 1 active — Close-up anchor frame with notes."
-            },
-            setup2: {
-                image: "setup 2.jpg",
-                title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT",
-                subtitle: "Studio setup 2 active — Seated male anchor desk with regional map screen."
-            },
-            setup3: {
-                image: "setup 3.jpg",
-                title: "GLOBAL FOCUS: REGIONAL DESK",
-                subtitle: "Studio setup 3 active — Seated female anchor desk."
-            },
-            setup4: {
-                image: "setup 4.jpg",
-                title: "GLOBAL FOCUS: STANDING PRESENTATION",
-                subtitle: "Studio setup 4 active — Standing presenter gesturing to global touch screen."
-            },
-            setup5: {
-                image: "setup 5.jpg",
-                title: "GLOBAL FOCUS: DYNAMIC BROADCAST",
-                subtitle: "Studio setup 5 active — Alternative studio arrangement."
-            }
+            setup1: { image: "setup 1.jpg", title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT", subtitle: "Studio setup 1 active — Close-up anchor frame with notes." },
+            setup2: { image: "setup 2.jpg", title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT", subtitle: "Studio setup 2 active — Seated male anchor desk with regional map screen." },
+            setup3: { image: "setup 3.jpg", title: "GLOBAL FOCUS: REGIONAL DESK", subtitle: "Studio setup 3 active — Seated female anchor desk." },
+            setup4: { image: "setup 4.jpg", title: "GLOBAL FOCUS: STANDING PRESENTATION", subtitle: "Studio setup 4 active — Standing presenter gesturing to global touch screen." },
+            setup5: { image: "setup 5.jpg", title: "GLOBAL FOCUS: DYNAMIC BROADCAST", subtitle: "Studio setup 5 active — Alternative studio arrangement." }
         };
+
+        let isInverted = false;
 
         function updateStudioSetup() {
             const selectedKey = document.getElementById('setupSelector').value;
             const canvas = document.getElementById('studioCanvas');
             const titleElem = document.getElementById('displayTitle');
             const subtitleElem = document.getElementById('displaySubtitle');
+            const summarySetup = document.getElementById('summarySetup');
+            const setupSelectElem = document.getElementById('setupSelector');
 
             const currentSetup = studioData[selectedKey];
             if (currentSetup) {
-                // Dynamically updates canvas background image to match selected dropdown setup
-                canvas.style.backgroundImage = `url('${currentSetup.image}')`;
+                updateCanvasBackground(currentSetup.image);
                 titleElem.innerText = currentSetup.title;
                 subtitleElem.innerText = currentSetup.subtitle;
+                summarySetup.innerText = setupSelectElem.options[setupSelectElem.selectedIndex].text;
             }
         }
 
+        function updateMetadata() {
+            document.getElementById('summaryAnchor').innerText = document.getElementById('anchorSelector').value;
+            document.getElementById('summaryLang').innerText = document.getElementById('langSelector').value;
+        }
+
+        function updateBreakingNews() {
+            const breakingText = document.getElementById('breakingNewsInput').value;
+            document.getElementById('tickerMarquee').innerText = breakingText;
+        }
+
+        function changeFrameSize() {
+            const frame = document.getElementById('frameSizeSelector').value;
+            const canvas = document.getElementById('studioCanvas');
+            
+            if (frame === '16:9') {
+                canvas.style.width = '1000px';
+                canvas.style.height = '562px';
+            } else if (frame === '9:16') {
+                canvas.style.width = '320px';
+                canvas.style.height = '568px';
+            } else if (frame === '1:1') {
+                canvas.style.width = '550px';
+                canvas.style.height = '550px';
+            }
+        }
+
+        function toggleInvert() {
+            isInverted = !isInverted;
+            const selectedKey = document.getElementById('setupSelector').value;
+            const imgPath = studioData[selectedKey].image;
+            updateCanvasBackground(imgPath);
+        }
+
+        function updateCanvasBackground(imagePath) {
+            const canvas = document.getElementById('studioCanvas');
+            const scaleX = isInverted ? 'scaleX(-1)' : 'scaleX(1)';
+            canvas.style.backgroundImage = `url('${imagePath}')`;
+            canvas.style.transform = scaleX;
+        }
+
         function triggerBroadcast() {
-            const script = document.getElementById('scriptInput').value;
-            alert("AI Studio Pipeline Initialized! Syncing voice, avatar wardrobe, and live screen graphics...");
+            alert("AI Studio Pipeline Initialized! Syncing voice, frame format, breaking news ticker, and live preview.");
         }
     </script>
 </body>
