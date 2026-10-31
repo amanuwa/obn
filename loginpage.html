@@ -546,11 +546,21 @@ if (!targetPage) {
         targetPage = "managerpipeline.html";
             } else if (combined.includes("production")) {
                 targetPage = "productionteam.html";
-            } else if (combined.includes("poltic") || combined.includes("governance")) {
+            } 
+    
+    else if (combined.includes("poltic") || combined.includes("governance")) {
                 targetPage = "World Politics and Governance.html";
-            } else if (combined.includes("sport")) {
+                    } 
+        
+    else if (combined.includes("sport")) {
                 targetPage = "sport.html";
-            } else if (combined.includes("business") || combined.includes("finance")) {
+                    } 
+            else if (combined.includes("digitalstudio")) {
+                targetPage = "digitalstudio.html";
+                    } 
+    
+    
+    else if (combined.includes("business") || combined.includes("finance")) {
                 targetPage = "business and finance.html";
             } else {
                 targetPage = "customepage.html";
