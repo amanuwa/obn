@@ -97,6 +97,7 @@
                             <option value="Editor" class="bg-slate-950 text-white">Editor </option>
                             <option value="Management" class="bg-slate-950 text-white">Management </option>
                                <option value="Production" class="bg-slate-950 text-white">Production team </option>
+                              <option value="Digitalstudio" class="bg-slate-950 text-white">Digitalstudio </option>
                         </select>
                     </div>
                 </div>
@@ -520,7 +521,13 @@ let targetPage = "customepage.html"; // Default direction (All Journalists)
 if (userSection.includes('editor')) {
     // Direction 1: Editor personnel
     targetPage = "Editorpage.html";
-} else if (userSection.includes('manag') || userSection.includes('manager')) {
+}
+ else   if (userSection.includes('digitalstudio')) {
+    // Direction 1: Editor personnel
+    targetPage = "digitalstudio.html";
+}
+
+else if (userSection.includes('manag') || userSection.includes('manager')) {
     // Direction 2: Management personnel
     targetPage = "managerpipeline.html";
 } else if (userSection.includes('production') || userSection.includes('prod')) {
