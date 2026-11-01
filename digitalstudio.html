@@ -22,7 +22,7 @@
             overflow: hidden;
         }
 
-        /* Top Bar with User Profile and Logout */
+        /* Top Bar with Dynamic User Name and Logout */
         .top-navbar {
             height: 60px;
             background: rgba(15, 23, 42, 0.95);
@@ -49,14 +49,11 @@
             gap: 15px;
         }
 
-        .user-greeting {
-            font-size: 13px;
-            color: #cbd5e1;
-        }
-
-        .user-greeting span {
-            color: #fff;
+        /* Displays the actual user name directly without "Logged in as:" */
+        .username-display {
+            font-size: 14px;
             font-weight: 600;
+            color: #fff;
         }
 
         .logout-btn {
@@ -345,11 +342,12 @@
 </head>
 <body>
 
-    <!-- Top Navigation Bar with Profile and Logout -->
+    <!-- Top Navigation Bar with Dynamic User Name and Logout -->
     <div class="top-navbar">
         <div class="brand-title">AI Digital News Studio</div>
         <div class="user-nav-profile">
-            <div class="user-greeting">Logged in as: <span>Amanuel Bekele Woldesenbet</span></div>
+            <!-- Displays only the active logged-in user name dynamically -->
+            <div class="username-display" id="loggedInUserDisplay">Guest User</div>
             <button class="logout-btn" onclick="signOut()">Logout</button>
         </div>
     </div>
@@ -537,10 +535,11 @@
             const tickerText = document.getElementById('breakingNewsInput').value;
             const language = document.getElementById('langSelector').value;
             const frameSize = document.getElementById('frameSizeSelector').value;
+            const activeUser = localStorage.getItem('loggedInUser') || 'Amanuel Bekele Woldesenbet';
 
             const n8nPayload = {
                 event: "GENERATE_AI_NEWS_VIDEO",
-                user: "Amanuel Bekele Woldesenbet",
+                user: activeUser,
                 timestamp: new Date().toISOString(),
                 studioSetup: setupKey,
                 imageAsset: studioData[setupKey].file,
@@ -551,14 +550,18 @@
             };
 
             console.log("Sending payload to n8n webhook:", n8nPayload);
-            alert("n8n Pipeline Payload Dispatched Successfully!\n\nScript, audio parameters, and studio setup sent to automated video generation engine.");
+            alert(`n8n Pipeline Payload Dispatched for ${activeUser}!\n\nScript, audio parameters, and studio setup sent to automated video generation engine.`);
         }
 
         function signOut() {
+            localStorage.removeItem('loggedInUser');
             window.location.href = 'loginpage.html';
         }
 
+        // Load active user and setup preview on page load
         window.onload = function() {
+            const loggedInUser = localStorage.getItem('loggedInUser') || 'Amanuel Bekele Woldesenbet';
+            document.getElementById('loggedInUserDisplay').innerText = loggedInUser;
             updateStudioPreview();
         };
     </script>
