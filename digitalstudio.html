@@ -36,7 +36,31 @@
             overflow-y: auto;
         }
 
-        h2 { margin-top: 0; font-size: 18px; color: #fff; }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h2 { margin: 0; font-size: 18px; color: #fff; }
+
+        .signout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .signout-btn:hover {
+            background: rgba(239, 68, 68, 0.4);
+            color: #fff;
+        }
 
         .control-group label {
             font-size: 11px;
@@ -92,7 +116,7 @@
             box-sizing: border-box;
         }
 
-        /* Top Editing Toolbar for Canvas */
+        /* Top Frame Size Toolbar */
         .canvas-toolbar {
             display: flex;
             gap: 15px;
@@ -121,7 +145,7 @@
             cursor: pointer;
         }
 
-        /* Studio Video Player Frame - Displays single non-overlapping studio asset */
+        /* Studio Canvas Frame */
         .studio-canvas {
             width: 1000px;
             height: 562px;
@@ -148,7 +172,6 @@
             border-left: 4px solid var(--accent-blue);
             backdrop-filter: blur(6px);
             max-width: 350px;
-            z-index: 4;
             pointer-events: none;
         }
 
@@ -204,26 +227,19 @@
 
     <!-- Left Control Panel -->
     <div class="control-panel">
-        <h2>Control Studio</h2>
+        <div class="panel-header">
+            <h2>Digital Studio</h2>
+            <button class="signout-btn" onclick="signOut()">Sign Out</button>
+        </div>
         
         <div class="control-group">
             <label>Select Studio Setup</label>
             <select id="setupSelector" onchange="updateStudioPreview()">
-                <option value="setup1">Setup 1: Close-Up Portrait Anchor</option>
+                <option value="setup1">Setup 1: Close-Up Portrait</option>
                 <option value="setup2">Setup 2: Seated Male Anchor Desk</option>
                 <option value="setup3">Setup 3: Seated Female Anchor Desk</option>
                 <option value="setup4">Setup 4: Standing Presentation</option>
                 <option value="setup5">Setup 5: Dynamic Broadcast View</option>
-            </select>
-        </div>
-
-        <div class="control-group">
-            <label>Select Anchor & Wardrobe</label>
-            <select id="anchorSelector" onchange="updateStudioPreview()">
-                <option value="anchor1">Anchor 1: Male Cultural Attire</option>
-                <option value="anchor2">Anchor 2: Male Executive Suit</option>
-                <option value="anchor3">Anchor 3: Female Traditional Dress</option>
-                <option value="anchor4">Anchor 4: Female Executive Suit</option>
             </select>
         </div>
 
@@ -254,7 +270,7 @@
     <!-- Right Studio Stage Preview Area -->
     <div class="studio-stage-container">
         
-        <!-- Top Editing Toolbar -->
+        <!-- Top Frame Size Toolbar -->
         <div class="canvas-toolbar">
             <label>Platform / Frame Size:</label>
             <select id="frameSizeSelector" onchange="changeFrameSize()">
@@ -267,13 +283,13 @@
             </select>
         </div>
 
-        <!-- Single Clean Canvas Frame (No Overlapping Elements) -->
+        <!-- Studio Canvas -->
         <div class="studio-canvas" id="studioCanvas" style="background-image: url('setup 1.jpg');">
             
             <!-- Dynamic Info Overlay -->
             <div class="canvas-overlay-content">
                 <h3 id="displayTitle">GLOBAL FOCUS: CLOSE-UP PORTRAIT</h3>
-                <p id="displaySubtitle">Live AI neural sync active for broadcast anchor.</p>
+                <p id="displaySubtitle">Live AI neural sync active for broadcast setup.</p>
             </div>
 
             <!-- Live News Ticker -->
@@ -285,9 +301,7 @@
 
         <!-- Selected Options Summary Bar Beneath Image -->
         <div class="selected-options-bar">
-            <div>Setup: <span id="summarySetup">Setup 1: Close-Up Portrait Anchor</span></div>
-            <div>•</div>
-            <div>Anchor/Wardrobe: <span id="summaryAnchor">Anchor 1: Male Cultural Attire</span></div>
+            <div>Active Setup: <span id="summarySetup">Setup 1: Close-Up Portrait</span></div>
             <div>•</div>
             <div>Language: <span id="summaryLang">Amharic (አማርኛ)</span></div>
         </div>
@@ -295,42 +309,25 @@
 
     <script>
         const studioData = {
-            setup1: { file: "setup 1.jpg", title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT", subtitle: "Studio setup 1 active — Close-up anchor frame." },
-            setup2: { file: "setup 2.jpg", title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT", subtitle: "Studio setup 2 active — Seated male anchor desk." },
-            setup3: { file: "setup 3.jpg", title: "GLOBAL FOCUS: REGIONAL DESK", subtitle: "Studio setup 3 active — Seated female anchor desk." },
-            setup4: { file: "setup 4.jpg", title: "GLOBAL FOCUS: STANDING PRESENTATION", subtitle: "Studio setup 4 active — Standing presenter frame." },
-            setup5: { file: "setup 5.jpg", title: "GLOBAL FOCUS: DYNAMIC BROADCAST", subtitle: "Studio setup 5 active — Wide studio view." }
-        };
-
-        const anchorData = {
-            anchor1: { name: "Anchor 1: Male Cultural Attire", fallbackImg: "Anchor 1.jpg" },
-            anchor2: { name: "Anchor 2: Male Executive Suit", fallbackImg: "Anchor 2.jpg" },
-            anchor3: { name: "Anchor 3: Female Traditional Dress", fallbackImg: "Anchor 3.jpg" },
-            anchor4: { name: "Anchor 4: Female Executive Suit", fallbackImg: "Anchor 4.jpg" }
+            setup1: { file: "setup 1.jpg", title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT", subtitle: "Studio setup 1 active — Close-up frame layout." },
+            setup2: { file: "setup 2.jpg", title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT", subtitle: "Studio setup 2 active — Seated anchor desk layout." },
+            setup3: { file: "setup 3.jpg", title: "GLOBAL FOCUS: REGIONAL DESK", subtitle: "Studio setup 3 active — Cultural regional desk layout." },
+            setup4: { file: "setup 4.jpg", title: "GLOBAL FOCUS: STANDING PRESENTATION", subtitle: "Studio setup 4 active — Standing presentation layout." },
+            setup5: { file: "setup 5.jpg", title: "GLOBAL FOCUS: DYNAMIC BROADCAST", subtitle: "Studio setup 5 active — Alternative studio arrangement." }
         };
 
         function updateStudioPreview() {
             const setupKey = document.getElementById('setupSelector').value;
-            const anchorKey = document.getElementById('anchorSelector').value;
-            
             const currentSetup = studioData[setupKey];
-            const currentAnchor = anchorData[anchorKey];
 
+            // Update background image
             const canvas = document.getElementById('studioCanvas');
-            
-            // Map setup + anchor combinations directly to avoid overlapping images on top
-            // Looks for custom mapped composition or falls back to setup/anchor file cleanly
-            const customCompositePath = `${setupKey}_${anchorKey}.jpg`;
-            
-            // Test if composite image exists or render setup/anchor asset seamlessly
             canvas.style.backgroundImage = `url('${currentSetup.file}')`;
 
-            // Update titles and bottom summary text
+            // Update titles and summaries
             document.getElementById('displayTitle').innerText = currentSetup.title;
-            document.getElementById('displaySubtitle').innerText = `${currentSetup.subtitle} | Active: ${currentAnchor.name}`;
-            
+            document.getElementById('displaySubtitle').innerText = currentSetup.subtitle;
             document.getElementById('summarySetup').innerText = document.getElementById('setupSelector').options[document.getElementById('setupSelector').selectedIndex].text;
-            document.getElementById('summaryAnchor').innerText = currentAnchor.name;
             document.getElementById('summaryLang').innerText = document.getElementById('langSelector').value;
         }
 
@@ -365,8 +362,13 @@
             }
         }
 
+        function signOut() {
+            // Redirects to loginpage.html
+            window.location.href = 'loginpage.html';
+        }
+
         function triggerBroadcast() {
-            alert("AI Video Studio Pipeline Initialized! Selected anchor parameters sent to multi-format rendering engine.");
+            alert("AI Video Studio Pipeline Initialized! Exporting stream configuration for selected setup.");
         }
 
         window.onload = function() {
