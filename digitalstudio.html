@@ -591,68 +591,70 @@
         }
 
         /* --- Multi-File Upload with Safe Error Handling --- */
-        async function handleMultiFileUpload(event) {
-            const files = event.target.files;
-            if (!files || files.length === 0) return;
+async function handleMultiFileUpload(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const storagePath = `uploads/${file.name}`;
+    // Use the Supabase instance initialized in config.js
+    const client = window.supabaseClient || _supabase;
 
-                try {
-                    // 1. Check if file already exists in Supabase storage bucket ('studio-assets')
-                    let fileExists = false;
-                    const { data: existingFiles, error: listError } = await _supabase.storage
-                        .from('studio-assets')
-                        .list('uploads', { search: file.name });
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const storagePath = `uploads/${file.name}`;
 
-                    if (!listError && existingFiles) {
-                        fileExists = existingFiles.some(f => f.name === file.name);
-                    }
+        try {
+            // 1. Check if file already exists in studio-assets
+            let fileExists = false;
+            const { data: existingFiles, error: listError } = await client.storage
+                .from('studio-assets')
+                .list('uploads', { search: file.name });
 
-                    if (fileExists) {
-                        const overwrite = confirm(`File "${file.name}" already exists in cloud storage. Do you want to use it?`);
-                        if (!overwrite) continue;
-                    } else {
-                        // 2. Upload file to Supabase if it doesn't exist
-                        const { error: uploadError } = await _supabase.storage
-                            .from('studio-assets')
-                            .upload(storagePath, file, { upsert: true });
-
-                        if (uploadError) throw uploadError;
-                    }
-
-                    // 3. Get Public URL
-                    const { data: publicUrlData } = _supabase.storage
-                        .from('studio-assets')
-                        .getPublicUrl(storagePath);
-
-                    const publicUrl = publicUrlData.publicUrl;
-
-                    // 4. Ask user for a short name for the '@' mention tag
-                    let defaultShort = file.name.split('.')[0].toLowerCase().replace(/\s+/g, '_');
-                    let shortName = prompt(`Enter a short tag name for "${file.name}" (used with @):`, defaultShort);
-                    if (!shortName) shortName = defaultShort;
-                    shortName = shortName.trim().toLowerCase().replace(/\s+/g, '_');
-
-                    // 5. Add to local media library array for instant autocomplete
-                    mediaLibrary.push({
-                        shortName: shortName,
-                        filename: publicUrl,
-                        type: file.type.startsWith('video') ? 'Video' : 'Image'
-                    });
-
-                    alert(`Successfully registered "${file.name}" as '@${shortName}'!`);
-
-                } catch (err) {
-                    console.error("Upload error for file:", file.name, err);
-                    alert(`Failed to upload ${file.name}. Check browser console (F12) for details.`);
-                }
+            if (!listError && existingFiles) {
+                fileExists = existingFiles.some(f => f.name === file.name);
             }
 
-            // Reset file input
-            event.target.value = '';
+            if (fileExists) {
+                const overwrite = confirm(`File "${file.name}" already exists in cloud storage. Do you want to use it?`);
+                if (!overwrite) continue;
+            } else {
+                // 2. Upload file
+                const { error: uploadError } = await client.storage
+                    .from('studio-assets')
+                    .upload(storagePath, file, { upsert: true });
+
+                if (uploadError) throw uploadError;
+            }
+
+            // 3. Get Public URL
+            const { data: publicUrlData } = client.storage
+                .from('studio-assets')
+                .getPublicUrl(storagePath);
+
+            const publicUrl = publicUrlData.publicUrl;
+
+            // 4. Ask for short tag name
+            let defaultShort = file.name.split('.')[0].toLowerCase().replace(/\s+/g, '_');
+            let shortName = prompt(`Enter a short tag name for "${file.name}" (used with @):`, defaultShort);
+            if (!shortName) shortName = defaultShort;
+            shortName = shortName.trim().toLowerCase().replace(/\s+/g, '_');
+
+            // 5. Add to media library
+            mediaLibrary.push({
+                shortName: shortName,
+                filename: publicUrl,
+                type: file.type.startsWith('video') ? 'Video' : 'Image'
+            });
+
+            alert(`Successfully registered "${file.name}" as '@${shortName}'!`);
+
+        } catch (err) {
+            console.error("Upload error for file:", file.name, err);
+            alert(`Failed to upload ${file.name}. Check browser console for details.`);
         }
+    }
+
+    event.target.value = '';
+}
 
         /* --- @ Autocomplete Logic --- */
         function handleScriptInput(event) {
