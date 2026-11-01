@@ -9,6 +9,7 @@
             --panel-bg: rgba(15, 23, 42, 0.85);
             --accent-blue: #38bdf8;
             --accent-gold: #f59e0b;
+            --accent-green: #22c55e;
         }
 
         body {
@@ -23,14 +24,14 @@
 
         /* Left Control Panel */
         .control-panel {
-            width: 420px; /* Slightly widened panel to comfortably fit larger script area */
+            width: 420px;
             background: var(--panel-bg);
             backdrop-filter: blur(16px);
             border-right: 1px solid rgba(56, 189, 248, 0.2);
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 14px;
             z-index: 10;
             box-sizing: border-box;
             overflow-y: auto;
@@ -83,23 +84,31 @@
             box-sizing: border-box;
         }
 
-        /* Large News Script Textarea Styling */
-        .control-group textarea {
+        /* Expanded Extra Large News Script Input Box */
+        .script-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 220px;
+        }
+
+        .script-group textarea {
             width: 100%;
+            flex: 1;
+            min-height: 200px;
             padding: 12px;
-            background: rgba(3, 7, 18, 0.9);
+            background: rgba(3, 7, 18, 0.95);
             border: 1px solid rgba(56, 189, 248, 0.3);
             color: #fff;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 14px;
             line-height: 1.5;
             box-sizing: border-box;
-            min-height: 180px; /* Big initial height */
-            resize: vertical;  /* Allows user to drag to expand even further */
+            resize: vertical;
             font-family: inherit;
         }
 
-        .control-group textarea:focus {
+        .script-group textarea:focus {
             outline: none;
             border-color: var(--accent-blue);
             box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
@@ -109,20 +118,20 @@
             background: linear-gradient(135deg, #38bdf8, #2563eb);
             color: white;
             border: none;
-            padding: 12px;
+            padding: 14px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
-            font-size: 12px;
-            margin-top: 5px;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
         .generate-btn:hover {
-            opacity: 0.9;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+            opacity: 0.95;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
         }
 
         /* Right Studio Stage Preview Area */
@@ -182,6 +191,55 @@
             overflow: hidden;
             border: 1px solid rgba(56, 189, 248, 0.3);
             transition: all 0.3s ease-in-out;
+        }
+
+        /* Video Control Overlay Controls */
+        .video-player-bar {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .play-pause-btn {
+            background: var(--accent-blue);
+            color: #000;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .play-pause-btn:hover {
+            transform: scale(1.08);
+        }
+
+        .video-time {
+            font-size: 11px;
+            color: #cbd5e1;
+            font-family: monospace;
+        }
+
+        .video-scrubber {
+            width: 100px;
+            height: 4px;
+            accent-color: var(--accent-blue);
+            cursor: pointer;
         }
 
         /* Dynamic Info Overlay inside Canvas */
@@ -277,10 +335,10 @@
             </select>
         </div>
 
-        <!-- Enlarged News Script Input Box -->
-        <div class="control-group">
-            <label>News Script Text (Full Broadcast Script)</label>
-            <textarea id="scriptInput" rows="8" placeholder="Type or paste full breaking news broadcast script here..."></textarea>
+        <!-- Expanded Big News Script Text Box -->
+        <div class="control-group script-group">
+            <label>Full News Script Text</label>
+            <textarea id="scriptInput" placeholder="Type or paste the complete news script for the AI anchor to speak..."></textarea>
         </div>
 
         <div class="control-group">
@@ -288,7 +346,7 @@
             <input type="text" id="breakingNewsInput" value="Addis Ababa hosts East African infrastructural summit — Economic cooperation agreements signed today." oninput="updateBreakingNews()" />
         </div>
 
-        <button class="generate-btn" onclick="triggerBroadcast()">Generate & Sync Live Broadcast</button>
+        <button class="generate-btn" onclick="triggerBroadcast()">🚀 Dispatch Payload to n8n AI Pipeline</button>
     </div>
 
     <!-- Right Studio Stage Preview Area -->
@@ -310,6 +368,13 @@
         <!-- Studio Canvas -->
         <div class="studio-canvas" id="studioCanvas" style="background-image: url('setup 1.jpg');">
             
+            <!-- Video Player Controls Overlay -->
+            <div class="video-player-bar">
+                <button class="play-pause-btn" id="playBtn" onclick="togglePlayPreview()">▶</button>
+                <input type="range" class="video-scrubber" id="videoScrubber" value="0" min="0" max="100" oninput="scrubVideo(this.value)">
+                <span class="video-time" id="videoTimeText">0:00 / 0:30</span>
+            </div>
+
             <!-- Dynamic Info Overlay -->
             <div class="canvas-overlay-content">
                 <h3 id="displayTitle">GLOBAL FOCUS: CLOSE-UP PORTRAIT</h3>
@@ -340,15 +405,17 @@
             setup5: { file: "setup 5.jpg", title: "GLOBAL FOCUS: DYNAMIC BROADCAST", subtitle: "Studio setup 5 active — Alternative studio arrangement." }
         };
 
+        let isPlaying = false;
+        let playInterval = null;
+        let playProgress = 0;
+
         function updateStudioPreview() {
             const setupKey = document.getElementById('setupSelector').value;
             const currentSetup = studioData[setupKey];
 
-            // Update background image
             const canvas = document.getElementById('studioCanvas');
             canvas.style.backgroundImage = `url('${currentSetup.file}')`;
 
-            // Update titles and summaries
             document.getElementById('displayTitle').innerText = currentSetup.title;
             document.getElementById('displaySubtitle').innerText = currentSetup.subtitle;
             document.getElementById('summarySetup').innerText = document.getElementById('setupSelector').options[document.getElementById('setupSelector').selectedIndex].text;
@@ -368,35 +435,4 @@
             const frame = document.getElementById('frameSizeSelector').value;
             const canvas = document.getElementById('studioCanvas');
             
-            if (frame === '16:9' || frame === 'twitter-post') {
-                canvas.style.width = '1000px';
-                canvas.style.height = '562px';
-            } else if (frame === 'fb-post') {
-                canvas.style.width = '1000px';
-                canvas.style.height = '523px';
-            } else if (frame === 'telegram-post') {
-                canvas.style.width = '800px';
-                canvas.style.height = '600px';
-            } else if (frame === 'instagram-square') {
-                canvas.style.width = '550px';
-                canvas.style.height = '550px';
-            } else if (frame === 'story-vertical') {
-                canvas.style.width = '320px';
-                canvas.style.height = '568px';
-            }
-        }
-
-        function signOut() {
-            window.location.href = 'loginpage.html';
-        }
-
-        function triggerBroadcast() {
-            alert("AI Video Studio Pipeline Initialized! Exporting stream configuration for selected setup.");
-        }
-
-        window.onload = function() {
-            updateStudioPreview();
-        };
-    </script>
-</body>
-</html>
+            if (frame === '16:9' || frame === 'twitter-
