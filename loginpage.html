@@ -2,565 +2,589 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI Digital News Studio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Access Terminal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- THREE.JS CORE ENGINE DEPENDENCY -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        :root {
-            --bg-dark: #07090e;
-            --panel-bg: rgba(15, 23, 42, 0.85);
-            --accent-blue: #38bdf8;
-            --accent-gold: #f59e0b;
-        }
-
         body {
+            background-color: #010206;
             margin: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
+            overflow: hidden;
             height: 100vh;
-            overflow: hidden;
         }
 
-        /* Top Bar with User Profile and Logout */
-        .top-navbar {
-            height: 60px;
-            background: rgba(15, 23, 42, 0.95);
-            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 25px;
-            z-index: 20;
-            box-sizing: border-box;
-        }
-
-        .brand-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: var(--accent-blue);
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .user-nav-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .user-greeting {
-            font-size: 13px;
-            color: #cbd5e1;
-        }
-
-        .user-greeting span {
-            color: #fff;
-            font-weight: 600;
-        }
-
-        .logout-btn {
-            background: rgba(239, 68, 68, 0.2);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            padding: 7px 14px;
-            font-size: 11px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-        }
-
-        .logout-btn:hover {
-            background: rgba(239, 68, 68, 0.4);
-            color: #fff;
-        }
-
-        /* Main Workspace Layout (Left Panel + Right Stage) */
-        .main-workspace {
-            display: flex;
-            flex: 1;
-            height: calc(100vh - 60px);
-            overflow: hidden;
-        }
-
-        /* Left Control Panel */
-        .control-panel {
-            width: 420px;
-            background: var(--panel-bg);
-            backdrop-filter: blur(16px);
-            border-right: 1px solid rgba(56, 189, 248, 0.2);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            z-index: 10;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
-
-        h2 { margin: 0 0 5px 0; font-size: 16px; color: #fff; }
-
-        .control-group label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--accent-blue);
-            margin-bottom: 5px;
-            display: block;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .control-group select, .control-group input {
-            width: 100%;
-            padding: 10px;
-            background: rgba(3, 7, 18, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #fff;
-            border-radius: 6px;
-            font-size: 13px;
-            box-sizing: border-box;
-        }
-
-        /* Expanded Extra Large News Script Input Box */
-        .script-group {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 200px;
-        }
-
-        .script-group textarea {
-            width: 100%;
-            flex: 1;
-            min-height: 180px;
-            padding: 12px;
-            background: rgba(3, 7, 18, 0.95);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            color: #fff;
-            border-radius: 8px;
-            font-size: 14px;
-            line-height: 1.5;
-            box-sizing: border-box;
-            resize: vertical;
-            font-family: inherit;
-        }
-
-        .script-group textarea:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
-        }
-
-        .generate-btn {
-            background: linear-gradient(135deg, #38bdf8, #2563eb);
-            color: white;
-            border: none;
-            padding: 14px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 13px;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-        }
-
-        .generate-btn:hover {
-            opacity: 0.95;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
-        }
-
-        /* Right Studio Stage Preview Area */
-        .studio-stage-container {
-            flex: 1;
-            position: relative;
-            background: radial-gradient(circle at center, #1e293b 0%, #07090e 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        /* Top Frame Size Toolbar */
-        .canvas-toolbar {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 12px;
-            background: rgba(15, 23, 42, 0.9);
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            align-items: center;
-        }
-
-        .canvas-toolbar label {
-            font-size: 11px;
-            color: var(--accent-blue);
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .canvas-toolbar select {
-            background: rgba(3, 7, 18, 0.8);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        /* Studio Canvas Frame */
-        .studio-canvas {
-            width: 1000px;
-            height: 562px;
-            position: relative;
-            background-color: #030712;
-            background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            transition: all 0.3s ease-in-out;
-        }
-
-        /* Video Player Controls Overlay */
-        .video-player-bar {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 6px 14px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 10;
-        }
-
-        .play-pause-btn {
-            background: var(--accent-blue);
-            color: #000;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            transition: transform 0.2s;
-        }
-
-        .play-pause-btn:hover {
-            transform: scale(1.08);
-        }
-
-        .video-time {
-            font-size: 11px;
-            color: #cbd5e1;
-            font-family: monospace;
-        }
-
-        .video-scrubber {
-            width: 100px;
-            height: 4px;
-            accent-color: var(--accent-blue);
-            cursor: pointer;
-        }
-
-        /* Dynamic Info Overlay inside Canvas */
-        .canvas-overlay-content {
-            position: absolute;
-            bottom: 55px;
-            left: 15px;
-            background: rgba(15, 23, 42, 0.85);
-            padding: 10px 15px;
-            border-radius: 6px;
-            border-left: 4px solid var(--accent-blue);
-            backdrop-filter: blur(6px);
-            max-width: 350px;
+        /* 3D CANVAS LAYER POSITIONING */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
             pointer-events: none;
         }
 
-        .canvas-overlay-content h3 {
-            margin: 0 0 3px 0;
-            font-size: 12px;
-            color: var(--accent-blue);
-        }
-
-        .canvas-overlay-content p {
-            margin: 0;
-            font-size: 10px;
-            color: #cbd5e1;
-        }
-
-        /* Live Breaking News Ticker */
-        .broadcast-ticker {
-            position: absolute;
-            bottom: 0;
+        /* 2060 Quantum Contrast Veil */
+        .overlay-veil {
+            position: fixed;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 38px;
-            background: rgba(3, 7, 18, 0.95);
-            border-top: 2px solid var(--accent-gold);
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            z-index: 5;
-            box-sizing: border-box;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(1, 2, 6, 0) 0%, rgba(1, 2, 6, 0.4) 70%, rgba(1, 2, 6, 0.7) 100%);
+            z-index: 1;
             pointer-events: none;
         }
 
-        /* Metadata Summary Panel Beneath Image */
-        .selected-options-bar {
-            display: flex;
-            gap: 15px;
-            margin-top: 12px;
-            background: rgba(15, 23, 42, 0.7);
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 12px;
-            color: #94a3b8;
+        .ui-container {
+            position: relative;
+            z-index: 2;
         }
 
-        .selected-options-bar span {
-            color: #fff;
-            font-weight: 600;
+        .glow-border:focus-within {
+            border-color: #38bdf8;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+        }
+        
+        input:focus, select:focus {
+            outline: none !important;
+            box-shadow: none !important;
         }
     </style>
 </head>
-<body>
+<body class="text-slate-100 font-sans flex items-center justify-center p-6">
 
-    <!-- Top Navigation Bar with Profile and Logout -->
-    <div class="top-navbar">
-        <div class="brand-title">AI Digital News Studio</div>
-        <div class="user-nav-profile">
-            <div class="user-greeting">Logged in as: <span>Amanuel Bekele Woldesenbet</span></div>
-            <button class="logout-btn" onclick="signOut()">Logout</button>
+    <!-- 3D BACKGROUND STRUCTURES -->
+    <div id="canvas-container"></div>
+    <div class="overlay-veil"></div>
+
+    <div class="ui-container w-full max-w-md">
+
+        <!-- SYSTEM STATUS NOTICE BUFFER -->
+        <div id="statusBuffer" class="hidden text-xs p-3.5 rounded-xl border mb-4 bg-slate-950/90 backdrop-blur-xl font-mono transition-all duration-300"></div>
+
+        <!-- SIGN UP PANEL -->
+        <div id="signUpScreen" class="w-full bg-slate-950/80 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500"></div>
+
+            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
+                Initialize Agent Access
+            </h2>
+            <p class="text-xs text-cyan-400 text-center uppercase tracking-widest font-mono mb-6">Create Journalist Security Profile</p>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="regName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalism Assigned Sector</label>
+                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🗂️</span>
+                        <select id="regSection" required class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 cursor-pointer text-slate-300">
+                            <option value="" disabled selected class="bg-slate-950 text-slate-500">Select Sector...</option>
+                            <option value="World Politics and Governance" class="bg-slate-950 text-white">World Politics and Governance</option>
+                            <option value="Sports & Analytics" class="bg-slate-950 text-white">Sports & Analytics</option>
+                            <option value="Business and Finance" class="bg-slate-950 text-white">Business and Finance</option>
+                            <option value="Production Team" class="bg-slate-950 text-white">Production Team</option>
+                            <option value="Editor" class="bg-slate-950 text-white">Editor</option>
+                            <option value="Management" class="bg-slate-950 text-white">Management</option>
+                              <option value="Prepare" class="bg-slate-950 text-white">Preparation studio</option>
+                                                          <option value="digitalstudio" class="bg-slate-950 text-white">Digital studio</option>
+
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Secure Access Password</label>
+                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                        <input type="password" id="regPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                    </div>
+                </div>
+
+                <button id="signUpBtn" class="w-full bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 hover:from-cyan-500 hover:via-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-cyan-500/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Sign Up
+                </button>
+
+                <div class="text-center mt-4">
+                    <p class="text-xs text-slate-400">Already registered? <button id="toSignInBtn" class="text-cyan-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Secure Log In</button></p>
+                </div>
+            </div>
         </div>
+
+        <!-- SIGN IN PANEL -->
+        <div id="signInScreen" class="hidden w-full bg-slate-950/80 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl border border-slate-800/80 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-400 to-indigo-600"></div>
+
+            <h2 class="text-2xl font-black text-center text-white tracking-tight mb-1">
+                Operator Portal
+            </h2>
+            <p class="text-xs text-cyan-400 text-center uppercase tracking-widest font-mono mb-6">Authenticate Credentials</p>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Journalist Full Name</label>
+                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">👤</span>
+                        <input type="text" id="loginName" required placeholder="Full Name" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 font-mono">Access Password</label>
+                    <div class="glow-border flex items-center bg-slate-900/90 border border-slate-800 rounded-lg p-3 transition-all duration-200">
+                        <span class="text-slate-500 mr-2.5 select-none">🔑</span>
+                        <input type="password" id="loginPassword" required placeholder="Password" class="w-full bg-transparent text-white text-sm focus:outline-none border-0 m-0 p-0 font-mono tracking-widest">
+                    </div>
+                </div>
+
+                <button id="signInBtn" class="w-full bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 hover:from-cyan-500 hover:via-sky-500 hover:to-blue-600 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-cyan-500/20 active:scale-[0.99] mt-4 font-mono uppercase text-xs tracking-wider cursor-pointer">
+                    Sign In
+                </button>
+
+                <div class="text-center mt-4">
+                    <button id="toSignUpBtn" class="text-xs text-cyan-400 hover:underline font-mono bg-transparent border-0 cursor-pointer p-0">Initialize Access Profile</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <div class="main-workspace">
-        <!-- Left Control Panel -->
-        <div class="control-panel">
-            <h2>Digital Studio</h2>
+    <!-- SCRIPT INFRASTRUCTURE MODULE -->
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+        import { DESK_CONFIGS } from './deskConfigs.js';
+
+        // --- 2060 QUANTUM COMPUTER GLOBE SYSTEM ---
+        let scene, camera, renderer, masterGroup, coreMesh, matrixShell, matrixNodes, dataStreams, perimeterRings = [];
+        let clock = new THREE.Clock();
+        
+        let originalStreamPositions = [];
+        let scatterDirections = [];
+
+        function createQuantumGlowNode(coreColor, edgeColor) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
             
-            <div class="control-group">
-                <label>Select Studio Setup</label>
-                <select id="setupSelector" onchange="updateStudioPreview()">
-                    <option value="setup1">Setup 1: Close-Up Portrait</option>
-                    <option value="setup2">Setup 2: Seated Male Anchor Desk</option>
-                    <option value="setup3">Setup 3: Seated Female Anchor Desk</option>
-                    <option value="setup4">Setup 4: Standing Presentation</option>
-                    <option value="setup5">Setup 5: Dynamic Broadcast View</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label>Voice & Language</label>
-                <select id="langSelector" onchange="updateMetadata()">
-                    <option value="Amharic (አማርኛ)">Amharic (አማርኛ)</option>
-                    <option value="English">English</option>
-                    <option value="Afaan Oromoo">Afaan Oromoo</option>
-                    <option value="Tigrinya (ትግርኛ)">Tigrinya (ትግርኛ)</option>
-                    <option value="Somali">Somali</option>
-                </select>
-            </div>
-
-            <!-- Expanded Big News Script Text Box -->
-            <div class="control-group script-group">
-                <label>Full News Script Text</label>
-                <textarea id="scriptInput" placeholder="Type or paste the complete news script for the AI anchor to speak..."></textarea>
-            </div>
-
-            <div class="control-group">
-                <label>Breaking News Ticker Text</label>
-                <input type="text" id="breakingNewsInput" value="Addis Ababa hosts East African infrastructural summit — Economic cooperation agreements signed today." oninput="updateBreakingNews()" />
-            </div>
-
-            <button class="generate-btn" onclick="triggerBroadcast()">🚀 Dispatch Payload to n8n AI Pipeline</button>
-        </div>
-
-        <!-- Right Studio Stage Preview Area -->
-        <div class="studio-stage-container">
+            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(0.15, coreColor);
+            gradient.addColorStop(0.4, edgeColor);
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
             
-            <!-- Top Frame Size Toolbar -->
-            <div class="canvas-toolbar">
-                <label>Platform / Frame Size:</label>
-                <select id="frameSizeSelector" onchange="changeFrameSize()">
-                    <option value="16:9">YouTube / Standard Broadcast (16:9)</option>
-                    <option value="fb-post">Facebook Post / Landscape (1.91:1)</option>
-                    <option value="twitter-post">Twitter / X Post (16:9)</option>
-                    <option value="telegram-post">Telegram Channel Media (4:3)</option>
-                    <option value="instagram-square">Instagram Square Post (1:1)</option>
-                    <option value="story-vertical">TikTok / Instagram Reels / YouTube Shorts (9:16)</option>
-                </select>
-            </div>
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 64, 64);
+            return new THREE.CanvasTexture(canvas);
+        }
 
-            <!-- Studio Canvas -->
-            <div class="studio-canvas" id="studioCanvas" style="background-image: url('setup 1.jpg');">
+        function initQuantumGlobe() {
+            const container = document.getElementById('canvas-container');
+            if (!container) return;
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.z = 90; 
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            masterGroup = new THREE.Group();
+
+            const radius = 52;
+            const segments = 32;
+
+            const coreGeo = new THREE.SphereGeometry(radius - 2, 16, 16);
+            const coreMat = new THREE.MeshBasicMaterial({
+                color: 0x032b59,
+                transparent: true,
+                opacity: 0.25,
+                blending: THREE.AdditiveBlending,
+                wireframe: false
+            });
+            coreMesh = new THREE.Mesh(coreGeo, coreMat);
+            masterGroup.add(coreMesh);
+
+            const gridGeo = new THREE.SphereGeometry(radius, segments, segments);
+            const gridMat = new THREE.MeshBasicMaterial({
+                color: 0x06b6d4,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.18,
+                blending: THREE.AdditiveBlending
+            });
+            matrixShell = new THREE.Mesh(gridGeo, gridMat);
+            masterGroup.add(matrixShell);
+
+            const nodeMat = new THREE.PointsMaterial({
+                size: 2.8,
+                transparent: true,
+                opacity: 0.95,
+                map: createQuantumGlowNode('#22d3ee', '#093370'),
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            matrixNodes = new THREE.Points(gridGeo, nodeMat);
+            masterGroup.add(matrixNodes);
+
+            const particleCount = 1500;
+            const streamGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const randomSpeeds = new Float32Array(particleCount);
+            
+            for (let i = 0; i < particleCount; i++) {
+                const u = Math.random();
+                const v = Math.random();
+                const theta = u * 2.0 * Math.PI;
+                const phi = Math.acos(2.0 * v - 1.0);
                 
-                <!-- Video Player Controls Overlay -->
-                <div class="video-player-bar">
-                    <button class="play-pause-btn" id="playBtn" onclick="togglePlayPreview()">▶</button>
-                    <input type="range" class="video-scrubber" id="videoScrubber" value="0" min="0" max="100" oninput="scrubVideo(this.value)">
-                    <span class="video-time" id="videoTimeText">0:00 / 0:30</span>
-                </div>
+                const shellRadius = radius + (Math.random() - 0.5) * 8;
+                
+                const posX = shellRadius * Math.sin(phi) * Math.cos(theta);
+                const posY = shellRadius * Math.sin(phi) * Math.sin(theta);
+                const posZ = shellRadius * Math.cos(phi);
 
-                <!-- Dynamic Info Overlay -->
-                <div class="canvas-overlay-content">
-                    <h3 id="displayTitle">GLOBAL FOCUS: CLOSE-UP PORTRAIT</h3>
-                    <p id="displaySubtitle">Live AI neural sync active for broadcast setup.</p>
-                </div>
+                positions[i * 3] = posX;
+                positions[i * 3 + 1] = posY;
+                positions[i * 3 + 2] = posZ;
+                
+                randomSpeeds[i] = 0.2 + Math.random() * 0.8;
 
-                <!-- Live News Ticker -->
-                <div class="broadcast-ticker">
-                    <span style="color: var(--accent-gold); font-weight: bold; margin-right: 15px; font-size: 11px;">LIVE BREAKING:</span>
-                    <marquee id="tickerMarquee" style="font-size: 12px;" scrollamount="5">Addis Ababa hosts East African infrastructural summit — Economic cooperation agreements signed today.</marquee>
-                </div>
-            </div>
+                originalStreamPositions.push(new THREE.Vector3(posX, posY, posZ));
+                
+                const dir = new THREE.Vector3(posX, posY, posZ).normalize();
+                dir.x += (Math.random() - 0.5) * 0.5;
+                dir.y += (Math.random() - 0.5) * 0.5;
+                dir.z += (Math.random() - 0.5) * 0.5;
+                scatterDirections.push(dir.normalize());
+            }
 
-            <!-- Selected Options Summary Bar Beneath Image -->
-            <div class="selected-options-bar">
-                <div>Active Setup: <span id="summarySetup">Setup 1: Close-Up Portrait</span></div>
-                <div>•</div>
-                <div>Language: <span id="summaryLang">Amharic (አማርኛ)</span></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const studioData = {
-            setup1: { file: "setup 1.jpg", title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT", subtitle: "Studio setup 1 active — Close-up frame layout." },
-            setup2: { file: "setup 2.jpg", title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT", subtitle: "Studio setup 2 active — Seated anchor desk layout." },
-            setup3: { file: "setup 3.jpg", title: "GLOBAL FOCUS: REGIONAL DESK", subtitle: "Studio setup 3 active — Cultural regional desk layout." },
-            setup4: { file: "setup 4.jpg", title: "GLOBAL FOCUS: STANDING PRESENTATION", subtitle: "Studio setup 4 active — Standing presentation layout." },
-            setup5: { file: "setup 5.jpg", title: "GLOBAL FOCUS: DYNAMIC BROADCAST", subtitle: "Studio setup 5 active — Alternative studio arrangement." }
-        };
-
-        let isPlaying = false;
-        let playInterval = null;
-        let playProgress = 0;
-
-        function updateStudioPreview() {
-            const setupKey = document.getElementById('setupSelector').value;
-            const currentSetup = studioData[setupKey];
-
-            const canvas = document.getElementById('studioCanvas');
-            canvas.style.backgroundImage = `url('${currentSetup.file}')`;
-
-            document.getElementById('displayTitle').innerText = currentSetup.title;
-            document.getElementById('displaySubtitle').innerText = currentSetup.subtitle;
-            document.getElementById('summarySetup').innerText = document.getElementById('setupSelector').options[document.getElementById('setupSelector').selectedIndex].text;
-            document.getElementById('summaryLang').innerText = document.getElementById('langSelector').value;
-        }
-
-        function updateMetadata() {
-            document.getElementById('summaryLang').innerText = document.getElementById('langSelector').value;
-        }
-
-        function updateBreakingNews() {
-            const breakingText = document.getElementById('breakingNewsInput').value;
-            document.getElementById('tickerMarquee').innerText = breakingText;
-        }
-
-        function changeFrameSize() {
-            const frame = document.getElementById('frameSizeSelector').value;
-            const canvas = document.getElementById('studioCanvas');
+            streamGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             
-            if (frame === '16:9' || frame === 'twitter-post') {
-                canvas.style.width = '1000px';
-                canvas.style.height = '562px';
-            } else if (frame === 'fb-post') {
-                canvas.style.width = '1000px';
-                canvas.style.height = '523px';
-            } else if (frame === 'telegram-post') {
-                canvas.style.width = '800px';
-                canvas.style.height = '600px';
-            } else if (frame === 'instagram-square') {
-                canvas.style.width = '550px';
-                canvas.style.height = '550px';
-            } else if (frame === 'story-vertical') {
-                canvas.style.width = '320px';
-                canvas.style.height = '568px';
+            const streamMat = new THREE.PointsMaterial({
+                size: 1.6,
+                transparent: true,
+                opacity: 0.85,
+                map: createQuantumGlowNode('#ffffff', '#3b82f6'),
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            dataStreams = new THREE.Points(streamGeometry, streamMat);
+            dataStreams.userData = { speeds: randomSpeeds };
+            masterGroup.add(dataStreams);
+
+            for (let i = 0; i < 4; i++) {
+                const ringGeo = new THREE.RingGeometry(radius + 6 + (i * 4), radius + 6.8 + (i * 4), 64);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: i % 2 === 0 ? 0x22d3ee : 0x6366f1,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.12 - (i * 0.02),
+                    blending: THREE.AdditiveBlending
+                });
+                const perimeterRing = new THREE.Mesh(ringGeo, ringMat);
+                perimeterRing.rotation.x = Math.random() * Math.PI;
+                perimeterRing.rotation.y = Math.random() * Math.PI;
+                
+                perimeterRings.push(perimeterRing);
+                masterGroup.add(perimeterRing);
             }
+
+            scene.add(masterGroup);
+            animateQuantumEngine();
         }
 
-        /* Video Player Simulation Controls */
-        function togglePlayPreview() {
-            const playBtn = document.getElementById('playBtn');
-            isPlaying = !isPlaying;
+        function animateQuantumEngine() {
+            requestAnimationFrame(animateQuantumEngine);
+            const elapsedTime = clock.getElapsedTime();
 
-            if (isPlaying) {
-                playBtn.innerText = "⏸";
-                playInterval = setInterval(() => {
-                    playProgress += 1;
-                    if (playProgress > 100) playProgress = 0;
-                    document.getElementById('videoScrubber').value = playProgress;
-                    updateTimeDisplay(playProgress);
-                }, 300);
+            const cycleDuration = 6; 
+            const currentCycleTime = elapsedTime % cycleDuration;
+
+            let scatterProgress = 0;
+
+            if (currentCycleTime >= 0 && currentCycleTime < 2) {
+                scatterProgress = 0;
+            } else if (currentCycleTime >= 2 && currentCycleTime < 4) {
+                const t = (currentCycleTime - 2) / 2;
+                scatterProgress = 1 - Math.pow(1 - t, 3);
+            } else if (currentCycleTime >= 4 && currentCycleTime < 6) {
+                const t = (currentCycleTime - 4) / 2;
+                scatterProgress = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                scatterProgress = 1 - scatterProgress;
+            }
+
+            if (masterGroup) {
+                masterGroup.rotation.y = elapsedTime * 0.15;
+                masterGroup.rotation.x = elapsedTime * 0.06;
+            }
+
+            const expansionFactor = 1.0 + scatterProgress * 2.5; 
+            
+            if (matrixShell) {
+                matrixShell.scale.set(expansionFactor, expansionFactor, expansionFactor);
+                matrixShell.material.opacity = 0.18 * (1.0 - scatterProgress);
+            }
+            if (matrixNodes) {
+                matrixNodes.scale.set(expansionFactor, expansionFactor, expansionFactor);
+                matrixNodes.material.opacity = 0.95 * (1.0 - scatterProgress * 0.7);
+            }
+            if (coreMesh) {
+                const pulseScale = (1.0 + Math.sin(elapsedTime * 2.5) * 0.06) * (1.0 + scatterProgress * 4.0);
+                coreMesh.scale.set(pulseScale, pulseScale, pulseScale);
+                coreMesh.material.opacity = 0.25 * (1.0 - scatterProgress);
+            }
+
+            perimeterRings.forEach((ring, index) => {
+                ring.material.opacity = (0.12 - (index * 0.02)) * (1.0 - scatterProgress);
+            });
+
+            if (dataStreams) {
+                const positions = dataStreams.geometry.attributes.position.array;
+                const speeds = dataStreams.userData.speeds;
+                
+                for (let i = 0; i < speeds.length; i++) {
+                    const origPos = originalStreamPositions[i];
+                    const dir = scatterDirections[i];
+                    
+                    const scatterDistance = scatterProgress * (120 + speeds[i] * 100);
+                    
+                    let targetX = origPos.x + dir.x * scatterDistance;
+                    let targetY = origPos.y + dir.y * scatterDistance;
+                    let targetZ = origPos.z + dir.z * scatterDistance;
+
+                    targetY += Math.sin(elapsedTime * speeds[i]) * 0.4;
+                    targetX += Math.cos(elapsedTime * speeds[i]) * 0.4;
+
+                    positions[i * 3] = targetX;
+                    positions[i * 3 + 1] = targetY;
+                    positions[i * 3 + 2] = targetZ;
+                }
+                dataStreams.geometry.attributes.position.needsUpdate = true;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            if (!camera || !renderer) return;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        initQuantumGlobe();
+
+        // --- AUTHENTICATION INFRASTRUCTURE ---
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: { persistSession: true },
+            global: {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            }
+        });
+
+        const statusBuffer = document.getElementById('statusBuffer');
+
+        function displayTerminalNotice(message, statusType = 'info') {
+            statusBuffer.classList.remove('hidden', 'text-cyan-400', 'border-cyan-950/60', 'text-red-400', 'border-red-950/60', 'text-emerald-400', 'border-emerald-950/60');
+            
+            if (statusType === 'error') {
+                statusBuffer.classList.add('text-red-400', 'border-red-950/60');
+            } else if (statusType === 'success') {
+                statusBuffer.classList.add('text-emerald-400', 'border-emerald-950/60');
             } else {
-                playBtn.innerText = "▶";
-                clearInterval(playInterval);
+                statusBuffer.classList.add('text-cyan-400', 'border-cyan-950/60');
+            }
+            statusBuffer.innerText = `// ${message.toUpperCase()}`;
+        }
+
+        function showScreen(screenId) {
+            statusBuffer.classList.add('hidden');
+            document.getElementById('signUpScreen').classList.add('hidden');
+            document.getElementById('signInScreen').classList.add('hidden');
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        document.getElementById('toSignInBtn').addEventListener('click', () => showScreen('signInScreen'));
+        document.getElementById('toSignUpBtn').addEventListener('click', () => showScreen('signUpScreen'));
+        document.getElementById('signUpBtn').addEventListener('click', registerJournalist);
+        document.getElementById('signInBtn').addEventListener('click', loginJournalist);
+
+        async function registerJournalist() {
+            const fullName = document.getElementById('regName').value.trim();
+            const section = document.getElementById('regSection').value;
+            const password = document.getElementById('regPassword').value;
+            const signUpBtn = document.getElementById('signUpBtn');
+
+            if (!fullName || !section || !password) {
+                displayTerminalNotice("Registration Error: All parameters required.", "error");
+                return;
+            }
+
+            signUpBtn.disabled = true;
+            signUpBtn.innerText = "Processing Profile...";
+
+            try {
+                const { data: existingUsers, error: checkError } = await supabaseClient
+                    .from('journalists')
+                    .select('*')
+                    .eq('Journalist name', fullName);
+
+                if (checkError) throw checkError;
+                if (existingUsers && existingUsers.length > 0) {
+                    displayTerminalNotice(`Registration failure: Name "${fullName}" is taken.`, "error");
+                    signUpBtn.disabled = false;
+                    signUpBtn.innerText = "Sign Up";
+                    return; 
+                }
+
+                const { error: insertError } = await supabaseClient
+                    .from('journalists')
+                    .insert([{"Journalist name": fullName, "journalism Section": section, "Password": password}]);
+
+                if (insertError) throw insertError;
+
+                displayTerminalNotice("Profile Compiled! Switching to authentication panel...", "success");
+                setTimeout(() => {
+                    statusBuffer.classList.add('hidden');
+                    document.getElementById('loginName').value = fullName;
+                    signUpBtn.disabled = false;
+                    signUpBtn.innerText = "Sign Up";
+                    showScreen('signInScreen');
+                }, 1500);
+
+            } catch (error) {
+                displayTerminalNotice("Database Core Error: " + error.message, "error");
+                signUpBtn.disabled = false;
+                signUpBtn.innerText = "Sign Up";
             }
         }
 
-        function scrubVideo(val) {
-            playProgress = parseInt(val);
-            updateTimeDisplay(playProgress);
+   async function loginJournalist() {
+    const nameInput = document.getElementById('loginName').value.trim();
+    const passwordInput = document.getElementById('loginPassword').value;
+    const signInBtn = document.getElementById('signInBtn');
+
+    if (!nameInput || !passwordInput) {
+        displayTerminalNotice("Authentication Error: Credentials missing.", "error");
+        return;
+    }
+
+    signInBtn.disabled = true;
+    signInBtn.innerText = "Authenticating...";
+
+    try {
+        const { data: records, error } = await supabaseClient
+            .from('journalists')
+            .select('*')
+            .eq('Journalist name', nameInput);
+
+        if (error) throw error;
+        if (!records || records.length === 0 || records[0].Password !== passwordInput) {
+            displayTerminalNotice("Authentication Error: Invalid identity passkey.", "error");
+            signInBtn.disabled = false;
+            signInBtn.innerText = "Sign In";
+            return;
         }
 
-        function updateTimeDisplay(progress) {
-            const currentSec = Math.floor((progress / 100) * 30);
-            const formattedSec = currentSec < 10 ? `0${currentSec}` : currentSec;
-            document.getElementById('videoTimeText').innerText = `0:${formattedSec} / 0:30`;
+        const userRecord = records[0];
+        const rawSection = String(userRecord["journalism Section"] || "").trim();
+        const rawRole = String(userRecord["Role"] || "").trim();
+        
+        const sectionLower = rawSection.toLowerCase();
+        const roleLower = rawRole.toLowerCase();
+        const combined = `${sectionLower} ${roleLower}`;
+
+        // Save session details for downstream pages
+        localStorage.setItem('userSession', JSON.stringify({
+            fullName: userRecord["Journalist name"],
+            journalismSection: rawSection,
+            role: rawRole || rawSection
+        }));
+
+        // Exact mapping aligned with your GitHub repository file names
+  const ROUTE_MAP = {
+    "editor": "Editorpage.html",
+    "editorpage": "Editorpage.html",
+    "prepare": "prepare.html",
+    "management": "managerpipeline.html",
+    "production team": "productionteam.html",
+    "world politics and governance": "World Politics and Governance.html",
+    "sports & analytics": "sport.html",
+    "sport and analytics": "sport.html",
+    "sport": "sport.html",
+    "sports": "sport.html",
+          "digitalstudio": "digitalstudio.html",
+
+    "business and finance": "business and finance.html"
+};
+
+// 1. Direct key map
+let targetPage = ROUTE_MAP[sectionLower] || ROUTE_MAP[roleLower];
+
+// 2. Keyword fallback for variations or legacy entries
+if (!targetPage) {
+    if (combined.includes("editor")) {
+        targetPage = "Editorpage.html";
+    } else if (combined.includes("prepare")) {
+        targetPage = "prepare.html";
+    } else if (combined.includes("manage")) {
+        targetPage = "managerpipeline.html";
+            } else if (combined.includes("production")) {
+                targetPage = "productionteam.html";
+            } 
+    
+    else if (combined.includes("poltic") || combined.includes("governance")) {
+                targetPage = "World Politics and Governance.html";
+                    } 
+        
+    else if (combined.includes("sport")) {
+                targetPage = "sport.html";
+                    } 
+            else if (combined.includes("digitalstudio")) {
+                targetPage = "digitalstudio.html";
+                    } 
+    
+    
+    else if (combined.includes("business") || combined.includes("finance")) {
+                targetPage = "business and finance.html";
+            } else {
+                targetPage = "customepage.html";
+            }
         }
 
-        /* n8n Automation Webhook Connector */
-        function triggerBroadcast() {
-            const setupKey = document.getElementById('setupSelector').value;
-            const scriptText = document.getElementById('scriptInput').value;
-            const tickerText = document.getElementById('breakingNewsInput').value;
-            const language = document.getElementById('langSelector').value;
-            const frameSize = document.getElementById('frameSizeSelector').value;
+        displayTerminalNotice(`Access Granted! Routing to ${targetPage}...`, "success");
 
-            const n8nPayload = {
-                event: "GENERATE_AI_NEWS_VIDEO",
-                user: "Amanuel Bekele Woldesenbet",
-                timestamp: new Date().toISOString(),
-                studioSetup: setupKey,
-                imageAsset: studioData[setupKey].file,
-                voiceLanguage: language,
-                newsScript: scriptText,
-                breakingNewsTicker: tickerText,
-                aspectRatioFormat: frameSize
-            };
+        document.getElementById('loginPassword').value = ""; 
 
-            console.log("Sending payload to n8n webhook:", n8nPayload);
-            alert("n8n Pipeline Payload Dispatched Successfully!\n\nScript, audio parameters, and studio setup sent to automated video generation engine.");
-        }
+        setTimeout(() => {
+            signInBtn.disabled = false;
+            signInBtn.innerText = "Sign In";
+            window.location.href = targetPage;
+        }, 1200);
 
-        function signOut() {
-            window.location.href = 'loginpage.html';
-        }
-
-        window.onload = function() {
-            updateStudioPreview();
-        };
+    } catch (error) {
+        displayTerminalNotice("Security Subsystem Error: " + error.message, "error");
+        signInBtn.disabled = false;
+        signInBtn.innerText = "Sign In";
+    }
+}
     </script>
 </body>
 </html>
