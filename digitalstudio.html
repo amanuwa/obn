@@ -595,10 +595,16 @@ async function handleMultiFileUpload(event) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    // Use the Supabase instance initialized in config.js
-    const client = window.supabaseClient || _supabase;
+    const client = window.supabaseClient;
+
+    if (!client) {
+        alert("Supabase client is not initialized yet. Please check config.js.");
+        return;
+    }
 
     for (let i = 0; i < files.length; i++) {
+
+        
         const file = files[i];
         const storagePath = `uploads/${file.name}`;
 
