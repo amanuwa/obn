@@ -22,7 +22,7 @@
             overflow: hidden;
         }
 
-        /* Top Bar with Highlighted User Name Badge and Logout */
+        /* Top Bar with Dynamic User Name Badge and Logout */
         .top-navbar {
             height: 60px;
             background: rgba(15, 23, 42, 0.95);
@@ -49,7 +49,6 @@
             gap: 15px;
         }
 
-        /* Styled badge so the logged-in user's name stands out clearly */
         .username-display {
             font-size: 13px;
             font-weight: 600;
@@ -78,7 +77,7 @@
             color: #fff;
         }
 
-        /* Main Workspace Layout (Left Panel + Right Stage) */
+        /* Main Workspace Layout */
         .main-workspace {
             display: flex;
             flex: 1;
@@ -124,7 +123,6 @@
             box-sizing: border-box;
         }
 
-        /* Expanded Extra Large News Script Input Box */
         .script-group {
             flex: 1;
             display: flex;
@@ -188,7 +186,6 @@
             box-sizing: border-box;
         }
 
-        /* Top Frame Size Toolbar */
         .canvas-toolbar {
             display: flex;
             gap: 15px;
@@ -217,7 +214,6 @@
             cursor: pointer;
         }
 
-        /* Studio Canvas Frame */
         .studio-canvas {
             width: 1000px;
             height: 562px;
@@ -233,7 +229,6 @@
             transition: all 0.3s ease-in-out;
         }
 
-        /* Video Player Controls Overlay */
         .video-player-bar {
             position: absolute;
             top: 15px;
@@ -282,7 +277,6 @@
             cursor: pointer;
         }
 
-        /* Dynamic Info Overlay inside Canvas */
         .canvas-overlay-content {
             position: absolute;
             bottom: 55px;
@@ -308,7 +302,6 @@
             color: #cbd5e1;
         }
 
-        /* Live Breaking News Ticker */
         .broadcast-ticker {
             position: absolute;
             bottom: 0;
@@ -325,7 +318,6 @@
             pointer-events: none;
         }
 
-        /* Metadata Summary Panel Beneath Image */
         .selected-options-bar {
             display: flex;
             gap: 15px;
@@ -346,11 +338,11 @@
 </head>
 <body>
 
-    <!-- Top Navigation Bar with Highlighted User Badge and Logout -->
+    <!-- Top Navigation Bar -->
     <div class="top-navbar">
         <div class="brand-title">AI Digital News Studio</div>
         <div class="user-nav-profile">
-            <div class="username-display" id="loggedInUserDisplay">Loading User...</div>
+            <div class="username-display" id="loggedInUserDisplay">Loading...</div>
             <button class="logout-btn" onclick="signOut()">Logout</button>
         </div>
     </div>
@@ -382,7 +374,6 @@
                 </select>
             </div>
 
-            <!-- Expanded Big News Script Text Box -->
             <div class="control-group script-group">
                 <label>Full News Script Text</label>
                 <textarea id="scriptInput" placeholder="Type or paste the complete news script for the AI anchor to speak..."></textarea>
@@ -399,7 +390,6 @@
         <!-- Right Studio Stage Preview Area -->
         <div class="studio-stage-container">
             
-            <!-- Top Frame Size Toolbar -->
             <div class="canvas-toolbar">
                 <label>Platform / Frame Size:</label>
                 <select id="frameSizeSelector" onchange="changeFrameSize()">
@@ -412,30 +402,25 @@
                 </select>
             </div>
 
-            <!-- Studio Canvas -->
             <div class="studio-canvas" id="studioCanvas" style="background-image: url('setup 1.jpg');">
                 
-                <!-- Video Player Controls Overlay -->
                 <div class="video-player-bar">
                     <button class="play-pause-btn" id="playBtn" onclick="togglePlayPreview()">▶</button>
                     <input type="range" class="video-scrubber" id="videoScrubber" value="0" min="0" max="100" oninput="scrubVideo(this.value)">
                     <span class="video-time" id="videoTimeText">0:00 / 0:30</span>
                 </div>
 
-                <!-- Dynamic Info Overlay -->
                 <div class="canvas-overlay-content">
                     <h3 id="displayTitle">GLOBAL FOCUS: CLOSE-UP PORTRAIT</h3>
                     <p id="displaySubtitle">Live AI neural sync active for broadcast setup.</p>
                 </div>
 
-                <!-- Live News Ticker -->
                 <div class="broadcast-ticker">
                     <span style="color: var(--accent-gold); font-weight: bold; margin-right: 15px; font-size: 11px;">LIVE BREAKING:</span>
                     <marquee id="tickerMarquee" style="font-size: 12px;" scrollamount="5">Addis Ababa hosts East African infrastructural summit — Economic cooperation agreements signed today.</marquee>
                 </div>
             </div>
 
-            <!-- Selected Options Summary Bar Beneath Image -->
             <div class="selected-options-bar">
                 <div>Active Setup: <span id="summarySetup">Setup 1: Close-Up Portrait</span></div>
                 <div>•</div>
@@ -501,7 +486,6 @@
             }
         }
 
-        /* Video Player Simulation Controls */
         function togglePlayPreview() {
             const playBtn = document.getElementById('playBtn');
             isPlaying = !isPlaying;
@@ -531,14 +515,13 @@
             document.getElementById('videoTimeText').innerText = `0:${formattedSec} / 0:30`;
         }
 
-        /* n8n Automation Webhook Connector */
         function triggerBroadcast() {
             const setupKey = document.getElementById('setupSelector').value;
             const scriptText = document.getElementById('scriptInput').value;
             const tickerText = document.getElementById('breakingNewsInput').value;
             const language = document.getElementById('langSelector').value;
             const frameSize = document.getElementById('frameSizeSelector').value;
-            const activeUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser') || 'Guest User';
+            const activeUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser') || 'habeshan';
 
             const n8nPayload = {
                 event: "GENERATE_AI_NEWS_VIDEO",
@@ -562,13 +545,13 @@
             window.location.href = 'loginpage.html';
         }
 
-        // Load active user and setup preview on page load
         window.onload = function() {
+            // Pulls whatever username was entered on the login page
             const loggedInUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
-            if (loggedInUser) {
+            if (loggedInUser && loggedInUser.trim() !== "") {
                 document.getElementById('loggedInUserDisplay').innerText = loggedInUser;
             } else {
-                document.getElementById('loggedInUserDisplay').innerText = "Amanuel Bekele Woldesenbet"; // Fallback
+                document.getElementById('loggedInUserDisplay').innerText = "habeshan";
             }
             updateStudioPreview();
         };
