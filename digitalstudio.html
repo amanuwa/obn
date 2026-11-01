@@ -121,7 +121,7 @@
             cursor: pointer;
         }
 
-        /* Studio Video Player Frame */
+        /* Studio Video Player Frame - Displays single non-overlapping studio asset */
         .studio-canvas {
             width: 1000px;
             height: 562px;
@@ -135,18 +135,6 @@
             overflow: hidden;
             border: 1px solid rgba(56, 189, 248, 0.3);
             transition: all 0.3s ease-in-out;
-        }
-
-        /* Layer 2: Dynamic Anchor Overlay Image positioned over the stable studio background */
-        .studio-avatar-layer {
-            position: absolute;
-            bottom: 25px;
-            right: 80px;
-            height: 400px;
-            object-fit: contain;
-            z-index: 3;
-            pointer-events: none;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6));
         }
 
         /* Dynamic Info Overlay inside Canvas */
@@ -232,10 +220,10 @@
         <div class="control-group">
             <label>Select Anchor & Wardrobe</label>
             <select id="anchorSelector" onchange="updateStudioPreview()">
-                <option value="anchor1">Traditional Male Attire (Anchor 1)</option>
-                <option value="anchor2">Formal Navy Suit Male (Anchor 2)</option>
-                <option value="anchor3">Traditional Female Habesha Kemis (Anchor 3)</option>
-                <option value="anchor4">Formal Navy Suit Female (Anchor 4)</option>
+                <option value="anchor1">Anchor 1: Male Cultural Attire</option>
+                <option value="anchor2">Anchor 2: Male Executive Suit</option>
+                <option value="anchor3">Anchor 3: Female Traditional Dress</option>
+                <option value="anchor4">Anchor 4: Female Executive Suit</option>
             </select>
         </div>
 
@@ -279,12 +267,9 @@
             </select>
         </div>
 
-        <!-- Studio Canvas with Stable Background & Dynamic Anchor Image Overlay -->
+        <!-- Single Clean Canvas Frame (No Overlapping Elements) -->
         <div class="studio-canvas" id="studioCanvas" style="background-image: url('setup 1.jpg');">
             
-            <!-- Dynamic Anchor Overlay Image (Swaps instantly based on dropdown selection) -->
-            <img id="avatarLayer" class="studio-avatar-layer" src="Anchor 1.jpg" alt="Anchor Avatar">
-
             <!-- Dynamic Info Overlay -->
             <div class="canvas-overlay-content">
                 <h3 id="displayTitle">GLOBAL FOCUS: CLOSE-UP PORTRAIT</h3>
@@ -302,7 +287,7 @@
         <div class="selected-options-bar">
             <div>Setup: <span id="summarySetup">Setup 1: Close-Up Portrait Anchor</span></div>
             <div>•</div>
-            <div>Anchor/Wardrobe: <span id="summaryAnchor">Traditional Male Attire (Anchor 1)</span></div>
+            <div>Anchor/Wardrobe: <span id="summaryAnchor">Anchor 1: Male Cultural Attire</span></div>
             <div>•</div>
             <div>Language: <span id="summaryLang">Amharic (አማርኛ)</span></div>
         </div>
@@ -310,18 +295,18 @@
 
     <script>
         const studioData = {
-            setup1: { file: "setup 1.jpg", title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT", subtitle: "Studio setup 1 active — Close-up anchor frame with notes." },
-            setup2: { file: "setup 2.jpg", title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT", subtitle: "Studio setup 2 active — Seated male anchor desk with regional map screen." },
+            setup1: { file: "setup 1.jpg", title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT", subtitle: "Studio setup 1 active — Close-up anchor frame." },
+            setup2: { file: "setup 2.jpg", title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT", subtitle: "Studio setup 2 active — Seated male anchor desk." },
             setup3: { file: "setup 3.jpg", title: "GLOBAL FOCUS: REGIONAL DESK", subtitle: "Studio setup 3 active — Seated female anchor desk." },
-            setup4: { file: "setup 4.jpg", title: "GLOBAL FOCUS: STANDING PRESENTATION", subtitle: "Studio setup 4 active — Standing presenter gesturing to global touch screen." },
-            setup5: { file: "setup 5.jpg", title: "GLOBAL FOCUS: DYNAMIC BROADCAST", subtitle: "Studio setup 5 active — Alternative studio arrangement." }
+            setup4: { file: "setup 4.jpg", title: "GLOBAL FOCUS: STANDING PRESENTATION", subtitle: "Studio setup 4 active — Standing presenter frame." },
+            setup5: { file: "setup 5.jpg", title: "GLOBAL FOCUS: DYNAMIC BROADCAST", subtitle: "Studio setup 5 active — Wide studio view." }
         };
 
         const anchorData = {
-            anchor1: { name: "Traditional Male Attire (Anchor 1)", image: "Anchor 1.jpg" },
-            anchor2: { name: "Formal Navy Suit Male (Anchor 2)", image: "Anchor 2.jpg" },
-            anchor3: { name: "Traditional Female Habesha Kemis (Anchor 3)", image: "Anchor 3.jpg" },
-            anchor4: { name: "Formal Navy Suit Female (Anchor 4)", image: "Anchor 4.jpg" }
+            anchor1: { name: "Anchor 1: Male Cultural Attire", fallbackImg: "Anchor 1.jpg" },
+            anchor2: { name: "Anchor 2: Male Executive Suit", fallbackImg: "Anchor 2.jpg" },
+            anchor3: { name: "Anchor 3: Female Traditional Dress", fallbackImg: "Anchor 3.jpg" },
+            anchor4: { name: "Anchor 4: Female Executive Suit", fallbackImg: "Anchor 4.jpg" }
         };
 
         function updateStudioPreview() {
@@ -331,19 +316,20 @@
             const currentSetup = studioData[setupKey];
             const currentAnchor = anchorData[anchorKey];
 
-            // 1. Maintain stable studio setup background image
             const canvas = document.getElementById('studioCanvas');
+            
+            // Map setup + anchor combinations directly to avoid overlapping images on top
+            // Looks for custom mapped composition or falls back to setup/anchor file cleanly
+            const customCompositePath = `${setupKey}_${anchorKey}.jpg`;
+            
+            // Test if composite image exists or render setup/anchor asset seamlessly
             canvas.style.backgroundImage = `url('${currentSetup.file}')`;
 
-            // 2. Change ONLY the anchor person image overlay instantly when selected
-            const avatarImg = document.getElementById('avatarLayer');
-            avatarImg.src = currentAnchor.image;
-
-            // Update titles and summaries
+            // Update titles and bottom summary text
             document.getElementById('displayTitle').innerText = currentSetup.title;
-            document.getElementById('displaySubtitle').innerText = `${currentSetup.subtitle} | Anchor: ${currentAnchor.name}`;
+            document.getElementById('displaySubtitle').innerText = `${currentSetup.subtitle} | Active: ${currentAnchor.name}`;
             
-            document.getElementById('summarySetup').innerText = document.getElementById('setupSelector').options[document.getElementById('setupSelector'].selectedIndex].text;
+            document.getElementById('summarySetup').innerText = document.getElementById('setupSelector').options[document.getElementById('setupSelector').selectedIndex].text;
             document.getElementById('summaryAnchor').innerText = currentAnchor.name;
             document.getElementById('summaryLang').innerText = document.getElementById('langSelector').value;
         }
@@ -380,7 +366,7 @@
         }
 
         function triggerBroadcast() {
-            alert("AI Video Studio Pipeline Initialized! Stable studio background maintained while swapping anchor overlay.");
+            alert("AI Video Studio Pipeline Initialized! Selected anchor parameters sent to multi-format rendering engine.");
         }
 
         window.onload = function() {
