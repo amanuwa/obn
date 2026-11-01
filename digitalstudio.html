@@ -111,7 +111,7 @@
             text-transform: uppercase;
         }
 
-        .canvas-toolbar select, .toolbar-btn {
+        .canvas-toolbar select {
             background: rgba(3, 7, 18, 0.8);
             color: #fff;
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -121,12 +121,7 @@
             cursor: pointer;
         }
 
-        .toolbar-btn:hover {
-            background: var(--accent-blue);
-            color: #000;
-        }
-
-        /* Studio Canvas Frame - Uses 'contain' so the image is fully scaled without cutting */
+        /* Studio Video Player Frame */
         .studio-canvas {
             width: 1000px;
             height: 562px;
@@ -142,6 +137,18 @@
             transition: all 0.3s ease-in-out;
         }
 
+        /* Layer 2: Dynamic Anchor Overlay Image positioned over the stable studio background */
+        .studio-avatar-layer {
+            position: absolute;
+            bottom: 25px;
+            right: 80px;
+            height: 400px;
+            object-fit: contain;
+            z-index: 3;
+            pointer-events: none;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6));
+        }
+
         /* Dynamic Info Overlay inside Canvas */
         .canvas-overlay-content {
             position: absolute;
@@ -153,6 +160,8 @@
             border-left: 4px solid var(--accent-blue);
             backdrop-filter: blur(6px);
             max-width: 350px;
+            z-index: 4;
+            pointer-events: none;
         }
 
         .canvas-overlay-content h3 {
@@ -181,6 +190,7 @@
             padding: 0 15px;
             z-index: 5;
             box-sizing: border-box;
+            pointer-events: none;
         }
 
         /* Metadata Summary Panel Beneath Image */
@@ -210,7 +220,7 @@
         
         <div class="control-group">
             <label>Select Studio Setup</label>
-            <select id="setupSelector" onchange="updateStudioSetup()">
+            <select id="setupSelector" onchange="updateStudioPreview()">
                 <option value="setup1">Setup 1: Close-Up Portrait Anchor</option>
                 <option value="setup2">Setup 2: Seated Male Anchor Desk</option>
                 <option value="setup3">Setup 3: Seated Female Anchor Desk</option>
@@ -221,10 +231,11 @@
 
         <div class="control-group">
             <label>Select Anchor & Wardrobe</label>
-            <select id="anchorSelector" onchange="updateMetadata()">
-                <option value="Dawit Kebede (Navy Blue Suit)">Dawit Kebede (Navy Blue Suit)</option>
-                <option value="Hanna Mamo (Royal Blue Blazer)">Hanna Mamo (Royal Blue Blazer)</option>
-                <option value="Yared Tadesse (Charcoal Formal)">Yared Tadesse (Charcoal Formal)</option>
+            <select id="anchorSelector" onchange="updateStudioPreview()">
+                <option value="anchor1">Traditional Male Attire (Anchor 1)</option>
+                <option value="anchor2">Formal Navy Suit Male (Anchor 2)</option>
+                <option value="anchor3">Traditional Female Habesha Kemis (Anchor 3)</option>
+                <option value="anchor4">Formal Navy Suit Female (Anchor 4)</option>
             </select>
         </div>
 
@@ -255,7 +266,7 @@
     <!-- Right Studio Stage Preview Area -->
     <div class="studio-stage-container">
         
-        <!-- Top Editing Toolbar with Social Media Frame Sizes -->
+        <!-- Top Editing Toolbar -->
         <div class="canvas-toolbar">
             <label>Platform / Frame Size:</label>
             <select id="frameSizeSelector" onchange="changeFrameSize()">
@@ -266,13 +277,14 @@
                 <option value="instagram-square">Instagram Square Post (1:1)</option>
                 <option value="story-vertical">TikTok / Instagram Reels / YouTube Shorts (9:16)</option>
             </select>
-
-            <button class="toolbar-btn" onclick="toggleInvert()">🔄 Invert / Mirror Image</button>
         </div>
 
-        <!-- Studio Canvas -->
+        <!-- Studio Canvas with Stable Background & Dynamic Anchor Image Overlay -->
         <div class="studio-canvas" id="studioCanvas" style="background-image: url('setup 1.jpg');">
             
+            <!-- Dynamic Anchor Overlay Image (Swaps instantly based on dropdown selection) -->
+            <img id="avatarLayer" class="studio-avatar-layer" src="Anchor 1.jpg" alt="Anchor Avatar">
+
             <!-- Dynamic Info Overlay -->
             <div class="canvas-overlay-content">
                 <h3 id="displayTitle">GLOBAL FOCUS: CLOSE-UP PORTRAIT</h3>
@@ -290,7 +302,7 @@
         <div class="selected-options-bar">
             <div>Setup: <span id="summarySetup">Setup 1: Close-Up Portrait Anchor</span></div>
             <div>•</div>
-            <div>Anchor/Wardrobe: <span id="summaryAnchor">Dawit Kebede (Navy Blue Suit)</span></div>
+            <div>Anchor/Wardrobe: <span id="summaryAnchor">Traditional Male Attire (Anchor 1)</span></div>
             <div>•</div>
             <div>Language: <span id="summaryLang">Amharic (አማርኛ)</span></div>
         </div>
@@ -298,33 +310,45 @@
 
     <script>
         const studioData = {
-            setup1: { image: "setup 1.jpg", title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT", subtitle: "Studio setup 1 active — Close-up anchor frame with notes." },
-            setup2: { image: "setup 2.jpg", title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT", subtitle: "Studio setup 2 active — Seated male anchor desk with regional map screen." },
-            setup3: { image: "setup 3.jpg", title: "GLOBAL FOCUS: REGIONAL DESK", subtitle: "Studio setup 3 active — Seated female anchor desk." },
-            setup4: { image: "setup 4.jpg", title: "GLOBAL FOCUS: STANDING PRESENTATION", subtitle: "Studio setup 4 active — Standing presenter gesturing to global touch screen." },
-            setup5: { image: "setup 5.jpg", title: "GLOBAL FOCUS: DYNAMIC BROADCAST", subtitle: "Studio setup 5 active — Alternative studio arrangement." }
+            setup1: { file: "setup 1.jpg", title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT", subtitle: "Studio setup 1 active — Close-up anchor frame with notes." },
+            setup2: { file: "setup 2.jpg", title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT", subtitle: "Studio setup 2 active — Seated male anchor desk with regional map screen." },
+            setup3: { file: "setup 3.jpg", title: "GLOBAL FOCUS: REGIONAL DESK", subtitle: "Studio setup 3 active — Seated female anchor desk." },
+            setup4: { file: "setup 4.jpg", title: "GLOBAL FOCUS: STANDING PRESENTATION", subtitle: "Studio setup 4 active — Standing presenter gesturing to global touch screen." },
+            setup5: { file: "setup 5.jpg", title: "GLOBAL FOCUS: DYNAMIC BROADCAST", subtitle: "Studio setup 5 active — Alternative studio arrangement." }
         };
 
-        let isInverted = false;
+        const anchorData = {
+            anchor1: { name: "Traditional Male Attire (Anchor 1)", image: "Anchor 1.jpg" },
+            anchor2: { name: "Formal Navy Suit Male (Anchor 2)", image: "Anchor 2.jpg" },
+            anchor3: { name: "Traditional Female Habesha Kemis (Anchor 3)", image: "Anchor 3.jpg" },
+            anchor4: { name: "Formal Navy Suit Female (Anchor 4)", image: "Anchor 4.jpg" }
+        };
 
-        function updateStudioSetup() {
-            const selectedKey = document.getElementById('setupSelector').value;
-            const titleElem = document.getElementById('displayTitle');
-            const subtitleElem = document.getElementById('displaySubtitle');
-            const summarySetup = document.getElementById('summarySetup');
-            const setupSelectElem = document.getElementById('setupSelector');
+        function updateStudioPreview() {
+            const setupKey = document.getElementById('setupSelector').value;
+            const anchorKey = document.getElementById('anchorSelector').value;
+            
+            const currentSetup = studioData[setupKey];
+            const currentAnchor = anchorData[anchorKey];
 
-            const currentSetup = studioData[selectedKey];
-            if (currentSetup) {
-                updateCanvasBackground(currentSetup.image);
-                titleElem.innerText = currentSetup.title;
-                subtitleElem.innerText = currentSetup.subtitle;
-                summarySetup.innerText = setupSelectElem.options[setupSelectElem.selectedIndex].text;
-            }
+            // 1. Maintain stable studio setup background image
+            const canvas = document.getElementById('studioCanvas');
+            canvas.style.backgroundImage = `url('${currentSetup.file}')`;
+
+            // 2. Change ONLY the anchor person image overlay instantly when selected
+            const avatarImg = document.getElementById('avatarLayer');
+            avatarImg.src = currentAnchor.image;
+
+            // Update titles and summaries
+            document.getElementById('displayTitle').innerText = currentSetup.title;
+            document.getElementById('displaySubtitle').innerText = `${currentSetup.subtitle} | Anchor: ${currentAnchor.name}`;
+            
+            document.getElementById('summarySetup').innerText = document.getElementById('setupSelector').options[document.getElementById('setupSelector'].selectedIndex].text;
+            document.getElementById('summaryAnchor').innerText = currentAnchor.name;
+            document.getElementById('summaryLang').innerText = document.getElementById('langSelector').value;
         }
 
         function updateMetadata() {
-            document.getElementById('summaryAnchor').innerText = document.getElementById('anchorSelector').value;
             document.getElementById('summaryLang').innerText = document.getElementById('langSelector').value;
         }
 
@@ -339,39 +363,29 @@
             
             if (frame === '16:9' || frame === 'twitter-post') {
                 canvas.style.width = '1000px';
-                canvas.style.height = '562px'; // 16:9 ratio
+                canvas.style.height = '562px';
             } else if (frame === 'fb-post') {
                 canvas.style.width = '1000px';
-                canvas.style.height = '523px'; // 1.91:1 ratio
+                canvas.style.height = '523px';
             } else if (frame === 'telegram-post') {
                 canvas.style.width = '800px';
-                canvas.style.height = '600px'; // 4:3 ratio
+                canvas.style.height = '600px';
             } else if (frame === 'instagram-square') {
                 canvas.style.width = '550px';
-                canvas.style.height = '550px'; // 1:1 ratio
+                canvas.style.height = '550px';
             } else if (frame === 'story-vertical') {
                 canvas.style.width = '320px';
-                canvas.style.height = '568px'; // 9:16 ratio
+                canvas.style.height = '568px';
             }
         }
 
-        function toggleInvert() {
-            isInverted = !isInverted;
-            const selectedKey = document.getElementById('setupSelector').value;
-            const imgPath = studioData[selectedKey].image;
-            updateCanvasBackground(imgPath);
-        }
-
-        function updateCanvasBackground(imagePath) {
-            const canvas = document.getElementById('studioCanvas');
-            const scaleX = isInverted ? 'scaleX(-1)' : 'scaleX(1)';
-            canvas.style.backgroundImage = `url('${imagePath}')`;
-            canvas.style.transform = scaleX;
-        }
-
         function triggerBroadcast() {
-            alert("AI Studio Pipeline Initialized! Resizing frame parameters and syncing social media export pipeline.");
+            alert("AI Video Studio Pipeline Initialized! Stable studio background maintained while swapping anchor overlay.");
         }
+
+        window.onload = function() {
+            updateStudioPreview();
+        };
     </script>
 </body>
 </html>
