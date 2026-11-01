@@ -22,7 +22,7 @@
             overflow: hidden;
         }
 
-        /* Top Bar with Dynamic User Name and Logout */
+        /* Top Bar with Highlighted User Name Badge and Logout */
         .top-navbar {
             height: 60px;
             background: rgba(15, 23, 42, 0.95);
@@ -49,11 +49,15 @@
             gap: 15px;
         }
 
-        /* Displays the actual user name directly without "Logged in as:" */
+        /* Styled badge so the logged-in user's name stands out clearly */
         .username-display {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
-            color: #fff;
+            color: var(--accent-blue);
+            background: rgba(56, 189, 248, 0.1);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
         }
 
         .logout-btn {
@@ -342,12 +346,11 @@
 </head>
 <body>
 
-    <!-- Top Navigation Bar with Dynamic User Name and Logout -->
+    <!-- Top Navigation Bar with Highlighted User Badge and Logout -->
     <div class="top-navbar">
         <div class="brand-title">AI Digital News Studio</div>
         <div class="user-nav-profile">
-            <!-- Displays only the active logged-in user name dynamically -->
-            <div class="username-display" id="loggedInUserDisplay">Guest User</div>
+            <div class="username-display" id="loggedInUserDisplay">Loading User...</div>
             <button class="logout-btn" onclick="signOut()">Logout</button>
         </div>
     </div>
@@ -535,7 +538,7 @@
             const tickerText = document.getElementById('breakingNewsInput').value;
             const language = document.getElementById('langSelector').value;
             const frameSize = document.getElementById('frameSizeSelector').value;
-            const activeUser = localStorage.getItem('loggedInUser') || 'Amanuel Bekele Woldesenbet';
+            const activeUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser') || 'Guest User';
 
             const n8nPayload = {
                 event: "GENERATE_AI_NEWS_VIDEO",
@@ -555,13 +558,18 @@
 
         function signOut() {
             localStorage.removeItem('loggedInUser');
+            sessionStorage.removeItem('loggedInUser');
             window.location.href = 'loginpage.html';
         }
 
         // Load active user and setup preview on page load
         window.onload = function() {
-            const loggedInUser = localStorage.getItem('loggedInUser') || 'Amanuel Bekele Woldesenbet';
-            document.getElementById('loggedInUserDisplay').innerText = loggedInUser;
+            const loggedInUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+            if (loggedInUser) {
+                document.getElementById('loggedInUserDisplay').innerText = loggedInUser;
+            } else {
+                document.getElementById('loggedInUserDisplay').innerText = "Amanuel Bekele Woldesenbet"; // Fallback
+            }
             updateStudioPreview();
         };
     </script>
