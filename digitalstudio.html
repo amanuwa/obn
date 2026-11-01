@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>AI Digital News Studio</title>
+    <!-- Include Supabase JS Client for Cloud Storage Uploads & Checks -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-dark: #07090e;
@@ -22,7 +24,7 @@
             overflow: hidden;
         }
 
-        /* Top Bar with Dynamic User Name Badge and Logout */
+        /* Top Bar */
         .top-navbar {
             height: 60px;
             background: rgba(15, 23, 42, 0.95);
@@ -77,7 +79,7 @@
             color: #fff;
         }
 
-        /* Main Workspace Layout */
+        /* Main Workspace */
         .main-workspace {
             display: flex;
             flex: 1;
@@ -87,26 +89,26 @@
 
         /* Left Control Panel */
         .control-panel {
-            width: 420px;
+            width: 440px;
             background: var(--panel-bg);
             backdrop-filter: blur(16px);
             border-right: 1px solid rgba(56, 189, 248, 0.2);
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
             z-index: 10;
             box-sizing: border-box;
             overflow-y: auto;
         }
 
-        h2 { margin: 0 0 5px 0; font-size: 16px; color: #fff; }
+        h2 { margin: 0 0 3px 0; font-size: 16px; color: #fff; }
 
         .control-group label {
             font-size: 11px;
             font-weight: 600;
             color: var(--accent-blue);
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             display: block;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -114,7 +116,7 @@
 
         .control-group select, .control-group input {
             width: 100%;
-            padding: 10px;
+            padding: 9px;
             background: rgba(3, 7, 18, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff;
@@ -123,24 +125,48 @@
             box-sizing: border-box;
         }
 
+        /* Multi-File Upload Button Styling */
+        .upload-asset-btn {
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px dashed var(--accent-blue);
+            color: var(--accent-blue);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .upload-asset-btn:hover {
+            background: rgba(56, 189, 248, 0.25);
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        /* Script Box Container with Autocomplete Popup */
         .script-group {
             flex: 1;
             display: flex;
             flex-direction: column;
-            min-height: 200px;
+            min-height: 180px;
+            position: relative;
         }
 
         .script-group textarea {
             width: 100%;
             flex: 1;
-            min-height: 180px;
-            padding: 12px;
+            min-height: 140px;
+            padding: 10px;
             background: rgba(3, 7, 18, 0.95);
             border: 1px solid rgba(56, 189, 248, 0.3);
             color: #fff;
             border-radius: 8px;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 13px;
+            line-height: 1.4;
             box-sizing: border-box;
             resize: vertical;
             font-family: inherit;
@@ -152,18 +178,67 @@
             box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
         }
 
+        /* Autocomplete Dropdown List Styling */
+        #autocompleteDropdown {
+            display: none;
+            position: absolute;
+            bottom: 45px;
+            left: 0;
+            width: 100%;
+            max-height: 160px;
+            background: #0f172a;
+            border: 1px solid var(--accent-blue);
+            border-radius: 6px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+        }
+
+        .autocomplete-item {
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #cbd5e1;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .autocomplete-item:hover, .autocomplete-item.selected {
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .autocomplete-item span.tag-code {
+            color: var(--accent-gold);
+            font-family: monospace;
+        }
+
+        .media-hint {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 3px;
+        }
+
+        .media-hint code {
+            color: var(--accent-gold);
+            background: rgba(245, 158, 11, 0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
         .generate-btn {
             background: linear-gradient(135deg, #38bdf8, #2563eb);
             color: white;
             border: none;
-            padding: 14px;
+            padding: 13px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
-            font-size: 13px;
+            font-size: 12px;
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
@@ -374,9 +449,24 @@
                 </select>
             </div>
 
+            <!-- News Script Group with Multi-File Upload Button right above it -->
             <div class="control-group script-group">
-                <label>Full News Script Text</label>
-                <textarea id="scriptInput" placeholder="Type or paste the complete news script for the AI anchor to speak..."></textarea>
+                <label>Full News Script Text & Screen Media Tags</label>
+                
+                <!-- Hidden Multi-File Input -->
+                <input type="file" id="mediaFileInput" multiple style="display: none;" onchange="handleMultiFileUpload(event)">
+                
+                <!-- Upload Button placed right above the text area -->
+                <button type="button" class="upload-asset-btn" onclick="document.getElementById('mediaFileInput').click()">
+                    📁 + Upload Media Asset(s)
+                </button>
+
+                <textarea id="scriptInput" placeholder="Type script. Type '@' to instantly pull and select media assets for studio screens..." oninput="handleScriptInput(event)" onkeydown="handleKeyNavigation(event)"></textarea>
+                
+                <!-- Autocomplete Popup Box -->
+                <div id="autocompleteDropdown"></div>
+
+                <div class="media-hint">Tip: Type <code>@</code> to open media asset selector or upload new files above.</div>
             </div>
 
             <div class="control-group">
@@ -428,11 +518,6 @@
             </div>
         </div>
     </div>
-    <!-- 1. Supabase JS Client CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- 2. Your External Configuration File -->
-    <script src="config.js"></script>
 
     <script>
         const studioData = {
@@ -443,9 +528,22 @@
             setup5: { file: "setup 5.jpg", title: "GLOBAL FOCUS: DYNAMIC BROADCAST", subtitle: "Studio setup 5 active — Alternative studio arrangement." }
         };
 
+        // Active Media Library Database
+        let mediaLibrary = [
+            { shortName: "summit", filename: "summit_leaders_2026.jpg", type: "Image" },
+            { shortName: "signing", filename: "signing_ceremony_clip.mp4", type: "Video" }
+        ];
+
+        // Initialize Supabase Client (Replace with your actual Supabase URL and Anon Key)
+        const SUPABASE_URL = 'https://your-project.supabase.co';
+        const SUPABASE_ANON_KEY = 'your-anon-key';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         let isPlaying = false;
         let playInterval = null;
         let playProgress = 0;
+        let selectedIndex = 0;
+        let activeMatches = [];
 
         function updateStudioPreview() {
             const setupKey = document.getElementById('setupSelector').value;
@@ -491,6 +589,149 @@
             }
         }
 
+        /* --- Multi-File Upload with Database Existence Check & Short Name Prompt --- */
+        async function handleMultiFileUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const storagePath = `uploads/${file.name}`;
+
+                try {
+                    // 1. Check if file already exists in Supabase storage bucket ('studio-assets')
+                    const { data: existingFiles, error: listError } = await _supabase.storage
+                        .from('studio-assets')
+                        .list('uploads', { search: file.name });
+
+                    if (listError) throw listError;
+
+                    const fileExists = existingFiles && existingFiles.some(f => f.name === file.name);
+
+                    if (fileExists) {
+                        const overwrite = confirm(`File "${file.name}" already exists in cloud storage. Do you want to use it?`);
+                        if (!overwrite) continue;
+                    } else {
+                        // 2. Upload file to Supabase if it doesn't exist
+                        const { error: uploadError } = await _supabase.storage
+                            .from('studio-assets')
+                            .upload(storagePath, file, { upsert: true });
+
+                        if (uploadError) throw uploadError;
+                    }
+
+                    // 3. Get Public URL
+                    const { data: publicUrlData } = _supabase.storage
+                        .from('studio-assets')
+                        .getPublicUrl(storagePath);
+
+                    const publicUrl = publicUrlData.publicUrl;
+
+                    // 4. Ask user for a short name for the '@' mention tag
+                    let defaultShort = file.name.split('.')[0].toLowerCase().replace(/\s+/g, '_');
+                    let shortName = prompt(`Enter a short tag name for "${file.name}" (used with @):`, defaultShort);
+                    if (!shortName) shortName = defaultShort;
+                    shortName = shortName.trim().toLowerCase().replace(/\s+/g, '_');
+
+                    // 5. Add to local media library array for instant autocomplete
+                    mediaLibrary.push({
+                        shortName: shortName,
+                        filename: publicUrl,
+                        type: file.type.startsWith('video') ? 'Video' : 'Image'
+                    });
+
+                    alert(`Successfully registered "${file.name}" as '@${shortName}'!`);
+
+                } catch (err) {
+                    console.error("Upload error for file:", file.name, err);
+                    alert(`Failed to upload ${file.name}. Check console for details.`);
+                }
+            }
+
+            // Reset file input
+            event.target.value = '';
+        }
+
+        /* --- @ Autocomplete Logic --- */
+        function handleScriptInput(event) {
+            const textarea = document.getElementById('scriptInput');
+            const val = textarea.value;
+            const cursorPos = textarea.selectionStart;
+            const dropdown = document.getElementById('autocompleteDropdown');
+
+            const textBeforeCursor = val.substring(0, cursorPos);
+            const atSymbolIndex = textBeforeCursor.lastIndexOf('@');
+
+            if (atSymbolIndex !== -1) {
+                const query = textBeforeCursor.substring(atSymbolIndex + 1);
+                if (!query.includes(' ') && !query.includes('\n')) {
+                    activeMatches = mediaLibrary.filter(m => m.shortName.toLowerCase().startsWith(query.toLowerCase()));
+                    
+                    if (activeMatches.length > 0) {
+                        selectedIndex = 0;
+                        renderDropdown(activeMatches);
+                        dropdown.style.display = 'block';
+                        return;
+                    }
+                }
+            }
+            dropdown.style.display = 'none';
+        }
+
+        function renderDropdown(matches) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            dropdown.innerHTML = '';
+            matches.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = `autocomplete-item ${index === selectedIndex ? 'selected' : ''}`;
+                div.innerHTML = `<span>📷 @${item.shortName} <small style="color:#94a3b8">(${item.type})</small></span> <span class="tag-code">[MEDIA: ${item.shortName}]</span>`;
+                div.onclick = () => insertMediaTag(item.shortName);
+                dropdown.appendChild(div);
+            });
+        }
+
+        function handleKeyNavigation(event) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            if (dropdown.style.display === 'block') {
+                if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    selectedIndex = (selectedIndex + 1) % activeMatches.length;
+                    renderDropdown(activeMatches);
+                } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    selectedIndex = (selectedIndex - 1 + activeMatches.length) % activeMatches.length;
+                    renderDropdown(activeMatches);
+                } else if (event.key === 'Enter' || event.key === 'Tab') {
+                    if (activeMatches.length > 0) {
+                        event.preventDefault();
+                        insertMediaTag(activeMatches[selectedIndex].shortName);
+                    }
+                } else if (event.key === 'Escape') {
+                    dropdown.style.display = 'none';
+                }
+            }
+        }
+
+        function insertMediaTag(shortName) {
+            const textarea = document.getElementById('scriptInput');
+            const val = textarea.value;
+            const cursorPos = textarea.selectionStart;
+            const atSymbolIndex = val.lastIndexOf('@', cursorPos - 1);
+
+            if (atSymbolIndex !== -1) {
+                const prefix = val.substring(0, atSymbolIndex);
+                const suffix = val.substring(cursorPos);
+                const tag = `[MEDIA: ${shortName}] `;
+
+                textarea.value = prefix + tag + suffix;
+                textarea.focus();
+                textarea.setSelectionRange(prefix.length + tag.length, prefix.length + tag.length);
+            }
+
+            document.getElementById('autocompleteDropdown').style.display = 'none';
+        }
+
+        /* Video Player Simulation Controls */
         function togglePlayPreview() {
             const playBtn = document.getElementById('playBtn');
             isPlaying = !isPlaying;
@@ -520,6 +761,7 @@
             document.getElementById('videoTimeText').innerText = `0:${formattedSec} / 0:30`;
         }
 
+        /* n8n Webhook Dispatch */
         function triggerBroadcast() {
             const setupKey = document.getElementById('setupSelector').value;
             const scriptText = document.getElementById('scriptInput').value;
@@ -527,6 +769,15 @@
             const language = document.getElementById('langSelector').value;
             const frameSize = document.getElementById('frameSizeSelector').value;
             const activeUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser') || 'habeshan';
+
+            const mediaTagRegex = /\[MEDIA:\s*([^\]]+)\]/g;
+            const extractedMedia = [];
+            let match;
+            while ((match = mediaTagRegex.exec(scriptText)) !== null) {
+                const tagKey = match[1].trim();
+                const matchedAsset = mediaLibrary.find(m => m.shortName === tagKey);
+                extractedMedia.push(matchedAsset ? matchedAsset.filename : tagKey);
+            }
 
             const n8nPayload = {
                 event: "GENERATE_AI_NEWS_VIDEO",
@@ -536,12 +787,13 @@
                 imageAsset: studioData[setupKey].file,
                 voiceLanguage: language,
                 newsScript: scriptText,
+                screenMediaAssets: extractedMedia,
                 breakingNewsTicker: tickerText,
                 aspectRatioFormat: frameSize
             };
 
             console.log("Sending payload to n8n webhook:", n8nPayload);
-            alert(`n8n Pipeline Payload Dispatched for ${activeUser}!\n\nScript, audio parameters, and studio setup sent to automated video generation engine.`);
+            alert(`n8n Pipeline Payload Dispatched for ${activeUser}!\n\nDetected ${extractedMedia.length} screen media asset(s).`);
         }
 
         function signOut() {
@@ -551,13 +803,8 @@
         }
 
         window.onload = function() {
-            // Pulls whatever username was entered on the login page
             const loggedInUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
-            if (loggedInUser && loggedInUser.trim() !== "") {
-                document.getElementById('loggedInUserDisplay').innerText = loggedInUser;
-            } else {
-                document.getElementById('loggedInUserDisplay').innerText = "habeshan";
-            }
+            document.getElementById('loggedInUserDisplay').innerText = loggedInUser || "habeshan";
             updateStudioPreview();
         };
     </script>
