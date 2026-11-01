@@ -9,7 +9,6 @@
             --panel-bg: rgba(15, 23, 42, 0.85);
             --accent-blue: #38bdf8;
             --accent-gold: #f59e0b;
-            --accent-green: #22c55e;
         }
 
         body {
@@ -18,7 +17,71 @@
             background-color: var(--bg-dark);
             color: #ffffff;
             display: flex;
+            flex-direction: column;
             height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Top Bar with User Profile and Logout */
+        .top-navbar {
+            height: 60px;
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 25px;
+            z-index: 20;
+            box-sizing: border-box;
+        }
+
+        .brand-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent-blue);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .user-nav-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-greeting {
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+
+        .user-greeting span {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 7px 14px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.4);
+            color: #fff;
+        }
+
+        /* Main Workspace Layout (Left Panel + Right Stage) */
+        .main-workspace {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 60px);
             overflow: hidden;
         }
 
@@ -37,31 +100,7 @@
             overflow-y: auto;
         }
 
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        h2 { margin: 0; font-size: 18px; color: #fff; }
-
-        .signout-btn {
-            background: rgba(239, 68, 68, 0.2);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            padding: 6px 12px;
-            font-size: 11px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-        }
-
-        .signout-btn:hover {
-            background: rgba(239, 68, 68, 0.4);
-            color: #fff;
-        }
+        h2 { margin: 0 0 5px 0; font-size: 16px; color: #fff; }
 
         .control-group label {
             font-size: 11px;
@@ -89,13 +128,13 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            min-height: 220px;
+            min-height: 200px;
         }
 
         .script-group textarea {
             width: 100%;
             flex: 1;
-            min-height: 200px;
+            min-height: 180px;
             padding: 12px;
             background: rgba(3, 7, 18, 0.95);
             border: 1px solid rgba(56, 189, 248, 0.3);
@@ -193,7 +232,7 @@
             transition: all 0.3s ease-in-out;
         }
 
-        /* Video Control Overlay Controls */
+        /* Video Player Controls Overlay */
         .video-player-bar {
             position: absolute;
             top: 15px;
@@ -306,93 +345,101 @@
 </head>
 <body>
 
-    <!-- Left Control Panel -->
-    <div class="control-panel">
-        <div class="panel-header">
-            <h2>Digital Studio</h2>
-            <button class="signout-btn" onclick="signOut()">Sign Out</button>
+    <!-- Top Navigation Bar with Profile and Logout -->
+    <div class="top-navbar">
+        <div class="brand-title">AI Digital News Studio</div>
+        <div class="user-nav-profile">
+            <div class="user-greeting">Logged in as: <span>Amanuel Bekele Woldesenbet</span></div>
+            <button class="logout-btn" onclick="signOut()">Logout</button>
         </div>
-        
-        <div class="control-group">
-            <label>Select Studio Setup</label>
-            <select id="setupSelector" onchange="updateStudioPreview()">
-                <option value="setup1">Setup 1: Close-Up Portrait</option>
-                <option value="setup2">Setup 2: Seated Male Anchor Desk</option>
-                <option value="setup3">Setup 3: Seated Female Anchor Desk</option>
-                <option value="setup4">Setup 4: Standing Presentation</option>
-                <option value="setup5">Setup 5: Dynamic Broadcast View</option>
-            </select>
-        </div>
-
-        <div class="control-group">
-            <label>Voice & Language</label>
-            <select id="langSelector" onchange="updateMetadata()">
-                <option value="Amharic (አማርኛ)">Amharic (አማርኛ)</option>
-                <option value="English">English</option>
-                <option value="Afaan Oromoo">Afaan Oromoo</option>
-                <option value="Tigrinya (ትግርኛ)">Tigrinya (ትግርኛ)</option>
-                <option value="Somali">Somali</option>
-            </select>
-        </div>
-
-        <!-- Expanded Big News Script Text Box -->
-        <div class="control-group script-group">
-            <label>Full News Script Text</label>
-            <textarea id="scriptInput" placeholder="Type or paste the complete news script for the AI anchor to speak..."></textarea>
-        </div>
-
-        <div class="control-group">
-            <label>Breaking News Ticker Text</label>
-            <input type="text" id="breakingNewsInput" value="Addis Ababa hosts East African infrastructural summit — Economic cooperation agreements signed today." oninput="updateBreakingNews()" />
-        </div>
-
-        <button class="generate-btn" onclick="triggerBroadcast()">🚀 Dispatch Payload to n8n AI Pipeline</button>
     </div>
 
-    <!-- Right Studio Stage Preview Area -->
-    <div class="studio-stage-container">
-        
-        <!-- Top Frame Size Toolbar -->
-        <div class="canvas-toolbar">
-            <label>Platform / Frame Size:</label>
-            <select id="frameSizeSelector" onchange="changeFrameSize()">
-                <option value="16:9">YouTube / Standard Broadcast (16:9)</option>
-                <option value="fb-post">Facebook Post / Landscape (1.91:1)</option>
-                <option value="twitter-post">Twitter / X Post (16:9)</option>
-                <option value="telegram-post">Telegram Channel Media (4:3)</option>
-                <option value="instagram-square">Instagram Square Post (1:1)</option>
-                <option value="story-vertical">TikTok / Instagram Reels / YouTube Shorts (9:16)</option>
-            </select>
-        </div>
-
-        <!-- Studio Canvas -->
-        <div class="studio-canvas" id="studioCanvas" style="background-image: url('setup 1.jpg');">
+    <div class="main-workspace">
+        <!-- Left Control Panel -->
+        <div class="control-panel">
+            <h2>Digital Studio</h2>
             
-            <!-- Video Player Controls Overlay -->
-            <div class="video-player-bar">
-                <button class="play-pause-btn" id="playBtn" onclick="togglePlayPreview()">▶</button>
-                <input type="range" class="video-scrubber" id="videoScrubber" value="0" min="0" max="100" oninput="scrubVideo(this.value)">
-                <span class="video-time" id="videoTimeText">0:00 / 0:30</span>
+            <div class="control-group">
+                <label>Select Studio Setup</label>
+                <select id="setupSelector" onchange="updateStudioPreview()">
+                    <option value="setup1">Setup 1: Close-Up Portrait</option>
+                    <option value="setup2">Setup 2: Seated Male Anchor Desk</option>
+                    <option value="setup3">Setup 3: Seated Female Anchor Desk</option>
+                    <option value="setup4">Setup 4: Standing Presentation</option>
+                    <option value="setup5">Setup 5: Dynamic Broadcast View</option>
+                </select>
             </div>
 
-            <!-- Dynamic Info Overlay -->
-            <div class="canvas-overlay-content">
-                <h3 id="displayTitle">GLOBAL FOCUS: CLOSE-UP PORTRAIT</h3>
-                <p id="displaySubtitle">Live AI neural sync active for broadcast setup.</p>
+            <div class="control-group">
+                <label>Voice & Language</label>
+                <select id="langSelector" onchange="updateMetadata()">
+                    <option value="Amharic (አማርኛ)">Amharic (አማርኛ)</option>
+                    <option value="English">English</option>
+                    <option value="Afaan Oromoo">Afaan Oromoo</option>
+                    <option value="Tigrinya (ትግርኛ)">Tigrinya (ትግርኛ)</option>
+                    <option value="Somali">Somali</option>
+                </select>
             </div>
 
-            <!-- Live News Ticker -->
-            <div class="broadcast-ticker">
-                <span style="color: var(--accent-gold); font-weight: bold; margin-right: 15px; font-size: 11px;">LIVE BREAKING:</span>
-                <marquee id="tickerMarquee" style="font-size: 12px;" scrollamount="5">Addis Ababa hosts East African infrastructural summit — Economic cooperation agreements signed today.</marquee>
+            <!-- Expanded Big News Script Text Box -->
+            <div class="control-group script-group">
+                <label>Full News Script Text</label>
+                <textarea id="scriptInput" placeholder="Type or paste the complete news script for the AI anchor to speak..."></textarea>
             </div>
+
+            <div class="control-group">
+                <label>Breaking News Ticker Text</label>
+                <input type="text" id="breakingNewsInput" value="Addis Ababa hosts East African infrastructural summit — Economic cooperation agreements signed today." oninput="updateBreakingNews()" />
+            </div>
+
+            <button class="generate-btn" onclick="triggerBroadcast()">🚀 Dispatch Payload to n8n AI Pipeline</button>
         </div>
 
-        <!-- Selected Options Summary Bar Beneath Image -->
-        <div class="selected-options-bar">
-            <div>Active Setup: <span id="summarySetup">Setup 1: Close-Up Portrait</span></div>
-            <div>•</div>
-            <div>Language: <span id="summaryLang">Amharic (አማርኛ)</span></div>
+        <!-- Right Studio Stage Preview Area -->
+        <div class="studio-stage-container">
+            
+            <!-- Top Frame Size Toolbar -->
+            <div class="canvas-toolbar">
+                <label>Platform / Frame Size:</label>
+                <select id="frameSizeSelector" onchange="changeFrameSize()">
+                    <option value="16:9">YouTube / Standard Broadcast (16:9)</option>
+                    <option value="fb-post">Facebook Post / Landscape (1.91:1)</option>
+                    <option value="twitter-post">Twitter / X Post (16:9)</option>
+                    <option value="telegram-post">Telegram Channel Media (4:3)</option>
+                    <option value="instagram-square">Instagram Square Post (1:1)</option>
+                    <option value="story-vertical">TikTok / Instagram Reels / YouTube Shorts (9:16)</option>
+                </select>
+            </div>
+
+            <!-- Studio Canvas -->
+            <div class="studio-canvas" id="studioCanvas" style="background-image: url('setup 1.jpg');">
+                
+                <!-- Video Player Controls Overlay -->
+                <div class="video-player-bar">
+                    <button class="play-pause-btn" id="playBtn" onclick="togglePlayPreview()">▶</button>
+                    <input type="range" class="video-scrubber" id="videoScrubber" value="0" min="0" max="100" oninput="scrubVideo(this.value)">
+                    <span class="video-time" id="videoTimeText">0:00 / 0:30</span>
+                </div>
+
+                <!-- Dynamic Info Overlay -->
+                <div class="canvas-overlay-content">
+                    <h3 id="displayTitle">GLOBAL FOCUS: CLOSE-UP PORTRAIT</h3>
+                    <p id="displaySubtitle">Live AI neural sync active for broadcast setup.</p>
+                </div>
+
+                <!-- Live News Ticker -->
+                <div class="broadcast-ticker">
+                    <span style="color: var(--accent-gold); font-weight: bold; margin-right: 15px; font-size: 11px;">LIVE BREAKING:</span>
+                    <marquee id="tickerMarquee" style="font-size: 12px;" scrollamount="5">Addis Ababa hosts East African infrastructural summit — Economic cooperation agreements signed today.</marquee>
+                </div>
+            </div>
+
+            <!-- Selected Options Summary Bar Beneath Image -->
+            <div class="selected-options-bar">
+                <div>Active Setup: <span id="summarySetup">Setup 1: Close-Up Portrait</span></div>
+                <div>•</div>
+                <div>Language: <span id="summaryLang">Amharic (አማርኛ)</span></div>
+            </div>
         </div>
     </div>
 
@@ -435,4 +482,85 @@
             const frame = document.getElementById('frameSizeSelector').value;
             const canvas = document.getElementById('studioCanvas');
             
-            if (frame === '16:9' || frame === 'twitter-
+            if (frame === '16:9' || frame === 'twitter-post') {
+                canvas.style.width = '1000px';
+                canvas.style.height = '562px';
+            } else if (frame === 'fb-post') {
+                canvas.style.width = '1000px';
+                canvas.style.height = '523px';
+            } else if (frame === 'telegram-post') {
+                canvas.style.width = '800px';
+                canvas.style.height = '600px';
+            } else if (frame === 'instagram-square') {
+                canvas.style.width = '550px';
+                canvas.style.height = '550px';
+            } else if (frame === 'story-vertical') {
+                canvas.style.width = '320px';
+                canvas.style.height = '568px';
+            }
+        }
+
+        /* Video Player Simulation Controls */
+        function togglePlayPreview() {
+            const playBtn = document.getElementById('playBtn');
+            isPlaying = !isPlaying;
+
+            if (isPlaying) {
+                playBtn.innerText = "⏸";
+                playInterval = setInterval(() => {
+                    playProgress += 1;
+                    if (playProgress > 100) playProgress = 0;
+                    document.getElementById('videoScrubber').value = playProgress;
+                    updateTimeDisplay(playProgress);
+                }, 300);
+            } else {
+                playBtn.innerText = "▶";
+                clearInterval(playInterval);
+            }
+        }
+
+        function scrubVideo(val) {
+            playProgress = parseInt(val);
+            updateTimeDisplay(playProgress);
+        }
+
+        function updateTimeDisplay(progress) {
+            const currentSec = Math.floor((progress / 100) * 30);
+            const formattedSec = currentSec < 10 ? `0${currentSec}` : currentSec;
+            document.getElementById('videoTimeText').innerText = `0:${formattedSec} / 0:30`;
+        }
+
+        /* n8n Automation Webhook Connector */
+        function triggerBroadcast() {
+            const setupKey = document.getElementById('setupSelector').value;
+            const scriptText = document.getElementById('scriptInput').value;
+            const tickerText = document.getElementById('breakingNewsInput').value;
+            const language = document.getElementById('langSelector').value;
+            const frameSize = document.getElementById('frameSizeSelector').value;
+
+            const n8nPayload = {
+                event: "GENERATE_AI_NEWS_VIDEO",
+                user: "Amanuel Bekele Woldesenbet",
+                timestamp: new Date().toISOString(),
+                studioSetup: setupKey,
+                imageAsset: studioData[setupKey].file,
+                voiceLanguage: language,
+                newsScript: scriptText,
+                breakingNewsTicker: tickerText,
+                aspectRatioFormat: frameSize
+            };
+
+            console.log("Sending payload to n8n webhook:", n8nPayload);
+            alert("n8n Pipeline Payload Dispatched Successfully!\n\nScript, audio parameters, and studio setup sent to automated video generation engine.");
+        }
+
+        function signOut() {
+            window.location.href = 'loginpage.html';
+        }
+
+        window.onload = function() {
+            updateStudioPreview();
+        };
+    </script>
+</body>
+</html>
