@@ -768,39 +768,76 @@
     }
 
     /* n8n Webhook Dispatch */
-    function triggerBroadcast() {
-        const setupKey = document.getElementById('setupSelector').value;
-        const scriptText = document.getElementById('scriptInput').value;
-        const tickerText = document.getElementById('breakingNewsInput').value;
-        const language = document.getElementById('langSelector').value;
-        const frameSize = document.getElementById('frameSizeSelector').value;
-        const activeUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser') || 'habeshan';
+   /* n8n Webhook Dispatch */
+async function triggerBroadcast() {
+    const setupKey = document.getElementById('setupSelector').value;
+    const scriptText = document.getElementById('scriptInput').value;
+    const tickerText = document.getElementById('breakingNewsInput').value;
+    const language = document.getElementById('langSelector').value;
+    const frameSize = document.getElementById('frameSizeSelector').value;
+    const activeUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser') || 'habeshan';
 
-        const mediaTagRegex = /\[MEDIA:\s*([^\]]+)\]/g;
-        const extractedMedia = [];
-        let match;
-        while ((match = mediaTagRegex.exec(scriptText)) !== null) {
-            const tagKey = match[1].trim();
-            const matchedAsset = mediaLibrary.find(m => m.shortName === tagKey);
-            extractedMedia.push(matchedAsset ? matchedAsset.filename : tagKey);
+    const mediaTagRegex = /\[MEDIA:\s*([^\]]+)\]/g;
+    const extractedMedia = [];
+    let match;
+    while ((match = mediaTagRegex.exec(scriptText)) !== null) {
+        const tagKey = match[1].trim();
+        const matchedAsset = mediaLibrary.find(m => m.shortName === tagKey);
+        extractedMedia.push(matchedAsset ? matchedAsset.filename : tagKey);
+    }
+
+    const n8nPayload = {
+        event: "GENERATE_AI_NEWS_VIDEO",
+        user: activeUser,
+        timestamp: new Date().toISOString(),
+        studioSetup: setupKey,
+        imageAsset: studioData[setupKey].file,
+        voiceLanguage: language,
+        newsScript: scriptText,
+        screenMediaAssets: extractedMedia,
+        breakingNewsTicker: tickerText,
+        aspectRatioFormat: frameSize
+    };
+
+    // Retrieve the imported webhook URL from window
+    const webhookUrl = window.Anchorreading_news;
+
+    if (!webhookUrl) {
+        alert("Error: Webhook URL (Anchorreading_news) is not initialized. Please check config.js.");
+        return;
+    }
+
+    try {
+        console.log("Sending payload to n8n webhook:", webhookUrl, n8nPayload);
+
+        const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(n8nPayload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server responded with status ${response.status}`);
         }
 
-        const n8nPayload = {
-            event: "GENERATE_AI_NEWS_VIDEO",
-            user: activeUser,
-            timestamp: new Date().toISOString(),
-            studioSetup: setupKey,
-            imageAsset: studioData[setupKey].file,
-            voiceLanguage: language,
-            newsScript: scriptText,
-            screenMediaAssets: extractedMedia,
-            breakingNewsTicker: tickerText,
-            aspectRatioFormat: frameSize
-        };
+        let responseData;
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            responseData = await response.json();
+        } else {
+            responseData = await response.text();
+        }
 
-        console.log("Sending payload to n8n webhook:", n8nPayload);
-        alert(`n8n Pipeline Payload Dispatched for ${activeUser}!\n\nDetected ${extractedMedia.length} screen media asset(s).`);
+        console.log("n8n Webhook Response:", responseData);
+        alert(`n8n Pipeline Payload Dispatched Successfully for ${activeUser}!\n\nDetected ${extractedMedia.length} screen media asset(s).`);
+
+    } catch (err) {
+        console.error("Failed to dispatch n8n webhook:", err);
+        alert(`Failed to send payload to n8n pipeline. Check browser console for details.`);
     }
+}
 
     function signOut() {
         localStorage.removeItem('loggedInUser');
