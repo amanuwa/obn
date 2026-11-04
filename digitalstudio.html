@@ -518,290 +518,302 @@
             </div>
         </div>
     </div>
-    <!-- Load Supabase JS CDN -->
+<!-- 1. Load Supabase JS CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Load your existing config -->
-<script src="config.js"></script>
+
+<!-- 2. Load config.js properly as a module to initialize the global client -->
 <script type="module">
-        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-        const studioData = {
-            setup1: { file: "setup 1.jpg", title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT", subtitle: "Studio setup 1 active — Close-up frame layout." },
-            setup2: { file: "setup 2.jpg", title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT", subtitle: "Studio setup 2 active — Seated anchor desk layout." },
-            setup3: { file: "setup 3.jpg", title: "GLOBAL FOCUS: REGIONAL DESK", subtitle: "Studio setup 3 active — Cultural regional desk layout." },
-            setup4: { file: "setup 4.jpg", title: "GLOBAL FOCUS: STANDING PRESENTATION", subtitle: "Studio setup 4 active — Standing presentation layout." },
-            setup5: { file: "setup 5.jpg", title: "GLOBAL FOCUS: DYNAMIC BROADCAST", subtitle: "Studio setup 5 active — Alternative studio arrangement." }
-        };
+    import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+    
+    if (window.supabaseClient === undefined) {
+        window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+</script>
 
-        // Active Media Library Database
-        let mediaLibrary = [
-            { shortName: "summit", filename: "summit_leaders_2026.jpg", type: "Image" },
-            { shortName: "signing", filename: "signing_ceremony_clip.mp4", type: "Video" }
-        ];
+<!-- 3. All Studio and Upload Logic -->
+<script>
+    const studioData = {
+        setup1: { file: "setup 1.jpg", title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT", subtitle: "Studio setup 1 active — Close-up frame layout." },
+        setup2: { file: "setup 2.jpg", title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT", subtitle: "Studio setup 2 active — Seated anchor desk layout." },
+        setup3: { file: "setup 3.jpg", title: "GLOBAL FOCUS: REGIONAL DESK", subtitle: "Studio setup 3 active — Cultural regional desk layout." },
+        setup4: { file: "setup 4.jpg", title: "GLOBAL FOCUS: STANDING PRESENTATION", subtitle: "Studio setup 4 active — Standing presentation layout." },
+        setup5: { file: "setup 5.jpg", title: "GLOBAL FOCUS: DYNAMIC BROADCAST", subtitle: "Studio setup 5 active — Alternative studio arrangement." }
+    };
 
-     
+    // Active Media Library Database
+    let mediaLibrary = [
+        { shortName: "summit", filename: "summit_leaders_2026.jpg", type: "Image" },
+        { shortName: "signing", filename: "signing_ceremony_clip.mp4", type: "Video" }
+    ];
 
-        let isPlaying = false;
-        let playInterval = null;
-        let playProgress = 0;
-        let selectedIndex = 0;
-        let activeMatches = [];
+    let isPlaying = false;
+    let playInterval = null;
+    let playProgress = 0;
+    let selectedIndex = 0;
+    let activeMatches = [];
 
-        function updateStudioPreview() {
-            const setupKey = document.getElementById('setupSelector').value;
-            const currentSetup = studioData[setupKey];
+    function updateStudioPreview() {
+        const setupKey = document.getElementById('setupSelector').value;
+        const currentSetup = studioData[setupKey];
 
-            const canvas = document.getElementById('studioCanvas');
-            canvas.style.backgroundImage = `url('${currentSetup.file}')`;
+        const canvas = document.getElementById('studioCanvas');
+        canvas.style.backgroundImage = `url('${currentSetup.file}')`;
 
-            document.getElementById('displayTitle').innerText = currentSetup.title;
-            document.getElementById('displaySubtitle').innerText = currentSetup.subtitle;
-            document.getElementById('summarySetup').innerText = document.getElementById('setupSelector').options[document.getElementById('setupSelector').selectedIndex].text;
-            document.getElementById('summaryLang').innerText = document.getElementById('langSelector').value;
-        }
-
-        function updateMetadata() {
-            document.getElementById('summaryLang').innerText = document.getElementById('langSelector').value;
-        }
-
-        function updateBreakingNews() {
-            const breakingText = document.getElementById('breakingNewsInput').value;
-            document.getElementById('tickerMarquee').innerText = breakingText;
-        }
-
-        function changeFrameSize() {
-            const frame = document.getElementById('frameSizeSelector').value;
-            const canvas = document.getElementById('studioCanvas');
-            
-            if (frame === '16:9' || frame === 'twitter-post') {
-                canvas.style.width = '1000px';
-                canvas.style.height = '562px';
-            } else if (frame === 'fb-post') {
-                canvas.style.width = '1000px';
-                canvas.style.height = '523px';
-            } else if (frame === 'telegram-post') {
-                canvas.style.width = '800px';
-                canvas.style.height = '600px';
-            } else if (frame === 'instagram-square') {
-                canvas.style.width = '550px';
-                canvas.style.height = '550px';
-            } else if (frame === 'story-vertical') {
-                canvas.style.width = '320px';
-                canvas.style.height = '568px';
-            }
-        }
-
-        /* --- Multi-File Upload with Safe Error Handling --- */
-async function handleMultiFileUpload(event) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    const client = window.supabaseClient;
-    if (!client) {
-        alert("Supabase client is not initialized yet. Please check config.js.");
-        return;
+        document.getElementById('displayTitle').innerText = currentSetup.title;
+        document.getElementById('displaySubtitle').innerText = currentSetup.subtitle;
+        document.getElementById('summarySetup').innerText = document.getElementById('setupSelector').options[document.getElementById('setupSelector').selectedIndex].text;
+        document.getElementById('summaryLang').innerText = document.getElementById('langSelector').value;
     }
 
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const storagePath = `uploads/${file.name}`;
+    function updateMetadata() {
+        document.getElementById('summaryLang').innerText = document.getElementById('langSelector').value;
+    }
 
-        try {
-            // 1. Upload to Supabase storage 'studio-assets'
-            const { error: uploadError } = await client.storage
-                .from('studio-assets')
-                .upload(storagePath, file, { upsert: true });
+    function updateBreakingNews() {
+        const breakingText = document.getElementById('breakingNewsInput').value;
+        document.getElementById('tickerMarquee').innerText = breakingText;
+    }
 
-            if (uploadError) throw uploadError;
-
-            // 2. Get Public URL
-            const { data: publicUrlData } = client.storage
-                .from('studio-assets')
-                .getPublicUrl(storagePath);
-
-            const publicUrl = publicUrlData.publicUrl;
-
-            // 3. Prompt for short tag name
-            let defaultShort = file.name.split('.')[0].toLowerCase().replace(/\s+/g, '_');
-            let shortName = prompt(`Enter a short tag name for "${file.name}" (used with @):`, defaultShort);
-            if (!shortName) shortName = defaultShort;
-            shortName = shortName.trim().toLowerCase().replace(/\s+/g, '_');
-
-            // 4. Add to media library array
-            mediaLibrary.push({
-                shortName: shortName,
-                filename: publicUrl,
-                type: file.type.startsWith('video') ? 'Video' : 'Image'
-            });
-
-            alert(`Successfully registered "${file.name}" as '@${shortName}'!`);
-
-        } catch (err) {
-            console.error("Upload error for file:", file.name, err);
-            alert(`Failed to upload ${file.name}. Check browser console for details.`);
+    function changeFrameSize() {
+        const frame = document.getElementById('frameSizeSelector').value;
+        const canvas = document.getElementById('studioCanvas');
+        
+        if (frame === '16:9' || frame === 'twitter-post') {
+            canvas.style.width = '1000px';
+            canvas.style.height = '562px';
+        } else if (frame === 'fb-post') {
+            canvas.style.width = '1000px';
+            canvas.style.height = '523px';
+        } else if (frame === 'telegram-post') {
+            canvas.style.width = '800px';
+            canvas.style.height = '600px';
+        } else if (frame === 'instagram-square') {
+            canvas.style.width = '550px';
+            canvas.style.height = '550px';
+        } else if (frame === 'story-vertical') {
+            canvas.style.width = '320px';
+            canvas.style.height = '568px';
         }
     }
 
-    event.target.value = '';
-}
+    /* --- Multi-File Upload with Safe Error Handling --- */
+    async function handleMultiFileUpload(event) {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
 
-// Make sure it's globally available
-window.handleMultiFileUpload = handleMultiFileUpload;
+        const client = window.supabaseClient;
+        if (!client) {
+            alert("Supabase client is not initialized yet. Please check config.js.");
+            return;
+        }
 
-        /* --- @ Autocomplete Logic --- */
-        function handleScriptInput(event) {
-            const textarea = document.getElementById('scriptInput');
-            const val = textarea.value;
-            const cursorPos = textarea.selectionStart;
-            const dropdown = document.getElementById('autocompleteDropdown');
+        const MAX_SIZE_MB = 50;
+        const MAX_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
-            const textBeforeCursor = val.substring(0, cursorPos);
-            const atSymbolIndex = textBeforeCursor.lastIndexOf('@');
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
 
-            if (atSymbolIndex !== -1) {
-                const query = textBeforeCursor.substring(atSymbolIndex + 1);
-                if (!query.includes(' ') && !query.includes('\n')) {
-                    activeMatches = mediaLibrary.filter(m => m.shortName.toLowerCase().startsWith(query.toLowerCase()));
-                    
-                    if (activeMatches.length > 0) {
-                        selectedIndex = 0;
-                        renderDropdown(activeMatches);
-                        dropdown.style.display = 'block';
-                        return;
-                    }
+            if (file.size > MAX_BYTES) {
+                alert(`File "${file.name}" is too large (${(file.size / (1024 * 1024)).toFixed(1)} MB). Maximum allowed size is ${MAX_SIZE_MB} MB.`);
+                continue;
+            }
+
+            const storagePath = `uploads/${file.name}`;
+
+            try {
+                // 1. Upload to Supabase storage 'studio-assets'
+                const { error: uploadError } = await client.storage
+                    .from('studio-assets')
+                    .upload(storagePath, file, { upsert: true });
+
+                if (uploadError) throw uploadError;
+
+                // 2. Get Public URL
+                const { data: publicUrlData } = client.storage
+                    .from('studio-assets')
+                    .getPublicUrl(storagePath);
+
+                const publicUrl = publicUrlData.publicUrl;
+
+                // 3. Prompt for short tag name
+                let defaultShort = file.name.split('.')[0].toLowerCase().replace(/\s+/g, '_');
+                let shortName = prompt(`Enter a short tag name for "${file.name}" (used with @):`, defaultShort);
+                if (!shortName) shortName = defaultShort;
+                shortName = shortName.trim().toLowerCase().replace(/\s+/g, '_');
+
+                // 4. Add to media library array
+                mediaLibrary.push({
+                    shortName: shortName,
+                    filename: publicUrl,
+                    type: file.type.startsWith('video') ? 'Video' : 'Image'
+                });
+
+                alert(`Successfully registered "${file.name}" as '@${shortName}'!`);
+
+            } catch (err) {
+                console.error("Upload error for file:", file.name, err);
+                alert(`Failed to upload ${file.name}: ${err.message}`);
+            }
+        }
+
+        event.target.value = '';
+    }
+
+    /* --- @ Autocomplete Logic --- */
+    function handleScriptInput(event) {
+        const textarea = document.getElementById('scriptInput');
+        const val = textarea.value;
+        const cursorPos = textarea.selectionStart;
+        const dropdown = document.getElementById('autocompleteDropdown');
+
+        const textBeforeCursor = val.substring(0, cursorPos);
+        const atSymbolIndex = textBeforeCursor.lastIndexOf('@');
+
+        if (atSymbolIndex !== -1) {
+            const query = textBeforeCursor.substring(atSymbolIndex + 1);
+            if (!query.includes(' ') && !query.includes('\n')) {
+                activeMatches = mediaLibrary.filter(m => m.shortName.toLowerCase().startsWith(query.toLowerCase()));
+                
+                if (activeMatches.length > 0) {
+                    selectedIndex = 0;
+                    renderDropdown(activeMatches);
+                    dropdown.style.display = 'block';
+                    return;
                 }
             }
-            dropdown.style.display = 'none';
         }
+        dropdown.style.display = 'none';
+    }
 
-        function renderDropdown(matches) {
-            const dropdown = document.getElementById('autocompleteDropdown');
-            dropdown.innerHTML = '';
-            matches.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = `autocomplete-item ${index === selectedIndex ? 'selected' : ''}`;
-                div.innerHTML = `<span>📷 @${item.shortName} <small style="color:#94a3b8">(${item.type})</small></span> <span class="tag-code">[MEDIA: ${item.shortName}]</span>`;
-                div.onclick = () => insertMediaTag(item.shortName);
-                dropdown.appendChild(div);
-            });
-        }
+    function renderDropdown(matches) {
+        const dropdown = document.getElementById('autocompleteDropdown');
+        dropdown.innerHTML = '';
+        matches.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = `autocomplete-item ${index === selectedIndex ? 'selected' : ''}`;
+            div.innerHTML = `<span>📷 @${item.shortName} <small style="color:#94a3b8">(${item.type})</small></span> <span class="tag-code">[MEDIA: ${item.shortName}]</span>`;
+            div.onclick = () => insertMediaTag(item.shortName);
+            dropdown.appendChild(div);
+        });
+    }
 
-        function handleKeyNavigation(event) {
-            const dropdown = document.getElementById('autocompleteDropdown');
-            if (dropdown.style.display === 'block') {
-                if (event.key === 'ArrowDown') {
+    function handleKeyNavigation(event) {
+        const dropdown = document.getElementById('autocompleteDropdown');
+        if (dropdown.style.display === 'block') {
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                selectedIndex = (selectedIndex + 1) % activeMatches.length;
+                renderDropdown(activeMatches);
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                selectedIndex = (selectedIndex - 1 + activeMatches.length) % activeMatches.length;
+                renderDropdown(activeMatches);
+            } else if (event.key === 'Enter' || event.key === 'Tab') {
+                if (activeMatches.length > 0) {
                     event.preventDefault();
-                    selectedIndex = (selectedIndex + 1) % activeMatches.length;
-                    renderDropdown(activeMatches);
-                } else if (event.key === 'ArrowUp') {
-                    event.preventDefault();
-                    selectedIndex = (selectedIndex - 1 + activeMatches.length) % activeMatches.length;
-                    renderDropdown(activeMatches);
-                } else if (event.key === 'Enter' || event.key === 'Tab') {
-                    if (activeMatches.length > 0) {
-                        event.preventDefault();
-                        insertMediaTag(activeMatches[selectedIndex].shortName);
-                    }
-                } else if (event.key === 'Escape') {
-                    dropdown.style.display = 'none';
+                    insertMediaTag(activeMatches[selectedIndex].shortName);
                 }
+            } else if (event.key === 'Escape') {
+                dropdown.style.display = 'none';
             }
         }
+    }
 
-        function insertMediaTag(shortName) {
-            const textarea = document.getElementById('scriptInput');
-            const val = textarea.value;
-            const cursorPos = textarea.selectionStart;
-            const atSymbolIndex = val.lastIndexOf('@', cursorPos - 1);
+    function insertMediaTag(shortName) {
+        const textarea = document.getElementById('scriptInput');
+        const val = textarea.value;
+        const cursorPos = textarea.selectionStart;
+        const atSymbolIndex = val.lastIndexOf('@', cursorPos - 1);
 
-            if (atSymbolIndex !== -1) {
-                const prefix = val.substring(0, atSymbolIndex);
-                const suffix = val.substring(cursorPos);
-                const tag = `[MEDIA: ${shortName}] `;
+        if (atSymbolIndex !== -1) {
+            const prefix = val.substring(0, atSymbolIndex);
+            const suffix = val.substring(cursorPos);
+            const tag = `[MEDIA: ${shortName}] `;
 
-                textarea.value = prefix + tag + suffix;
-                textarea.focus();
-                textarea.setSelectionRange(prefix.length + tag.length, prefix.length + tag.length);
-            }
-
-            document.getElementById('autocompleteDropdown').style.display = 'none';
+            textarea.value = prefix + tag + suffix;
+            textarea.focus();
+            textarea.setSelectionRange(prefix.length + tag.length, prefix.length + tag.length);
         }
 
-        /* Video Player Simulation Controls */
-        function togglePlayPreview() {
-            const playBtn = document.getElementById('playBtn');
-            isPlaying = !isPlaying;
+        document.getElementById('autocompleteDropdown').style.display = 'none';
+    }
 
-            if (isPlaying) {
-                playBtn.innerText = "⏸";
-                playInterval = setInterval(() => {
-                    playProgress += 1;
-                    if (playProgress > 100) playProgress = 0;
-                    document.getElementById('videoScrubber').value = playProgress;
-                    updateTimeDisplay(playProgress);
-                }, 300);
-            } else {
-                playBtn.innerText = "▶";
-                clearInterval(playInterval);
-            }
+    /* Video Player Simulation Controls */
+    function togglePlayPreview() {
+        const playBtn = document.getElementById('playBtn');
+        isPlaying = !isPlaying;
+
+        if (isPlaying) {
+            playBtn.innerText = "⏸";
+            playInterval = setInterval(() => {
+                playProgress += 1;
+                if (playProgress > 100) playProgress = 0;
+                document.getElementById('videoScrubber').value = playProgress;
+                updateTimeDisplay(playProgress);
+            }, 300);
+        } else {
+            playBtn.innerText = "▶";
+            clearInterval(playInterval);
+        }
+    }
+
+    function scrubVideo(val) {
+        playProgress = parseInt(val);
+        updateTimeDisplay(playProgress);
+    }
+
+    function updateTimeDisplay(progress) {
+        const currentSec = Math.floor((progress / 100) * 30);
+        const formattedSec = currentSec < 10 ? `0${currentSec}` : currentSec;
+        document.getElementById('videoTimeText').innerText = `0:${formattedSec} / 0:30`;
+    }
+
+    /* n8n Webhook Dispatch */
+    function triggerBroadcast() {
+        const setupKey = document.getElementById('setupSelector').value;
+        const scriptText = document.getElementById('scriptInput').value;
+        const tickerText = document.getElementById('breakingNewsInput').value;
+        const language = document.getElementById('langSelector').value;
+        const frameSize = document.getElementById('frameSizeSelector').value;
+        const activeUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser') || 'habeshan';
+
+        const mediaTagRegex = /\[MEDIA:\s*([^\]]+)\]/g;
+        const extractedMedia = [];
+        let match;
+        while ((match = mediaTagRegex.exec(scriptText)) !== null) {
+            const tagKey = match[1].trim();
+            const matchedAsset = mediaLibrary.find(m => m.shortName === tagKey);
+            extractedMedia.push(matchedAsset ? matchedAsset.filename : tagKey);
         }
 
-        function scrubVideo(val) {
-            playProgress = parseInt(val);
-            updateTimeDisplay(playProgress);
-        }
-
-        function updateTimeDisplay(progress) {
-            const currentSec = Math.floor((progress / 100) * 30);
-            const formattedSec = currentSec < 10 ? `0${currentSec}` : currentSec;
-            document.getElementById('videoTimeText').innerText = `0:${formattedSec} / 0:30`;
-        }
-
-        /* n8n Webhook Dispatch */
-        function triggerBroadcast() {
-            const setupKey = document.getElementById('setupSelector').value;
-            const scriptText = document.getElementById('scriptInput').value;
-            const tickerText = document.getElementById('breakingNewsInput').value;
-            const language = document.getElementById('langSelector').value;
-            const frameSize = document.getElementById('frameSizeSelector').value;
-            const activeUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser') || 'habeshan';
-
-            const mediaTagRegex = /\[MEDIA:\s*([^\]]+)\]/g;
-            const extractedMedia = [];
-            let match;
-            while ((match = mediaTagRegex.exec(scriptText)) !== null) {
-                const tagKey = match[1].trim();
-                const matchedAsset = mediaLibrary.find(m => m.shortName === tagKey);
-                extractedMedia.push(matchedAsset ? matchedAsset.filename : tagKey);
-            }
-
-            const n8nPayload = {
-                event: "GENERATE_AI_NEWS_VIDEO",
-                user: activeUser,
-                timestamp: new Date().toISOString(),
-                studioSetup: setupKey,
-                imageAsset: studioData[setupKey].file,
-                voiceLanguage: language,
-                newsScript: scriptText,
-                screenMediaAssets: extractedMedia,
-                breakingNewsTicker: tickerText,
-                aspectRatioFormat: frameSize
-            };
-
-            console.log("Sending payload to n8n webhook:", n8nPayload);
-            alert(`n8n Pipeline Payload Dispatched for ${activeUser}!\n\nDetected ${extractedMedia.length} screen media asset(s).`);
-        }
-
-        function signOut() {
-            localStorage.removeItem('loggedInUser');
-            sessionStorage.removeItem('loggedInUser');
-            window.location.href = 'loginpage.html';
-        }
-
-        window.onload = function() {
-            const loggedInUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
-            document.getElementById('loggedInUserDisplay').innerText = loggedInUser || "habeshan";
-            updateStudioPreview();
+        const n8nPayload = {
+            event: "GENERATE_AI_NEWS_VIDEO",
+            user: activeUser,
+            timestamp: new Date().toISOString(),
+            studioSetup: setupKey,
+            imageAsset: studioData[setupKey].file,
+            voiceLanguage: language,
+            newsScript: scriptText,
+            screenMediaAssets: extractedMedia,
+            breakingNewsTicker: tickerText,
+            aspectRatioFormat: frameSize
         };
-    </script>
+
+        console.log("Sending payload to n8n webhook:", n8nPayload);
+        alert(`n8n Pipeline Payload Dispatched for ${activeUser}!\n\nDetected ${extractedMedia.length} screen media asset(s).`);
+    }
+
+    function signOut() {
+        localStorage.removeItem('loggedInUser');
+        sessionStorage.removeItem('loggedInUser');
+        window.location.href = 'loginpage.html';
+    }
+
+    window.onload = function() {
+        const loggedInUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+        document.getElementById('loggedInUserDisplay').innerText = loggedInUser || "habeshan";
+        updateStudioPreview();
+    };
+</script>
 </body>
 </html>
