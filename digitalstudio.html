@@ -524,6 +524,9 @@
 <!-- 2. Load config.js properly as a module to initialize the global client -->
 <script type="module">
     import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+
+          import { postautomation } from './config.js'; 
+
     
     if (window.supabaseClient === undefined) {
         window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
