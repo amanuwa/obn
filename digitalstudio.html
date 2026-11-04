@@ -518,6 +518,7 @@
             </div>
         </div>
     </div>
+    <!-- Load Supabase JS CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Load your existing config -->
 <script src="config.js"></script>
@@ -595,37 +596,55 @@ async function handleMultiFileUpload(event) {
     if (!files || files.length === 0) return;
 
     const client = window.supabaseClient;
+
     if (!client) {
         alert("Supabase client is not initialized yet. Please check config.js.");
         return;
     }
 
     for (let i = 0; i < files.length; i++) {
+
+        
         const file = files[i];
         const storagePath = `uploads/${file.name}`;
 
         try {
-            // 1. Upload to Supabase storage 'studio-assets'
-            const { error: uploadError } = await client.storage
+            // 1. Check if file already exists in studio-assets
+            let fileExists = false;
+            const { data: existingFiles, error: listError } = await client.storage
                 .from('studio-assets')
-                .upload(storagePath, file, { upsert: true });
+                .list('uploads', { search: file.name });
 
-            if (uploadError) throw uploadError;
+            if (!listError && existingFiles) {
+                fileExists = existingFiles.some(f => f.name === file.name);
+            }
 
-            // 2. Get Public URL
+            if (fileExists) {
+                const overwrite = confirm(`File "${file.name}" already exists in cloud storage. Do you want to use it?`);
+                if (!overwrite) continue;
+            } else {
+                // 2. Upload file
+                const { error: uploadError } = await client.storage
+                    .from('studio-assets')
+                    .upload(storagePath, file, { upsert: true });
+
+                if (uploadError) throw uploadError;
+            }
+
+            // 3. Get Public URL
             const { data: publicUrlData } = client.storage
                 .from('studio-assets')
                 .getPublicUrl(storagePath);
 
             const publicUrl = publicUrlData.publicUrl;
 
-            // 3. Prompt for short tag name
+            // 4. Ask for short tag name
             let defaultShort = file.name.split('.')[0].toLowerCase().replace(/\s+/g, '_');
             let shortName = prompt(`Enter a short tag name for "${file.name}" (used with @):`, defaultShort);
             if (!shortName) shortName = defaultShort;
             shortName = shortName.trim().toLowerCase().replace(/\s+/g, '_');
 
-            // 4. Add to media library array
+            // 5. Add to media library
             mediaLibrary.push({
                 shortName: shortName,
                 filename: publicUrl,
@@ -642,9 +661,6 @@ async function handleMultiFileUpload(event) {
 
     event.target.value = '';
 }
-
-// Make sure it's globally available
-window.handleMultiFileUpload = handleMultiFileUpload;
 
         /* --- @ Autocomplete Logic --- */
         function handleScriptInput(event) {
