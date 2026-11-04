@@ -522,8 +522,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Load your existing config -->
 <script src="config.js"></script>
-
-    <script>
+<script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
         const studioData = {
             setup1: { file: "setup 1.jpg", title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT", subtitle: "Studio setup 1 active — Close-up frame layout." },
             setup2: { file: "setup 2.jpg", title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT", subtitle: "Studio setup 2 active — Seated anchor desk layout." },
