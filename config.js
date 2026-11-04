@@ -27,6 +27,8 @@ export const N8N_sport_GATEWAY_WEBHOOK='https://unreached-oboe-evade.ngrok-free.
 export const LINEUP_WEBHOOK_URL='https://unreached-oboe-evade.ngrok-free.dev/webhook/Linups';
 export const fast_hot_news='https://unreached-oboe-evade.ngrok-free.dev/webhook/sporthotnews';
 export const international_hot_news='https://unreached-oboe-evade.ngrok-free.dev/webhook/international_hot_news';
+export const Anchorreading_news='https://unreached-oboe-evade.ngrok-free.dev/webhook-test/Anchor_reading';
+
 
 //http://localhost:5678/webhook/international_hot_news
 
