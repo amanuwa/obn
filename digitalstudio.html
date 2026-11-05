@@ -518,12 +518,19 @@
             </div>
         </div>
     </div>
+
     <!-- Load Supabase JS CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Load your existing config -->
-<script src="config.js"></script>
-<script type="module">
-        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Unified Module Script: Imports Config, initializes Supabase & exposes all functions globally -->
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY, Anchorreading_news } from './config.js';
+
+        // 1. Initialize Supabase Client globally
+        if (window.supabaseClient === undefined) {
+            window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+
         const studioData = {
             setup1: { file: "setup 1.jpg", title: "GLOBAL FOCUS: CLOSE-UP PORTRAIT", subtitle: "Studio setup 1 active — Close-up frame layout." },
             setup2: { file: "setup 2.jpg", title: "GLOBAL FOCUS: ADDIS ABABA SUMMIT", subtitle: "Studio setup 2 active — Seated anchor desk layout." },
@@ -537,8 +544,6 @@
             { shortName: "summit", filename: "summit_leaders_2026.jpg", type: "Image" },
             { shortName: "signing", filename: "signing_ceremony_clip.mp4", type: "Video" }
         ];
-
-     
 
         let isPlaying = false;
         let playInterval = null;
@@ -591,76 +596,77 @@
         }
 
         /* --- Multi-File Upload with Safe Error Handling --- */
-async function handleMultiFileUpload(event) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+        async function handleMultiFileUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
 
-    const client = window.supabaseClient;
-
-    if (!client) {
-        alert("Supabase client is not initialized yet. Please check config.js.");
-        return;
-    }
-
-    for (let i = 0; i < files.length; i++) {
-
-        
-        const file = files[i];
-        const storagePath = `uploads/${file.name}`;
-
-        try {
-            // 1. Check if file already exists in studio-assets
-            let fileExists = false;
-            const { data: existingFiles, error: listError } = await client.storage
-                .from('studio-assets')
-                .list('uploads', { search: file.name });
-
-            if (!listError && existingFiles) {
-                fileExists = existingFiles.some(f => f.name === file.name);
+            const client = window.supabaseClient;
+            if (!client) {
+                alert("Supabase client is not initialized yet. Please check config.js.");
+                return;
             }
 
-            if (fileExists) {
-                const overwrite = confirm(`File "${file.name}" already exists in cloud storage. Do you want to use it?`);
-                if (!overwrite) continue;
-            } else {
-                // 2. Upload file
-                const { error: uploadError } = await client.storage
-                    .from('studio-assets')
-                    .upload(storagePath, file, { upsert: true });
+            const MAX_SIZE_MB = 50;
+            const MAX_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
-                if (uploadError) throw uploadError;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+
+                if (file.size > MAX_BYTES) {
+                    alert(`File "${file.name}" is too large (${(file.size / (1024 * 1024)).toFixed(1)} MB). Maximum allowed size is ${MAX_SIZE_MB} MB.`);
+                    continue;
+                }
+
+                const storagePath = `uploads/${file.name}`;
+
+                try {
+                    let fileExists = false;
+                    const { data: existingFiles, error: listError } = await client.storage
+                        .from('studio-assets')
+                        .list('uploads', { search: file.name });
+
+                    if (!listError && existingFiles) {
+                        fileExists = existingFiles.some(f => f.name === file.name);
+                    }
+
+                    if (fileExists) {
+                        const overwrite = confirm(`File "${file.name}" already exists in cloud storage. Do you want to use it?`);
+                        if (!overwrite) continue;
+                    } else {
+                        const { error: uploadError } = await client.storage
+                            .from('studio-assets')
+                            .upload(storagePath, file, { upsert: true });
+
+                        if (uploadError) throw uploadError;
+                    }
+
+                    const { data: publicUrlData } = client.storage
+                        .from('studio-assets')
+                        .getPublicUrl(storagePath);
+
+                    const publicUrl = publicUrlData.publicUrl;
+
+                    let defaultShort = file.name.split('.')[0].toLowerCase().replace(/\s+/g, '_');
+                    let shortName = prompt(`Enter a short tag name for "${file.name}" (used with @):`, defaultShort);
+                    if (!shortName) shortName = defaultShort;
+                    shortName = shortName.trim().toLowerCase().replace(/\s+/g, '_');
+
+                    mediaLibrary.push({
+                        shortName: shortName,
+                        filename: publicUrl,
+                        type: file.type.startsWith('video') ? 'Video' : 'Image'
+                    });
+
+                    alert(`Successfully registered "${file.name}" as '@${shortName}'!`);
+
+                } catch (err) {
+                    console.error("Upload error for file:", file.name, err);
+                    alert(`Failed to upload ${file.name}: ${err.message}`);
+                }
             }
 
-            // 3. Get Public URL
-            const { data: publicUrlData } = client.storage
-                .from('studio-assets')
-                .getPublicUrl(storagePath);
-
-            const publicUrl = publicUrlData.publicUrl;
-
-            // 4. Ask for short tag name
-            let defaultShort = file.name.split('.')[0].toLowerCase().replace(/\s+/g, '_');
-            let shortName = prompt(`Enter a short tag name for "${file.name}" (used with @):`, defaultShort);
-            if (!shortName) shortName = defaultShort;
-            shortName = shortName.trim().toLowerCase().replace(/\s+/g, '_');
-
-            // 5. Add to media library
-            mediaLibrary.push({
-                shortName: shortName,
-                filename: publicUrl,
-                type: file.type.startsWith('video') ? 'Video' : 'Image'
-            });
-
-            alert(`Successfully registered "${file.name}" as '@${shortName}'!`);
-
-        } catch (err) {
-            console.error("Upload error for file:", file.name, err);
-            alert(`Failed to upload ${file.name}. Check browser console for details.`);
+            event.target.value = '';
         }
-    }
-
-    event.target.value = '';
-}
 
         /* --- @ Autocomplete Logic --- */
         function handleScriptInput(event) {
@@ -771,8 +777,8 @@ async function handleMultiFileUpload(event) {
             document.getElementById('videoTimeText').innerText = `0:${formattedSec} / 0:30`;
         }
 
-        /* n8n Webhook Dispatch */
-        function triggerBroadcast() {
+        /* --- n8n Webhook Dispatch --- */
+        async function triggerBroadcast() {
             const setupKey = document.getElementById('setupSelector').value;
             const scriptText = document.getElementById('scriptInput').value;
             const tickerText = document.getElementById('breakingNewsInput').value;
@@ -802,8 +808,43 @@ async function handleMultiFileUpload(event) {
                 aspectRatioFormat: frameSize
             };
 
-            console.log("Sending payload to n8n webhook:", n8nPayload);
-            alert(`n8n Pipeline Payload Dispatched for ${activeUser}!\n\nDetected ${extractedMedia.length} screen media asset(s).`);
+            const webhookUrl = Anchorreading_news;
+
+            if (!webhookUrl) {
+                alert("Error: Anchorreading_news webhook URL is not defined.");
+                return;
+            }
+
+            try {
+                console.log("Sending payload to n8n webhook:", n8nPayload);
+
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(n8nPayload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server responded with status ${response.status}`);
+                }
+
+                let responseData;
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    responseData = await response.json();
+                } else {
+                    responseData = await response.text();
+                }
+
+                console.log("n8n Webhook Response:", responseData);
+                alert(`n8n Pipeline Payload Dispatched Successfully for ${activeUser}!\n\nDetected ${extractedMedia.length} screen media asset(s).`);
+
+            } catch (err) {
+                console.error("Failed to dispatch n8n webhook:", err);
+                alert(`Failed to send payload to n8n pipeline. Check browser console for details.`);
+            }
         }
 
         function signOut() {
@@ -812,6 +853,20 @@ async function handleMultiFileUpload(event) {
             window.location.href = 'loginpage.html';
         }
 
+        // Expose all interactive functions globally to the window object so HTML attributes can trigger them
+        window.updateStudioPreview = updateStudioPreview;
+        window.updateMetadata = updateMetadata;
+        window.updateBreakingNews = updateBreakingNews;
+        window.changeFrameSize = changeFrameSize;
+        window.handleMultiFileUpload = handleMultiFileUpload;
+        window.handleScriptInput = handleScriptInput;
+        window.handleKeyNavigation = handleKeyNavigation;
+        window.togglePlayPreview = togglePlayPreview;
+        window.scrubVideo = scrubVideo;
+        window.triggerBroadcast = triggerBroadcast;
+        window.signOut = signOut;
+
+        // Run on page load
         window.onload = function() {
             const loggedInUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
             document.getElementById('loggedInUserDisplay').innerText = loggedInUser || "habeshan";
