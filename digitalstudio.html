@@ -779,6 +779,7 @@
 
         /* --- n8n Webhook Dispatch --- */
 /* --- n8n Webhook Dispatch --- */
+/* --- n8n Webhook Dispatch --- */
 async function triggerBroadcast() {
     const setupKey = document.getElementById('setupSelector').value;
     const scriptText = document.getElementById('scriptInput').value;
@@ -787,18 +788,15 @@ async function triggerBroadcast() {
     const frameSize = document.getElementById('frameSizeSelector').value;
     const activeUser = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser') || 'habeshan';
 
-    // 1. Extract all [MEDIA: shortName] tags from the script text
     const mediaTagRegex = /\[MEDIA:\s*([^\]]+)\]/g;
     const extractedMedia = [];
     let match;
     while ((match = mediaTagRegex.exec(scriptText)) !== null) {
         const tagKey = match[1].trim();
-        // Look up the full public cloud storage URL from mediaLibrary
         const matchedAsset = mediaLibrary.find(m => m.shortName.toLowerCase() === tagKey.toLowerCase());
         extractedMedia.push(matchedAsset ? matchedAsset.filename : tagKey);
     }
 
-    // 2. Build payload structure for n8n news generation pipeline
     const n8nPayload = {
         event: "GENERATE_AI_NEWS_VIDEO",
         user: activeUser,
@@ -812,7 +810,6 @@ async function triggerBroadcast() {
         aspectRatioFormat: frameSize
     };
 
-    // 3. Webhook URL imported from config.js
     const webhookUrl = Anchorreading_news;
 
     if (!webhookUrl) {
@@ -820,7 +817,6 @@ async function triggerBroadcast() {
         return;
     }
 
-    // Optional visual feedback on button during dispatch
     const dispatchBtn = document.querySelector('.generate-btn');
     const originalBtnText = dispatchBtn ? dispatchBtn.innerText : '';
     if (dispatchBtn) {
@@ -839,24 +835,19 @@ async function triggerBroadcast() {
             body: JSON.stringify(n8nPayload)
         });
 
+        // Read response safely as text first to prevent JSON crash
+        const responseText = await response.text();
+        
         if (!response.ok) {
-            throw new Error(`n8n webhook returned HTTP status ${response.status}`);
+            throw new Error(`n8n Error (${response.status}): ${responseText || response.statusText}`);
         }
 
-        let responseData;
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-            responseData = await response.json();
-        } else {
-            responseData = await response.text();
-        }
-
-        console.log("n8n Webhook Response:", responseData);
+        console.log("n8n Webhook Response received successfully.");
         alert(`🚀 n8n News Pipeline Triggered Successfully for ${activeUser}!\n\nExtracted ${extractedMedia.length} media asset(s).`);
 
     } catch (err) {
         console.error("Error triggering n8n webhook:", err);
-        alert(`Failed to dispatch payload to n8n pipeline.\nError: ${err.message}`);
+        alert(`Failed to dispatch payload to n8n pipeline.\n${err.message}`);
     } finally {
         if (dispatchBtn) {
             dispatchBtn.innerText = originalBtnText;
@@ -864,6 +855,8 @@ async function triggerBroadcast() {
         }
     }
 }
+
+window.triggerBroadcast = triggerBroadcast;
 
 // Make sure it remains bound to window for onclick="triggerBroadcast()"
 window.triggerBroadcast = triggerBroadcast;
