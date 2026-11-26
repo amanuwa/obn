@@ -17,13 +17,13 @@
         </div>
         <div>
           <h1 class="text-base font-semibold tracking-tight">Broadcast Compliance & As-Run Monitor</h1>
-          <p class="text-xs text-slate-400">Automated 24h Air-Check, Commercial Fingerprinting & Timetable Verification</p>
+          <p class="text-xs text-slate-400">Automated Air-Check, Commercial Fingerprinting & Timetable Verification</p>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
-        <span class="px-2.5 py-1 rounded-full text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-          n8n Engine Connected
+        <span id="connectionBadge" class="px-2.5 py-1 rounded-full text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+          Webhook Loaded from config.js
         </span>
         <button onclick="exportCSV()" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition">
           Export Report (CSV)
@@ -38,20 +38,21 @@
     <!-- Top Section: 3-Column Input Grid -->
     <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
       
-      <!-- Panel 1 (4 cols): 24h Broadcast Media -->
+      <!-- Panel 1 (4 cols): Broadcast Media -->
       <div class="xl:col-span-4 bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between space-y-4">
         <div class="space-y-4">
-          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-300">1. Full-Day Broadcast Video (24h Input)</h2>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-300">1. Broadcast Video Input (1h Test or 24h)</h2>
           
           <div>
-            <label class="block text-xs text-slate-400 mb-1.5">Upload Recording (1-Hour Test or 24-Hour Stream)</label>
-            <input id="videoFile" type="file" accept="video/*"
+            <label class="block text-xs text-slate-400 mb-1.5">Upload Broadcast Video (e.g., 1-Hour Test Clip)</label>
+            <input id="videoFile" type="file" accept="video/*" onchange="handleVideoFileSelect(event)"
               class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3.5 file:rounded-lg file:border-0 file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 cursor-pointer" />
+            <p id="videoFileInfo" class="text-[11px] text-slate-500 mt-1">No video file selected.</p>
           </div>
 
           <div>
-            <label class="block text-xs text-slate-400 mb-1.5">Or Storage / Server Path (Recommended for 24h Files)</label>
-            <input id="videoUrl" type="text" placeholder="/data/broadcast_2026-11-26.mp4 or Supabase URL"
+            <label class="block text-xs text-slate-400 mb-1.5">Or Storage / Server Path (Recommended for Large/24h Files)</label>
+            <input id="videoUrl" type="text" placeholder="/data/broadcast_2026-11-27.mp4 or Supabase URL"
               class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500" />
           </div>
 
@@ -63,7 +64,7 @@
         </div>
 
         <p class="text-[11px] text-slate-500">
-          The continuous broadcast stream that will be scanned for shows and commercials.
+          For large 1-hour or 24-hour files, prefer a Supabase/server path over direct webhook upload to avoid timeouts.
         </p>
       </div>
 
@@ -75,17 +76,17 @@
             <span id="refCountBadge" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">0 items</span>
           </div>
           <p class="text-xs text-slate-400">
-            Upload clips or paste URLs (Supabase, S3, or direct MP3/MP4 links) to match inside the 24h video.
+            Upload ad/sting clips or paste URLs to detect inside the broadcast video.
           </p>
 
           <label class="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-lg cursor-pointer bg-slate-950/60 transition">
-            <span class="text-xs font-medium text-slate-300">+ Upload Commercial / Sting Files</span>
+            <span class="text-xs font-medium text-slate-300">+ Upload Ad / Sting Files</span>
             <span class="text-[11px] text-slate-500 mt-0.5">MP4, MP3, or WAV</span>
             <input id="referenceClips" type="file" accept="video/*,audio/*" multiple class="hidden" onchange="handleReferenceUpload(event)" />
           </label>
 
           <div class="flex gap-2">
-            <input id="referenceUrlInput" type="text" placeholder="Paste ad/sting URL (https://... or /data/ad1.mp3)"
+            <input id="referenceUrlInput" type="text" placeholder="Paste ad/sting URL (https://... or /data/ad1.mp4)"
               class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500"
               onkeydown="if(event.key==='Enter'){event.preventDefault();addReferenceUrl();}" />
             <button type="button" onclick="addReferenceUrl()"
@@ -94,40 +95,35 @@
             </button>
           </div>
 
-          <!-- Combined List of Attached Files & URLs -->
           <div id="referenceList" class="max-h-24 overflow-y-auto space-y-1.5 text-xs">
             <p class="text-[11px] text-slate-500 italic">No reference clips or URLs added yet.</p>
           </div>
         </div>
 
         <p class="text-[11px] text-slate-500">
-          Supports local files, direct media URLs, and cloud storage links.
+          Sent together with the broadcast input when you click Run.
         </p>
       </div>
 
-      <!-- Panel 3 (5 cols): Timetable -->
+      <!-- Panel 3 (5 cols): Timetable (Loaded via CSV Upload into Textarea) -->
       <div class="xl:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between space-y-4">
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-300">3. Planned Broadcast Timetable</h2>
-            <p class="text-xs text-slate-400">Format: <code class="text-emerald-400">start_time, end_time, title, type</code></p>
+            <p class="text-xs text-slate-400">Upload a CSV (<code class="text-emerald-400">start_time, end_time, title, type</code>) to preview & edit</p>
           </div>
-          <label class="cursor-pointer px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition">
+          <label class="cursor-pointer px-3.5 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition">
             Upload CSV
             <input id="csvUpload" type="file" accept=".csv" class="hidden" onchange="handleCSVUpload(event)" />
           </label>
         </div>
 
         <textarea id="timetableInput" rows="6"
-          class="w-full flex-1 bg-slate-950 border border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500">08:00:00, 08:15:00, Morning News Bulletin, News
-08:15:00, 08:15:30, Ethio Telecom 5G Promo, Ad
-08:15:30, 08:16:00, Commercial Bank Mobile App, Ad
-08:16:00, 08:45:00, Morning Talk Show, Show
-08:45:00, 08:45:30, Awash Bank Commercial, Ad
-08:45:30, 09:00:00, Sports & Weather Update, News</textarea>
+          placeholder="Upload a CSV file above to load and preview the schedule (start_time, end_time, title, type)..."
+          class="w-full flex-1 bg-slate-950 border border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"></textarea>
 
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <span id="statusText" class="text-xs text-slate-400">Ready to analyze broadcast stream.</span>
+          <span id="statusText" class="text-xs text-slate-400">Upload a CSV timetable to begin.</span>
           <button id="runBtn" onclick="runVerification()"
             class="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition shadow-lg shadow-emerald-950/50">
             Run AI Schedule Verification
@@ -180,7 +176,7 @@
             <tbody id="resultsBody" class="divide-y divide-slate-800/70">
               <tr>
                 <td colspan="6" class="px-5 py-12 text-center text-slate-500">
-                  Attach your 24h broadcast, reference ad clips or URLs, and timetable, then click "Run AI Schedule Verification".
+                  Upload your CSV timetable, attach your broadcast video and reference ads/URLs, then click "Run AI Schedule Verification".
                 </td>
               </tr>
             </tbody>
@@ -199,11 +195,13 @@
     </section>
   </main>
 
-  <script>
-    const N8N_WEBHOOK_URL = "https://your-n8n-domain/webhook/broadcast-check";
-    const USE_DEMO_FALLBACK = true;
+  <script type="module">
+    import { N8N_mediamonitoring_WEBHOOK } from './config.js';
+
+    const USE_DEMO_FALLBACK = false;
 
     let currentReport = [];
+    let selectedBroadcastVideoFile = null;
     let attachedReferenceFiles = [];
     let attachedReferenceUrls = [];
 
@@ -213,7 +211,28 @@
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       const dd = String(now.getDate()).padStart(2, '0');
       document.getElementById('startDateTime').value = `${yyyy}-${mm}-${dd}T08:00:00`;
+
+      const badge = document.getElementById('connectionBadge');
+      if (N8N_mediamonitoring_WEBHOOK) {
+        badge.textContent = N8N_mediamonitoring_WEBHOOK.includes('/webhook-test/')
+          ? 'n8n Test Webhook Loaded'
+          : 'n8n Live Webhook Loaded';
+      } else {
+        badge.textContent = 'Webhook Missing in config.js';
+      }
     });
+
+    function handleVideoFileSelect(event) {
+      const file = event.target.files[0] || null;
+      selectedBroadcastVideoFile = file;
+      const infoEl = document.getElementById('videoFileInfo');
+      if (file) {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        infoEl.textContent = `Selected: ${file.name} (${sizeMB} MB)`;
+      } else {
+        infoEl.textContent = 'No video file selected.';
+      }
+    }
 
     function handleReferenceUpload(event) {
       attachedReferenceFiles = Array.from(event.target.files);
@@ -225,7 +244,6 @@
       const raw = input.value.trim();
       if (!raw) return;
 
-      // Support comma-separated URLs or a single URL
       const urls = raw.split(',').map(u => u.trim()).filter(Boolean);
       urls.forEach(u => {
         if (!attachedReferenceUrls.includes(u)) {
@@ -276,7 +294,9 @@
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (e) => {
-        document.getElementById('timetableInput').value = e.target.result.trim();
+        const content = e.target.result.trim();
+        document.getElementById('timetableInput').value = content;
+        document.getElementById('statusText').textContent = `Loaded CSV schedule: ${file.name}`;
       };
       reader.readAsText(file);
     }
@@ -301,51 +321,74 @@
     async function runVerification() {
       const btn = document.getElementById('runBtn');
       const statusText = document.getElementById('statusText');
+      const rawTimetable = document.getElementById('timetableInput').value.trim();
+
+      if (!rawTimetable) {
+        statusText.textContent = 'Please upload a CSV timetable before running verification.';
+        return;
+      }
+
       const rawDateTime = document.getElementById('startDateTime').value;
+      if (!rawDateTime) {
+        statusText.textContent = 'Please set Broadcast Start Date & Clock (YYYY-MM-DD HH:MM:SS).';
+        return;
+      }
+
       const [broadcastDate, broadcastClock = "00:00:00"] = rawDateTime.split('T');
       const formattedClock = broadcastClock.length === 5 ? broadcastClock + ':00' : broadcastClock;
       const formattedStart = `${broadcastDate} ${formattedClock}`;
 
       const videoUrl = document.getElementById('videoUrl').value.trim();
-      const timetable = parseTimetable(document.getElementById('timetableInput').value, broadcastDate);
+      const timetable = parseTimetable(rawTimetable, broadcastDate);
       const totalRefs = attachedReferenceFiles.length + attachedReferenceUrls.length;
 
+      if (!selectedBroadcastVideoFile && !videoUrl) {
+        statusText.textContent = 'Please upload a broadcast video file or enter a video path/URL.';
+        return;
+      }
+
       btn.disabled = true;
-      btn.textContent = 'Processing Broadcast...';
-      statusText.textContent = `Scanning stream (${formattedStart}) against ${totalRefs} reference items & timetable...`;
+      btn.textContent = 'Uploading & Processing...';
+      statusText.textContent = `Sending broadcast (${formattedStart}), ${totalRefs} reference item(s), and schedule to webhook...`;
 
       try {
         let results;
 
-        if (N8N_WEBHOOK_URL && !N8N_WEBHOOK_URL.includes("your-n8n-domain")) {
+        if (N8N_mediamonitoring_WEBHOOK) {
           const formData = new FormData();
           formData.append('broadcast_start_datetime', formattedStart);
           formData.append('broadcast_date', broadcastDate);
           formData.append('broadcast_start_clock', formattedClock);
-          formData.append('video_path_or_url', videoUrl || 'uploaded_local_test.mp4');
+          formData.append('video_path_or_url', videoUrl || (selectedBroadcastVideoFile ? selectedBroadcastVideoFile.name : ''));
           formData.append('timetable', JSON.stringify(timetable));
           formData.append('reference_urls', JSON.stringify(attachedReferenceUrls));
+
+          if (selectedBroadcastVideoFile) {
+            formData.append('broadcast_video', selectedBroadcastVideoFile, selectedBroadcastVideoFile.name);
+          }
 
           attachedReferenceFiles.forEach((file, index) => {
             formData.append(`reference_clip_${index}`, file, file.name);
           });
 
-          const response = await fetch(N8N_WEBHOOK_URL, {
+          const response = await fetch(N8N_mediamonitoring_WEBHOOK, {
             method: 'POST',
             body: formData
           });
           if (!response.ok) throw new Error('n8n Webhook returned status ' + response.status);
           const data = await response.json();
           results = data.report || data;
-          statusText.textContent = `Verification complete for ${broadcastDate} (Live n8n Engine).`;
+          statusText.textContent = `Verification complete for ${formattedStart} (Live n8n Engine).`;
         } else if (USE_DEMO_FALLBACK) {
           await new Promise(r => setTimeout(r, 800));
           results = simulateAIDetection(timetable, broadcastDate);
-          statusText.textContent = `Verification complete for ${broadcastDate} (${totalRefs} reference items loaded).`;
+          statusText.textContent = `Verification complete for ${formattedStart} (Simulated preview).`;
+        } else {
+          throw new Error('N8N_mediamonitoring_WEBHOOK is not defined in config.js.');
         }
 
         currentReport = results;
-        document.getElementById('activeBroadcastDateBadge').textContent = `Broadcast Date: ${broadcastDate}`;
+        document.getElementById('activeBroadcastDateBadge').textContent = `Broadcast Start: ${formattedStart}`;
         renderResults(results);
       } catch (err) {
         statusText.textContent = 'Error: ' + err.message;
@@ -387,8 +430,8 @@
             drift: 'N/A',
             status: 'Missing',
             confidence: '99%',
-            transcript_cue: 'Reference commercial audio/video not found in 08:40–08:50 window.',
-            ocr_text: 'Studio Talk Show continued without commercial break'
+            transcript_cue: 'Reference commercial audio/video not found in scheduled window.',
+            ocr_text: 'Program continued without scheduled commercial break'
           };
         }
         return {
@@ -504,6 +547,15 @@
       a.download = `broadcast-compliance-${currentReport[0].broadcast_date}.csv`;
       a.click();
     }
+
+    window.handleVideoFileSelect = handleVideoFileSelect;
+    window.handleReferenceUpload = handleReferenceUpload;
+    window.addReferenceUrl = addReferenceUrl;
+    window.removeReferenceUrl = removeReferenceUrl;
+    window.handleCSVUpload = handleCSVUpload;
+    window.runVerification = runVerification;
+    window.exportCSV = exportCSV;
   </script>
 </body>
 </html>
+```[cite: 2]
