@@ -67,31 +67,41 @@
         </p>
       </div>
 
-      <!-- Panel 2 (3 cols): Reference Ads / Clips to Find -->
+      <!-- Panel 2 (3 cols): Reference Ads / Clips to Find (Files + URLs) -->
       <div class="xl:col-span-3 bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between space-y-4">
         <div class="space-y-3">
           <div class="flex items-center justify-between">
             <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-300">2. Reference Ads & Stings</h2>
-            <span id="refCountBadge" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">0 files</span>
+            <span id="refCountBadge" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">0 items</span>
           </div>
           <p class="text-xs text-slate-400">
-            Insert the exact commercial or sting clips (MP4/MP3/WAV) to find inside the 24h video.
+            Upload clips or paste URLs (Supabase, S3, or direct MP3/MP4 links) to match inside the 24h video.
           </p>
 
-          <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-lg cursor-pointer bg-slate-950/60 transition">
-            <span class="text-xs font-medium text-slate-300">+ Add Commercial / Sting Files</span>
-            <span class="text-[11px] text-slate-500 mt-1">Select multiple MP4, MP3, or WAV files</span>
+          <label class="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-lg cursor-pointer bg-slate-950/60 transition">
+            <span class="text-xs font-medium text-slate-300">+ Upload Commercial / Sting Files</span>
+            <span class="text-[11px] text-slate-500 mt-0.5">MP4, MP3, or WAV</span>
             <input id="referenceClips" type="file" accept="video/*,audio/*" multiple class="hidden" onchange="handleReferenceUpload(event)" />
           </label>
 
-          <!-- List of Attached Reference Ads -->
-          <div id="referenceList" class="max-h-28 overflow-y-auto space-y-1.5 text-xs">
-            <p class="text-[11px] text-slate-500 italic">No reference clips attached yet.</p>
+          <div class="flex gap-2">
+            <input id="referenceUrlInput" type="text" placeholder="Paste ad/sting URL (https://... or /data/ad1.mp3)"
+              class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();addReferenceUrl();}" />
+            <button type="button" onclick="addReferenceUrl()"
+              class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">
+              Add URL
+            </button>
+          </div>
+
+          <!-- Combined List of Attached Files & URLs -->
+          <div id="referenceList" class="max-h-24 overflow-y-auto space-y-1.5 text-xs">
+            <p class="text-[11px] text-slate-500 italic">No reference clips or URLs added yet.</p>
           </div>
         </div>
 
         <p class="text-[11px] text-slate-500">
-          Matches exact audio fingerprints even if ad titles aren't spoken aloud.
+          Supports local files, direct media URLs, and cloud storage links.
         </p>
       </div>
 
@@ -170,7 +180,7 @@
             <tbody id="resultsBody" class="divide-y divide-slate-800/70">
               <tr>
                 <td colspan="6" class="px-5 py-12 text-center text-slate-500">
-                  Attach your 24h broadcast, reference ad clips, and timetable, then click "Run AI Schedule Verification".
+                  Attach your 24h broadcast, reference ad clips or URLs, and timetable, then click "Run AI Schedule Verification".
                 </td>
               </tr>
             </tbody>
@@ -194,7 +204,8 @@
     const USE_DEMO_FALLBACK = true;
 
     let currentReport = [];
-    let attachedReferences = [];
+    let attachedReferenceFiles = [];
+    let attachedReferenceUrls = [];
 
     window.addEventListener('DOMContentLoaded', () => {
       const now = new Date();
@@ -205,24 +216,59 @@
     });
 
     function handleReferenceUpload(event) {
-      const files = Array.from(event.target.files);
-      attachedReferences = files;
+      attachedReferenceFiles = Array.from(event.target.files);
+      renderReferenceList();
+    }
+
+    function addReferenceUrl() {
+      const input = document.getElementById('referenceUrlInput');
+      const raw = input.value.trim();
+      if (!raw) return;
+
+      // Support comma-separated URLs or a single URL
+      const urls = raw.split(',').map(u => u.trim()).filter(Boolean);
+      urls.forEach(u => {
+        if (!attachedReferenceUrls.includes(u)) {
+          attachedReferenceUrls.push(u);
+        }
+      });
+
+      input.value = '';
+      renderReferenceList();
+    }
+
+    function removeReferenceUrl(index) {
+      attachedReferenceUrls.splice(index, 1);
+      renderReferenceList();
+    }
+
+    function renderReferenceList() {
       const list = document.getElementById('referenceList');
       const badge = document.getElementById('refCountBadge');
+      const totalCount = attachedReferenceFiles.length + attachedReferenceUrls.length;
 
-      badge.textContent = `${files.length} file${files.length === 1 ? '' : 's'}`;
+      badge.textContent = `${totalCount} item${totalCount === 1 ? '' : 's'}`;
 
-      if (!files.length) {
-        list.innerHTML = '<p class="text-[11px] text-slate-500 italic">No reference clips attached yet.</p>';
+      if (!totalCount) {
+        list.innerHTML = '<p class="text-[11px] text-slate-500 italic">No reference clips or URLs added yet.</p>';
         return;
       }
 
-      list.innerHTML = files.map(f => `
+      const fileHtml = attachedReferenceFiles.map(f => `
         <div class="flex items-center justify-between px-2.5 py-1.5 rounded bg-slate-950 border border-slate-800">
-          <span class="truncate text-slate-200 max-w-[180px]" title="${f.name}">${f.name}</span>
+          <span class="truncate text-slate-200 max-w-[175px]" title="${f.name}">[File] ${f.name}</span>
           <span class="text-[10px] text-emerald-400 font-mono">${(f.size / (1024 * 1024)).toFixed(1)} MB</span>
         </div>
       `).join('');
+
+      const urlHtml = attachedReferenceUrls.map((u, idx) => `
+        <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded bg-slate-950 border border-slate-800">
+          <span class="truncate text-sky-300 font-mono text-[11px]" title="${u}">[URL] ${u}</span>
+          <button type="button" onclick="removeReferenceUrl(${idx})" class="text-rose-400 hover:text-rose-300 text-[11px] shrink-0">✕</button>
+        </div>
+      `).join('');
+
+      list.innerHTML = fileHtml + urlHtml;
     }
 
     function handleCSVUpload(event) {
@@ -262,24 +308,25 @@
 
       const videoUrl = document.getElementById('videoUrl').value.trim();
       const timetable = parseTimetable(document.getElementById('timetableInput').value, broadcastDate);
+      const totalRefs = attachedReferenceFiles.length + attachedReferenceUrls.length;
 
       btn.disabled = true;
       btn.textContent = 'Processing Broadcast...';
-      statusText.textContent = `Scanning stream (${formattedStart}) against ${attachedReferences.length} reference clips & timetable...`;
+      statusText.textContent = `Scanning stream (${formattedStart}) against ${totalRefs} reference items & timetable...`;
 
       try {
         let results;
 
         if (N8N_WEBHOOK_URL && !N8N_WEBHOOK_URL.includes("your-n8n-domain")) {
-          // Send multipart FormData so reference ad files + JSON metadata go together to n8n
           const formData = new FormData();
           formData.append('broadcast_start_datetime', formattedStart);
           formData.append('broadcast_date', broadcastDate);
           formData.append('broadcast_start_clock', formattedClock);
           formData.append('video_path_or_url', videoUrl || 'uploaded_local_test.mp4');
           formData.append('timetable', JSON.stringify(timetable));
+          formData.append('reference_urls', JSON.stringify(attachedReferenceUrls));
 
-          attachedReferences.forEach((file, index) => {
+          attachedReferenceFiles.forEach((file, index) => {
             formData.append(`reference_clip_${index}`, file, file.name);
           });
 
@@ -294,7 +341,7 @@
         } else if (USE_DEMO_FALLBACK) {
           await new Promise(r => setTimeout(r, 800));
           results = simulateAIDetection(timetable, broadcastDate);
-          statusText.textContent = `Verification complete for ${broadcastDate} (${attachedReferences.length} reference clips loaded).`;
+          statusText.textContent = `Verification complete for ${broadcastDate} (${totalRefs} reference items loaded).`;
         }
 
         currentReport = results;
@@ -310,11 +357,14 @@
 
     function simulateAIDetection(timetable, broadcastDate) {
       return timetable.map((item, idx) => {
-        const refMatch = attachedReferences.find(f =>
-          f.name.toLowerCase().includes(item.title.toLowerCase().split(' ')[0])
-        );
-        const methodNote = refMatch
-          ? `Matched reference file "${refMatch.name}" (99.4% audio fingerprint similarity)`
+        const firstWord = item.title.toLowerCase().split(' ')[0];
+        const refFile = attachedReferenceFiles.find(f => f.name.toLowerCase().includes(firstWord));
+        const refUrl = attachedReferenceUrls.find(u => u.toLowerCase().includes(firstWord));
+
+        const methodNote = refFile
+          ? `Matched uploaded reference "${refFile.name}" (99.4% audio fingerprint similarity)`
+          : refUrl
+          ? `Matched reference URL "${refUrl}" (99.1% audio fingerprint similarity)`
           : `Matched via broadcast speech & program intro analysis`;
 
         if (idx === 1) {
