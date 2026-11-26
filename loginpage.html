@@ -97,7 +97,9 @@
                             <option value="Editor" class="bg-slate-950 text-white">Editor</option>
                             <option value="Management" class="bg-slate-950 text-white">Management</option>
                               <option value="Prepare" class="bg-slate-950 text-white">Preparation studio</option>
-                                                          <option value="digitalstudio" class="bg-slate-950 text-white">Digital studio</option>
+                           <option value="digitalstudio" class="bg-slate-950 text-white">Digital studio</option>
+                          <option value="mediamonitering" class="bg-slate-950 text-white">mediamonitering</option>
+
 
                         </select>
                     </div>
@@ -531,6 +533,7 @@
     "sport": "sport.html",
     "sports": "sport.html",
           "digitalstudio": "digitalstudio.html",
+      "mediamonitering":"mediamonitering.html",
 
     "business and finance": "business and finance.html"
 };
@@ -557,9 +560,14 @@ if (!targetPage) {
     else if (combined.includes("sport")) {
                 targetPage = "sport.html";
                     } 
+        
             else if (combined.includes("digitalstudio")) {
                 targetPage = "digitalstudio.html";
                     } 
+                  else if (combined.includes("mediamonitering")) {
+                targetPage = "mediamonitering.html";
+                    } 
+    
     
     
     else if (combined.includes("business") || combined.includes("finance")) {
