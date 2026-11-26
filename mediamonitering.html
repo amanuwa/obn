@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Broadcast AI — Schedule & Ad Compliance Monitor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+
+  <!-- Top Navigation -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold">
+          AI
+        </div>
+        <div>
+          <h1 class="text-lg font-semibold tracking-tight">Broadcast Compliance & As-Run Monitor</h1>
+          <p class="text-xs text-slate-400">Automated Timetable vs. Air-Check Verification</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="exportCSV()" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition">
+          Export Report (CSV)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+
+    <!-- Configuration & Upload Grid -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Left: Broadcast Source & Webhook -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">1. Broadcast Video & Engine</h2>
+        
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Broadcast Start Clock Time (HH:MM:SS)</label>
+          <input id="startClock" type="text" value="08:00:00"
+            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Video File (Local Test or Cloud/Storage URL)</label>
+          <input id="videoFile" type="file" accept="video/*"
+            class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700" />
+          <input id="videoUrl" type="text" placeholder="Or paste Supabase / S3 / Local path (/data/24hr.mp4)"
+            class="mt-2 w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">n8n Webhook URL (Leave empty for Demo Mode)</label>
+          <input id="webhookUrl" type="text" placeholder="https://your-n8n-domain/webhook/broadcast-check"
+            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500" />
+        </div>
+      </div>
+
+      <!-- Middle: Timetable Input -->
+      <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">2. Planned Broadcast Timetable (CSV or JSON)</h2>
+            <p class="text-xs text-slate-400">Format: <code class="text-emerald-400">start_time, end_time, title, type</code></p>
+          </div>
+          <label class="cursor-pointer px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700">
+            Upload CSV
+            <input id="csvUpload" type="file" accept=".csv" class="hidden" onchange="handleCSVUpload(event)" />
+          </label>
+        </div>
+
+        <textarea id="timetableInput" rows="6"
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500">08:00:00, 08:15:00, Morning News Bulletin, News
+08:15:00, 08:15:30, Ethio Telecom 5G Promo, Ad
+08:15:30, 08:16:00, Commercial Bank Mobile App, Ad
+08:16:00, 08:45:00, Morning Talk Show, Show
+08:45:00, 08:45:30, Awash Bank Commercial, Ad
+08:45:30, 09:00:00, Sports & Weather Update, News</textarea>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <span id="statusText" class="text-xs text-slate-400">Ready to analyze broadcast stream.</span>
+          <button id="runBtn" onclick="runVerification()"
+            class="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition shadow-lg shadow-emerald-950/50">
+            Run AI Schedule Verification
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- KPI Summary Cards -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <p class="text-xs text-slate-400">Total Scheduled Items</p>
+        <p id="kpiTotal" class="text-2xl font-bold mt-1">0</p>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <p class="text-xs text-slate-400">Matched On-Time</p>
+        <p id="kpiMatched" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <p class="text-xs text-slate-400">Delayed / Time Drift</p>
+        <p id="kpiDelayed" class="text-2xl font-bold text-amber-400 mt-1">0</p>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <p class="text-xs text-slate-400">Missing / Cut Short</p>
+        <p id="kpiMissing" class="text-2xl font-bold text-rose-400 mt-1">0</p>
+      </div>
+    </section>
+
+    <!-- Main Comparison Table & Evidence Inspector -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Comparison Table -->
+      <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="text-sm font-semibold">Scheduled vs. Actual Air-Check Timeline</h3>
+          <span class="text-xs text-slate-400">Click any row to inspect AI evidence</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
+              <tr>
+                <th class="px-4 py-3">Planned Time</th>
+                <th class="px-4 py-3">Program / Commercial</th>
+                <th class="px-4 py-3">Type</th>
+                <th class="px-4 py-3">Actual Detected</th>
+                <th class="px-4 py-3">Drift</th>
+                <th class="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody" class="divide-y divide-slate-800/70">
+              <tr>
+                <td colspan="6" class="px-4 py-10 text-center text-slate-500">
+                  Click "Run AI Schedule Verification" to compare your timetable against the broadcast video.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Evidence Drawer -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+        <h3 class="text-sm font-semibold border-b border-slate-800 pb-3">AI Detection Evidence</h3>
+        <div id="evidencePanel" class="space-y-3 text-xs text-slate-400">
+          <p>Select a row in the timeline to view detected speech transcript, on-screen text (OCR), and timestamp variance.</p>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script>
+    let currentReport = [];
+
+    function handleCSVUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('timetableInput').value = e.target.result.trim();
+      };
+      reader.readAsText(file);
+    }
+
+    function parseTimetable(rawText) {
+      return rawText
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line && !line.toLowerCase().startsWith('start_time'))
+        .map(line => {
+          const [start_time, end_time, title, type] = line.split(',').map(s => s.trim());
+          return { start_time, end_time, title, type: type || 'Program' };
+        });
+    }
+
+    async function runVerification() {
+      const btn = document.getElementById('runBtn');
+      const statusText = document.getElementById('statusText');
+      const webhookUrl = document.getElementById('webhookUrl').value.trim();
+      const startClock = document.getElementById('startClock').value.trim();
+      const videoUrl = document.getElementById('videoUrl').value.trim();
+      const timetable = parseTimetable(document.getElementById('timetableInput').value);
+
+      btn.disabled = true;
+      btn.textContent = 'Processing Broadcast...';
+      statusText.textContent = 'Chunking stream & running AI audio/visual detection...';
+
+      try {
+        let results;
+
+        if (webhookUrl) {
+          // LIVE N8N WEBHOOK MODE
+          const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              broadcast_start_clock: startClock,
+              video_path_or_url: videoUrl || 'uploaded_local_test.mp4',
+              timetable: timetable
+            })
+          });
+          if (!response.ok) throw new Error('n8n Webhook returned status ' + response.status);
+          const data = await response.json();
+          results = data.report || data;
+        } else {
+          // DEMO SIMULATION MODE (For instant UI testing)
+          await new Promise(r => setTimeout(r, 900));
+          results = simulateAIDetection(timetable);
+        }
+
+        currentReport = results;
+        renderResults(results);
+        statusText.textContent = webhookUrl
+          ? 'Verification complete (Live n8n Engine).'
+          : 'Verification complete (Demo Mode — connect n8n Webhook URL for live video analysis).';
+      } catch (err) {
+        statusText.textContent = 'Error: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Run AI Schedule Verification';
+      }
+    }
+
+    function simulateAIDetection(timetable) {
+      return timetable.map((item, idx) => {
+        if (idx === 1) {
+          return {
+            ...item,
+            actual_start: addSeconds(item.start_time, 145),
+            drift: '+2m 25s',
+            status: 'Delayed',
+            confidence: '97%',
+            transcript_cue: 'Detected audio fingerprint: "Ethio Telecom 5G..."',
+            ocr_text: 'Ethio Telecom Commercial Spot'
+          };
+        }
+        if (idx === 4) {
+          return {
+            ...item,
+            actual_start: 'Not Detected',
+            drift: 'N/A',
+            status: 'Missing',
+            confidence: '99%',
+            transcript_cue: 'No matching commercial audio found in 08:40–08:50 window.',
+            ocr_text: 'Studio Talk Show continued without commercial break'
+          };
+        }
+        return {
+          ...item,
+          actual_start: item.start_time,
+          drift: '0s',
+          status: 'Matched',
+          confidence: '98%',
+          transcript_cue: `Confirmed "${item.title}" audio & intro sting at ${item.start_time}.`,
+          ocr_text: `On-screen lower third matched: ${item.title}`
+        };
+      });
+    }
+
+    function addSeconds(timeStr, secToAdd) {
+      const [h, m, s] = timeStr.split(':').map(Number);
+      const total = h * 3600 + m * 60 + s + secToAdd;
+      const nh = String(Math.floor(total / 3600)).padStart(2, '0');
+      const nm = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+      const ns = String(total % 60).padStart(2, '0');
+      return `${nh}:${nm}:${ns}`;
+    }
+
+    function renderResults(rows) {
+      const tbody = document.getElementById('resultsBody');
+      tbody.innerHTML = '';
+
+      let matched = 0, delayed = 0, missing = 0;
+
+      rows.forEach((row, index) => {
+        if (row.status === 'Matched') matched++;
+        else if (row.status === 'Delayed') delayed++;
+        else missing++;
+
+        const badgeClass =
+          row.status === 'Matched' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
+          row.status === 'Delayed' ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' :
+          'bg-rose-500/15 text-rose-400 border-rose-500/30';
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/50 cursor-pointer transition';
+        tr.onclick = () => showEvidence(row);
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-mono text-slate-300">${row.start_time}</td>
+          <td class="px-4 py-3 font-medium text-slate-100">${row.title}</td>
+          <td class="px-4 py-3 text-slate-400">${row.type}</td>
+          <td class="px-4 py-3 font-mono text-slate-300">${row.actual_start}</td>
+          <td class="px-4 py-3 font-mono text-slate-400">${row.drift}</td>
+          <td class="px-4 py-3">
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-medium border ${badgeClass}">
+              ${row.status}
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('kpiTotal').textContent = rows.length;
+      document.getElementById('kpiMatched').textContent = matched;
+      document.getElementById('kpiDelayed').textContent = delayed;
+      document.getElementById('kpiMissing').textContent = missing;
+
+      if (rows.length > 0) showEvidence(rows[0]);
+    }
+
+    function showEvidence(row) {
+      const panel = document.getElementById('evidencePanel');
+      panel.innerHTML = `
+        <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Item:</span>
+            <span class="font-semibold text-slate-100">${row.title}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Planned Window:</span>
+            <span class="font-mono text-slate-200">${row.start_time} – ${row.end_time}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Actual Air Time:</span>
+            <span class="font-mono text-emerald-400">${row.actual_start}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">AI Confidence:</span>
+            <span class="text-slate-200">${row.confidence || '95%'}</span>
+          </div>
+        </div>
+        <div class="space-y-1">
+          <p class="font-semibold text-slate-300">Audio / Speech Detection Cue:</p>
+          <p class="p-2.5 rounded bg-slate-950 border border-slate-800 text-slate-300">${row.transcript_cue || 'No transcript logged.'}</p>
+        </div>
+        <div class="space-y-1">
+          <p class="font-semibold text-slate-300">Visual / Lower-Third OCR:</p>
+          <p class="p-2.5 rounded bg-slate-950 border border-slate-800 text-slate-300">${row.ocr_text || 'No visual text logged.'}</p>
+        </div>
+      `;
+    }
+
+    function exportCSV() {
+      if (!currentReport.length) return alert('Run verification first.');
+      const header = 'Planned Start,Planned End,Title,Type,Actual Start,Drift,Status\n';
+      const rows = currentReport.map(r =>
+        `"${r.start_time}","${r.end_time}","${r.title}","${r.type}","${r.actual_start}","${r.drift}","${r.status}"`
+      ).join('\n');
+      const blob = new Blob([header + rows], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'broadcast-compliance-report.csv';
+      a.click();
+    }
+  </script>
+</body>
+</html>
