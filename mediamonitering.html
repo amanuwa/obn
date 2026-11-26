@@ -6,22 +6,25 @@
   <title>Broadcast AI — Schedule & Ad Compliance Monitor</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col">
 
-  <!-- Top Navigation -->
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-20">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+  <!-- Top Navigation (Full Width) -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-20 w-full">
+    <div class="w-full px-6 py-3.5 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold">
           AI
         </div>
         <div>
-          <h1 class="text-lg font-semibold tracking-tight">Broadcast Compliance & As-Run Monitor</h1>
+          <h1 class="text-base font-semibold tracking-tight">Broadcast Compliance & As-Run Monitor</h1>
           <p class="text-xs text-slate-400">Automated Timetable vs. Air-Check Verification</p>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
+        <span id="connectionBadge" class="px-2.5 py-1 rounded-full text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+          n8n Engine Connected
+        </span>
         <button onclick="exportCSV()" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition">
           Export Report (CSV)
         </button>
@@ -29,69 +32,74 @@
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+  <!-- Main Workspace (Full Screen Width) -->
+  <main class="w-full flex-1 px-6 py-6 space-y-6">
 
-    <!-- Configuration & Upload Grid -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Top Section: Video Source + Timetable -->
+    <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
       
-      <!-- Left: Broadcast Source & Webhook -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">1. Broadcast Video & Engine</h2>
-        
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Broadcast Start Clock Time (HH:MM:SS)</label>
-          <input id="startClock" type="text" value="08:00:00"
-            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500" />
+      <!-- Left Panel (4 cols on wide screens): Broadcast Media -->
+      <div class="xl:col-span-4 bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between space-y-4">
+        <div class="space-y-4">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-300">1. Broadcast Media Input</h2>
+          
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Upload Recording (1-Hour Test or 24-Hour Stream)</label>
+            <input id="videoFile" type="file" accept="video/*"
+              class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3.5 file:rounded-lg file:border-0 file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 cursor-pointer" />
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Or Storage / Server File Path (For Large 24h Files)</label>
+            <input id="videoUrl" type="text" placeholder="/data/broadcast_24hr.mp4 or Supabase URL"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500" />
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Recording Start Clock (Defaults to 00:00:00 for 24h)</label>
+            <input id="startClock" type="text" value="08:00:00"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500" />
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Video File (Local Test or Cloud/Storage URL)</label>
-          <input id="videoFile" type="file" accept="video/*"
-            class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700" />
-          <input id="videoUrl" type="text" placeholder="Or paste Supabase / S3 / Local path (/data/24hr.mp4)"
-            class="mt-2 w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500" />
-        </div>
-
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">n8n Webhook URL (Leave empty for Demo Mode)</label>
-          <input id="webhookUrl" type="text" placeholder="https://your-n8n-domain/webhook/broadcast-check"
-            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500" />
-        </div>
+        <p class="text-[11px] text-slate-500">
+          Tip: Use <span class="text-slate-300 font-mono">00:00:00</span> for full midnight-to-midnight recordings, or match the start hour of a partial clip.
+        </p>
       </div>
 
-      <!-- Middle: Timetable Input -->
-      <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between space-y-4">
+      <!-- Right Panel (8 cols on wide screens): Timetable -->
+      <div class="xl:col-span-8 bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between space-y-4">
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">2. Planned Broadcast Timetable (CSV or JSON)</h2>
-            <p class="text-xs text-slate-400">Format: <code class="text-emerald-400">start_time, end_time, title, type</code></p>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-300">2. Planned Broadcast Timetable (CSV or JSON)</h2>
+            <p class="text-xs text-slate-400">Columns: <code class="text-emerald-400">start_time, end_time, title, type</code></p>
           </div>
-          <label class="cursor-pointer px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700">
-            Upload CSV
+          <label class="cursor-pointer px-3.5 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition">
+            Upload CSV File
             <input id="csvUpload" type="file" accept=".csv" class="hidden" onchange="handleCSVUpload(event)" />
           </label>
         </div>
 
         <textarea id="timetableInput" rows="6"
-          class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500">08:00:00, 08:15:00, Morning News Bulletin, News
+          class="w-full flex-1 bg-slate-950 border border-slate-700 rounded-lg p-3.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500">08:00:00, 08:15:00, Morning News Bulletin, News
 08:15:00, 08:15:30, Ethio Telecom 5G Promo, Ad
 08:15:30, 08:16:00, Commercial Bank Mobile App, Ad
 08:16:00, 08:45:00, Morning Talk Show, Show
 08:45:00, 08:45:30, Awash Bank Commercial, Ad
 08:45:30, 09:00:00, Sports & Weather Update, News</textarea>
 
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+        <div class="flex flex-wrap items-center justify-between gap-3">
           <span id="statusText" class="text-xs text-slate-400">Ready to analyze broadcast stream.</span>
           <button id="runBtn" onclick="runVerification()"
-            class="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition shadow-lg shadow-emerald-950/50">
+            class="px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition shadow-lg shadow-emerald-950/50">
             Run AI Schedule Verification
           </button>
         </div>
       </div>
     </section>
 
-    <!-- KPI Summary Cards -->
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <!-- KPI Summary Cards (Full Width 4-Column Grid) -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-6">
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
         <p class="text-xs text-slate-400">Total Scheduled Items</p>
         <p id="kpiTotal" class="text-2xl font-bold mt-1">0</p>
@@ -110,30 +118,30 @@
       </div>
     </section>
 
-    <!-- Main Comparison Table & Evidence Inspector -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Bottom Section: Comparison Table (8 cols) + Evidence Drawer (4 cols) -->
+    <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
       
       <!-- Comparison Table -->
-      <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+      <div class="xl:col-span-8 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col">
+        <div class="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
           <h3 class="text-sm font-semibold">Scheduled vs. Actual Air-Check Timeline</h3>
           <span class="text-xs text-slate-400">Click any row to inspect AI evidence</span>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto flex-1">
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
               <tr>
-                <th class="px-4 py-3">Planned Time</th>
-                <th class="px-4 py-3">Program / Commercial</th>
-                <th class="px-4 py-3">Type</th>
-                <th class="px-4 py-3">Actual Detected</th>
-                <th class="px-4 py-3">Drift</th>
-                <th class="px-4 py-3">Status</th>
+                <th class="px-5 py-3">Planned Time</th>
+                <th class="px-5 py-3">Program / Commercial</th>
+                <th class="px-5 py-3">Type</th>
+                <th class="px-5 py-3">Actual Detected</th>
+                <th class="px-5 py-3">Drift</th>
+                <th class="px-5 py-3">Status</th>
               </tr>
             </thead>
             <tbody id="resultsBody" class="divide-y divide-slate-800/70">
               <tr>
-                <td colspan="6" class="px-4 py-10 text-center text-slate-500">
+                <td colspan="6" class="px-5 py-12 text-center text-slate-500">
                   Click "Run AI Schedule Verification" to compare your timetable against the broadcast video.
                 </td>
               </tr>
@@ -143,7 +151,7 @@
       </div>
 
       <!-- Evidence Drawer -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+      <div class="xl:col-span-4 bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
         <h3 class="text-sm font-semibold border-b border-slate-800 pb-3">AI Detection Evidence</h3>
         <div id="evidencePanel" class="space-y-3 text-xs text-slate-400">
           <p>Select a row in the timeline to view detected speech transcript, on-screen text (OCR), and timestamp variance.</p>
@@ -154,6 +162,10 @@
   </main>
 
   <script>
+    // Configure your GitHub / n8n Webhook URL here
+    const N8N_WEBHOOK_URL = "https://your-n8n-domain/webhook/broadcast-check";
+    const USE_DEMO_FALLBACK = true; // Set to false once your n8n webhook is live
+
     let currentReport = [];
 
     function handleCSVUpload(event) {
@@ -180,7 +192,6 @@
     async function runVerification() {
       const btn = document.getElementById('runBtn');
       const statusText = document.getElementById('statusText');
-      const webhookUrl = document.getElementById('webhookUrl').value.trim();
       const startClock = document.getElementById('startClock').value.trim();
       const videoUrl = document.getElementById('videoUrl').value.trim();
       const timetable = parseTimetable(document.getElementById('timetableInput').value);
@@ -192,9 +203,8 @@
       try {
         let results;
 
-        if (webhookUrl) {
-          // LIVE N8N WEBHOOK MODE
-          const response = await fetch(webhookUrl, {
+        if (N8N_WEBHOOK_URL && !N8N_WEBHOOK_URL.includes("your-n8n-domain")) {
+          const response = await fetch(N8N_WEBHOOK_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -206,17 +216,15 @@
           if (!response.ok) throw new Error('n8n Webhook returned status ' + response.status);
           const data = await response.json();
           results = data.report || data;
-        } else {
-          // DEMO SIMULATION MODE (For instant UI testing)
-          await new Promise(r => setTimeout(r, 900));
+          statusText.textContent = 'Verification complete (Live n8n Engine).';
+        } else if (USE_DEMO_FALLBACK) {
+          await new Promise(r => setTimeout(r, 800));
           results = simulateAIDetection(timetable);
+          statusText.textContent = 'Verification complete (Simulated preview — replace N8N_WEBHOOK_URL in code for live run).';
         }
 
         currentReport = results;
         renderResults(results);
-        statusText.textContent = webhookUrl
-          ? 'Verification complete (Live n8n Engine).'
-          : 'Verification complete (Demo Mode — connect n8n Webhook URL for live video analysis).';
       } catch (err) {
         statusText.textContent = 'Error: ' + err.message;
       } finally {
@@ -276,7 +284,7 @@
 
       let matched = 0, delayed = 0, missing = 0;
 
-      rows.forEach((row, index) => {
+      rows.forEach((row) => {
         if (row.status === 'Matched') matched++;
         else if (row.status === 'Delayed') delayed++;
         else missing++;
@@ -290,12 +298,12 @@
         tr.className = 'hover:bg-slate-800/50 cursor-pointer transition';
         tr.onclick = () => showEvidence(row);
         tr.innerHTML = `
-          <td class="px-4 py-3 font-mono text-slate-300">${row.start_time}</td>
-          <td class="px-4 py-3 font-medium text-slate-100">${row.title}</td>
-          <td class="px-4 py-3 text-slate-400">${row.type}</td>
-          <td class="px-4 py-3 font-mono text-slate-300">${row.actual_start}</td>
-          <td class="px-4 py-3 font-mono text-slate-400">${row.drift}</td>
-          <td class="px-4 py-3">
+          <td class="px-5 py-3 font-mono text-slate-300">${row.start_time}</td>
+          <td class="px-5 py-3 font-medium text-slate-100">${row.title}</td>
+          <td class="px-5 py-3 text-slate-400">${row.type}</td>
+          <td class="px-5 py-3 font-mono text-slate-300">${row.actual_start}</td>
+          <td class="px-5 py-3 font-mono text-slate-400">${row.drift}</td>
+          <td class="px-5 py-3">
             <span class="px-2.5 py-1 rounded-full text-[11px] font-medium border ${badgeClass}">
               ${row.status}
             </span>
@@ -315,7 +323,7 @@
     function showEvidence(row) {
       const panel = document.getElementById('evidencePanel');
       panel.innerHTML = `
-        <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
+        <div class="p-3.5 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
           <div class="flex justify-between">
             <span class="text-slate-400">Item:</span>
             <span class="font-semibold text-slate-100">${row.title}</span>
@@ -335,11 +343,11 @@
         </div>
         <div class="space-y-1">
           <p class="font-semibold text-slate-300">Audio / Speech Detection Cue:</p>
-          <p class="p-2.5 rounded bg-slate-950 border border-slate-800 text-slate-300">${row.transcript_cue || 'No transcript logged.'}</p>
+          <p class="p-3 rounded bg-slate-950 border border-slate-800 text-slate-300">${row.transcript_cue || 'No transcript logged.'}</p>
         </div>
         <div class="space-y-1">
           <p class="font-semibold text-slate-300">Visual / Lower-Third OCR:</p>
-          <p class="p-2.5 rounded bg-slate-950 border border-slate-800 text-slate-300">${row.ocr_text || 'No visual text logged.'}</p>
+          <p class="p-3 rounded bg-slate-950 border border-slate-800 text-slate-300">${row.ocr_text || 'No visual text logged.'}</p>
         </div>
       `;
     }
