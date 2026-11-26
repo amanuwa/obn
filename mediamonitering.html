@@ -38,7 +38,7 @@
     <!-- Top Section: Video Source + Timetable -->
     <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
       
-      <!-- Left Panel (4 cols on wide screens): Broadcast Media -->
+      <!-- Left Panel (4 cols): Broadcast Media -->
       <div class="xl:col-span-4 bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between space-y-4">
         <div class="space-y-4">
           <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-300">1. Broadcast Media Input</h2>
@@ -51,23 +51,23 @@
 
           <div>
             <label class="block text-xs text-slate-400 mb-1.5">Or Storage / Server File Path (For Large 24h Files)</label>
-            <input id="videoUrl" type="text" placeholder="/data/broadcast_24hr.mp4 or Supabase URL"
+            <input id="videoUrl" type="text" placeholder="/data/broadcast_2026-11-26.mp4 or Supabase URL"
               class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500" />
           </div>
 
           <div>
-            <label class="block text-xs text-slate-400 mb-1.5">Recording Start Clock (Defaults to 00:00:00 for 24h)</label>
-            <input id="startClock" type="text" value="08:00:00"
-              class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500" />
+            <label class="block text-xs text-slate-400 mb-1.5">Broadcast Start Date & Clock (YYYY-MM-DD HH:MM:SS)</label>
+            <input id="startDateTime" type="datetime-local" step="1"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:border-emerald-500 [color-scheme:dark]" />
           </div>
         </div>
 
         <p class="text-[11px] text-slate-500">
-          Tip: Use <span class="text-slate-300 font-mono">00:00:00</span> for full midnight-to-midnight recordings, or match the start hour of a partial clip.
+          Automatically tracks date rollover across midnight for 24-hour continuous recordings and stamps all audit logs.
         </p>
       </div>
 
-      <!-- Right Panel (8 cols on wide screens): Timetable -->
+      <!-- Right Panel (8 cols): Timetable -->
       <div class="xl:col-span-8 bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between space-y-4">
         <div class="flex items-center justify-between">
           <div>
@@ -98,7 +98,7 @@
       </div>
     </section>
 
-    <!-- KPI Summary Cards (Full Width 4-Column Grid) -->
+    <!-- KPI Summary Cards -->
     <section class="grid grid-cols-2 lg:grid-cols-4 gap-6">
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
         <p class="text-xs text-slate-400">Total Scheduled Items</p>
@@ -118,20 +118,20 @@
       </div>
     </section>
 
-    <!-- Bottom Section: Comparison Table (8 cols) + Evidence Drawer (4 cols) -->
+    <!-- Bottom Section: Comparison Table + Evidence Drawer -->
     <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
       
       <!-- Comparison Table -->
       <div class="xl:col-span-8 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col">
         <div class="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
           <h3 class="text-sm font-semibold">Scheduled vs. Actual Air-Check Timeline</h3>
-          <span class="text-xs text-slate-400">Click any row to inspect AI evidence</span>
+          <span id="activeBroadcastDateBadge" class="text-xs text-slate-400">Click any row to inspect AI evidence</span>
         </div>
         <div class="overflow-x-auto flex-1">
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
               <tr>
-                <th class="px-5 py-3">Planned Time</th>
+                <th class="px-5 py-3">Date & Planned Time</th>
                 <th class="px-5 py-3">Program / Commercial</th>
                 <th class="px-5 py-3">Type</th>
                 <th class="px-5 py-3">Actual Detected</th>
@@ -164,9 +164,18 @@
   <script>
     // Configure your GitHub / n8n Webhook URL here
     const N8N_WEBHOOK_URL = "https://your-n8n-domain/webhook/broadcast-check";
-    const USE_DEMO_FALLBACK = true; // Set to false once your n8n webhook is live
+    const USE_DEMO_FALLBACK = true;
 
     let currentReport = [];
+
+    // Default picker to today's date at 08:00:00
+    window.addEventListener('DOMContentLoaded', () => {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      document.getElementById('startDateTime').value = `${yyyy}-${mm}-${dd}T08:00:00`;
+    });
 
     function handleCSVUpload(event) {
       const file = event.target.files[0];
@@ -178,27 +187,36 @@
       reader.readAsText(file);
     }
 
-    function parseTimetable(rawText) {
+    function parseTimetable(rawText, broadcastDate) {
       return rawText
         .split('\n')
         .map(line => line.trim())
         .filter(line => line && !line.toLowerCase().startsWith('start_time'))
         .map(line => {
           const [start_time, end_time, title, type] = line.split(',').map(s => s.trim());
-          return { start_time, end_time, title, type: type || 'Program' };
+          return {
+            broadcast_date: broadcastDate,
+            start_time,
+            end_time,
+            title,
+            type: type || 'Program'
+          };
         });
     }
 
     async function runVerification() {
       const btn = document.getElementById('runBtn');
       const statusText = document.getElementById('statusText');
-      const startClock = document.getElementById('startClock').value.trim();
+      const rawDateTime = document.getElementById('startDateTime').value; // e.g., "2026-11-26T08:00:00"
+      const [broadcastDate, broadcastClock = "00:00:00"] = rawDateTime.split('T');
+      const formattedStart = `${broadcastDate} ${broadcastClock.length === 5 ? broadcastClock + ':00' : broadcastClock}`;
+
       const videoUrl = document.getElementById('videoUrl').value.trim();
-      const timetable = parseTimetable(document.getElementById('timetableInput').value);
+      const timetable = parseTimetable(document.getElementById('timetableInput').value, broadcastDate);
 
       btn.disabled = true;
       btn.textContent = 'Processing Broadcast...';
-      statusText.textContent = 'Chunking stream & running AI audio/visual detection...';
+      statusText.textContent = `Chunking stream (${formattedStart}) & running AI detection...`;
 
       try {
         let results;
@@ -208,7 +226,9 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              broadcast_start_clock: startClock,
+              broadcast_start_datetime: formattedStart,
+              broadcast_date: broadcastDate,
+              broadcast_start_clock: broadcastClock.length === 5 ? broadcastClock + ':00' : broadcastClock,
               video_path_or_url: videoUrl || 'uploaded_local_test.mp4',
               timetable: timetable
             })
@@ -216,14 +236,15 @@
           if (!response.ok) throw new Error('n8n Webhook returned status ' + response.status);
           const data = await response.json();
           results = data.report || data;
-          statusText.textContent = 'Verification complete (Live n8n Engine).';
+          statusText.textContent = `Verification complete for ${broadcastDate} (Live n8n Engine).`;
         } else if (USE_DEMO_FALLBACK) {
           await new Promise(r => setTimeout(r, 800));
-          results = simulateAIDetection(timetable);
-          statusText.textContent = 'Verification complete (Simulated preview — replace N8N_WEBHOOK_URL in code for live run).';
+          results = simulateAIDetection(timetable, broadcastDate);
+          statusText.textContent = `Verification complete for ${broadcastDate} (Simulated preview — set N8N_WEBHOOK_URL for live run).`;
         }
 
         currentReport = results;
+        document.getElementById('activeBroadcastDateBadge').textContent = `Broadcast Date: ${broadcastDate}`;
         renderResults(results);
       } catch (err) {
         statusText.textContent = 'Error: ' + err.message;
@@ -233,12 +254,13 @@
       }
     }
 
-    function simulateAIDetection(timetable) {
+    function simulateAIDetection(timetable, broadcastDate) {
       return timetable.map((item, idx) => {
         if (idx === 1) {
           return {
             ...item,
-            actual_start: addSeconds(item.start_time, 145),
+            broadcast_date: broadcastDate,
+            actual_start: `${broadcastDate} ${addSeconds(item.start_time, 145)}`,
             drift: '+2m 25s',
             status: 'Delayed',
             confidence: '97%',
@@ -249,6 +271,7 @@
         if (idx === 4) {
           return {
             ...item,
+            broadcast_date: broadcastDate,
             actual_start: 'Not Detected',
             drift: 'N/A',
             status: 'Missing',
@@ -259,7 +282,8 @@
         }
         return {
           ...item,
-          actual_start: item.start_time,
+          broadcast_date: broadcastDate,
+          actual_start: `${broadcastDate} ${item.start_time}`,
           drift: '0s',
           status: 'Matched',
           confidence: '98%',
@@ -272,7 +296,7 @@
     function addSeconds(timeStr, secToAdd) {
       const [h, m, s] = timeStr.split(':').map(Number);
       const total = h * 3600 + m * 60 + s + secToAdd;
-      const nh = String(Math.floor(total / 3600)).padStart(2, '0');
+      const nh = String(Math.floor(total / 3600) % 24).padStart(2, '0');
       const nm = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
       const ns = String(total % 60).padStart(2, '0');
       return `${nh}:${nm}:${ns}`;
@@ -298,7 +322,7 @@
         tr.className = 'hover:bg-slate-800/50 cursor-pointer transition';
         tr.onclick = () => showEvidence(row);
         tr.innerHTML = `
-          <td class="px-5 py-3 font-mono text-slate-300">${row.start_time}</td>
+          <td class="px-5 py-3 font-mono text-slate-300">${row.broadcast_date} ${row.start_time}</td>
           <td class="px-5 py-3 font-medium text-slate-100">${row.title}</td>
           <td class="px-5 py-3 text-slate-400">${row.type}</td>
           <td class="px-5 py-3 font-mono text-slate-300">${row.actual_start}</td>
@@ -324,6 +348,10 @@
       const panel = document.getElementById('evidencePanel');
       panel.innerHTML = `
         <div class="p-3.5 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Broadcast Date:</span>
+            <span class="font-mono text-slate-200">${row.broadcast_date}</span>
+          </div>
           <div class="flex justify-between">
             <span class="text-slate-400">Item:</span>
             <span class="font-semibold text-slate-100">${row.title}</span>
@@ -354,15 +382,15 @@
 
     function exportCSV() {
       if (!currentReport.length) return alert('Run verification first.');
-      const header = 'Planned Start,Planned End,Title,Type,Actual Start,Drift,Status\n';
+      const header = 'Broadcast Date,Planned Start,Planned End,Title,Type,Actual Start,Drift,Status\n';
       const rows = currentReport.map(r =>
-        `"${r.start_time}","${r.end_time}","${r.title}","${r.type}","${r.actual_start}","${r.drift}","${r.status}"`
+        `"${r.broadcast_date}","${r.start_time}","${r.end_time}","${r.title}","${r.type}","${r.actual_start}","${r.drift}","${r.status}"`
       ).join('\n');
       const blob = new Blob([header + rows], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'broadcast-compliance-report.csv';
+      a.download = `broadcast-compliance-${currentReport[0].broadcast_date}.csv`;
       a.click();
     }
   </script>
