@@ -79,22 +79,22 @@
             Upload ad/sting clips or paste URLs to detect inside the broadcast video.
           </p>
 
-          <label class="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-lg cursor-pointer bg-slate-950/60 transition">
+          <label for="referenceClips" class="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-lg cursor-pointer bg-slate-950/60 transition">
             <span class="text-xs font-medium text-slate-300">+ Upload Ad / Sting Files</span>
             <span class="text-[11px] text-slate-500 mt-0.5">MP4, MP3, or WAV</span>
-            <input id="referenceClips" type="file" accept="video/*,audio/*" multiple class="hidden" />
           </label>
+          <input id="referenceClips" type="file" accept="video/*,audio/*" multiple class="sr-only" />
 
           <div class="flex gap-2">
             <input id="referenceUrlInput" type="text" placeholder="Paste ad/sting URL (https://... or /data/ad1.mp4)"
               class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500" />
             <button id="addRefUrlBtn" type="button"
-              class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">
+              class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition shrink-0">
               Add URL
             </button>
           </div>
 
-          <div id="referenceList" class="max-h-24 overflow-y-auto space-y-1.5 text-xs">
+          <div id="referenceList" class="max-h-28 overflow-y-auto space-y-1.5 text-xs">
             <p class="text-[11px] text-slate-500 italic">No reference clips or URLs added yet.</p>
           </div>
         </div>
@@ -111,10 +111,10 @@
             <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-300">3. Planned Broadcast Timetable</h2>
             <p class="text-xs text-slate-400">Upload a CSV (<code class="text-emerald-400">start_time, end_time, title, type</code>) to preview &amp; edit</p>
           </div>
-          <label class="cursor-pointer px-3.5 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition">
+          <label for="csvUpload" class="cursor-pointer px-3.5 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition">
             Upload CSV
-            <input id="csvUpload" type="file" accept=".csv" class="hidden" />
           </label>
+          <input id="csvUpload" type="file" accept=".csv,text/csv" class="sr-only" />
         </div>
 
         <textarea id="timetableInput" rows="6"
@@ -195,13 +195,10 @@
   </main>
 
   <script type="module">
-    import { N8N_mediamonitoring_WEBHOOK as CONFIG_WEBHOOK } from "./config.js";
-
     const FALLBACK_WEBHOOK_URL = "";
     const USE_DEMO_FALLBACK = false;
 
-    const N8N_mediamonitoring_WEBHOOK = CONFIG_WEBHOOK || FALLBACK_WEBHOOK_URL || "";
-
+    let webhookUrl = FALLBACK_WEBHOOK_URL;
     let currentReport = [];
     let selectedBroadcastVideoFile = null;
     let attachedReferenceFiles = [];
@@ -220,21 +217,22 @@
     function updateBadge() {
       const badge = document.getElementById("connectionBadge");
       if (!badge) return;
-      if (N8N_mediamonitoring_WEBHOOK) {
+      if (webhookUrl) {
         badge.className = "px-2.5 py-1 rounded-full text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
-        badge.textContent = N8N_mediamonitoring_WEBHOOK.includes("/webhook-test/")
+        badge.textContent = webhookUrl.includes("/webhook-test/")
           ? "n8n Test Webhook Loaded"
           : "n8n Live Webhook Loaded";
       } else {
         badge.className = "px-2.5 py-1 rounded-full text-[11px] bg-rose-500/10 text-rose-400 border border-rose-500/30";
-        badge.textContent = "Export Missing in config.js";
+        badge.textContent = "Webhook Missing in config.js";
       }
     }
 
     function handleVideoFileSelect(event) {
-      const file = event.target.files[0] || null;
+      const file = event.target.files?.[0] || null;
       selectedBroadcastVideoFile = file;
       const infoEl = document.getElementById("videoFileInfo");
+      if (!infoEl) return;
       if (file) {
         const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
         infoEl.textContent = `Selected: ${file.name} (${sizeMB} MB)`;
@@ -244,12 +242,23 @@
     }
 
     function handleReferenceUpload(event) {
-      attachedReferenceFiles = Array.from(event.target.files);
+      const newFiles = Array.from(event.target.files || []);
+      if (!newFiles.length) return;
+      const existingKeys = new Set(attachedReferenceFiles.map(f => `${f.name}_${f.size}`));
+      newFiles.forEach(f => {
+        const key = `${f.name}_${f.size}`;
+        if (!existingKeys.has(key)) {
+          attachedReferenceFiles.push(f);
+          existingKeys.add(key);
+        }
+      });
+      event.target.value = "";
       renderReferenceList();
     }
 
     function addReferenceUrl() {
       const input = document.getElementById("referenceUrlInput");
+      if (!input) return;
       const raw = input.value.trim();
       if (!raw) return;
 
@@ -264,6 +273,11 @@
       renderReferenceList();
     }
 
+    function removeReferenceFile(index) {
+      attachedReferenceFiles.splice(index, 1);
+      renderReferenceList();
+    }
+
     function removeReferenceUrl(index) {
       attachedReferenceUrls.splice(index, 1);
       renderReferenceList();
@@ -272,8 +286,9 @@
     function renderReferenceList() {
       const list = document.getElementById("referenceList");
       const badge = document.getElementById("refCountBadge");
-      const totalCount = attachedReferenceFiles.length + attachedReferenceUrls.length;
+      if (!list || !badge) return;
 
+      const totalCount = attachedReferenceFiles.length + attachedReferenceUrls.length;
       badge.textContent = `${totalCount} item${totalCount === 1 ? "" : "s"}`;
 
       if (!totalCount) {
@@ -281,10 +296,13 @@
         return;
       }
 
-      const fileHtml = attachedReferenceFiles.map(f => `
-        <div class="flex items-center justify-between px-2.5 py-1.5 rounded bg-slate-950 border border-slate-800">
-          <span class="truncate text-slate-200 max-w-[175px]" title="${f.name}">[File] ${f.name}</span>
-          <span class="text-[10px] text-emerald-400 font-mono">${(f.size / (1024 * 1024)).toFixed(1)} MB</span>
+      const fileHtml = attachedReferenceFiles.map((f, idx) => `
+        <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded bg-slate-950 border border-slate-800">
+          <span class="truncate text-slate-200 text-[11px]" title="${f.name}">[File] ${f.name}</span>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-[10px] text-emerald-400 font-mono">${(f.size / (1024 * 1024)).toFixed(1)} MB</span>
+            <button type="button" data-remove-file="${idx}" class="text-rose-400 hover:text-rose-300 text-[11px]">✕</button>
+          </div>
         </div>
       `).join("");
 
@@ -296,17 +314,21 @@
       `).join("");
 
       list.innerHTML = fileHtml + urlHtml;
+
+      list.querySelectorAll("[data-remove-file]").forEach(btn => {
+        btn.addEventListener("click", () => removeReferenceFile(Number(btn.dataset.removeFile)));
+      });
       list.querySelectorAll("[data-remove-url]").forEach(btn => {
         btn.addEventListener("click", () => removeReferenceUrl(Number(btn.dataset.removeUrl)));
       });
     }
 
     function handleCSVUpload(event) {
-      const file = event.target.files[0];
+      const file = event.target.files?.[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (e) => {
-        const content = e.target.result.trim();
+        const content = String(e.target?.result || "").trim();
         document.getElementById("timetableInput").value = content;
         document.getElementById("statusText").textContent = `Loaded CSV schedule: ${file.name}`;
       };
@@ -389,7 +411,7 @@
       try {
         let results;
 
-        if (N8N_mediamonitoring_WEBHOOK) {
+        if (webhookUrl) {
           const formData = new FormData();
           formData.append("broadcast_start_datetime", formattedStart);
           formData.append("broadcast_date", broadcastDate);
@@ -406,25 +428,25 @@
             formData.append(`reference_clip_${index}`, file, file.name);
           });
 
-          const response = await fetch(N8N_mediamonitoring_WEBHOOK, {
+          const response = await fetch(webhookUrl, {
             method: "POST",
             body: formData
           });
-          if (!response.ok) throw new Error("n8n Webhook returned status " + response.status);
+          if (!response.ok) throw new Error("Webhook returned HTTP status " + response.status);
           const data = await response.json();
           results = data.report || data;
-          statusText.textContent = `Verification complete for ${formattedStart} (Live n8n Engine).`;
+          statusText.textContent = `Verification complete for ${formattedStart}.`;
         } else if (USE_DEMO_FALLBACK) {
-          await new Promise(r => setTimeout(r, 800));
+          await new Promise(r => setTimeout(r, 600));
           results = simulateAIDetection(timetable, broadcastDate);
           statusText.textContent = `Verification complete for ${formattedStart} (Simulated preview).`;
         } else {
-          throw new Error("N8N_mediamonitoring_WEBHOOK is missing in ./config.js.");
+          throw new Error("Webhook URL is missing in ./config.js.");
         }
 
-        currentReport = results;
+        currentReport = Array.isArray(results) ? results : [];
         document.getElementById("activeBroadcastDateBadge").textContent = `Broadcast Start: ${formattedStart}`;
-        renderResults(results);
+        renderResults(currentReport);
       } catch (err) {
         statusText.textContent = "Error: " + err.message;
       } finally {
@@ -434,7 +456,7 @@
     }
 
     function simulateAIDetection(timetable, broadcastDate) {
-      return timetable.map((item, idx) => {
+      return timetable.map((item) => {
         const firstWord = item.title.toLowerCase().split(" ")[0];
         const refFile = attachedReferenceFiles.find(f => f.name.toLowerCase().includes(firstWord));
         const refUrl = attachedReferenceUrls.find(u => u.toLowerCase().includes(firstWord));
@@ -445,18 +467,6 @@
           ? `Matched reference URL "${refUrl}" (99.1% audio fingerprint similarity)`
           : `Matched via broadcast speech & program intro analysis`;
 
-        if (idx === 1) {
-          return {
-            ...item,
-            broadcast_date: broadcastDate,
-            actual_start: `${broadcastDate} ${item.start_time}`,
-            drift: "0s",
-            status: "Delayed",
-            confidence: "99%",
-            transcript_cue: methodNote,
-            ocr_text: "Commercial break detected"
-          };
-        }
         return {
           ...item,
           broadcast_date: broadcastDate,
@@ -550,7 +560,10 @@
     }
 
     function exportCSV() {
-      if (!currentReport.length) return alert("Run verification first.");
+      if (!currentReport.length) {
+        document.getElementById("statusText").textContent = "Run verification before exporting CSV.";
+        return;
+      }
       const header = "Broadcast Date,Planned Start,Planned End,Title,Type,Actual Start,Drift,Status\n";
       const rows = currentReport.map(r =>
         `"${r.broadcast_date}","${r.start_time}","${r.end_time}","${r.title}","${r.type}","${r.actual_start}","${r.drift}","${r.status}"`
@@ -561,15 +574,8 @@
       a.href = url;
       a.download = `broadcast-compliance-${currentReport[0].broadcast_date}.csv`;
       a.click();
+      URL.revokeObjectURL(url);
     }
-
-    window.handleVideoFileSelect = handleVideoFileSelect;
-    window.handleReferenceUpload = handleReferenceUpload;
-    window.addReferenceUrl = addReferenceUrl;
-    window.removeReferenceUrl = removeReferenceUrl;
-    window.handleCSVUpload = handleCSVUpload;
-    window.runVerification = runVerification;
-    window.exportCSV = exportCSV;
 
     document.getElementById("videoFile")?.addEventListener("change", handleVideoFileSelect);
     document.getElementById("referenceClips")?.addEventListener("change", handleReferenceUpload);
@@ -586,6 +592,17 @@
 
     setDefaultStartDateTime();
     updateBadge();
+
+    import("./config.js")
+      .then((cfg) => {
+        webhookUrl = cfg.N8N_mediamonitoring_WEBHOOK || cfg.N8N_MEDIAMONITORING_WEBHOOK || FALLBACK_WEBHOOK_URL || "";
+        updateBadge();
+      })
+      .catch((err) => {
+        console.warn("config.js load warning:", err);
+        webhookUrl = FALLBACK_WEBHOOK_URL || "";
+        updateBadge();
+      });
   </script>
 </body>
 </html>
