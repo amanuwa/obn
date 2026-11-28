@@ -21,7 +21,8 @@ export const GOOGLE_SCRIPT_URL ='https://script.google.com/macros/s/AKfycbwHRHhr
 
  export const N8N_GATEWAY_WEBHOOK ='https://unreached-oboe-evade.ngrok-free.dev/webhook/staritofhormuz';
 
-export const N8N_mediamonitering_WEBHOOK ='https://unreached-oboe-evade.ngrok-free.dev/webhook-test/mediamonitering';
+//export const N8N_mediamonitering_WEBHOOK ='https://unreached-oboe-evade.ngrok-free.dev/webhook-test/mediamonitering';
+export const N8N_mediamonitoring_WEBHOOK = 'https://unreached-oboe-evade.ngrok-free.dev/webhook-test/mediamonitoring';
 
  export const postautomation ='https://unreached-oboe-evade.ngrok-free.dev/webhook/postAutomation';
 
