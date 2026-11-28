@@ -25,7 +25,7 @@
         <span id="connectionBadge" class="px-2.5 py-1 rounded-full text-[11px] bg-amber-500/10 text-amber-300 border border-amber-500/30">
           Checking config.js...
         </span>
-        <button onclick="exportCSV()" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition">
+        <button id="exportCsvBtn" type="button" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition">
           Export Report (CSV)
         </button>
       </div>
@@ -45,14 +45,14 @@
           
           <div>
             <label class="block text-xs text-slate-400 mb-1.5">Upload Broadcast Video (e.g., 1-Hour Test Clip)</label>
-            <input id="videoFile" type="file" accept="video/*" onchange="handleVideoFileSelect(event)"
+            <input id="videoFile" type="file" accept="video/*"
               class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3.5 file:rounded-lg file:border-0 file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 cursor-pointer" />
             <p id="videoFileInfo" class="text-[11px] text-slate-500 mt-1">No video file selected.</p>
           </div>
 
           <div>
             <label class="block text-xs text-slate-400 mb-1.5">Or Storage / Server Path (Recommended for Large/24h Files)</label>
-            <input id="videoUrl" type="text" placeholder="/data/broadcast_2026-11-27.mp4 or Supabase URL"
+            <input id="videoUrl" type="text" placeholder="/data/broadcast_2026-11-28.mp4 or Supabase URL"
               class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500" />
           </div>
 
@@ -82,14 +82,13 @@
           <label class="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-lg cursor-pointer bg-slate-950/60 transition">
             <span class="text-xs font-medium text-slate-300">+ Upload Ad / Sting Files</span>
             <span class="text-[11px] text-slate-500 mt-0.5">MP4, MP3, or WAV</span>
-            <input id="referenceClips" type="file" accept="video/*,audio/*" multiple class="hidden" onchange="handleReferenceUpload(event)" />
+            <input id="referenceClips" type="file" accept="video/*,audio/*" multiple class="hidden" />
           </label>
 
           <div class="flex gap-2">
             <input id="referenceUrlInput" type="text" placeholder="Paste ad/sting URL (https://... or /data/ad1.mp4)"
-              class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();addReferenceUrl();}" />
-            <button type="button" onclick="addReferenceUrl()"
+              class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500" />
+            <button id="addRefUrlBtn" type="button"
               class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">
               Add URL
             </button>
@@ -114,7 +113,7 @@
           </div>
           <label class="cursor-pointer px-3.5 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition">
             Upload CSV
-            <input id="csvUpload" type="file" accept=".csv" class="hidden" onchange="handleCSVUpload(event)" />
+            <input id="csvUpload" type="file" accept=".csv" class="hidden" />
           </label>
         </div>
 
@@ -124,7 +123,7 @@
 
         <div class="flex flex-wrap items-center justify-between gap-3">
           <span id="statusText" class="text-xs text-slate-400">Upload a CSV timetable to begin.</span>
-          <button id="runBtn" onclick="runVerification()"
+          <button id="runBtn" type="button"
             class="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition shadow-lg shadow-emerald-950/50">
             Run AI Schedule Verification
           </button>
@@ -196,29 +195,28 @@
   </main>
 
   <script type="module">
-    let N8N_mediamonitoring_WEBHOOK = "";
-    try {
-      const cfg = await import("./config.js");
-      N8N_mediamonitoring_WEBHOOK = cfg.N8N_mediamonitoring_WEBHOOK || "";
-    } catch (err) {
-      console.warn("Unable to read N8N_mediamonitoring_WEBHOOK from ./config.js:", err);
-    }
-
+    const FALLBACK_WEBHOOK_URL = ""; // Optional: paste webhook URL if ./config.js isn't serving the export yet
     const USE_DEMO_FALLBACK = false;
 
+    let N8N_mediamonitoring_WEBHOOK = "";
     let currentReport = [];
     let selectedBroadcastVideoFile = null;
     let attachedReferenceFiles = [];
     let attachedReferenceUrls = [];
 
-    window.addEventListener("DOMContentLoaded", () => {
+    function setDefaultStartDateTime() {
+      const input = document.getElementById("startDateTime");
+      if (!input || input.value) return;
       const now = new Date();
       const yyyy = now.getFullYear();
       const mm = String(now.getMonth() + 1).padStart(2, "0");
       const dd = String(now.getDate()).padStart(2, "0");
-      document.getElementById("startDateTime").value = `${yyyy}-${mm}-${dd}T08:00:00`;
+      input.value = `${yyyy}-${mm}-${dd}T08:00:00`;
+    }
 
+    function updateBadge() {
       const badge = document.getElementById("connectionBadge");
+      if (!badge) return;
       if (N8N_mediamonitoring_WEBHOOK) {
         badge.className = "px-2.5 py-1 rounded-full text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
         badge.textContent = N8N_mediamonitoring_WEBHOOK.includes("/webhook-test/")
@@ -228,7 +226,7 @@
         badge.className = "px-2.5 py-1 rounded-full text-[11px] bg-rose-500/10 text-rose-400 border border-rose-500/30";
         badge.textContent = "Export Missing in config.js";
       }
-    });
+    }
 
     function handleVideoFileSelect(event) {
       const file = event.target.files[0] || null;
@@ -290,11 +288,14 @@
       const urlHtml = attachedReferenceUrls.map((u, idx) => `
         <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded bg-slate-950 border border-slate-800">
           <span class="truncate text-sky-300 font-mono text-[11px]" title="${u}">[URL] ${u}</span>
-          <button type="button" onclick="removeReferenceUrl(${idx})" class="text-rose-400 hover:text-rose-300 text-[11px] shrink-0">✕</button>
+          <button type="button" data-remove-url="${idx}" class="text-rose-400 hover:text-rose-300 text-[11px] shrink-0">✕</button>
         </div>
       `).join("");
 
       list.innerHTML = fileHtml + urlHtml;
+      list.querySelectorAll("[data-remove-url]").forEach(btn => {
+        btn.addEventListener("click", () => removeReferenceUrl(Number(btn.dataset.removeUrl)));
+      });
     }
 
     function handleCSVUpload(event) {
@@ -310,20 +311,43 @@
     }
 
     function parseTimetable(rawText, broadcastDate) {
-      return rawText
+      const lines = rawText
         .split("\n")
         .map(line => line.trim())
-        .filter(line => line && !line.toLowerCase().startsWith("start_time"))
-        .map(line => {
-          const [start_time, end_time, title, type] = line.split(",").map(s => s.trim());
+        .filter(Boolean);
+
+      if (!lines.length) return [];
+
+      const firstCols = lines[0].split(",").map(s => s.trim().toLowerCase());
+      const hasExtendedAdHeader = firstCols[0] === "ad" && firstCols.includes("start_time") && firstCols.includes("end_time");
+      const dataLines = lines.filter((line, idx) => {
+        if (idx !== 0) return true;
+        const lower = line.toLowerCase();
+        return !lower.startsWith("start_time") && !lower.startsWith("ad,title");
+      });
+
+      return dataLines.map(line => {
+        const cols = line.split(",").map(s => s.trim());
+        if (hasExtendedAdHeader) {
           return {
             broadcast_date: broadcastDate,
-            start_time,
-            end_time,
-            title,
-            type: type || "Program"
+            ad_company: cols[0] || "",
+            title: cols[1] || "Untitled Ad",
+            start_time: cols[2] || "",
+            end_time: cols[3] || "",
+            type: cols[4] || "Ad",
+            duration: cols[5] || "",
+            airing_note: cols[6] || ""
           };
-        });
+        }
+        return {
+          broadcast_date: broadcastDate,
+          start_time: cols[0] || "",
+          end_time: cols[1] || "",
+          title: cols[2] || "Untitled Item",
+          type: cols[3] || "Program"
+        };
+      });
     }
 
     async function runVerification() {
@@ -422,24 +446,12 @@
           return {
             ...item,
             broadcast_date: broadcastDate,
-            actual_start: `${broadcastDate} ${addSeconds(item.start_time, 145)}`,
-            drift: "+2m 25s",
+            actual_start: `${broadcastDate} ${item.start_time}`,
+            drift: "0s",
             status: "Delayed",
             confidence: "99%",
             transcript_cue: methodNote,
-            ocr_text: "Commercial break started 2m 25s after scheduled slot"
-          };
-        }
-        if (idx === 4) {
-          return {
-            ...item,
-            broadcast_date: broadcastDate,
-            actual_start: "Not Detected",
-            drift: "N/A",
-            status: "Missing",
-            confidence: "99%",
-            transcript_cue: "Reference commercial audio/video not found in scheduled window.",
-            ocr_text: "Program continued without scheduled commercial break"
+            ocr_text: "Commercial break detected"
           };
         }
         return {
@@ -453,15 +465,6 @@
           ocr_text: `On-screen lower third matched: ${item.title}`
         };
       });
-    }
-
-    function addSeconds(timeStr, secToAdd) {
-      const [h, m, s] = timeStr.split(":").map(Number);
-      const total = h * 3600 + m * 60 + s + secToAdd;
-      const nh = String(Math.floor(total / 3600) % 24).padStart(2, "0");
-      const nm = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
-      const ns = String(total % 60).padStart(2, "0");
-      return `${nh}:${nm}:${ns}`;
     }
 
     function renderResults(rows) {
@@ -480,12 +483,13 @@
           row.status === "Delayed" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" :
           "bg-rose-500/15 text-rose-400 border-rose-500/30";
 
+        const displayTitle = row.ad_company ? `${row.title} (${row.ad_company})` : row.title;
         const tr = document.createElement("tr");
         tr.className = "hover:bg-slate-800/50 cursor-pointer transition";
-        tr.onclick = () => showEvidence(row);
+        tr.addEventListener("click", () => showEvidence(row));
         tr.innerHTML = `
           <td class="px-5 py-3 font-mono text-slate-300">${row.broadcast_date} ${row.start_time}</td>
-          <td class="px-5 py-3 font-medium text-slate-100">${row.title}</td>
+          <td class="px-5 py-3 font-medium text-slate-100">${displayTitle}</td>
           <td class="px-5 py-3 text-slate-400">${row.type}</td>
           <td class="px-5 py-3 font-mono text-slate-300">${row.actual_start}</td>
           <td class="px-5 py-3 font-mono text-slate-400">${row.drift}</td>
@@ -563,6 +567,37 @@
     window.handleCSVUpload = handleCSVUpload;
     window.runVerification = runVerification;
     window.exportCSV = exportCSV;
+
+    document.getElementById("videoFile")?.addEventListener("change", handleVideoFileSelect);
+    document.getElementById("referenceClips")?.addEventListener("change", handleReferenceUpload);
+    document.getElementById("addRefUrlBtn")?.addEventListener("click", addReferenceUrl);
+    document.getElementById("referenceUrlInput")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addReferenceUrl();
+      }
+    });
+    document.getElementById("csvUpload")?.addEventListener("change", handleCSVUpload);
+    document.getElementById("runBtn")?.addEventListener("click", runVerification);
+    document.getElementById("exportCsvBtn")?.addEventListener("click", exportCSV);
+
+    setDefaultStartDateTime();
+    updateBadge();
+
+    import("./config.js")
+      .then((cfg) => {
+        N8N_mediamonitoring_WEBHOOK =
+          cfg.N8N_mediamonitoring_WEBHOOK ||
+          cfg.N8N_MEDIAMONITORING_WEBHOOK ||
+          FALLBACK_WEBHOOK_URL ||
+          "";
+        updateBadge();
+      })
+      .catch((err) => {
+        console.warn("Unable to load ./config.js:", err);
+        N8N_mediamonitoring_WEBHOOK = FALLBACK_WEBHOOK_URL || "";
+        updateBadge();
+      });
   </script>
 </body>
 </html>
