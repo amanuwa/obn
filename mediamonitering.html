@@ -195,9 +195,7 @@
   </main>
 
   <script type="module">
-    import { N8N_mediamonitoring_WEBHOOK } from "./config.js";
-
-    const webhookUrl = (N8N_mediamonitoring_WEBHOOK || "").trim();
+    let webhookUrl = "";
     let currentReport = [];
     let selectedBroadcastVideoFile = null;
     let attachedReferenceFiles = [];
@@ -711,6 +709,20 @@
 
     setDefaultStartDateTime();
     updateBadge();
+
+    import("./config.js")
+      .then((cfg) => {
+        webhookUrl = String(
+          cfg.N8N_mediamonitoring_WEBHOOK ||
+          cfg.N8N_MEDIAMONITORING_WEBHOOK ||
+          ""
+        ).trim();
+        updateBadge();
+      })
+      .catch((err) => {
+        console.warn("config.js import warning:", err);
+        updateBadge();
+      });
   </script>
 </body>
 </html>
