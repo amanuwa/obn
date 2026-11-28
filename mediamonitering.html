@@ -122,11 +122,17 @@
           class="w-full flex-1 bg-slate-950 border border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"></textarea>
 
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <span id="statusText" class="text-xs text-slate-400">Upload a CSV timetable to begin.</span>
-          <button id="runBtn" type="button"
-            class="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition shadow-lg shadow-emerald-950/50">
-            Run AI Schedule Verification
-          </button>
+          <span id="statusText" class="text-xs text-slate-400">Click "Send 'hi' Test" to verify webhook connection.</span>
+          <div class="flex items-center gap-2">
+            <button id="testHiBtn" type="button"
+              class="px-4 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition">
+              Send "hi" Test
+            </button>
+            <button id="runBtn" type="button"
+              class="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition shadow-lg shadow-emerald-950/50">
+              Run AI Schedule Verification
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -375,53 +381,44 @@
       });
     }
 
-    async function sendToN8n({
-      formattedStart,
-      broadcastDate,
-      formattedClock,
-      videoUrl,
-      timetable
-    }) {
+    async function sendHiTest() {
+      const testBtn = document.getElementById("testHiBtn");
+      const statusText = document.getElementById("statusText");
+
       if (!webhookUrl) {
-        throw new Error("Webhook URL is missing in ./config.js.");
+        statusText.textContent = "Error: Webhook URL is missing.";
+        return;
       }
 
-      const formData = new FormData();
-      formData.append("broadcast_start_datetime", formattedStart);
-      formData.append("broadcast_date", broadcastDate);
-      formData.append("broadcast_start_clock", formattedClock);
-      formData.append(
-        "video_path_or_url",
-        videoUrl || (selectedBroadcastVideoFile ? selectedBroadcastVideoFile.name : "")
-      );
-      formData.append("timetable", JSON.stringify(timetable));
-      formData.append("reference_urls", JSON.stringify(attachedReferenceUrls));
+      testBtn.disabled = true;
+      testBtn.textContent = "Sending hi...";
+      statusText.textContent = `Sending {"message":"hi"} to ${webhookUrl}...`;
 
-      if (selectedBroadcastVideoFile) {
-        formData.append(
-          "broadcast_video",
-          selectedBroadcastVideoFile,
-          selectedBroadcastVideoFile.name
-        );
+      try {
+        console.log('Sending {"message":"hi"} to n8n webhook:', webhookUrl);
+        const response = await fetch(webhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: "hi" })
+        });
+
+        const responseText = await response.text();
+        console.log("n8n hi test response:", response.status, responseText);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${responseText}`);
+        }
+
+        statusText.textContent = `Success (${response.status}): ${responseText}`;
+      } catch (err) {
+        console.error("n8n hi test error:", err);
+        statusText.textContent = `Error: ${err.message}`;
+      } finally {
+        testBtn.disabled = false;
+        testBtn.textContent = 'Send "hi" Test';
       }
-
-      attachedReferenceFiles.forEach((file, index) => {
-        formData.append(`reference_clip_${index}`, file, file.name);
-      });
-
-      console.log("Sending FormData to n8n webhook:", webhookUrl);
-
-      const response = await fetch(webhookUrl, {
-        method: "POST",
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error("Webhook returned HTTP status " + response.status);
-      }
-
-      const data = await response.json();
-      return data.report || data;
     }
 
     async function runVerification() {
@@ -446,197 +443,4 @@
 
       const videoUrl = document.getElementById("videoUrl").value.trim();
       const timetable = parseTimetable(rawTimetable, broadcastDate);
-      const totalRefs = attachedReferenceFiles.length + attachedReferenceUrls.length;
-
-      if (!selectedBroadcastVideoFile && !videoUrl) {
-        statusText.textContent = "Please upload a broadcast video file or enter a video path/URL.";
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = "Uploading & Processing...";
-      statusText.textContent = `Sending broadcast (${formattedStart}), ${totalRefs} reference item(s), and schedule to webhook...`;
-
-      try {
-        let results;
-
-        if (webhookUrl) {
-          results = await sendToN8n({
-            formattedStart,
-            broadcastDate,
-            formattedClock,
-            videoUrl,
-            timetable
-          });
-          statusText.textContent = `Verification complete for ${formattedStart}.`;
-        } else if (USE_DEMO_FALLBACK) {
-          await new Promise(r => setTimeout(r, 600));
-          results = simulateAIDetection(timetable, broadcastDate);
-          statusText.textContent = `Verification complete for ${formattedStart} (Simulated preview).`;
-        } else {
-          throw new Error("Webhook URL is missing in ./config.js.");
-        }
-
-        currentReport = Array.isArray(results) ? results : [];
-        document.getElementById("activeBroadcastDateBadge").textContent = `Broadcast Start: ${formattedStart}`;
-        renderResults(currentReport);
-      } catch (err) {
-        console.error("Verification error:", err);
-        statusText.textContent = "Error: " + err.message;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Run AI Schedule Verification";
-      }
-    }
-
-    function simulateAIDetection(timetable, broadcastDate) {
-      return timetable.map((item) => {
-        const firstWord = item.title.toLowerCase().split(" ")[0];
-        const refFile = attachedReferenceFiles.find(f => f.name.toLowerCase().includes(firstWord));
-        const refUrl = attachedReferenceUrls.find(u => u.toLowerCase().includes(firstWord));
-
-        const methodNote = refFile
-          ? `Matched uploaded reference "${refFile.name}" (99.4% audio fingerprint similarity)`
-          : refUrl
-          ? `Matched reference URL "${refUrl}" (99.1% audio fingerprint similarity)`
-          : `Matched via broadcast speech & program intro analysis`;
-
-        return {
-          ...item,
-          broadcast_date: broadcastDate,
-          actual_start: `${broadcastDate} ${item.start_time}`,
-          drift: "0s",
-          status: "Matched",
-          confidence: "98%",
-          transcript_cue: methodNote,
-          ocr_text: `On-screen lower third matched: ${item.title}`
-        };
-      });
-    }
-
-    function renderResults(rows) {
-      const tbody = document.getElementById("resultsBody");
-      tbody.innerHTML = "";
-
-      let matched = 0, delayed = 0, missing = 0;
-
-      rows.forEach((row) => {
-        if (row.status === "Matched") matched++;
-        else if (row.status === "Delayed") delayed++;
-        else missing++;
-
-        const badgeClass =
-          row.status === "Matched" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" :
-          row.status === "Delayed" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" :
-          "bg-rose-500/15 text-rose-400 border-rose-500/30";
-
-        const displayTitle = row.ad_company ? `${row.title} (${row.ad_company})` : row.title;
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-800/50 cursor-pointer transition";
-        tr.addEventListener("click", () => showEvidence(row));
-        tr.innerHTML = `
-          <td class="px-5 py-3 font-mono text-slate-300">${row.broadcast_date} ${row.start_time}</td>
-          <td class="px-5 py-3 font-medium text-slate-100">${displayTitle}</td>
-          <td class="px-5 py-3 text-slate-400">${row.type}</td>
-          <td class="px-5 py-3 font-mono text-slate-300">${row.actual_start}</td>
-          <td class="px-5 py-3 font-mono text-slate-400">${row.drift}</td>
-          <td class="px-5 py-3">
-            <span class="px-2.5 py-1 rounded-full text-[11px] font-medium border ${badgeClass}">
-              ${row.status}
-            </span>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      document.getElementById("kpiTotal").textContent = rows.length;
-      document.getElementById("kpiMatched").textContent = matched;
-      document.getElementById("kpiDelayed").textContent = delayed;
-      document.getElementById("kpiMissing").textContent = missing;
-
-      if (rows.length > 0) showEvidence(rows[0]);
-    }
-
-    function showEvidence(row) {
-      const panel = document.getElementById("evidencePanel");
-      panel.innerHTML = `
-        <div class="p-3.5 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
-          <div class="flex justify-between">
-            <span class="text-slate-400">Broadcast Date:</span>
-            <span class="font-mono text-slate-200">${row.broadcast_date}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">Item:</span>
-            <span class="font-semibold text-slate-100">${row.title}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">Planned Window:</span>
-            <span class="font-mono text-slate-200">${row.start_time} – ${row.end_time}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">Actual Air Time:</span>
-            <span class="font-mono text-emerald-400">${row.actual_start}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">AI Confidence:</span>
-            <span class="text-slate-200">${row.confidence || "95%"}</span>
-          </div>
-        </div>
-        <div class="space-y-1">
-          <p class="font-semibold text-slate-300">Detection Method / Fingerprint Match:</p>
-          <p class="p-3 rounded bg-slate-950 border border-slate-800 text-slate-300">${row.transcript_cue || "No transcript logged."}</p>
-        </div>
-        <div class="space-y-1">
-          <p class="font-semibold text-slate-300">Visual / Lower-Third OCR:</p>
-          <p class="p-3 rounded bg-slate-950 border border-slate-800 text-slate-300">${row.ocr_text || "No visual text logged."}</p>
-        </div>
-      `;
-    }
-
-    function exportCSV() {
-      if (!currentReport.length) {
-        document.getElementById("statusText").textContent = "Run verification before exporting CSV.";
-        return;
-      }
-      const header = "Broadcast Date,Planned Start,Planned End,Title,Type,Actual Start,Drift,Status\n";
-      const rows = currentReport.map(r =>
-        `"${r.broadcast_date}","${r.start_time}","${r.end_time}","${r.title}","${r.type}","${r.actual_start}","${r.drift}","${r.status}"`
-      ).join("\n");
-      const blob = new Blob([header + rows], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `broadcast-compliance-${currentReport[0].broadcast_date}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    document.getElementById("videoFile")?.addEventListener("change", handleVideoFileSelect);
-    document.getElementById("referenceClips")?.addEventListener("change", handleReferenceUpload);
-    document.getElementById("addRefUrlBtn")?.addEventListener("click", addReferenceUrl);
-    document.getElementById("referenceUrlInput")?.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        addReferenceUrl();
-      }
-    });
-    document.getElementById("csvUpload")?.addEventListener("change", handleCSVUpload);
-    document.getElementById("runBtn")?.addEventListener("click", runVerification);
-    document.getElementById("exportCsvBtn")?.addEventListener("click", exportCSV);
-
-    setDefaultStartDateTime();
-    updateBadge();
-
-    import("./config.js")
-      .then((cfg) => {
-        webhookUrl = cfg.N8N_mediamonitoring_WEBHOOK || cfg.N8N_MEDIAMONITORING_WEBHOOK || FALLBACK_WEBHOOK_URL || "";
-        updateBadge();
-      })
-      .catch((err) => {
-        console.warn("config.js load warning:", err);
-        webhookUrl = FALLBACK_WEBHOOK_URL || "";
-        updateBadge();
-      });
-  </script>
-</body>
-</html>
+      const totalRefs
