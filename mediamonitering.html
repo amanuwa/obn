@@ -195,10 +195,13 @@
   </main>
 
   <script type="module">
-    const FALLBACK_WEBHOOK_URL = ""; // Optional: paste webhook URL if ./config.js isn't serving the export yet
+    import { N8N_mediamonitoring_WEBHOOK as CONFIG_WEBHOOK } from "./config.js";
+
+    const FALLBACK_WEBHOOK_URL = "";
     const USE_DEMO_FALLBACK = false;
 
-    let N8N_mediamonitoring_WEBHOOK = "";
+    const N8N_mediamonitoring_WEBHOOK = CONFIG_WEBHOOK || FALLBACK_WEBHOOK_URL || "";
+
     let currentReport = [];
     let selectedBroadcastVideoFile = null;
     let attachedReferenceFiles = [];
@@ -583,21 +586,6 @@
 
     setDefaultStartDateTime();
     updateBadge();
-
-    import("./config.js")
-      .then((cfg) => {
-        N8N_mediamonitoring_WEBHOOK =
-          cfg.N8N_mediamonitoring_WEBHOOK ||
-          cfg.N8N_MEDIAMONITORING_WEBHOOK ||
-          FALLBACK_WEBHOOK_URL ||
-          "";
-        updateBadge();
-      })
-      .catch((err) => {
-        console.warn("Unable to load ./config.js:", err);
-        N8N_mediamonitoring_WEBHOOK = FALLBACK_WEBHOOK_URL || "";
-        updateBadge();
-      });
   </script>
 </body>
 </html>
