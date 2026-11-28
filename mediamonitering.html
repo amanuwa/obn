@@ -23,7 +23,7 @@
 
       <div class="flex items-center gap-3 shrink-0">
         <span id="connectionBadge" class="px-2.5 py-1 rounded-full text-[11px] bg-amber-500/10 text-amber-300 border border-amber-500/30">
-          Checking config.js...
+          Loading config.js...
         </span>
         <button id="exportCsvBtn" type="button" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition">
           Export Report (CSV)
@@ -195,10 +195,9 @@
   </main>
 
   <script type="module">
-    const FALLBACK_WEBHOOK_URL = "https://unreached-oboe-evade.ngrok-free.dev/webhook-test/mediamonitoring";
-    const USE_DEMO_FALLBACK = false;
+    import { N8N_mediamonitoring_WEBHOOK } from "./config.js";
 
-    let webhookUrl = FALLBACK_WEBHOOK_URL;
+    const webhookUrl = (N8N_mediamonitoring_WEBHOOK || "").trim();
     let currentReport = [];
     let selectedBroadcastVideoFile = null;
     let attachedReferenceFiles = [];
@@ -220,11 +219,11 @@
       if (webhookUrl) {
         badge.className = "px-2.5 py-1 rounded-full text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
         badge.textContent = webhookUrl.includes("/webhook-test/")
-          ? "n8n Test Webhook Loaded"
+          ? "n8n Test Webhook Loaded (Click Listen in n8n)"
           : "n8n Live Webhook Loaded";
       } else {
         badge.className = "px-2.5 py-1 rounded-full text-[11px] bg-rose-500/10 text-rose-400 border border-rose-500/30";
-        badge.textContent = "Webhook Missing in config.js";
+        badge.textContent = "N8N_mediamonitoring_WEBHOOK Missing in config.js";
       }
     }
 
@@ -335,15 +334,46 @@
       reader.readAsText(file);
     }
 
+    // Quote-aware CSV line splitter so commas inside quotes do not shift columns
+    function splitCsvLine(line) {
+      const cols = [];
+      let current = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (ch === "," && !inQuotes) {
+          cols.push(current.trim());
+          current = "";
+        } else {
+          current += ch;
+        }
+      }
+      cols.push(current.trim());
+      return cols;
+    }
+
+    function csvEscape(value) {
+      const str = String(value ?? "");
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+
     function parseTimetable(rawText, broadcastDate) {
       const lines = rawText
-        .split("\n")
+        .split(/\r?\n/)
         .map(line => line.trim())
         .filter(Boolean);
 
       if (!lines.length) return [];
 
-      const firstCols = lines[0].split(",").map(s => s.trim().toLowerCase());
+      const firstCols = splitCsvLine(lines[0]).map(s => s.toLowerCase());
       const hasExtendedAdHeader = firstCols[0] === "ad" && firstCols.includes("start_time") && firstCols.includes("end_time");
       const dataLines = lines.filter((line, idx) => {
         if (idx !== 0) return true;
@@ -352,7 +382,7 @@
       });
 
       return dataLines.map(line => {
-        const cols = line.split(",").map(s => s.trim());
+        const cols = splitCsvLine(line);
         if (hasExtendedAdHeader) {
           return {
             broadcast_date: broadcastDate,
@@ -379,7 +409,9 @@
       if (Array.isArray(data)) {
         if (data.length > 0 && Array.isArray(data[0]?.report)) return data[0].report;
         if (data.length > 0 && Array.isArray(data[0]?.data)) return data[0].data;
-        return data;
+        if (data.length > 0 && Array.isArray(data[0]?.json?.report)) return data[0].json.report;
+        if (data.length > 0 && Array.isArray(data[0]?.json?.data)) return data[0].json.data;
+        return data.map(item => item?.json || item);
       }
       if (data && typeof data === "object") {
         if (Array.isArray(data.report)) return data.report;
@@ -389,21 +421,53 @@
       return [];
     }
 
-    async function transmitPayloadToN8n(payload) {
-      const startResponse = await fetch(webhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
+    async function parseSafeJsonResponse(response) {
+      const rawText = await response.text();
+      if (!rawText) return {};
+      try {
+        return JSON.parse(rawText);
+      } catch {
+        const snippet = rawText.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 140);
+        throw new Error(`Non-JSON response (HTTP ${response.status}): ${snippet}`);
+      }
+    }
 
-      if (!startResponse.ok) {
-        throw new Error(`n8n Gateway returned HTTP ${startResponse.status}`);
+    async function transmitPayloadToN8n(payload) {
+      if (!webhookUrl) {
+        throw new Error("N8N_mediamonitoring_WEBHOOK is not configured in ./config.js.");
       }
 
-      const startData = await startResponse.json();
+      const headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "ngrok-skip-browser-warning": "true"
+      };
+
+      let startResponse;
+      try {
+        startResponse = await fetch(webhookUrl, {
+          method: "POST",
+          mode: "cors",
+          headers,
+          body: JSON.stringify(payload)
+        });
+      } catch (networkErr) {
+        if (window.location.protocol === "file:") {
+          throw new Error("Blocked by browser CORS because page is opened via file://. Serve it with a local HTTP server (e.g., npx serve or VS Code Live Server).");
+        }
+        throw new Error(`Network/CORS failure reaching n8n (${networkErr.message}). Ensure ngrok is running and n8n 'Listen for test event' is active.`);
+      }
+
+      const startData = await parseSafeJsonResponse(startResponse);
+
+      if (!startResponse.ok) {
+        const msg = startData?.message || `n8n returned HTTP ${startResponse.status}`;
+        if (msg.includes("not registered")) {
+          throw new Error("n8n Test Webhook is not listening. Click 'Listen for test event' in n8n first, then click Run.");
+        }
+        throw new Error(msg);
+      }
+
       const directRows = extractReportRows(startData);
       if (directRows.length > 0) {
         return directRows;
@@ -425,12 +489,16 @@
             `${webhookUrl}?jobId=${encodeURIComponent(jobId)}`,
             {
               method: "GET",
-              headers: { "Accept": "application/json" }
+              mode: "cors",
+              headers: {
+                "Accept": "application/json",
+                "ngrok-skip-browser-warning": "true"
+              }
             }
           );
 
           if (checkResponse.ok) {
-            const jobResult = await checkResponse.json();
+            const jobResult = await parseSafeJsonResponse(checkResponse);
             if (jobResult.status === "completed") {
               return extractReportRows(jobResult.data || jobResult);
             }
@@ -499,18 +567,8 @@
       statusText.textContent = `Sending JSON payload to ${webhookUrl}...`;
 
       try {
-        let results;
-
-        if (webhookUrl) {
-          results = await transmitPayloadToN8n(payload);
-          statusText.textContent = `Verification complete for ${formattedStart}.`;
-        } else if (USE_DEMO_FALLBACK) {
-          await new Promise(r => setTimeout(r, 600));
-          results = simulateAIDetection(timetable, broadcastDate);
-          statusText.textContent = `Verification complete for ${formattedStart} (Simulated preview).`;
-        } else {
-          throw new Error("Webhook URL is missing in ./config.js.");
-        }
+        const results = await transmitPayloadToN8n(payload);
+        statusText.textContent = `Verification complete for ${formattedStart} (${results.length} items returned).`;
 
         currentReport = Array.isArray(results) ? results : [];
         document.getElementById("activeBroadcastDateBadge").textContent = `Broadcast Start: ${formattedStart}`;
@@ -524,29 +582,11 @@
       }
     }
 
-    function simulateAIDetection(timetable, broadcastDate) {
-      return timetable.map((item) => {
-        const firstWord = item.title.toLowerCase().split(" ")[0];
-        const refFile = attachedReferenceFiles.find(f => f.name.toLowerCase().includes(firstWord));
-        const refUrl = attachedReferenceUrls.find(u => u.toLowerCase().includes(firstWord));
-
-        const methodNote = refFile
-          ? `Matched uploaded reference "${refFile.name}" (99.4% audio fingerprint similarity)`
-          : refUrl
-          ? `Matched reference URL "${refUrl}" (99.1% audio fingerprint similarity)`
-          : `Matched via broadcast speech & program intro analysis`;
-
-        return {
-          ...item,
-          broadcast_date: broadcastDate,
-          actual_start: `${broadcastDate} ${item.start_time}`,
-          drift: "0s",
-          status: "Matched",
-          confidence: "98%",
-          transcript_cue: methodNote,
-          ocr_text: `On-screen lower third matched: ${item.title}`
-        };
-      });
+    function normalizeStatusBucket(status) {
+      const s = String(status || "").trim().toLowerCase();
+      if (s === "matched" || s === "on time" || s === "on-time" || s === "verified") return "matched";
+      if (s === "delayed" || s === "drift" || s === "late" || s === "shifted") return "delayed";
+      return "missing";
     }
 
     function renderResults(rows) {
@@ -556,13 +596,14 @@
       let matched = 0, delayed = 0, missing = 0;
 
       rows.forEach((row) => {
-        if (row.status === "Matched") matched++;
-        else if (row.status === "Delayed") delayed++;
+        const bucket = normalizeStatusBucket(row.status);
+        if (bucket === "matched") matched++;
+        else if (bucket === "delayed") delayed++;
         else missing++;
 
         const badgeClass =
-          row.status === "Matched" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" :
-          row.status === "Delayed" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" :
+          bucket === "matched" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" :
+          bucket === "delayed" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" :
           "bg-rose-500/15 text-rose-400 border-rose-500/30";
 
         const displayTitle = row.ad_company ? `${row.title} (${row.ad_company})` : row.title;
@@ -570,14 +611,14 @@
         tr.className = "hover:bg-slate-800/50 cursor-pointer transition";
         tr.addEventListener("click", () => showEvidence(row));
         tr.innerHTML = `
-          <td class="px-5 py-3 font-mono text-slate-300">${row.broadcast_date} ${row.start_time}</td>
+          <td class="px-5 py-3 font-mono text-slate-300">${row.broadcast_date || ""} ${row.start_time || ""}</td>
           <td class="px-5 py-3 font-medium text-slate-100">${displayTitle}</td>
-          <td class="px-5 py-3 text-slate-400">${row.type}</td>
-          <td class="px-5 py-3 font-mono text-slate-300">${row.actual_start}</td>
-          <td class="px-5 py-3 font-mono text-slate-400">${row.drift}</td>
+          <td class="px-5 py-3 text-slate-400">${row.type || ""}</td>
+          <td class="px-5 py-3 font-mono text-slate-300">${row.actual_start || "—"}</td>
+          <td class="px-5 py-3 font-mono text-slate-400">${row.drift || "—"}</td>
           <td class="px-5 py-3">
             <span class="px-2.5 py-1 rounded-full text-[11px] font-medium border ${badgeClass}">
-              ${row.status}
+              ${row.status || "Unknown"}
             </span>
           </td>
         `;
@@ -598,19 +639,19 @@
         <div class="p-3.5 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
           <div class="flex justify-between">
             <span class="text-slate-400">Broadcast Date:</span>
-            <span class="font-mono text-slate-200">${row.broadcast_date}</span>
+            <span class="font-mono text-slate-200">${row.broadcast_date || "—"}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-400">Item:</span>
-            <span class="font-semibold text-slate-100">${row.title}</span>
+            <span class="font-semibold text-slate-100">${row.title || "—"}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-400">Planned Window:</span>
-            <span class="font-mono text-slate-200">${row.start_time} – ${row.end_time}</span>
+            <span class="font-mono text-slate-200">${row.start_time || "—"} – ${row.end_time || "—"}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-400">Actual Air Time:</span>
-            <span class="font-mono text-emerald-400">${row.actual_start}</span>
+            <span class="font-mono text-emerald-400">${row.actual_start || "—"}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-400">AI Confidence:</span>
@@ -635,13 +676,22 @@
       }
       const header = "Broadcast Date,Planned Start,Planned End,Title,Type,Actual Start,Drift,Status\n";
       const rows = currentReport.map(r =>
-        `"${r.broadcast_date}","${r.start_time}","${r.end_time}","${r.title}","${r.type}","${r.actual_start}","${r.drift}","${r.status}"`
+        [
+          csvEscape(r.broadcast_date),
+          csvEscape(r.start_time),
+          csvEscape(r.end_time),
+          csvEscape(r.title),
+          csvEscape(r.type),
+          csvEscape(r.actual_start),
+          csvEscape(r.drift),
+          csvEscape(r.status)
+        ].join(",")
       ).join("\n");
       const blob = new Blob([header + rows], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `broadcast-compliance-${currentReport[0].broadcast_date}.csv`;
+      a.download = `broadcast-compliance-${currentReport[0].broadcast_date || "report"}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -661,17 +711,6 @@
 
     setDefaultStartDateTime();
     updateBadge();
-
-    import("./config.js")
-      .then((cfg) => {
-        webhookUrl = cfg.N8N_mediamonitoring_WEBHOOK || cfg.N8N_MEDIAMONITORING_WEBHOOK || FALLBACK_WEBHOOK_URL || "";
-        updateBadge();
-      })
-      .catch((err) => {
-        console.warn("config.js load warning:", err);
-        webhookUrl = FALLBACK_WEBHOOK_URL || "";
-        updateBadge();
-      });
   </script>
 </body>
 </html>
