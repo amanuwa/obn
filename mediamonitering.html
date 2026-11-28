@@ -195,7 +195,7 @@
   </main>
 
   <script type="module">
-    const FALLBACK_WEBHOOK_URL = "https://unreached-oboe-evade.ngrok-free.dev/webhook-test/mediamonitering";
+    const FALLBACK_WEBHOOK_URL = "https://unreached-oboe-evade.ngrok-free.dev/webhook-test/mediamonitoring";
     const USE_DEMO_FALLBACK = false;
 
     let webhookUrl = FALLBACK_WEBHOOK_URL;
@@ -375,6 +375,55 @@
       });
     }
 
+    async function sendToN8n({
+      formattedStart,
+      broadcastDate,
+      formattedClock,
+      videoUrl,
+      timetable
+    }) {
+      if (!webhookUrl) {
+        throw new Error("Webhook URL is missing in ./config.js.");
+      }
+
+      const formData = new FormData();
+      formData.append("broadcast_start_datetime", formattedStart);
+      formData.append("broadcast_date", broadcastDate);
+      formData.append("broadcast_start_clock", formattedClock);
+      formData.append(
+        "video_path_or_url",
+        videoUrl || (selectedBroadcastVideoFile ? selectedBroadcastVideoFile.name : "")
+      );
+      formData.append("timetable", JSON.stringify(timetable));
+      formData.append("reference_urls", JSON.stringify(attachedReferenceUrls));
+
+      if (selectedBroadcastVideoFile) {
+        formData.append(
+          "broadcast_video",
+          selectedBroadcastVideoFile,
+          selectedBroadcastVideoFile.name
+        );
+      }
+
+      attachedReferenceFiles.forEach((file, index) => {
+        formData.append(`reference_clip_${index}`, file, file.name);
+      });
+
+      console.log("Sending FormData to n8n webhook:", webhookUrl);
+
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error("Webhook returned HTTP status " + response.status);
+      }
+
+      const data = await response.json();
+      return data.report || data;
+    }
+
     async function runVerification() {
       const btn = document.getElementById("runBtn");
       const statusText = document.getElementById("statusText");
@@ -412,29 +461,13 @@
         let results;
 
         if (webhookUrl) {
-          const formData = new FormData();
-          formData.append("broadcast_start_datetime", formattedStart);
-          formData.append("broadcast_date", broadcastDate);
-          formData.append("broadcast_start_clock", formattedClock);
-          formData.append("video_path_or_url", videoUrl || (selectedBroadcastVideoFile ? selectedBroadcastVideoFile.name : ""));
-          formData.append("timetable", JSON.stringify(timetable));
-          formData.append("reference_urls", JSON.stringify(attachedReferenceUrls));
-
-          if (selectedBroadcastVideoFile) {
-            formData.append("broadcast_video", selectedBroadcastVideoFile, selectedBroadcastVideoFile.name);
-          }
-
-          attachedReferenceFiles.forEach((file, index) => {
-            formData.append(`reference_clip_${index}`, file, file.name);
+          results = await sendToN8n({
+            formattedStart,
+            broadcastDate,
+            formattedClock,
+            videoUrl,
+            timetable
           });
-
-          const response = await fetch(webhookUrl, {
-            method: "POST",
-            body: formData
-          });
-          if (!response.ok) throw new Error("Webhook returned HTTP status " + response.status);
-          const data = await response.json();
-          results = data.report || data;
           statusText.textContent = `Verification complete for ${formattedStart}.`;
         } else if (USE_DEMO_FALLBACK) {
           await new Promise(r => setTimeout(r, 600));
@@ -448,6 +481,7 @@
         document.getElementById("activeBroadcastDateBadge").textContent = `Broadcast Start: ${formattedStart}`;
         renderResults(currentReport);
       } catch (err) {
+        console.error("Verification error:", err);
         statusText.textContent = "Error: " + err.message;
       } finally {
         btn.disabled = false;
